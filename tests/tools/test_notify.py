@@ -81,7 +81,7 @@ class TestNotify:
     def test_create_future_initial_message(self, mock_postman):
         # Setup
         cloud = "cloud1"
-        assignment_obj = MagicMock(ticket="ticket1", owner="owner1")
+        assignment_obj = MagicMock(ticket="ticket1", owner="owner1", is_self_schedule=False)
         cloud_info = "cloud_info1"
 
         # Call the function

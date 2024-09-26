@@ -45,6 +45,41 @@ HOST_5_REQUEST = {
     "cloud": "cloud05",
     "host_type": "scalelab",
 }
+SELF_HOST_1_REQUEST = {
+    "name": "host11.example.com",
+    "default_cloud": "cloud01",
+    "model": "fc640",
+    "host_type": "scalelab",
+    "can_self_schedule": False,
+}
+SELF_HOST_2_REQUEST = {
+    "name": "host12.example.com",
+    "default_cloud": "cloud01",
+    "model": "r640",
+    "host_type": "alias",
+    "can_self_schedule": False,
+}
+SELF_HOST_3_REQUEST = {
+    "name": "host13.example.com",
+    "default_cloud": "cloud01",
+    "model": "1029p",
+    "host_type": "scalelab",
+    "can_self_schedule": False,
+}
+SELF_HOST_4_REQUEST = {
+    "name": "host14.example.com",
+    "default_cloud": "cloud01",
+    "model": "r640",
+    "host_type": "scalelab",
+    "can_self_schedule": False,
+}
+SELF_HOST_5_REQUEST = {
+    "name": "host15.example.com",
+    "default_cloud": "cloud01",
+    "model": "6048r",
+    "host_type": "scalelab",
+    "can_self_schedule": False,
+}
 
 # --------------------
 # DISKS
@@ -329,6 +364,7 @@ ASSIGNMENT_1_RESPONSE = {
     "created_at": "___",
     "description": "Test allocation.",
     "id": 1,
+    "is_self_schedule": False,
     "notification": {
         "assignment_id": 1,
         "fail": False,
@@ -376,6 +412,7 @@ ASSIGNMENT_1_UPDATE_RESPONSE = {
     "created_at": "___",
     "description": "Updated description.",
     "id": 1,
+    "is_self_schedule": False,
     "notification": {
         "assignment_id": 1,
         "fail": False,
@@ -421,6 +458,7 @@ ASSIGNMENT_2_RESPONSE = {
     "created_at": "___",
     "description": "Test allocation.",
     "id": 2,
+    "is_self_schedule": False,
     "notification": {
         "assignment_id": 2,
         "fail": False,
@@ -450,6 +488,53 @@ ASSIGNMENT_2_RESPONSE = {
     "vlan_id": 2,
     "wipe": False,
 }
+SELF_ASSIGNMENT_1_REQUEST = {
+    "cloud": "cloud04",
+    "vlan": "603",
+    "description": "Test allocation.",
+    "owner": "grafuls",
+    "ticket": "3",
+    "ccuser": "gonza",
+    "is_self_schedule": True,
+}
+SELF_ASSIGNMENT_1_RESPONSE = {
+    "active": True,
+    "ccuser": ["gonza"],
+    "cloud": {"id": 4, "last_redefined": "___", "name": "cloud04"},
+    "cloud_id": 4,
+    "created_at": "___",
+    "description": "Test allocation.",
+    "id": 3,
+    "is_self_schedule": True,
+    "notification": {
+        "assignment_id": 3,
+        "fail": False,
+        "five_days": False,
+        "id": 3,
+        "initial": False,
+        "one_day": False,
+        "pre": False,
+        "pre_initial": False,
+        "seven_days": False,
+        "success": False,
+        "three_days": False,
+    },
+    "owner": "grafuls",
+    "provisioned": False,
+    "qinq": None,
+    "ticket": "3",
+    "validated": False,
+    "vlan": {
+        "gateway": "192.168.12.21",
+        "id": 3,
+        "ip_free": 1022,
+        "ip_range": "10.1.54.0/22",
+        "netmask": "255.255.252.0",
+        "vlan_id": 603,
+    },
+    "vlan_id": 3,
+    "wipe": False,
+}
 
 # --------------------
 # SCHEDULES
@@ -462,6 +547,239 @@ end_date_future = start_date + timedelta(days=36500)
 end_str_future = end_date_future.strftime("%Y-%m-%d")
 build_end = start_date + timedelta(days=1)
 build_end_str = build_end.strftime("%Y-%m-%d")
+
+SELF_SCHEDULE_1_REQUEST = {
+    "cloud": "cloud04",
+    "hostname": "host2.example.com",
+}
+SELF_SCHEDULE_1_RESPONSE = {
+    "assignment": {
+        "active": True,
+        "ccuser": ["gonza"],
+        "cloud": {
+            "id": 4,
+            "name": "cloud04",
+        },
+        "cloud_id": 4,
+        "description": "Test allocation.",
+        "id": 3,
+        "is_self_schedule": True,
+        "notification": {
+            "assignment_id": 3,
+            "fail": False,
+            "five_days": False,
+            "id": 3,
+            "initial": False,
+            "one_day": False,
+            "pre": False,
+            "pre_initial": False,
+            "seven_days": False,
+            "success": False,
+            "three_days": False,
+        },
+        "owner": "grafuls",
+        "provisioned": False,
+        "qinq": None,
+        "ticket": "3",
+        "validated": False,
+        "vlan": {
+            "gateway": "192.168.12.21",
+            "id": 3,
+            "ip_free": 1022,
+            "ip_range": "10.1.54.0/22",
+            "netmask": "255.255.252.0",
+            "vlan_id": 603,
+        },
+        "vlan_id": 3,
+        "wipe": False,
+    },
+    "assignment_id": 3,
+    "build_end": None,
+    "build_start": None,
+    "end": "Tue, 06 Jun 2023 22:00:00 GMT",
+    "host": {
+        "broken": False,
+        "build": False,
+        "can_self_schedule": True,
+        "cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "cloud_id": 1,
+        "default_cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "default_cloud_id": 1,
+        "host_type": "alias",
+        "id": 2,
+        "last_build": None,
+        "model": "R640",
+        "name": "host2.example.com",
+        "retired": False,
+        "switch_config_applied": False,
+        "validated": False,
+    },
+    "host_id": 2,
+    "id": 3,
+    "start": "Thu, 01 Jun 2023 22:00:00 GMT",
+}
+SELF_SCHEDULE_2_REQUEST = {
+    "cloud": "cloud04",
+    "hostname": "host3.example.com",
+}
+SELF_SCHEDULE_2_RESPONSE = {
+    "assignment": {
+        "active": True,
+        "ccuser": ["gonza"],
+        "cloud": {
+            "id": 4,
+            "name": "cloud04",
+        },
+        "cloud_id": 4,
+        "description": "Test allocation.",
+        "id": 3,
+        "is_self_schedule": True,
+        "notification": {
+            "assignment_id": 3,
+            "fail": False,
+            "five_days": False,
+            "id": 3,
+            "initial": False,
+            "one_day": False,
+            "pre": False,
+            "pre_initial": False,
+            "seven_days": False,
+            "success": False,
+            "three_days": False,
+        },
+        "owner": "grafuls",
+        "provisioned": False,
+        "qinq": None,
+        "ticket": "3",
+        "validated": False,
+        "vlan": {
+            "gateway": "192.168.12.21",
+            "id": 3,
+            "ip_free": 1022,
+            "ip_range": "10.1.54.0/22",
+            "netmask": "255.255.252.0",
+            "vlan_id": 603,
+        },
+        "vlan_id": 3,
+        "wipe": False,
+    },
+    "assignment_id": 3,
+    "build_end": None,
+    "build_start": None,
+    "end": "Tue, 06 Jun 2023 22:00:00 GMT",
+    "host": {
+        "broken": False,
+        "build": False,
+        "can_self_schedule": True,
+        "cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "cloud_id": 1,
+        "default_cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "default_cloud_id": 1,
+        "host_type": "scalelab",
+        "id": 3,
+        "last_build": None,
+        "model": "1029P",
+        "name": "host3.example.com",
+        "retired": False,
+        "switch_config_applied": False,
+        "validated": False,
+    },
+    "host_id": 3,
+    "id": 4,
+    "start": "Thu, 01 Jun 2023 22:00:00 GMT",
+}
+SELF_SCHEDULE_3_REQUEST = {
+    "cloud": "cloud04",
+    "hostname": "host4.example.com",
+}
+SELF_SCHEDULE_3_RESPONSE = {
+    "assignment": {
+        "active": True,
+        "ccuser": ["gonza"],
+        "cloud": {
+            "id": 4,
+            "name": "cloud04",
+        },
+        "cloud_id": 4,
+        "description": "Test allocation.",
+        "id": 3,
+        "is_self_schedule": True,
+        "notification": {
+            "assignment_id": 3,
+            "fail": False,
+            "five_days": False,
+            "id": 3,
+            "initial": False,
+            "one_day": False,
+            "pre": False,
+            "pre_initial": False,
+            "seven_days": False,
+            "success": False,
+            "three_days": False,
+        },
+        "owner": "grafuls",
+        "provisioned": False,
+        "qinq": None,
+        "ticket": "3",
+        "validated": False,
+        "vlan": {
+            "gateway": "192.168.12.21",
+            "id": 3,
+            "ip_free": 1022,
+            "ip_range": "10.1.54.0/22",
+            "netmask": "255.255.252.0",
+            "vlan_id": 603,
+        },
+        "vlan_id": 3,
+        "wipe": False,
+    },
+    "assignment_id": 3,
+    "build_end": None,
+    "build_start": None,
+    "end": "Tue, 06 Jun 2023 22:00:00 GMT",
+    "host": {
+        "broken": False,
+        "build": False,
+        "can_self_schedule": True,
+        "cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "cloud_id": 1,
+        "default_cloud": {
+            "id": 1,
+            "name": "cloud01",
+        },
+        "default_cloud_id": 1,
+        "host_type": "alias",
+        "id": 4,
+        "last_build": None,
+        "model": "R640",
+        "name": "host4.example.com",
+        "retired": False,
+        "switch_config_applied": False,
+        "validated": False,
+    },
+    "host_id": 4,
+    "id": 3,
+    "start": "Thu, 01 Jun 2023 22:00:00 GMT",
+}
+SELF_SCHEDULE_NON_REQUEST = {
+    "cloud": "cloud04",
+    "hostname": "host11.example.com",
+}
 SCHEDULE_1_REQUEST = {
     "cloud": "cloud02",
     "hostname": "host2.example.com",
@@ -481,6 +799,7 @@ SCHEDULE_1_RESPONSE = {
         "created_at": "Tue, 07 Mar 2023 11:36:53 GMT",
         "description": "Test allocation.",
         "id": 1,
+        "is_self_schedule": False,
         "notification": {
             "assignment_id": 1,
             "fail": False,
@@ -518,6 +837,7 @@ SCHEDULE_1_RESPONSE = {
     "host": {
         "broken": False,
         "build": False,
+        "can_self_schedule": True,
         "cloud": {
             "id": 1,
             "last_redefined": "Tue, 07 Mar 2023 11:36:53 GMT",
@@ -563,6 +883,7 @@ SCHEDULE_2_RESPONSE = {
         "created_at": "Tue, 07 Mar 2023 11:36:53 GMT",
         "description": "Test allocation.",
         "id": 2,
+        "is_self_schedule": False,
         "notification": {
             "assignment_id": 2,
             "fail": False,
@@ -600,6 +921,7 @@ SCHEDULE_2_RESPONSE = {
     "host": {
         "broken": False,
         "build": False,
+        "can_self_schedule": True,
         "cloud": {
             "id": 1,
             "last_redefined": "Tue, 07 Mar 2023 11:36:53 GMT",

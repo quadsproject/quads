@@ -30,4 +30,4 @@ class TestSummary(TestBase):
         self.quads_cli_call("summary")
 
         assert len(self._caplog.messages) == 1
-        assert self._caplog.messages[0] == "cloud99: 2 (test)"
+        assert self._caplog.messages[0] == "cloud99: 1 (test)"

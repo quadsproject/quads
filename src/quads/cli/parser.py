@@ -209,6 +209,13 @@ action_group.add_argument(
     help="Path to QUADS log file",
 )
 action_group.add_argument(
+    "--mod-host",
+    dest="action",
+    action="store_const",
+    const="modhost",
+    help="Modify a host",
+)
+action_group.add_argument(
     "--define-cloud",
     dest="action",
     action="store_const",
@@ -622,6 +629,38 @@ parser.add_argument(
     type=str,
     default=None,
     help="Open-ended identifier for host: util, baremetal, aws, openstack, libvirt, etc.",
+)
+parser.add_argument(
+    "--build",
+    dest="build",
+    type=str,
+    choices=["true", "false"],
+    default=None,
+    help="Whether the host has been built (true/false)",
+)
+parser.add_argument(
+    "--validated",
+    dest="validated",
+    type=str,
+    choices=["true", "false"],
+    default=None,
+    help="Whether the host has been validated (true/false)",
+)
+parser.add_argument(
+    "--switch-config-applied",
+    dest="switchconfigapplied",
+    type=str,
+    choices=["true", "false"],
+    default=None,
+    help="Whether the switch config has been applied (true/false)",
+)
+parser.add_argument(
+    "--can-self-schedule",
+    dest="canselfschedule",
+    type=str,
+    choices=["true", "false"],
+    default=None,
+    help="Whether the host can self-schedule (true/false)",
 )
 parser.add_argument(
     "--vlan",
