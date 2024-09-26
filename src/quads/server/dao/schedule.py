@@ -1,13 +1,19 @@
 from datetime import datetime
 from typing import List, Type
-from sqlalchemy import and_, Boolean
-from sqlalchemy.orm import RelationshipProperty, relationship
+
+from sqlalchemy import Boolean, and_
 
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError, OPERATORS
+from quads.server.dao.baseDao import (
+    OPERATORS,
+    BaseDao,
+    EntryNotFound,
+    InvalidArgument,
+    SQLError,
+)
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
-from quads.server.models import db, Host, Schedule, Cloud, Assignment
+from quads.server.models import Assignment, Cloud, Host, Schedule, db
 
 
 class ScheduleDao(BaseDao):
@@ -91,9 +97,9 @@ class ScheduleDao(BaseDao):
     def filter_schedule_dict(data: dict) -> List[Schedule]:
         filter_tuples = []
         date_fields = ["start", "end", "build_start", "build_end"]
-        operator = "=="
         group_by = None
         for k, value in data.items():
+            operator = "=="
             fields = k.split(".")
             if len(fields) > 2:
                 raise InvalidArgument(f"Too many arguments: {fields}")
@@ -109,7 +115,7 @@ class ScheduleDao(BaseDao):
                         operator = OPERATORS[op]
                         break
 
-            if value.lower() == "none":
+            if value and isinstance(value, str) and value.lower() == "none":
                 value = None
 
             if fields[0].lower() == "group_by":
@@ -132,7 +138,7 @@ class ScheduleDao(BaseDao):
 
             if first_field in date_fields:
                 try:
-                    if value:
+                    if value and isinstance(value, str):
                         value = datetime.strptime(value, "%Y-%m-%dT%H:%M")
                 except ValueError:
                     raise InvalidArgument(f"Invalid date format for {first_field}: {value}")

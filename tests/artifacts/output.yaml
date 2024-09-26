@@ -12,7 +12,7 @@ current_schedules:
 - build_end: null
   build_start: null
   cloud: cloud99
-  end: 2024-08-20 19:38:00
+  end: 2024-12-12 20:20:00
   host: host1.example.com
   moved: false
-  start: 2024-08-06 19:38:00
+  start: 2024-11-28 20:20:00
