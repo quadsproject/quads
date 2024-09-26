@@ -2,7 +2,7 @@ from typing import List
 
 from quads.server.dao.baseDao import BaseDao, EntryNotFound
 from quads.server.dao.host import HostDao
-from quads.server.models import db, Disk
+from quads.server.models import Disk, db
 
 
 class DiskDao(BaseDao):

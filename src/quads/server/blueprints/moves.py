@@ -1,10 +1,9 @@
 from datetime import datetime
 
-from flask import Blueprint, jsonify, Response, make_response, request, abort
+from flask import Blueprint, Response, abort, jsonify, make_response, request
 
 from quads.server.dao.host import HostDao
 from quads.server.dao.schedule import ScheduleDao
-
 
 moves_bp = Blueprint("moves", __name__)
 

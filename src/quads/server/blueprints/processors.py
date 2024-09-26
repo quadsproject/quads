@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, request, Response, make_response
+from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.server.blueprints import check_access
 from quads.server.dao.baseDao import BaseDao
 from quads.server.dao.host import HostDao
 from quads.server.dao.processor import ProcessorDao
-from quads.server.models import db, Processor
+from quads.server.models import Processor, db
 
 processor_bp = Blueprint("processors", __name__)
 
