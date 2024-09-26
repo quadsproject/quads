@@ -1,7 +1,9 @@
 import json
 from functools import wraps
-from flask import request, Response
-from quads.server.models import User, db, Role
+
+from flask import Response, request
+
+from quads.server.models import Role, User, db
 
 
 def check_access(roles):

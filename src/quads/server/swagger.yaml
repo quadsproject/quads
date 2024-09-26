@@ -196,6 +196,44 @@ paths:
           description: Deleted Cloud
       security:
         - BearerAuth: [ ]
+    patch:
+        summary: Update an existing cloud
+        tags:
+            - Clouds
+        parameters:
+            - name: cloudName
+              in: path
+              description: Cloud name
+              required: true
+              schema:
+                  type: string
+        requestBody:
+          description: Body request with *cloud* details
+          required: true
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Cloud'
+        responses:
+            '200':
+              description: Cloud name
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                  schema:
+                    type: string
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Cloud'
+            default:
+              description: Unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Error'
+        security:
+            - BearerAuth: [ ]
 
   /clouds/free/:
     get:
@@ -931,43 +969,6 @@ paths:
       security:
         - BearerAuth: [ ]
 
-    patch:
-      summary: Update an existing host memory definitions
-      tags:
-        - Memory
-      parameters:
-        - name: hostName
-          in: path
-          description: Host name
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Body request with *memory* details
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Memory'
-          text/plain:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: Memory details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Memory'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-        - BearerAuth: [ ]
-
   /processors/:
     get:
       summary: Returns a list of all processors
@@ -1135,6 +1136,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+    patch:
+        summary: Update an existing vlan
+        tags:
+            - Vlans
+        parameters:
+            - name: vlan_id
+              in: path
+              description: Vlan ID
+              required: true
+              schema:
+                type: integer
+        requestBody:
+          description: Body request with *vlan* details
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vlan'
+        responses:
+          '200':
+            description: Vlan details
+            headers:
+              x-next:
+                description: A link to the next page of responses
+                schema:
+                  type: string
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Vlan'
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+        security:
+            - BearerAuth: [ ]
     delete:
       summary: Delete vlan by vlan id
       tags:
@@ -1442,6 +1481,45 @@ paths:
       responses:
         '201':
           description: Created
+
+  /assignments/self/:
+    post:
+      summary: Create a new self assignment
+      tags:
+        - Assignments
+      requestBody:
+        description: Body request with *assignment* details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assignment'
+          text/plain:
+            schema:
+              type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '201':
+          description: Created
+
+  /assignments/terminate/{assignment_id}/:
+    post:
+      summary: Terminate an assignment by id
+      tags:
+        - Assignments
+      parameters:
+        - name: assignment_id
+          in: path
+          description: Assignment ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assignment terminated
+      security:
+        - BearerAuth: [ ]
 
   /assignments/{assignment_id}/:
     get:

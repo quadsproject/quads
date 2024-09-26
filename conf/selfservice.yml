@@ -1,0 +1,8 @@
+# Turn on or off ss globally
+ssm_enable: true
+# Set max limit per self-schedule
+ssm_host_limit: 10
+# Set default lifetime in days for self-schedules
+ssm_default_lifetime: 5
+# How many clouds (and auth tokens, one per cloud) a unique user ID can have
+ssm_user_cloud_limit: 2
