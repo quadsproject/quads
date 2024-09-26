@@ -406,6 +406,7 @@ class Assignment(Serialize, TimestampMixin, Base):
     qinq = Column(Integer)
     wipe = Column(Boolean, default=False)
     ccuser = Column(MutableList.as_mutable(PickleType), default=[])
+    is_self_schedule = Column(Boolean, default=False)
 
     # many-to-one parent
     cloud_id = Column(Integer, ForeignKey("clouds.id", ondelete="SET NULL"))
@@ -421,7 +422,7 @@ class Assignment(Serialize, TimestampMixin, Base):
     def __repr__(self):
         return (
             "<Assignment(id='{}', active='{}', provisioned='{}', validated='{}', description='{}', "
-            "owner='{}', ticket='{}', qinq='{}', wipe='{}', ccuser='{}', cloud='{}', vlan='{}')>".format(
+            "owner='{}', ticket='{}', qinq='{}', wipe='{}', ccuser='{}', is_self_schedule='{}', cloud='{}', vlan='{}')>".format(
                 self.id,
                 self.active,
                 self.provisioned,
@@ -432,6 +433,7 @@ class Assignment(Serialize, TimestampMixin, Base):
                 self.qinq,
                 self.wipe,
                 self.ccuser,
+                self.is_self_schedule,
                 self.cloud,
                 self.vlan,
             )
@@ -527,6 +529,7 @@ class Host(Serialize, TimestampMixin, Base):
     broken = Column(Boolean, default=False)
     retired = Column(Boolean, default=False)
     last_build = Column(DateTime)
+    can_self_schedule = Column(Boolean, default=True)
 
     # many-to-one
     cloud_id = Column(Integer, ForeignKey("clouds.id"))
@@ -552,7 +555,7 @@ class Host(Serialize, TimestampMixin, Base):
         return (
             "<Host(id='{}', name='{}', model='{}', host_type='{}', build='{}', "
             "validated='{}', switch_config_applied='{}', broken='{}', retired='{}', "
-            "last_build='{}', cloud='{}', default_cloud='{}', interfaces='{}', "
+            "last_build='{}', can_self_schedule='{}', cloud='{}', default_cloud='{}', interfaces='{}', "
             "disks='{}', memory='{}', processors='{}')>".format(
                 self.id,
                 self.name,
@@ -564,6 +567,7 @@ class Host(Serialize, TimestampMixin, Base):
                 self.broken,
                 self.retired,
                 self.last_build,
+                self.can_self_schedule,
                 self.cloud,
                 self.default_cloud,
                 self.interfaces,

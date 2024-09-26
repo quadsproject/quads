@@ -2,7 +2,7 @@ from typing import List
 
 from quads.server.dao.baseDao import BaseDao, EntryNotFound
 from quads.server.dao.host import HostDao
-from quads.server.models import db, Processor
+from quads.server.models import Processor, db
 
 
 class ProcessorDao(BaseDao):

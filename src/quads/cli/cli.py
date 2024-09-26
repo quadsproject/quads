@@ -900,7 +900,7 @@ class QuadsCli:
             try:
                 clean_data["vlan"] = int(self.cli_args.get("vlan"))
             except (TypeError, ValueError):  # pragma: no cover
-                clean_data["vlan"] = None
+                clean_data["vlan"] = "None"
 
         if "wipe" in self.cli_args:
             clean_data["wipe"] = self.cli_args.get("wipe")
@@ -967,6 +967,45 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
             raise CliException(str(ex))
         self.logger.info(f"{_host.name}")
+
+    def action_modhost(self):
+        data = {}
+        hostname = self.cli_args.get("host")
+        if not hostname:
+            raise CliException("Missing parameter --host")
+        try:
+            self.quads.get_host(hostname)
+        except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+            raise CliException(str(ex))
+
+        if self.cli_args.get("cloud"):
+            try:
+                cloud = self.quads.get_cloud(self.cli_args.get("cloud"))
+            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                raise CliException(str(ex))
+            data["cloud"] = cloud.name
+
+        if self.cli_args.get("defaultcloud"):
+            try:
+                cloud = self.quads.get_cloud(self.cli_args.get("defaultcloud"))
+            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                raise CliException(str(ex))
+            data["default_cloud"] = cloud.name
+
+        data = {
+            "name": hostname,
+            "model": self.cli_args.get("model"),
+            "host_type": self.cli_args.get("hosttype"),
+            "build": self.cli_args.get("build"),
+            "validated": self.cli_args.get("validated"),
+            "switch_config_applied": self.cli_args.get("switchconfigapplied"),
+            "can_self_schedule": self.cli_args.get("canselfschedule"),
+        }
+
+        try:
+            self.quads.update_host(hostname, data)
+        except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+            raise CliException(str(ex))
 
     def prepare_host_data(self, metadata) -> dict:
         data = {}

@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify, request, Response, make_response
+from flask import Blueprint, Response, jsonify, make_response, request
 from sqlalchemy import inspect
 
 from quads.config import Config
 from quads.server.blueprints import check_access
-from quads.server.dao.baseDao import EntryNotFound, InvalidArgument, BaseDao
+from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.models import Host, db
@@ -154,6 +154,7 @@ def create_host() -> Response:
     model = data.get("model")
     default_cloud = data.get("default_cloud")
     host_type = data.get("host_type")
+    can_self_schedule = data.get("can_self_schedule")
 
     if not model:
         response = {
@@ -221,6 +222,7 @@ def create_host() -> Response:
         name=hostname,
         model=model.upper(),
         host_type=host_type,
+        can_self_schedule=can_self_schedule,
         default_cloud=_default_cloud,
         cloud=_default_cloud,
     )
