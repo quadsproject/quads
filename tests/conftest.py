@@ -103,73 +103,90 @@ def prefill(test_client, auth, request):
     """
 
     auth_header = auth.get_auth_header()
-    if "clouds" in request.param:
-        for cloud_id in range(1, 6):
-            cloud_name = f"cloud{str(cloud_id).zfill(2)}"
-            test_client.post(
-                "/api/v3/clouds",
-                json=dict(cloud=cloud_name),
-                headers=auth_header,
-            )
-    if "vlans" in request.param:
-        for i in range(1, 4):
-            test_client.post(
-                "/api/v3/vlans",
-                json=eval(f"VLAN_{i}_REQUEST"),
-                headers=auth_header,
-            )
-    if "hosts" in request.param:
-        for host_id in range(1, 6):
-            test_client.post(
-                "/api/v3/hosts",
-                json=eval(f"HOST_{host_id}_REQUEST"),
-                headers=auth_header,
-            )
-    if "disks" in request.param:
-        for i in range(1, 5):
-            disk_request = eval(f"DISK_{i}_REQUEST")
-            test_client.post(
-                f"/api/v3/disks/{disk_request[1]}",
-                json=disk_request[0],
-                headers=auth_header,
-            )
-    if "interfaces" in request.param:
-        for i in range(1, 5):
-            interface_request = eval(f"INTERFACE_{i}_REQUEST")
-            test_client.post(
-                f"/api/v3/interfaces/{interface_request[1]}",
-                json=interface_request[0],
-                headers=auth_header,
-            )
-    if "memory" in request.param:
-        for i in range(1, 7):
-            memory_request = eval(f"MEMORY_{i}_REQUEST")
-            test_client.post(
-                f"/api/v3/memory/{memory_request[1]}",
-                json=memory_request[0],
-                headers=auth_header,
-            )
-    if "processors" in request.param:
-        for i in range(1, 6):
-            processor_request = eval(f"PROCESSOR_{i}_REQUEST")
-            test_client.post(
-                f"/api/v3/processors/{processor_request[1]}",
-                json=processor_request[0],
-                headers=auth_header,
-            )
-    if "assignments" in request.param:
-        for i in range(1, 3):
-            assignment_request = eval(f"ASSIGNMENT_{i}_REQUEST")
+    for param in [p.strip() for p in request.param.split(",")]:
+        if param == "clouds":
+            for cloud_id in range(1, 6):
+                cloud_name = f"cloud{str(cloud_id).zfill(2)}"
+                test_client.post(
+                    "/api/v3/clouds",
+                    json=dict(cloud=cloud_name),
+                    headers=auth_header,
+                )
+        if param == "vlans":
+            for i in range(1, 4):
+                test_client.post(
+                    "/api/v3/vlans",
+                    json=eval(f"VLAN_{i}_REQUEST"),
+                    headers=auth_header,
+                )
+        if param == "hosts":
+            for host_id in range(1, 6):
+                test_client.post(
+                    "/api/v3/hosts",
+                    json=eval(f"HOST_{host_id}_REQUEST"),
+                    headers=auth_header,
+                )
+        if param == "non_self_hosts":
+            for host_id in range(1, 6):
+                host_data = eval(f"SELF_HOST_{host_id}_REQUEST")
+                test_client.post(
+                    "/api/v3/hosts",
+                    json=host_data,
+                    headers=auth_header,
+                )
+        if param == "disks":
+            for i in range(1, 5):
+                disk_request = eval(f"DISK_{i}_REQUEST")
+                test_client.post(
+                    f"/api/v3/disks/{disk_request[1]}",
+                    json=disk_request[0],
+                    headers=auth_header,
+                )
+        if param == "interfaces":
+            for i in range(1, 5):
+                interface_request = eval(f"INTERFACE_{i}_REQUEST")
+                test_client.post(
+                    f"/api/v3/interfaces/{interface_request[1]}",
+                    json=interface_request[0],
+                    headers=auth_header,
+                )
+        if param == "memory":
+            for i in range(1, 7):
+                memory_request = eval(f"MEMORY_{i}_REQUEST")
+                test_client.post(
+                    f"/api/v3/memory/{memory_request[1]}",
+                    json=memory_request[0],
+                    headers=auth_header,
+                )
+        if param == "processors":
+            for i in range(1, 6):
+                processor_request = eval(f"PROCESSOR_{i}_REQUEST")
+                test_client.post(
+                    f"/api/v3/processors/{processor_request[1]}",
+                    json=processor_request[0],
+                    headers=auth_header,
+                )
+        if param == "assignments":
+            for i in range(1, 3):
+                assignment_request = eval(f"ASSIGNMENT_{i}_REQUEST")
+                test_client.post(
+                    "/api/v3/assignments",
+                    json=assignment_request,
+                    headers=auth_header,
+                )
+        if param == "self_assignments":
+            assignment_request = eval("SELF_ASSIGNMENT_1_REQUEST")
+            assignment_request["is_self_schedule"] = True
             test_client.post(
                 "/api/v3/assignments",
                 json=assignment_request,
                 headers=auth_header,
             )
-    if "schedules" in request.param:
-        for i in range(1, 3):
-            schedule_request = eval(f"SCHEDULE_{i}_REQUEST")
-            test_client.post(
-                "/api/v3/schedules",
-                json=schedule_request,
-                headers=auth_header,
-            )
+        if param == "schedules":
+            for i in range(1, 3):
+                schedule_request = eval(f"SCHEDULE_{i}_REQUEST")
+                test_client.post(
+                    "/api/v3/schedules",
+                    json=schedule_request,
+                    headers=auth_header,
+                )

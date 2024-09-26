@@ -1,9 +1,11 @@
-from datetime import datetime
-from flask import Blueprint, jsonify, request, Response, make_response
+from datetime import datetime, timedelta
 
+from flask import Blueprint, Response, jsonify, make_response, request
+
+from quads.config import Config
 from quads.server.blueprints import check_access
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import EntryNotFound, InvalidArgument, BaseDao
+from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.dao.schedule import ScheduleDao
@@ -74,7 +76,7 @@ def get_future_schedule() -> Response:
 
 
 @schedule_bp.route("/", methods=["POST"])
-@check_access(["admin"])
+@check_access(["admin", "user"])
 def create_schedule() -> Response:
     data = request.get_json()
     hostname = data.get("hostname")
@@ -104,6 +106,15 @@ def create_schedule() -> Response:
         }
         return make_response(jsonify(response), 400)
 
+    existing_schedules = ScheduleDao.get_current_schedule(cloud=_cloud)
+    if _assignment.is_self_schedule and len(existing_schedules) >= Config.get("ssm_host_limit", 10):
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Cloud {cloud} has reached the maximum number of hosts",
+        }
+        return make_response(jsonify(response), 400)
+
     if not hostname:
         response = {
             "status_code": 400,
@@ -121,8 +132,20 @@ def create_schedule() -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    start = data.get("start")
-    end = data.get("end")
+    if _assignment.is_self_schedule:
+        if not _host.can_self_schedule:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"Host {hostname} is not allowed to self-schedule",
+            }
+            return make_response(jsonify(response), 400)
+
+        start = datetime.now()
+        end = start + timedelta(days=Config.get("ssm_default_lifetime", 1))
+    else:
+        start = data.get("start")
+        end = data.get("end")
 
     if not start or not end:
         response = {
@@ -133,8 +156,8 @@ def create_schedule() -> Response:
         return make_response(jsonify(response), 400)
 
     try:
-        _start = datetime.strptime(start, "%Y-%m-%d %H:%M")
-        _end = datetime.strptime(end, "%Y-%m-%d %H:%M")
+        _start = datetime.strptime(start, "%Y-%m-%d %H:%M") if isinstance(start, str) else start
+        _end = datetime.strptime(end, "%Y-%m-%d %H:%M") if isinstance(end, str) else end
     except ValueError:
         response = {
             "status_code": 400,
@@ -151,6 +174,13 @@ def create_schedule() -> Response:
         }
         return make_response(jsonify(response), 400)
 
+    if not ScheduleDao.is_host_available(hostname, _start, _end):
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Host is not available for the specified date range",
+        }
+        return make_response(jsonify(response), 400)
     _schedule_obj = Schedule(start=_start, end=_end, assignment=_assignment, host=_host)
     db.session.add(_schedule_obj)
     BaseDao.safe_commit()
