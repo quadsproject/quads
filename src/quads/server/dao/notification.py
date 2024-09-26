@@ -1,7 +1,7 @@
 from typing import List
 
 from quads.server.dao.baseDao import BaseDao
-from quads.server.models import db, Notification
+from quads.server.models import Notification, db
 
 
 class NotificationDao(BaseDao):

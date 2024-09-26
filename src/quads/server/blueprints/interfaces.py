@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, Response, make_response
+from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.server.blueprints import check_access
 from quads.server.dao.baseDao import BaseDao
@@ -68,7 +68,6 @@ def create_interface(hostname: str) -> Response:
             }
             return make_response(jsonify(response), 400)
 
-    speed = data.get("speed")
     if int(speed) and not int(speed) > 0:
         response = {
             "status_code": 400,

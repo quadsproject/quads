@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, Response, make_response
+from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.server.blueprints import check_access
 from quads.server.dao.baseDao import BaseDao
