@@ -1,10 +1,10 @@
 import json
 
-from flask import Blueprint, jsonify, request, Response, make_response
+from flask import Blueprint, Response, jsonify, make_response, request
 from validators import email
 
-from quads.server.models import User, TokenBlackList, db, Role
 from quads.server.app import basic_auth, user_datastore
+from quads.server.models import Role, TokenBlackList, User, db
 
 auth_bp = Blueprint("auth", __name__)
 

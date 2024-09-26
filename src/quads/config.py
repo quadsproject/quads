@@ -7,12 +7,14 @@ import yaml
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONF_PATH = "/opt/quads/conf/quads.yml"
+SS_CONF_PATH = "/opt/quads/conf/selfservice.yml"
 
 
 class _ConfigBase:
     def __init__(self):
         self.loaded = False
         self.load_from_yaml(DEFAULT_CONF_PATH)
+        self.load_from_yaml(SS_CONF_PATH)
 
     def load_from_yaml(self, filepath: str = DEFAULT_CONF_PATH):
         """
@@ -127,3 +129,4 @@ Config = _Config()
 if __name__ == "__main__":
     if not Config.loaded:
         Config.load_from_yaml(DEFAULT_CONF_PATH)
+        Config.load_from_yaml(SS_CONF_PATH)

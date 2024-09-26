@@ -1,7 +1,7 @@
 
 Greetings Citizen,
 
-You've been allocated a new environment!
+You've {{ "self" if is_self_schedule else "been" }} allocated a new environment!
 
 {{ cloud_info }}
 

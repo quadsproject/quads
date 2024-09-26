@@ -7,6 +7,7 @@ import requests
 from datetime import datetime, timedelta
 from enum import Enum
 
+from distlib.version import is_semver
 from jinja2 import Template
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
@@ -24,8 +25,12 @@ class Days(Enum):
     FIVE_DAYS = 5
     SEVEN_DAYS = 7
 
+    @classmethod
+    def less_than(cls, max_days):
+        return [day for day in cls if day.value <= max_days]
 
-async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc):
+
+async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_self_schedule=False):
     template_file = "initial_message"
     irc_bot_ip = Config["ircbot_ipaddr"]
     irc_bot_port = Config["ircbot_port"]
@@ -46,6 +51,7 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc):
             real_owner=real_owner,
             password=f"{infra_location}@{ticket}",
             foreman_url=Config["foreman_url"],
+            is_self_schedule=is_self_schedule,
         )
 
         postman = Postman(
@@ -139,6 +145,7 @@ def create_future_initial_message(cloud, assignment_obj, cloud_info):
     content = template.render(
         cloud_info=cloud_info,
         quads_url=Config["quads_url"],
+        is_self_schedule=assignment_obj.is_self_schedule,
     )
     postman = Postman(
         "New QUADS Assignment Defined for the Future: %s - %s" % (cloud, ticket),
@@ -213,6 +220,7 @@ def main(_logger=None):
                     cloud_info,
                     ass.ticket,
                     ass.ccuser,
+                    ass.is_self_schedule,
                 )
             )
             try:
@@ -221,43 +229,45 @@ def main(_logger=None):
                 logger.debug(str(ex))
                 logger.error("Could not update notification: %s." % ass.notification.id)
 
-        for day in Days:
-            future_schedules = None
-            future = datetime.now() + timedelta(days=day.value)
-            future_date = "%4d-%.2d-%.2dT22:00" % (
-                future.year,
-                future.month,
-                future.day,
-            )
-            payload = {"cloud": ass.cloud.name, "date": future_date}
-            try:
-                future_schedules = quads.get_current_schedules(payload)
-            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-                logger.debug(str(ex))
-                logger.error("Could not get current schedules")
+        if Config["email_notify"]:
+            _days = Days.less_than(3) if ass.is_self_schedule else Days
+            for day in _days:
+                future_schedules = None
+                future = datetime.now() + timedelta(days=day.value)
+                future_date = "%4d-%.2d-%.2dT22:00" % (
+                    future.year,
+                    future.month,
+                    future.day,
+                )
+                payload = {"cloud": ass.cloud.name, "date": future_date}
+                try:
+                    future_schedules = quads.get_current_schedules(payload)
+                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                    logger.debug(str(ex))
+                    logger.error("Could not get current schedules")
 
-            current_hosts = [sched.host.name for sched in current_schedules]
-            future_hosts = [sched.host.name for sched in future_schedules]
-            host_list = set(current_hosts) - set(future_hosts)
-            if host_list and future > current_schedules[0].end:
-                if not getattr(ass.notification, day.name.lower()) and Config["email_notify"]:
-                    logger.info("=============== Additional Message")
-                    cloud = ass.cloud.name
-                    create_message(
-                        cloud,
-                        ass,
-                        day.value,
-                        cloud_info,
-                        host_list,
-                    )
+                current_hosts = [sched.host.name for sched in current_schedules]
+                future_hosts = [sched.host.name for sched in future_schedules]
+                host_list = set(current_hosts) - set(future_hosts)
+                if host_list and future > current_schedules[0].end:
+                    if not getattr(ass.notification, day.name.lower()):
+                        logger.info("=============== Additional Message")
+                        cloud = ass.cloud.name
+                        create_message(
+                            cloud,
+                            ass,
+                            day.value,
+                            cloud_info,
+                            host_list,
+                        )
 
-                    try:
-                        quads.update_notification(ass.notification.id, {day.name.lower(): True})
-                    except (APIServerException, APIBadRequest) as ex:
-                        logger.debug(str(ex))
-                        logger.error("Could not update notification: %s." % ass.notification.id)
+                        try:
+                            quads.update_notification(ass.notification.id, {day.name.lower(): True})
+                        except (APIServerException, APIBadRequest) as ex:
+                            logger.debug(str(ex))
+                            logger.error("Could not update notification: %s." % ass.notification.id)
 
-                    break
+                        break
 
     for cloud in _all_clouds:
         ass = quads.get_active_cloud_assignment(cloud.name)
