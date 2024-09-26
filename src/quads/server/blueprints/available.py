@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
-from flask import Blueprint, jsonify, request, Response, make_response
-from quads.server.dao.baseDao import EntryNotFound, InvalidArgument
+from flask import Blueprint, Response, jsonify, make_response, request
 
+from quads.server.dao.baseDao import EntryNotFound, InvalidArgument
 from quads.server.dao.host import HostDao
 from quads.server.dao.schedule import ScheduleDao
 

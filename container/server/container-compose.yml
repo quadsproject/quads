@@ -41,7 +41,7 @@ services:
     environment:
       SQLALCHEMY_DATABASE_URI: "postgresql://postgres:postgres@quads_db:5432/quads"
     volumes:
-      - /var/lib/jenkins/workspace/QUADS-2.1-Latest:/opt/quads:z
+      - /var/lib/jenkins/workspace/QUADS-2.1-Development:/opt/quads:z
     networks:
        podman:
          ipv4_address: 10.88.0.11
