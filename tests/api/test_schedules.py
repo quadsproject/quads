@@ -1,7 +1,11 @@
+from unittest.mock import patch
+
 import pytest
 
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
+
+from quads.config import Config
 
 from tests.helpers import unwrap_json
 from tests.config import (
@@ -10,10 +14,18 @@ from tests.config import (
     SCHEDULE_2_REQUEST,
     SCHEDULE_2_RESPONSE,
     SCHEDULE_1_UPDATE_REQUEST,
+    SELF_SCHEDULE_1_REQUEST,
+    SELF_SCHEDULE_1_RESPONSE,
+    SELF_SCHEDULE_2_REQUEST,
+    SELF_SCHEDULE_2_RESPONSE,
+    SELF_SCHEDULE_NON_REQUEST,
+    SELF_SCHEDULE_3_REQUEST,
 )
 
 prefill_settings = ["clouds, vlans, hosts, assignments"]
-prefill_schedule = ["clouds, vlans, hosts, assignments,schedules"]
+prefill_schedule = ["clouds, vlans, hosts, assignments, schedules"]
+prefill_self_schedule = ["clouds, vlans, hosts, self_assignments"]
+prefill_self_non_schedule = ["clouds, vlans, non_self_hosts, self_assignments"]
 
 
 class TestCreateSchedule:
@@ -216,6 +228,115 @@ class TestCreateSchedule:
             assert response.status_code == 200
             assert response.json == resp
 
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    @patch("quads.server.blueprints.schedules.datetime")
+    def test_valid_self(self, mock_datetime, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to create a self schedule with valid data
+        | THEN: User should be able to create a self schedule
+        """
+        mock_now = datetime(2023, 6, 1, 22, 0)  # 2023-06-01 22:00
+        mock_datetime.now.return_value = mock_now
+
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules",
+                json=SELF_SCHEDULE_1_REQUEST,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+
+        response_dict = response.json.copy()
+        del response_dict["created_at"]
+        del response_dict["host"]["created_at"]
+        del response_dict["host"]["cloud"]["last_redefined"]
+        del response_dict["host"]["default_cloud"]["last_redefined"]
+        del response_dict["assignment"]["created_at"]
+        del response_dict["assignment"]["cloud"]["last_redefined"]
+        assert response_dict == SELF_SCHEDULE_1_RESPONSE
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_valid_self_limit(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to create a self schedule with valid data but
+                exceeding the limit of self scheduling hosts per cloud
+        | THEN: User should be able to create a self schedule
+        """
+        Config.__setattr__("ssm_host_limit", 1)
+
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules",
+                json=SELF_SCHEDULE_2_REQUEST,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+
+        response_2 = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules",
+                json=SELF_SCHEDULE_3_REQUEST,
+                headers=auth_header,
+            )
+        )
+        assert response_2.status_code == 400
+        assert response_2.json["error"] == "Bad Request"
+        assert response_2.json["message"] == "Cloud cloud04 has reached the maximum number of hosts"
+        Config.__setattr__("ssm_host_limit", 10)
+
+    @pytest.mark.parametrize("prefill", prefill_self_non_schedule, indirect=True)
+    def test_self_host_non_self(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to create a self schedule with hosts that are not allowed to self schedule
+        | THEN: User should be able to create a self schedule
+        """
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules",
+                json=SELF_SCHEDULE_NON_REQUEST,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Host host11.example.com is not allowed to self-schedule"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_overlapping_schedule(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts, assignments and an existing schedule
+        | WHEN: User tries to create a schedule that overlaps with an existing one
+        | THEN: User should not be able to create the schedule
+        """
+        auth_header = auth.get_auth_header()
+        existing_schedule = SCHEDULE_1_REQUEST.copy()
+        test_client.post("/api/v3/schedules", json=existing_schedule, headers=auth_header)
+
+        overlapping_schedule = SCHEDULE_1_REQUEST.copy()
+        now = datetime.now()
+        then = now + timedelta(30)
+        overlapping_schedule["start"] = now.strftime("%Y-%m-%d %H:%M")
+        overlapping_schedule["end"] = then.strftime("%Y-%m-%d %H:%M")
+
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules",
+                json=overlapping_schedule,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Host is not available for the specified date range"
+
 
 class TestReadSchedule:
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -233,7 +354,12 @@ class TestReadSchedule:
             )
         )
         response.json.sort(key=lambda x: x["id"])
-        schedule_responses = [SCHEDULE_1_RESPONSE.copy(), SCHEDULE_2_RESPONSE.copy()]
+        schedule_responses = [
+            SCHEDULE_1_RESPONSE.copy(),
+            SCHEDULE_2_RESPONSE.copy(),
+            SELF_SCHEDULE_1_RESPONSE.copy(),
+            SELF_SCHEDULE_2_RESPONSE.copy(),
+        ]
         for i, resp in enumerate(schedule_responses):
             resp["assignment"]["cloud"]["last_redefined"] = response.json[i]["assignment"]["cloud"]["last_redefined"]
             resp["assignment"]["created_at"] = response.json[i]["assignment"]["created_at"]
@@ -372,18 +498,28 @@ class TestReadSchedule:
         """
         auth_header = auth.get_auth_header()
         hostname = SCHEDULE_1_RESPONSE["host"]["name"]
-        resp = SCHEDULE_1_RESPONSE.copy()
         response = unwrap_json(
             test_client.get(
                 f"/api/v3/schedules?host.name={hostname}",
                 headers=auth_header,
             )
         )
-        resp["created_at"] = response.json[0]["created_at"]
+
+        response.json.sort(key=lambda x: x["id"])
+        schedule_responses = [SCHEDULE_1_RESPONSE.copy(), SELF_SCHEDULE_1_RESPONSE.copy()]
+        for i, resp in enumerate(schedule_responses):
+            resp["assignment"]["cloud"]["last_redefined"] = response.json[i]["assignment"]["cloud"]["last_redefined"]
+            resp["assignment"]["created_at"] = response.json[i]["assignment"]["created_at"]
+            resp["created_at"] = response.json[i]["created_at"]
+            resp["host"]["created_at"] = response.json[i]["host"]["created_at"]
+            resp["host"]["cloud"]["last_redefined"] = response.json[i]["host"]["cloud"]["last_redefined"]
+            resp["host"]["default_cloud"]["last_redefined"] = response.json[i]["host"]["default_cloud"][
+                "last_redefined"
+            ]
+            resp["start"] = response.json[i]["start"]
+            resp["end"] = response.json[i]["end"]
         assert response.status_code == 200
-        resp["start"] = response.json[0]["start"]
-        resp["end"] = response.json[0]["end"]
-        assert response.json == [resp]
+        assert response.json == schedule_responses
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid_future(self, test_client, auth, prefill):
@@ -395,6 +531,7 @@ class TestReadSchedule:
         auth_header = auth.get_auth_header()
         schedule_responses = [
             SCHEDULE_2_RESPONSE.copy(),
+            SELF_SCHEDULE_2_RESPONSE.copy(),
         ]
         response = unwrap_json(
             test_client.get(
