@@ -25,16 +25,6 @@
     </style>
 {% endblock %}
 
-{% block navbar %}
-    <div class="shadow-sm mb-5 bg-white rounded">
-        <div class="container">
-            {% with available="active" %}
-                {% include 'navbar.html' %}
-            {% endwith %}
-        </div>
-    </div>
-
-{% endblock %}
 
 {% block page_content %}
     <h2>QUADS Available Hosts</h2>
