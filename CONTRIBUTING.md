@@ -73,7 +73,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
     ```
   - Start the Flask development server instance
     ```bash
-    gunicorn quads.web.app:flask_app -b :5001 -w 4 -k gthread --max-requests=5000 --max-requests-jitter=500 --log-level=DEBUG
+    gunicorn quads.web.app:create_app\(\) -b :5001 -w 4 -k gthread --max-requests=5000 --max-requests-jitter=500 --log-level=DEBUG
     ```
   - You can now access the QUADS Web UI at `http://localhost:5001/`
 
