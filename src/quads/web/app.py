@@ -1,10 +1,8 @@
 import asyncio
-import os
 import re
-
 from datetime import datetime, time
 
-from flask import Flask, g, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from quads.config import Config
 from quads.quads_api import APIBadRequest, APIServerException
@@ -14,6 +12,9 @@ from quads.web.blueprints.dynamic_content import dynamic_content_bp
 from quads.web.blueprints.instack import instack_bp
 from quads.web.blueprints.visual import visual_bp
 from quads.web.controller.CloudOperations import CloudOperations
+from quads.web.controller.dynamic_nav.dynamic_menus import DynamicMenus
+from quads.web.controller.dynamic_nav.dynamic_nav import DynamicNav
+from quads.web.controller.dynamic_nav.markup_elements import View, Navbar
 from quads.web.forms import ModelSearchForm
 
 flask_app = Flask(__name__)
@@ -33,125 +34,6 @@ foreman = Foreman(
 )
 WEB_CONTENT_PATH = Config.get("web_content_path")
 EXCLUDE_DIRS = Config.get("web_exclude_dirs")
-
-
-@flask_app.before_request
-def before_request():
-    g.dynamic_navigation = get_dynamic_navigation()
-
-
-def get_dynamic_navigation():
-    dynamic_navigation = {}
-    links = []
-    menus = {}
-
-    files = [d.name for d in os.scandir(WEB_CONTENT_PATH) if d.is_file()]
-    for file in files:
-        link = {}
-        if file.endswith(".html"):
-            link["href"] = url_for("content.dynamic_content", page=f"{file.replace('.html','')}")
-            link["text"] = file.replace(".html", "").replace("_", " ")
-            links.append(link)
-        else:
-            with open(os.path.join(WEB_CONTENT_PATH, file)) as f:
-                link["href"] = f.readline().strip()
-            link["text"] = file.replace("_", " ")
-            links.append(link)
-
-    numbered_links = []
-    unnumbered_links = []
-    for link in links:
-        ln = link["text"]
-        try:
-            int(ln.split()[0])
-            numbered_links.append(link)
-        except:
-            unnumbered_links.append(link)
-
-    sorted_numbered_links = sorted(numbered_links, key=lambda x: x["text"])
-    sorted_unnumbered_links = sorted(unnumbered_links, key=lambda x: x["text"])
-    stripped_numbered_links = []
-
-    for link in sorted_numbered_links:
-        link["text"] = " ".join(link["text"].split()[1:])
-        stripped_numbered_links.append(link)
-
-    links = stripped_numbered_links + sorted_unnumbered_links
-
-    dynamic_navigation["links"] = links
-
-    submenus = [d.name for d in os.scandir(WEB_CONTENT_PATH) if d.is_dir() and d.name not in EXCLUDE_DIRS]
-    numbered_submenus = []
-    unnumbered_submenus = []
-    for sm in submenus:
-        try:
-            int(sm.split("_")[0])
-            numbered_submenus.append(sm)
-        except:
-            unnumbered_submenus.append(sm)
-
-    sorted_numbered_submenus = sorted(numbered_submenus, key=lambda x: x)
-    sorted_unnumbered_submenus = sorted(unnumbered_submenus, key=lambda x: x)
-    stripped_numbered_submenus = []
-    stripped_unnumbered_submenus = []
-
-    for sm in sorted_numbered_submenus:
-        sm_dir = sm
-        sm = "_".join(sm.split("_")[1:])
-        stripped_numbered_submenus.append({"dir": sm_dir, "name": sm})
-
-    for sm in sorted_unnumbered_submenus:
-        sm_dir = sm
-        stripped_unnumbered_submenus.append({"dir": sm_dir, "name": sm})
-
-    submenus = stripped_numbered_submenus + stripped_unnumbered_submenus
-
-    for sub in submenus:
-        sub_links = []
-        sub_path = os.path.join(WEB_CONTENT_PATH, sub["dir"])
-        sub_files = [d.name for d in os.scandir(sub_path) if not d.is_dir() and d.name not in EXCLUDE_DIRS]
-        html_links = [file for file in sub_files if file.endswith(".html")]
-        for hl in html_links:
-            href = url_for(
-                "content.dynamic_content_sub",
-                directory=sub["dir"],
-                page=hl.replace(".html", ""),
-            )
-            link = {"href": href, "text": hl.replace(".html", "").replace("_", " ")}
-            sub_links.append(link)
-
-        direct_links = [file for file in sub_files if not file.endswith(".html") and not file in EXCLUDE_DIRS]
-        for dl in direct_links:
-            link = {}
-            with open(os.path.join(WEB_CONTENT_PATH, sub["dir"], dl)) as f:
-                link["href"] = f.readline().strip()
-            link["text"] = dl.replace("_", " ")
-            sub_links.append(link)
-
-        numbered_sub_links = []
-        unnumbered_sub_links = []
-        stripped_numbered_sub_links = []
-
-        for sl in sub_links:
-            sl_name = sl["text"]
-            try:
-                int(sl_name.split()[0])
-                numbered_sub_links.append(sl)
-            except:
-                unnumbered_sub_links.append(sl)
-
-        sorted_numbered_sub_links = sorted(numbered_sub_links, key=lambda x: x["text"])
-        sorted_unnumbered_sub_links = sorted(unnumbered_sub_links, key=lambda x: x["text"])
-
-        for sl in sorted_numbered_sub_links:
-            sl["text"] = " ".join(sl["text"].split()[1:])
-            stripped_numbered_sub_links.append(sl)
-
-        sub_links = stripped_numbered_sub_links + sorted_unnumbered_sub_links
-        menus[sub["name"]] = sub_links
-    dynamic_navigation["menus"] = menus
-
-    return dynamic_navigation
 
 
 @flask_app.route("/", methods=["GET", "POST"])
@@ -307,6 +189,23 @@ def create_vlans():
     return render_template("wiki/vlans.html", vlans=vlans)
 
 
+def initiate_navbar():
+    """
+    This method initiates navbar
+    """
+    navbar = DynamicNav()
+    dynamic_menus = DynamicMenus(exclude_dir_path=EXCLUDE_DIRS, web_dir_path=WEB_CONTENT_PATH)
+    navbar.register_element('navbar', Navbar(
+        "",
+        View(text="Inventory", endpoint="create_inventory"),
+        View(text="Assignments", endpoint="index"),
+        View(text="Vlans", endpoint="create_vlans"),
+        *dynamic_menus.get_dynamic_navbar_menus()
+    ))
+    navbar.init_app(flask_app)
+
+
 if __name__ == "__main__":
+    initiate_navbar()
     flask_app.debug = True
     flask_app.run(host="0.0.0.0", port=5001)
