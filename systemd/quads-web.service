@@ -10,7 +10,7 @@ After=network.target quads-server.service
 
 [Service]
 Type = simple
-ExecStart = /usr/bin/gunicorn quads.web.app:flask_app -b :5001 -w 4 -k gthread --max-requests=5000 --max-requests-jitter=500 --log-level=INFO
+ExecStart = /usr/bin/gunicorn quads.web.app:flask_app -b :5001 -w 8 -k gthread --max-requests=5000 --max-requests-jitter=500 --log-level=INFO
 ExecStop = /usr/bin/pkill -f quads.web.app
 Restart = always
 StartLimitInterval = 60
