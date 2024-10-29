@@ -83,10 +83,10 @@ class CloudOperations:
                 cloud["percent"] = int(percent)
                 if cloud_name != 'cloud01':
                     if Config["openstack_management"]:
-                        cloud["href_url_openstack"] = f"{Config['quads_url']}/instanck/{cloud_name}/_instackenv.json" if is_valid else "#"
+                        cloud["href_url_openstack"] = f"{Config['quads_url']}/instack/{cloud_name}_instackenv.json" if is_valid else "#"
                         cloud["href_url_text_openstack"] = "download" if is_valid else "validating..."
                     if Config["openshift_management"]:
-                        cloud["href_url_openshift"] = f"{Config['quads_url']}/instanck/{cloud_name}/_ocpinventory.json" if is_valid else "#"
+                        cloud["href_url_openshift"] = f"{Config['quads_url']}/instack/{cloud_name}_ocpinventory.json" if is_valid else "#"
                         cloud["href_url_text_openshift"] = "download" if is_valid else "validating..."
                     cloud["href_color"] = "link-success" if is_valid else "link-danger"
                 clouds_summary.append(cloud)

@@ -85,10 +85,12 @@ class TestCloud(TestBase):
         self.cli_args["wipe"] = True
         self.cli_args["vlan"] = "BADVLAN"
 
-        with pytest.raises(CliException) as ex:
-            self.quads_cli_call("cloudresource")
+        self.quads_cli_call("cloudresource")
 
-        assert str(ex.value) == "Could not parse vlan id. Only integers accepted."
+        assert self._caplog.messages[0] == "Cloud modified successfully"
+        assignment = AssignmentDao.get_active_cloud_assignment(cloud)
+        assert assignment
+        assert assignment.vlan == None
 
     def test_define_cloud_locked(self):
         self.cli_args["cloud"] = CLOUD
