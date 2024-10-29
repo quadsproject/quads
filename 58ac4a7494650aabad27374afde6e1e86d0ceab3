@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53d49fc2_36656df0",
+        "filename": "src/quads/web/controller/dynamic_nav/bootstrap_render.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-10-29T11:09:34Z",
+      "side": 1,
+      "message": "this entire file is never used, plus you are again using a library (dominate) that is not on a fedora package",
+      "revId": "58ac4a7494650aabad27374afde6e1e86d0ceab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d2ebf5d6_0639b1fa",
+        "filename": "src/quads/web/templates/base.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-10-29T11:09:34Z",
+      "side": 1,
+      "message": "This would throw a rendering error as \u0027nav\u0027 is undefined.\nHere you can also see that you are using the `bootstrap5` render and never using the `BootStrapRender` utility.",
+      "revId": "58ac4a7494650aabad27374afde6e1e86d0ceab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
