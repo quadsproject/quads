@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8948fa66_7f967e26",
+        "filename": "src/quads/web/app.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1037546
+      },
+      "writtenOn": "2024-10-30T09:02:17Z",
+      "side": 1,
+      "message": "Here I registered the navbar.",
+      "revId": "3c352cb9c5a13038a35711ce77a955c889d5d07f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
