@@ -29,27 +29,31 @@ class CloudOperations:
         all_hosts = self.__loop.run_until_complete(self.__foreman.get_all_hosts())
         return all_hosts
 
-    def get_managed_nodes(self):
+    def get_managed_nodes(self, cloud):
         """
         This method returns the scheduled nodes
         """
-        managed_hosts = []
-        for cloud in self.__get_cloud_summary():
-            if cloud["count"] > 0:
-                _cloud_obj = self.__quads_api.get_cloud(cloud.get("name"))
-                _hosts = sorted(
-                    self.__quads_api.filter_hosts({"cloud": _cloud_obj.name, "retired": False, "broken": False}),
-                    key=lambda x: x.name,
-                )
-                managed_hosts.append(
-                    {
-                        "name": cloud.get("name").strip(),
-                        "owner": cloud.get("owner").strip(),
-                        "count": cloud.get("count"),
-                        "description": cloud.get("description").strip(),
-                        "hosts": [self.__get_current_schedules(host.name) for host in _hosts],
-                    }
-                )
+        managed_hosts = {}
+        _ass_obj = self.__quads_api.get_active_cloud_assignment(cloud)
+        _hosts = self.__quads_api.filter_hosts({"cloud": cloud, "retired": False, "broken": False})
+        
+        if _ass_obj:
+            managed_hosts = {
+                "name": cloud,
+                "owner": _ass_obj.owner,
+                "count": len(_hosts),
+                "description": _ass_obj.description.strip(),
+                "hosts": [self.__get_current_schedules(host.name) for host in _hosts],
+            }
+        elif cloud == Config["spare_pool_name"]:
+            managed_hosts = {
+                "name": cloud,
+                "owner": "QUADS",
+                "count": len(_hosts),
+                "description": "Spare Pool",
+                "hosts": [host.as_dict() for host in _hosts],
+            }
+            
         return managed_hosts
 
     def get_daily_utilization(self) -> int:
@@ -134,8 +138,8 @@ class CloudOperations:
         """
         This method returns the broken hosts
         """
-        broken_hosts = self.__quads_api.filter_hosts({"broken": False})
-        return [host for host in broken_hosts if domain in host.name]
+        broken_hosts = self.__quads_api.filter_hosts({"broken": True})
+        return [host.as_dict() for host in broken_hosts if domain in host.name]
 
     def get_unmanaged_hosts(self, exclude_hosts: str):
         """

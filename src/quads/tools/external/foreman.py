@@ -272,6 +272,10 @@ class Foreman(object):
         endpoint = "/hosts?per_page=9999"
         return await self.get_obj_dict(endpoint)
 
+    async def get_hosts_by_rack(self, rack):
+        endpoint = f"/hosts?search=name~{rack}"
+        return await self.get_obj_dict(endpoint)
+
     async def get_broken_hosts(self):
         endpoint = "/hosts?search=params.broken_state=true"
         return await self.get_obj_dict(endpoint)

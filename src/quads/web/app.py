@@ -170,26 +170,50 @@ def assignments():
         "TotalDuration",
         "TimeRemaining",
     ]
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    clouds_summary = cloud_operation.get_cloud_summary_report()
-    daily_utilization = cloud_operation.get_daily_utilization()
-    managed_nodes = cloud_operation.get_managed_nodes()
-    domain_broken_hosts = cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
-    unmanaged_hosts = cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
     return render_template(
         "wiki/assignments.html",
         headers=headers,
-        clouds_summary=clouds_summary,
         ticket_url=Config.get("ticket_url"),
         ticket_queue=Config.get("ticket_queue"),
         quads_url=Config.get("quads_url"),
         openshift_management=Config["openshift_management"],
-        daily_utilization=daily_utilization,
-        domain_broken_hosts=domain_broken_hosts,
         host_headers=host_headers,
-        managed_nodes=managed_nodes,
-        unmanaged_hosts=unmanaged_hosts,
     )
+
+
+@flask_app.route("/summary")
+def summary():
+    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
+    clouds_summary = cloud_operation.get_cloud_summary_report()
+    return jsonify(clouds_summary)
+
+
+@flask_app.route("/utilization")
+def utilization():
+    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
+    daily_utilization = cloud_operation.get_daily_utilization()
+    return jsonify(daily_utilization)
+
+
+@flask_app.route("/managed/<cloud>")
+def managed(cloud):
+    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
+    managed_nodes = cloud_operation.get_managed_nodes(cloud)
+    return jsonify(managed_nodes)
+
+
+@flask_app.route("/unmanaged")
+def unmanaged():
+    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
+    unmanaged_hosts = cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
+    return jsonify(unmanaged_hosts)
+
+
+@flask_app.route("/broken")
+def broken():
+    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
+    domain_broken_hosts = cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
+    return jsonify(domain_broken_hosts)
 
 
 @flask_app.route("/available", methods=["GET", "POST"])
@@ -250,20 +274,6 @@ def available_hosts(search):
 
 @flask_app.route("/dashboard")
 def create_inventory():
-    all_hosts = loop.run_until_complete(foreman.get_all_hosts())
-    blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
-    hosts = {}
-    for host, properties in all_hosts.items():
-        if not blacklist.search(host):
-            if properties.get("sp_name", False):
-                properties["host_ip"] = properties["ip"]
-                properties["host_mac"] = properties["mac"]
-                properties["ip"] = properties.get("sp_ip")
-                properties["mac"] = properties.get("sp_mac")
-                svctag = ""
-                properties["svctag"] = svctag.strip()
-                hosts[host] = properties
-    all_hosts = {}
     headers = [
         "U",
         "ServerHostnamePublic",
@@ -276,28 +286,43 @@ def create_inventory():
         "Workload",
         "Owner",
     ]
-    for rack in Config["racks"].split():
-        for host, properties in hosts.items():
-            if rack in host:
+    return render_template("wiki/inventory.html", headers=headers, racks=Config["racks"])
+
+
+@flask_app.route("/rack/<rack>")
+def rack(rack):
+    rack_hosts = loop.run_until_complete(foreman.get_hosts_by_rack(rack))
+    blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
+    host_details = []
+    assignments_cache = {}
+    for host, properties in rack_hosts.items():
+        if not blacklist.search(host) and properties.get("sp_name", False):
+            try:
                 host_obj = quads.get_host(host)
-                if host_obj and not host_obj.retired:
+            except (APIBadRequest, APIServerException):
+                continue
+            if host_obj and not host_obj.retired:
+                if assignments_cache.get(host_obj.cloud.name, False):
+                    assignment = assignments_cache[host_obj.cloud.name]
+                else:
                     assignment = quads.get_active_cloud_assignment(host_obj.cloud.name)
-                    owner = assignment.owner if assignment else "QUADS"
-                    all_hosts.setdefault(rack, []).append(
-                        {
-                            "U": host_obj.name.split("-")[1][1:],
-                            "ServerHostnamePublic": host_obj.name.split(".")[0],
-                            "Serial": properties.get("svctag", ""),
-                            "MAC": properties.get("host_mac", ""),
-                            "IP": properties.get("host_ip", ""),
-                            "IPMIADDR": properties.get("ip", ""),
-                            "IPMIURL": host_obj.name,
-                            "IPMIMAC": properties.get("mac", ""),
-                            "Workload": host_obj.cloud.name,
-                            "Owner": owner,
-                        }
-                    )
-    return render_template("wiki/inventory.html", headers=headers, all_hosts=all_hosts)
+                    assignments_cache[host_obj.cloud.name] = assignment
+                owner = assignment.owner if assignment else "QUADS"
+                host_details.append(
+                    {
+                        "U": host_obj.name.split("-")[1][1:],
+                        "ServerHostnamePublic": host_obj.name.split(".")[0],
+                        "Serial": properties.get("svctag", ""),
+                        "MAC": properties.get("mac", ""),
+                        "IP": properties.get("ip", ""),
+                        "IPMIADDR": properties.get("sp_ip", ""),
+                        "IPMIURL": host_obj.name,
+                        "IPMIMAC": properties.get("sp_mac", ""),
+                        "Workload": host_obj.cloud.name,
+                        "Owner": owner,
+                    }
+                )
+    return jsonify(host_details)
 
 
 @flask_app.route("/vlans")
