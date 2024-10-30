@@ -250,20 +250,6 @@ def available_hosts(search):
 
 @flask_app.route("/dashboard")
 def create_inventory():
-    all_hosts = loop.run_until_complete(foreman.get_all_hosts())
-    blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
-    hosts = {}
-    for host, properties in all_hosts.items():
-        if not blacklist.search(host):
-            if properties.get("sp_name", False):
-                properties["host_ip"] = properties["ip"]
-                properties["host_mac"] = properties["mac"]
-                properties["ip"] = properties.get("sp_ip")
-                properties["mac"] = properties.get("sp_mac")
-                svctag = ""
-                properties["svctag"] = svctag.strip()
-                hosts[host] = properties
-    all_hosts = {}
     headers = [
         "U",
         "ServerHostnamePublic",
@@ -276,28 +262,40 @@ def create_inventory():
         "Workload",
         "Owner",
     ]
-    for rack in Config["racks"].split():
-        for host, properties in hosts.items():
-            if rack in host:
-                host_obj = quads.get_host(host)
-                if host_obj and not host_obj.retired:
+    return render_template("wiki/inventory.html", headers=headers, racks=Config["racks"])
+
+
+@flask_app.route("/rack/<rack>")
+def rack(rack):
+    rack_hosts = loop.run_until_complete(foreman.get_hosts_by_rack(rack))
+    blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
+    host_details = []
+    assignments_cache = {}
+    for host, properties in rack_hosts.items():
+        if not blacklist.search(host) and properties.get("sp_name", False):
+            host_obj = quads.get_host(host)
+            if host_obj and not host_obj.retired:
+                if assignments_cache.get(host_obj.cloud.name, False):
+                    assignment = assignments_cache[host_obj.cloud.name]
+                else:
                     assignment = quads.get_active_cloud_assignment(host_obj.cloud.name)
-                    owner = assignment.owner if assignment else "QUADS"
-                    all_hosts.setdefault(rack, []).append(
-                        {
-                            "U": host_obj.name.split("-")[1][1:],
-                            "ServerHostnamePublic": host_obj.name.split(".")[0],
-                            "Serial": properties.get("svctag", ""),
-                            "MAC": properties.get("host_mac", ""),
-                            "IP": properties.get("host_ip", ""),
-                            "IPMIADDR": properties.get("ip", ""),
-                            "IPMIURL": host_obj.name,
-                            "IPMIMAC": properties.get("mac", ""),
-                            "Workload": host_obj.cloud.name,
-                            "Owner": owner,
-                        }
-                    )
-    return render_template("wiki/inventory.html", headers=headers, all_hosts=all_hosts)
+                    assignments_cache[host_obj.cloud.name] = assignment
+                owner = assignment.owner if assignment else "QUADS"
+                host_details.append(
+                    {
+                        "U": host_obj.name.split("-")[1][1:],
+                        "ServerHostnamePublic": host_obj.name.split(".")[0],
+                        "Serial": properties.get("svctag", ""),
+                        "MAC": properties.get("mac", ""),
+                        "IP": properties.get("ip", ""),
+                        "IPMIADDR": properties.get("sp_ip", ""),
+                        "IPMIURL": host_obj.name,
+                        "IPMIMAC": properties.get("sp_mac", ""),
+                        "Workload": host_obj.cloud.name,
+                        "Owner": owner,
+                    }
+                )
+    return jsonify(host_details)
 
 
 @flask_app.route("/vlans")
