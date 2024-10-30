@@ -2,132 +2,417 @@
 {% block title %}Assignments{% endblock %}
 
 {% block page_content %}
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-md-9 col-sm-12 col-10">
-				<h3><strong>SUMMARY</strong></h3>
-				<table class="table">
-					<thead>
-					<tr>
-						{% for header in headers %}
-							<th scope="col">{{ header }}</th>
-						{% endfor %}
-					</tr>
-					</thead>
-					<tbody>
-					{% for cloud in clouds_summary %}
-						<tr>
-							<td><a class="link-success text-decoration-none"
-								   href="#{{ cloud.name }}">{{ cloud.name }}</a></td>
-							<td>{{ cloud.count }} ({{ cloud.description }})</td>
-							<td>{{ cloud.owner }}</td>
-							<td>
-								<a class="link-secondary-hover text-decoration-none"
-								   href="{{ ticket_url }}/{{ ticket_queue }}-{{ cloud.ticket }}" target="_blank">
-									{{ cloud.ticket }}
-								</a>
-							</td>
-							<td>
-                            <span class="progress" style="margin-bottom: 0">
-                                <span class="progress-bar {% if cloud.percent != 100 or not cloud.is_valid %}progress-bar-striped{% endif %} {% if cloud.percent < 15 %} bg-danger {% elif cloud.percent != 100 or not cloud.is_valid %} bg-warning {% else %} bg-primary {% endif %}"
-									  role="progressbar"
-									  style="width: {{ cloud.percent }}%">{{ cloud.percent }}%</span>
-                            </span>
-							</td>
-							{% if cloud.href_url_text_openstack %}
-								<td>
-									<a class="{{ cloud.href_color }} text-decoration-none"
-									   href="{{ cloud.href_url_openstack }}"
-									   {% if cloud.is_valid %}target=_blank"{% endif %}
-									>{{ cloud.href_url_text_openstack }}</a>
-								</td>
-							{% else %}
-								<td></td>
-							{% endif %}
-							{% if cloud.href_url_text_openshift %}
-								<td>
-									<a class="{{ cloud.href_color }} text-decoration-none"
-									   href="{{ cloud.href_url_openshift }}"
-									   {% if cloud.is_valid %}target=_blank"{% endif %}>
-										{{ cloud.href_url_text_openshift }}</a>
-								</td>
-							{% else %}
-								<td></td>
-							{% endif %}
-						</tr>
-					{% endfor %}
-					</tbody>
-				</table>
-				<p>Daily Utilization: {{ daily_utilization }}%</p>
-				<p><a href="#unmanaged" class="link-secondary text-decoration-none">Unmanaged Hosts</a></p>
-				<p><a href="#faulty" class="link-secondary text-decoration-none">Faulty Hosts</a></p>
-				<h3><strong>DETAILS</strong></h3>
-				{% for managed_host in managed_nodes %}
-					<h3>
-                <span id="{{ managed_host.name }}">
-                    <strong>{{ managed_host.name }} : {{ managed_host.count }} ({{ managed_host.description }})
-                    — {{ managed_host.owner }}</strong>
-                </span>
-					</h3>
-					<table class="table">
-						<thead>
-						{% for host_header in host_headers %}
-							<th scope="col">{{ host_header }}</th>
-						{% endfor %}
-						</thead>
-						<tbody>
-						{% for host in managed_host.hosts %}
-							<tr>
-								<td>{{ host.short_name }}</td>
-								<td><a class="link-secondary-hover" href="http://mgmt-{{ host.name }}/"
-									   target=_blank">console</a></td>
-								<td>{{ host.start_date }}</td>
-								<td>{{ host.end_date }}</td>
-								<td>{{ host.total_time }}</td>
-								<td>{{ host.total_time_left }}</td>
-							</tr>
-						{% endfor %}
-						</tbody>
-					</table>
-				{% endfor %}
-				<h3><a id="unmanaged"></a><strong>Unmanaged systems</strong></h3>
-				<table class="table">
-					<thead>
-					<tr>
-						<th>SystemHostname</th>
-						<th>OutOfBand</th>
-					</tr>
-					</thead>
-					<tbody>
-					{% for unmanaged_host in unmanaged_hosts %}
-						<tr>
-							<td>{{ unmanaged_hosts.short_name }}</td>
-							<td><a class="link-secondary-hover" href="http://mgmt-{{ unmanaged_host.name }}/"
-								   target=_blank">console</a></td>
-						</tr>
-					{% endfor %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-9 col-sm-12 col-10">
+                <h3><strong>SUMMARY</strong></h3>
 
-					</tbody>
-				</table>
-				<h3><a id="faulty"></a><strong>Faulty systems</strong></h3>
-				<table class="table">
-					<thead>
-					<tr>
-						<th>SystemHostname</th>
-						<th>OutOfBand</th>
-					</tr>
-					</thead>
-					<tbody>
-					{% for broken_host in domain_broken_hosts %}
-						<tr>
-							<td>{{ broken_host.name.split(".")[0] }}</td>
-							<td><a class="link-secondary-hover" href="http://mgmt-{{ broken_host.name }}/"
-								   target=_blank">console</a></td>
-						</tr>
-					{% endfor %}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	</div>
+                <table class="table" id="summary">
+                </table>
+
+                <p id="daily-utilization">Daily Utilization: Loading...</p>
+
+                <p><a href="#unmanaged" class="link-secondary text-decoration-none">Unmanaged Hosts</a></p>
+                <p><a href="#faulty" class="link-secondary text-decoration-none">Faulty Hosts</a></p>
+
+                <h3><strong>DETAILS</strong></h3>
+
+                <div id="cloud-sections">
+                    <!-- Cloud sections will be dynamically inserted here -->
+                </div>
+
+                <h3>
+                    <a id="unmanaged"></a>
+                    <strong>Unmanaged systems</strong>
+                </h3>
+                <table class="table" id="unmanaged_table">
+                </table>
+
+                <h3>
+                    <a id="faulty"></a><strong>Faulty systems</strong>
+                </h3>
+                <table class="table" id="faulty_table">
+                </table>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function createLoadingIndicator() {
+            return $('<div>')
+                .addClass('loading-overlay')
+                .append(
+                    $('<div>')
+                        .addClass('spinner-border spinner-border-sm text-secondary')
+                        .attr('role', 'status')
+                        .append($('<span>').addClass('visually-hidden').text('Loading...')),
+                    $('<span>').addClass('ms-2').text('Loading data...')
+                );
+        };
+
+        function createCloudSection(cloud) {
+            const host_headers = {{ host_headers|tojson|safe }};
+
+            return $('<div>').append([
+                $('<h3>').append(
+                    $('<span>')
+                        .attr('id', cloud.name)
+                        .append(
+                            $('<strong>').text(
+                                `${cloud.name} : ${cloud.count} (${cloud.description}) — ${cloud.owner}`
+                            )
+                        )
+                ),
+                $('<table>')
+                    .addClass('table')
+                    .attr('id', `hosts-${cloud.name}`)
+                    .append([
+                        $('<thead>').append(
+                            $('<tr>').append(
+                                host_headers.map(header => 
+                                    $('<th>').attr('scope', 'col').text(header)
+                                )
+                            )
+                        ),
+                        $('<tbody>').append(
+                            $('<tr>').append(
+                                $('<td>')
+                                    .attr('colspan', host_headers.length)
+                                    .addClass('text-center')
+                                    .append($('<span>').addClass('loading-dots').text('Loading'))
+                            )
+                        )
+                    ])
+            ]);
+        };
+
+        function updateHostsForCloud(cloudName) {
+            const $table = $(`#hosts-${cloudName}`);
+            const host_headers = {{ host_headers|tojson|safe }};
+                
+            if ($table.find('thead').length === 0) {
+                $table.append($('<thead>'));
+            }
+            if ($table.find('tbody').length === 0) {
+                $table.append($('<tbody>'));
+            }
+            const $tbody = $table.find('tbody');
+
+            $tbody.empty().append(
+                $('<tr>').append(
+                    $('<td>')
+                        .attr('colspan', host_headers.length)
+                        .append(createLoadingIndicator())
+                )
+            );
+
+            $.ajax({
+                url: `/managed/${cloudName}`,
+                method: 'GET',
+                success: function(data) {
+                    $tbody.empty();
+                    
+                    if (!data || !data.hosts || data.hosts.length === 0) {
+                        $tbody.append(
+                            $('<tr>').append(
+                                $('<td>')
+                                    .attr('colspan', host_headers.length)
+                                    .addClass('text-center')
+                                    .text('No hosts found')
+                            )
+                        );
+                        return;
+                    }
+
+                    data.hosts.forEach(host => {
+                        $tbody.append(
+                            $('<tr>').append([
+                                $('<td>').text(host.short_name || `${host.name.split('.')[0]}`),
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-secondary-hover')
+                                        .attr('href', `http://mgmt-${host.name}/`)
+                                        .attr('target', '_blank')
+                                        .text('console')
+                                ),
+                                $('<td>').text(host.start_date || "∞"),
+                                $('<td>').text(host.end_date || "∞"),
+                                $('<td>').text(host.total_time || "∞"),
+                                $('<td>').text(host.total_time_left || "∞")
+                            ])
+                        );
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(`Error fetching hosts for cloud ${cloudName}:`, error);
+                    $tbody.html(
+                        $('<tr>').append(
+                            $('<td>')
+                                .attr('colspan', host_headers.length)
+                                .addClass('text-center text-danger')
+                                .text('Error loading hosts')
+                        )
+                    );
+                }
+            });
+        };
+
+        function updateSummaryData() {
+            const $table = $(`#summary`);
+            const headers = {{ headers|tojson|safe }};
+            const ticket_url = "{{ ticket_url }}";
+            const ticket_queue = "{{ ticket_queue }}";
+                
+            if ($table.find('thead').length === 0) {
+                $table.append($('<thead>'));
+            }
+            if ($table.find('tbody').length === 0) {
+                $table.append($('<tbody>'));
+            }
+            const $tbody = $table.find('tbody');
+
+            $tbody.empty().append(
+                $('<tr>').append(
+                    $('<td>')
+                        .attr('colspan', headers.length)
+                        .append(createLoadingIndicator())
+                )
+            );
+
+            $.ajax({
+                url: '/summary',
+                method: 'GET',
+                success: function(data) {
+                    const $tbody = $table.find('tbody').empty();
+                    
+                    if (!data || data.length === 0) {
+                        $tbody.append(
+                            $('<tr>').append(
+                                $('<td>')
+                                    .attr('colspan', headers.length)
+                                    .addClass('text-center')
+                                    .text('No data available')
+                            )
+                        );
+                        return;
+                    }
+        
+                    $tbody.append(
+                        data.map(cloud => 
+                            $('<tr>').append([
+                                // NAME
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-success text-decoration-none')
+                                        .attr('href', `#${cloud.name}`)
+                                        .text(cloud.name)
+                                ),
+                                // SUMMARY
+                                $('<td>').text(`${cloud.count} (${cloud.description})`),
+                                // OWNER
+                                $('<td>').text(cloud.owner),
+                                // REQUEST
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-secondary-hover text-decoration-none')
+                                        .attr('href', `${ticket_url}/${ticket_queue}-${cloud.ticket}`)
+                                        .attr('target', '_blank')
+                                        .text(cloud.ticket)
+                                ),
+                                // STATUS
+                                $('<td>').append(
+                                    $('<span>').addClass('progress').css('margin-bottom', 0).append(
+                                        $('<span>')
+                                            .addClass(`progress-bar ${cloud.percent != 100 || !cloud.is_valid ? 'progress-bar-striped' : ''} ${
+                                                cloud.percent < 15 ? 'bg-danger' : 
+                                                cloud.percent != 100 || !cloud.is_valid ? 'bg-warning' : 
+                                                'bg-primary'
+                                            }`)
+                                            .attr('role', 'progressbar')
+                                            .css('width', `${cloud.percent}%`)
+                                            .text(`${cloud.percent}%`)
+                                    )
+                                ),
+                                // OSPENV
+                                $('<td>').append(
+                                    cloud.href_url_text_openstack ? 
+                                        $('<a>')
+                                            .addClass(`${cloud.href_color} text-decoration-none`)
+                                            .attr('href', cloud.href_url_openstack)
+                                            .attr('target', cloud.is_valid ? '_blank' : '')
+                                            .text(cloud.href_url_text_openstack)
+                                        : ''
+                                ),
+                                // OCPINV
+                                $('<td>').append(
+                                    cloud.href_url_text_openshift ? 
+                                        $('<a>')
+                                            .addClass(`${cloud.href_color} text-decoration-none`)
+                                            .attr('href', cloud.href_url_openshift)
+                                            .attr('target', cloud.is_valid ? '_blank' : '')
+                                            .text(cloud.href_url_text_openshift)
+                                        : ''
+                                )
+                            ])
+                        )
+                    );
+
+                    // Create cloud sections
+                    const $cloudContainer = $('#cloud-sections').empty();
+                    data.forEach(cloud => {
+                        $cloudContainer.append(createCloudSection(cloud));
+                        updateHostsForCloud(cloud.name);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching summary data:', error);
+                    $table.find('tbody').empty().append(
+                        $('<tr>').append(
+                            $('<td>')
+                                .attr('colspan', headers.length)
+                                .addClass('text-center text-danger')
+                                .text('Error loading data')
+                        )
+                    );
+                }
+            });
+        };
+
+        function updateDailyUtilization() {
+            $.ajax({
+                url: '/utilization',
+                method: 'GET',
+                success: function(data) {
+                    $('#daily-utilization').text(`Daily Utilization: ${data}%`);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching daily utilization:', error);
+                    $('#daily-utilization').text('Daily Utilization: Error loading data');
+                }
+            });
+        };
+
+        function updateUnmanagedHosts() {
+            const $table = $('#unmanaged_table');
+            const headers = {{ headers|tojson|safe }};
+                
+            if ($table.find('thead').length === 0) {
+                $table.append($('<thead>'));
+            }
+            if ($table.find('tbody').length === 0) {
+                $table.append($('<tbody>'));
+            }
+            const $tbody = $table.find('tbody');
+
+            $tbody.empty().append(
+                $('<tr>').append(
+                    $('<td>')
+                        .attr('colspan', headers.length)
+                        .append(createLoadingIndicator())
+                )
+            );
+
+            $.ajax({
+                url: '/unmanaged',
+                method: 'GET',
+                success: function(data) {
+                    $tbody.empty();
+                    
+                    if (!data || data.length === 0) {
+                        $tbody.html('<tr><td colspan="2" class="text-center">No unmanaged hosts found</td></tr>');
+                        return;
+                    }
+
+                    data.forEach(host => {
+                        $tbody.append(
+                            $('<tr>').append([
+                                $('<td>').text(host.short_name),
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-secondary-hover')
+                                        .attr('href', `http://mgmt-${host.name}/`)
+                                        .attr('target', '_blank')
+                                        .text('console')
+                                )
+                            ])
+                        );
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching unmanaged hosts:', error);
+                    $tbody.html(
+                        '<tr><td colspan="2" class="text-center text-danger">Error loading unmanaged hosts</td></tr>'
+                    );
+                }
+            });
+        };
+
+        function updateFaultyHosts() {
+            const $table = $('#faulty_table');
+            const headers = {{ headers|tojson|safe }};
+                
+            if ($table.find('thead').length === 0) {
+                $table.append($('<thead>'));
+            }
+            if ($table.find('tbody').length === 0) {
+                $table.append($('<tbody>'));
+            }
+            const $tbody = $table.find('tbody');
+            
+            $tbody.empty().append(
+                $('<tr>').append(
+                    $('<td>')
+                        .attr('colspan', headers.length)
+                        .append(createLoadingIndicator())
+                )
+            );
+
+            $.ajax({
+                url: '/broken',
+                method: 'GET',
+                success: function(data) {
+                    $tbody.empty();
+                    
+                    if (!data || data.length === 0) {
+                        $tbody.html('<tr><td colspan="2" class="text-center">No faulty hosts found</td></tr>');
+                        return;
+                    }
+        
+                    data.forEach(host => {
+                        $tbody.append(
+                            $('<tr>').append([
+                                $('<td>').text(host.name.split('.')[0]),
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-secondary-hover')
+                                        .attr('href', `http://mgmt-${host.name}/`)
+                                        .attr('target', '_blank')
+                                        .text('console')
+                                )
+                            ])
+                        );
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching faulty hosts:', error);
+                    $tbody.html(
+                        '<tr><td colspan="2" class="text-center text-danger">Error loading faulty hosts</td></tr>'
+                    );
+                }
+            });
+        }
+        
+
+        // Call updateSummaryData when document is ready
+        $(document).ready(function() {
+            updateSummaryData();
+            updateDailyUtilization();
+            updateUnmanagedHosts();
+            updateFaultyHosts();
+        });
+    </script>
 {% endblock %}

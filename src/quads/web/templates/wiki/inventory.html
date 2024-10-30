@@ -6,33 +6,9 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-9 col-sm-12 col-10">
-                {% for rack, hosts in all_hosts.items() %}
+                {% for rack in racks.split() %}
                     <p><strong>Rack {{ rack }}</strong></p>
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            {% for header in headers %}
-                                <th scope="col">{{ header }}</th>
-                            {% endfor %}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for host in hosts %}
-                            <tr>
-                                {% for header in headers %}
-                                    {% if header == "IPMIURL" %}
-                                        <td><a class="link-secondary-hover" href="http://mgmt-{{ host[header] }}/"
-                                               target=_blank">console</a></td>
-                                    {% elif header == "Workload" %}
-                                        <td><a class="link-secondary-hover"
-                                               href="#">{{ host[header] }}</a></td>
-                                    {% else %}
-                                        <td>{{ host[header] }}</td>
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
+                    <table class="table" id="rack-{{ rack }}">
                     </table>
                 {% endfor %}
             </div>
@@ -43,4 +19,109 @@
 
 {% block scripts %}
     {{ super() }}
+    <script>
+    $(document).ready(function() {
+        function createLoadingIndicator() {
+            return $('<div>')
+                .addClass('loading-overlay')
+                .append(
+                    $('<div>')
+                        .addClass('spinner-border spinner-border-sm text-secondary')
+                        .attr('role', 'status')
+                        .append($('<span>').addClass('visually-hidden').text('Loading...')),
+                    $('<span>').addClass('ms-2').text('Loading rack data...')
+                );
+        };
+
+        function updateRackData(rackId) {
+            const $table = $(`#rack-${rackId}`);
+            const headers = {{ headers|tojson|safe }};
+                
+            if ($table.find('thead').length === 0) {
+                $table.append($('<thead>'));
+            }
+            if ($table.find('tbody').length === 0) {
+                $table.append($('<tbody>'));
+            }
+
+            $table.find('tbody').empty().append(
+                $('<tr>').append(
+                    $('<td>')
+                        .attr('colspan', headers.length)
+                        .append(createLoadingIndicator())
+                )
+            );
+
+            $.ajax({
+                url: `/rack/${rackId}`,
+                method: 'GET',
+                success: function(data) {
+                    console.log('Response data:', data);
+                    
+                    // Update header row
+                    const $thead = $table.find('thead').empty().append(
+                        $('<tr>').append(
+                            headers.map(header => 
+                                $('<th>')
+                                    .attr('scope', 'col')
+                                    .text(header)
+                            )
+                        )
+                    );
+
+                    // Update table body
+                    const $tbody = $table.find('tbody').empty();
+                    
+                    if (!data || data.length === 0) {
+                        $tbody.append(
+                            $('<tr>').append(
+                                $('<td>')
+                                    .attr('colspan', headers.length)
+                                    .addClass('text-center')
+                                    .text('No data available')
+                            )
+                        );
+                        return;
+                    }
+
+                    $tbody.append(
+                        data.map(host => 
+                            $('<tr>').append(
+                                headers.map(header => {
+                                    if (header === "IPMIURL") {
+                                        return $('<td>').append(
+                                            $('<a>')
+                                                .addClass('link-secondary-hover')
+                                                .attr('href', `http://mgmt-${host[header]}/`)
+                                                .attr('target', '_blank')
+                                                .text('console')
+                                        );
+                                    } else if (header === "Workload") {
+                                        return $('<td>').append(
+                                            $('<a>')
+                                                .addClass('link-secondary-hover')
+                                                .attr('href', '#')
+                                                .text(host[header])
+                                        );
+                                    } else {
+                                        return $('<td>').text(host[header]);
+                                    }
+                                })
+                            )
+                        )
+                    );
+                },
+                error: function(xhr, status, error) {
+                    console.error(`Error fetching data for rack ${rackId}:`, error);
+                }
+            });
+        };
+
+        // Initialize data loading for each rack
+        $('.table').each(function() {
+            const rackId = $(this).attr('id').replace('rack-', '');
+            updateRackData(rackId);
+        });
+    });
+    </script>
 {% endblock %}
