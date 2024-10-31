@@ -124,7 +124,7 @@ def update_disk(hostname: str) -> Response:
         if value:
             update_fields[key] = value
 
-    if update_fields.get("count") and update_fields.get("count") <= 0:
+    if update_fields.get("count") and int(update_fields.get("count")) <= 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",
@@ -132,7 +132,7 @@ def update_disk(hostname: str) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    if update_fields.get("size_gb") and update_fields.get("size_gb") <= 0:
+    if update_fields.get("size_gb") and int(update_fields.get("size_gb")) <= 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",

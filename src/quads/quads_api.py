@@ -346,6 +346,9 @@ class QuadsApi:
     def create_disk(self, hostname, data) -> Response:
         return self.post(os.path.join("disks", hostname), data)
 
+    def update_disk(self, hostname, data) -> Response:
+        return self.patch(os.path.join("disks", hostname), data)
+
     def remove_disk(self, hostname, disk_id) -> Response:
         return self.delete(os.path.join("disks", hostname), {"id": disk_id})
 
