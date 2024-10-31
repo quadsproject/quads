@@ -6,7 +6,7 @@ You've been allocated a new environment!
 {{ cloud_info }}
 
 (Details)
-{{ wiki_url }}/assignments/#{{ cloud }}
+{{ quads_url }}/assignments/#{{ cloud }}
 
 You can view your machine list, duration and other
 details above.
@@ -21,7 +21,7 @@ Password: {{ password }}
 For additional information regarding system usage
 please see the following documentation:
 
-{{ wiki_url }}/faq/
-{{ wiki_url }}/usage/
+{{ quads_url }}/FAQ/
+{{ quads_url }}/Usage/
 
 Perf/Scale DevOps Team

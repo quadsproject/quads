@@ -41,7 +41,6 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc):
             template = Template(_file.read())
         content = template.render(
             cloud_info=cloud_info,
-            wiki_url=Config["wiki_url"],
             cloud=cloud,
             quads_url=Config["quads_url"],
             real_owner=real_owner,
@@ -63,7 +62,7 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc):
                 message = "%s QUADS: %s is now active, choo choo! - %s/assignments/#%s -  %s %s" % (
                     irc_bot_channel,
                     cloud_info,
-                    Config["wiki_url"],
+                    Config["quads_url"],
                     cloud,
                     real_owner,
                     Config["report_cc"],
@@ -77,7 +76,7 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc):
         try:
             message = "QUADS: %s is now active, choo choo! - %s/assignments/#%s -  %s %s" % (
                 cloud_info,
-                Config["wiki_url"],
+                Config["quads_url"],
                 cloud,
                 real_owner,
                 Config["report_cc"],
@@ -113,7 +112,7 @@ def create_message(
     content = template.render(
         days_to_report=day,
         cloud_info=cloud_info,
-        wiki_url=Config["wiki_url"],
+        quads_url=Config["quads_url"],
         quads_request_url=quads_request_url,
         quads_request_deadline_day=Config["quads_request_deadline_day"],
         quads_notify_until_extended=Config["quads_notify_until_extended"],
@@ -139,7 +138,7 @@ def create_future_initial_message(cloud, assignment_obj, cloud_info):
         template = Template(_file.read())
     content = template.render(
         cloud_info=cloud_info,
-        wiki_url=Config["wiki_url"],
+        quads_url=Config["quads_url"],
     )
     postman = Postman(
         "New QUADS Assignment Defined for the Future: %s - %s" % (cloud, ticket),
@@ -167,7 +166,7 @@ def create_future_message(
     content = template.render(
         days_to_report=future_days,
         cloud_info=cloud_info,
-        wiki_url=Config["wiki_url"],
+        quads_url=Config["quads_url"],
         cloud=cloud,
         hosts=host_list_expire,
     )
