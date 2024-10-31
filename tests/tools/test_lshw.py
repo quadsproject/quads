@@ -57,10 +57,13 @@ class TestLshw(object):
         run_lshw("host.example.com", temp_filepath)
         assert not os.path.exists(temp_filepath)
 
+    @patch(
+        "quads.tools.lshw.LSHW_OUTPUT_DIR", new_callable=lambda: os.path.join(os.path.dirname(__file__), "artifacts")
+    )
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")
     @pytest.mark.asyncio
-    def test_main(self, mock_client, mock_config):
+    def test_main(self, mock_client, mock_config, mock_dir):
         mock_config.return_value = MagicMock()
         mock_client.return_value.exec_command.return_value = [
             MagicMock(),
