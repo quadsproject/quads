@@ -65,7 +65,7 @@ jira_password: password
 jira_token: YourJiraTokenHereKeepItSafe
 
 # this is used in some of the wiki generate for the links
-quads_url: http://quads.scalelab.example.com
+quads_url: https://quads.scalelab.example.com
 # url for a request form if you use one
 # e.g. http://scalelab.example.com
 quads_request_url:
