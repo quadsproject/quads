@@ -28,9 +28,14 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
             path, extension = os.path.splitext(filename)
             if extension == ".json":
                 with open(filename) as _f:
-                    data = json.load(_f)
+                    try:
+                        data = json.load(_f)
+                    except json.JSONDecodeError:
+                        print(f"Error decoding: {filename}")
+                        continue
                     children = parse("$..children[*]").find(data)
                     hostname = parse("$.id").find(data)[0].value
+                    print(f"Processing: {hostname}")
                     host_obj = quads.get_host(hostname)
                     if not host_obj:
                         print(f"Host not found: {hostname}")
@@ -50,41 +55,69 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                                     if speed:
                                         speed = int("".join(filter(str.isdigit, speed)))
                                     host_interface.speed = speed
-                                    host_obj.save()
+                                    interface = quads.update_interface(
+                                        hostname, host_interface.as_dict()
+                                    )
+                                    print(
+                                        f"  Updated interface: {host_interface.as_dict()}"
+                                    )
                     # disks
-                    for child in [
-                        child for child in children if child.value["class"] == "disk"
-                    ]:
-                        if child.value.get("size"):
+                    disk_nodes = [
+                        node.context.value
+                        for node in parse("$..class").find(data)
+                        if node.value == "disk"
+                    ]
+                    disks = {}
+                    for child in disk_nodes:
+                        if child.get("size"):
                             disk_type = None
                             for dt, sub in DISK_TYPES.items():
-                                if child.value["description"].lower().startswith(sub):
+                                if child.get("description").lower().startswith(sub):
                                     disk_type = dt
-                            disk_size = b2g(int(child.value["size"]), True)
-                            filters = {
-                                "name": host_obj.name,
-                                "disks__disk_type": disk_type,
-                                "disks__size_gb": disk_size,
+                                    break
+                            disk_size = b2g(int(child.get("size")), True)
+                            disks[f"{disk_type}|{str(disk_size)}"] = (
+                                disks.get(f"{disk_type}|{str(disk_size)}", 0) + 1
+                            )
+
+                    for key, count in disks.items():
+                        disk_type, disk_size = key.split("|")
+                        filters = {
+                            "name": host_obj.name,
+                            "disks.disk_type": disk_type,
+                            "disks.size_gb": disk_size,
+                        }
+                        host = quads.filter_hosts(filters)
+                        if host:
+                            for disk in host[0].disks:
+                                if (
+                                    disk.disk_type == disk_type
+                                    and disk.size_gb == int(disk_size)
+                                ):
+                                    if disk.count != count:
+                                        data = {
+                                            "disk_id": disk.id,
+                                            "disk_type": disk_type,
+                                            "size_gb": disk_size,
+                                            "count": count,
+                                        }
+                                        quads.update_disk(host_obj.name, data)
+                                        print(f"  Updated disk: {data}")
+                                    else:
+                                        print(f"  Disk already exists: {disk_type, disk_size, count}")
+                                    break
+                        else:
+                            data = {
+                                "disk_type": disk_type,
+                                "size_gb": disk_size,
+                                "count": count,
                             }
-                            host = quads.filter_hosts(filters)
-                            if host:
-                                for disk in host[0].disks:
-                                    if (
-                                        disk.disk_type == disk_type
-                                        and disk.disk_size == disk_size
-                                    ):
-                                        disk.count += 1
-                            else:
-                                data = {
-                                    "disk_type": disk_type,
-                                    "size_gb": disk_size,
-                                    "count": 1,
-                                }
-                                disk = quads.create_disk(host_obj.name, data)
+                            disk = quads.create_disk(host_obj.name, data)
+                            print(f"  Created disk: {data}")
 
                     # memory
                     for memory in host_obj.memory:
-                        quads.remove_memory(memory.id)
+                        quads.remove_memory(str(memory.id))
                     for child in [
                         child
                         for child in children
@@ -104,24 +137,27 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                                 hostname,
                                 data,
                             )
+                            print(f"  Created memory: {data}")
 
                     # processor
                     for processor in host_obj.processors:
-                        quads.remove_processor(processor.id)
+                        quads.remove_processor(str(processor.id))
                     for child in [
                         child
                         for child in children
                         if child.value["class"] == "processor"
                     ]:
                         configuration = child.value.get("configuration")
-                        data = {
-                            "handle": child.value.get("handle"),
-                            "vendor": child.value.get("vendor"),
-                            "product": child.value.get("product"),
-                            "cores": int(configuration.get("cores", 0)),
-                            "threads": int(configuration.get("threads", 0)),
-                        }
-                        processor = quads.create_processor(
-                            hostname,
-                            data,
-                        )
+                        if configuration.get("cores") and configuration.get("threads"):
+                            data = {
+                                "handle": child.value.get("handle"),
+                                "vendor": child.value.get("vendor"),
+                                "product": child.value.get("product"),
+                                "cores": int(configuration.get("cores")),
+                                "threads": int(configuration.get("threads")),
+                            }
+                            processor = quads.create_processor(
+                                hostname,
+                                data,
+                            )
+                            print(f"  Created processor: {data}")
