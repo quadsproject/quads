@@ -50,7 +50,7 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                                     if speed:
                                         speed = int("".join(filter(str.isdigit, speed)))
                                     host_interface.speed = speed
-                                    host_obj.save()
+                                    interface = quads.update_interface(hostname, host_interface.as_dict())
                     # disks
                     for child in [
                         child for child in children if child.value["class"] == "disk"
