@@ -5,7 +5,7 @@ your allocated environment:
 {{ cloud_info }}
 
 (Details)
-{{ wiki_url }}/assignments/#{{ cloud }}
+{{ quads_url }}/assignments/#{{ cloud }}
 
 will change.  As host schedules are activated some
 hosts will automatically be reprovisioned and moved to
@@ -22,8 +22,8 @@ hosts:
 For additional information regarding the Scale Lab usage
 please see the following documentation:
 
-{{ wiki_url }}/faq/
-{{ wiki_url }}/usage/
+{{ quads_url }}/FAQ/
+{{ quads_url }}/Usage/
 
 Thank you for your attention.
 
