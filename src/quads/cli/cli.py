@@ -936,26 +936,12 @@ class QuadsCli:
                     ) as ex:  # pragma: no cover
                         raise CliException(str(ex))
             elif assignment:
-                try:
-                    response = self.quads.update_assignment(assignment.id, data)
-                    self.quads.update_cloud(
-                        cloud.name,
-                        {
-                            "last_redefined": ":".join(
-                                datetime.now().isoformat().split(":")[:-1]
-                            )
-                        },
-                    )
-
-                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-                    raise CliException(str(ex))
-                if response.status_code == 200:
-                    self.logger.info("Assignment updated.")
+                raise CliException("Cloud already has an active assignment.")
             else:
                 if self.cli_args.get("cloud") != conf.get("spare_pool_name"):
                     if not self.cli_args.get("cloudticket"):
                         self.logger.warning("No ticket provided.")
-                    self.logger.warning("No assignment created or updated.")
+                    self.logger.warning("No assignment created.")
 
         except ConnectionError:  # pragma: no cover
             raise CliException(

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional, Type
 
-from sqlalchemy import Boolean, or_
+from sqlalchemy import Boolean, or_, select
 
 from quads.config import Config
 from quads.server.dao.baseDao import (
@@ -72,6 +72,12 @@ class CloudDao(BaseDao):
 
     @staticmethod
     def get_free_clouds() -> List[Cloud]:
+        future_schedule_subquery = (
+            select(Schedule.id)
+            .join(Assignment, Schedule.assignment_id == Assignment.id)
+            .filter(Assignment.cloud_id == Cloud.id, Schedule.start > datetime.now())
+            .exists()
+        )
         free_clouds = (
             db.session.query(Cloud)
             .outerjoin(Assignment, Cloud.id == Assignment.cloud_id)
@@ -83,6 +89,7 @@ class CloudDao(BaseDao):
                     Assignment.id == None,
                     Schedule.id == None,
                 ),
+                ~future_schedule_subquery,
             )
             .order_by(Cloud.name.asc())
             .distinct()
