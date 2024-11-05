@@ -77,10 +77,7 @@ class TestCreateAssignments:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"]
-            == f"Cloud not found: {assignment_request['cloud']}"
-        )
+        assert response.json["message"] == f"Cloud not found: {assignment_request['cloud']}"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_vlan_not_found(self, test_client, auth, prefill):
@@ -101,9 +98,7 @@ class TestCreateAssignments:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"] == f"Vlan not found: {assignment_request['vlan']}"
-        )
+        assert response.json["message"] == f"Vlan not found: {assignment_request['vlan']}"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid(self, test_client, auth, prefill):
@@ -125,12 +120,8 @@ class TestCreateAssignments:
                 )
             )
             assignment_response["created_at"] = response.json["created_at"]
-            assignment_response["cloud"]["last_redefined"] = response.json["cloud"][
-                "last_redefined"
-            ]
-            duration = datetime.utcnow() - datetime.strptime(
-                response.json["created_at"], "%a, %d %b %Y %H:%M:%S GMT"
-            )
+            assignment_response["cloud"]["last_redefined"] = response.json["cloud"]["last_redefined"]
+            duration = datetime.utcnow() - datetime.strptime(response.json["created_at"], "%a, %d %b %Y %H:%M:%S GMT")
             assert duration.total_seconds() < 5
             assert response.status_code == 200
             assert response.json == assignment_response
@@ -152,10 +143,7 @@ class TestCreateAssignments:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"]
-            == f"There is an already active assignment for {ASSIGNMENT_1_REQUEST['cloud']}"
-        )
+        assert response.json["message"] == f"There is an already active assignment for {ASSIGNMENT_1_REQUEST['cloud']}"
 
 
 class TestReadAssignment:
@@ -176,9 +164,7 @@ class TestReadAssignment:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
-        )
+        assert response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid(self, test_client, auth, prefill):
@@ -195,9 +181,7 @@ class TestReadAssignment:
             )
         )
         assignment_response = ASSIGNMENT_1_RESPONSE.copy()
-        assignment_response["cloud"]["last_redefined"] = response.json["cloud"][
-            "last_redefined"
-        ]
+        assignment_response["cloud"]["last_redefined"] = response.json["cloud"]["last_redefined"]
         assignment_response["created_at"] = response.json["created_at"]
         assert response.status_code == 200
         assert response.json == assignment_response
@@ -221,9 +205,7 @@ class TestReadAssignment:
             ASSIGNMENT_2_RESPONSE.copy(),
         ]
         for resp, assignment_response in zip(response.json, assignment_responses):
-            assignment_response["cloud"]["last_redefined"] = resp["cloud"][
-                "last_redefined"
-            ]
+            assignment_response["cloud"]["last_redefined"] = resp["cloud"]["last_redefined"]
             assignment_response["created_at"] = resp["created_at"]
         assert response.status_code == 200
         assert response.json == assignment_responses
@@ -243,9 +225,7 @@ class TestReadAssignment:
             )
         )
         assignment_response = ASSIGNMENT_1_RESPONSE.copy()
-        assignment_response["cloud"]["last_redefined"] = response.json["cloud"][
-            "last_redefined"
-        ]
+        assignment_response["cloud"]["last_redefined"] = response.json["cloud"]["last_redefined"]
         assignment_response["created_at"] = response.json["created_at"]
         assert response.status_code == 200
         assert response.json == assignment_response
@@ -288,9 +268,7 @@ class TestReadAssignment:
             ASSIGNMENT_2_RESPONSE.copy(),
         ]
         for resp, assignment_response in zip(response.json, assignment_responses):
-            assignment_response["cloud"]["last_redefined"] = resp["cloud"][
-                "last_redefined"
-            ]
+            assignment_response["cloud"]["last_redefined"] = resp["cloud"]["last_redefined"]
             assignment_response["created_at"] = resp["created_at"]
         assert response.status_code == 200
         assert response.json == assignment_responses
@@ -333,9 +311,7 @@ class TestUpdateAssignment:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
-        )
+        assert response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_cloud_not_found(self, test_client, auth, prefill):
@@ -375,7 +351,10 @@ class TestUpdateAssignment:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert response.json["message"] == f"Vlan not found: {invalid_vlan_id}"
+        assert (
+            response.json["message"]
+            == f"Vlan not found: {invalid_vlan_id}, for clearing use any of: ['none', '0', 'no', 'nada', 'clear']"
+        )
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid(self, test_client, auth, prefill):
@@ -393,9 +372,7 @@ class TestUpdateAssignment:
             )
         )
         assignment_response = ASSIGNMENT_1_UPDATE_RESPONSE.copy()
-        assignment_response["cloud"]["last_redefined"] = response.json["cloud"][
-            "last_redefined"
-        ]
+        assignment_response["cloud"]["last_redefined"] = response.json["cloud"]["last_redefined"]
         assignment_response["created_at"] = response.json["created_at"]
         assert response.status_code == 200
         assert response.json == assignment_response
@@ -439,9 +416,7 @@ class TestDeleteAssignment:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert (
-            response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
-        )
+        assert response.json["message"] == f"Assignment not found: {invalid_assignment_id}"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid(self, test_client, auth, prefill):

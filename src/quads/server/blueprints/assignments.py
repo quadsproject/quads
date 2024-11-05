@@ -221,39 +221,46 @@ def update_assignment(assignment_id: str) -> Response:
 
     obj_attrs = inspect(Assignment).mapper.attrs
     update_fields = {}
-    for attr in obj_attrs:
-        value = data.get(attr.key)
-        if value is not None or attr.key == "vlan":
-            if attr.key == "ccuser":
-                value = re.split(r"[, ]+", value)
-                value = [user.strip() for user in value]
-            if attr.key == "cloud":
-                _cloud = CloudDao.get_cloud(value)
-                if not _cloud:
-                    response = {
-                        "status_code": 400,
-                        "error": "Bad Request",
-                        "message": f"Cloud not found: {value}",
-                    }
-                    return make_response(jsonify(response), 400)
-                value = _cloud
-            if attr.key == "vlan":
-                if value is None:
-                    update_fields[attr.key] = value
-                    continue
-                _vlan = VlanDao.get_vlan(value)
+    for _key, _value in data.items():
+        value = _value
+        if _key not in [attr.key for attr in obj_attrs]:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"Invalid argument: {_key}",
+            }
+            return make_response(jsonify(response), 400)
+        if _key == "ccuser":
+            value = re.split(r"[, ]+", _value)
+            value = [user.strip() for user in value]
+        if _key == "cloud":
+            _cloud = CloudDao.get_cloud(_value)
+            if not _cloud:
+                response = {
+                    "status_code": 400,
+                    "error": "Bad Request",
+                    "message": f"Cloud not found: {_value}",
+                }
+                return make_response(jsonify(response), 400)
+            value = _cloud
+        if _key == "vlan":
+            kambiz_none_values = ["none", "0", "no", "nada", "clear"]
+            value = None
+            if _value and str(_value).lower() not in kambiz_none_values:
+                _vlan = VlanDao.get_vlan(_value)
                 if not _vlan:
                     response = {
                         "status_code": 400,
                         "error": "Bad Request",
-                        "message": f"Vlan not found: {value}",
+                        "message": f"Vlan not found: {_value}, for clearing use any of: {kambiz_none_values}",
                     }
                     return make_response(jsonify(response), 400)
                 value = _vlan
-            if type(value) is str:
-                if value.lower() in ["true", "false"]:
-                    value = eval(value.lower().capitalize())
-            update_fields[attr.key] = value
+        if type(_value) is str:
+            if _value.lower() in ["true", "false"]:
+                value = eval(_value.lower().capitalize())
+        update_fields[_key] = value
+
     for key, value in update_fields.items():
         setattr(assignment_obj, key, value)
 
