@@ -41,21 +41,29 @@ class Validator(object):  # pragma: no cover
         self.loop = _loop if _loop else get_running_loop()
 
     def notify_failure(self):
-        template_file = "validation_failed"
-        with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
-            template = Template(_file.read())
-        parameters = {
+        now = datetime.now()
+        data = {
             "cloud": self.cloud,
-            "owner": self.assignment.owner,
-            "ticket": self.assignment.ticket,
-            "report": self.report,
         }
-        content = template.render(**parameters)
+        schedules = quads.get_current_schedules(data)
+        if schedules:
+            time_delta = now - schedules[0].start
+            if time_delta.total_seconds() // 60 > Config["validation_grace_period"]:
+                template_file = "validation_failed"
+                with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
+                    template = Template(_file.read())
+                parameters = {
+                    "cloud": self.cloud,
+                "owner": self.assignment.owner,
+                "ticket": self.assignment.ticket,
+                "report": self.report,
+                }
+                content = template.render(**parameters)
 
-        subject = "Validation check failed for {cloud} / {owner} / {ticket}".format(**parameters)
-        _cc_users = Config["report_cc"].split(",")
-        postman = Postman(subject, "dev-null", _cc_users, content)
-        postman.send_email()
+                subject = "Validation check failed for {cloud} / {owner} / {ticket}".format(**parameters)
+                _cc_users = Config["report_cc"].split(",")
+                postman = Postman(subject, "dev-null", _cc_users, content)
+                postman.send_email()
 
     def notify_success(self):
         template_file = "validation_succeeded"
