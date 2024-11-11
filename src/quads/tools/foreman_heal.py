@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 quads = QuadsApi(Config)
 
 
-def main(_logger=None):
+def rbac(_logger=None):
     global logger
     if _logger:  # pragma: no cover
         logger = _logger
@@ -59,7 +59,7 @@ def main(_logger=None):
                 if current_schedule:
 
                     logger.info("  Current Host Permissions:")
-                    for host, properties in cloud_hosts.items():  # pragma: no cover
+                    for host, _ in cloud_hosts.items():  # pragma: no cover
                         logger.info(f"    {host}")
 
                         match = [schedule.host.name for schedule in current_schedule if schedule.host.name == host]
@@ -78,7 +78,7 @@ def main(_logger=None):
                 else:
                     if cloud_hosts:  # pragma: no cover
                         logger.info("  No active schedule, removing pre-existing roles.")
-                        for host, properties in cloud_hosts.items():
+                        for host, _ in cloud_hosts.items():
                             _host_id = loop.run_until_complete(foreman_admin.get_host_id(host))
                             loop.run_until_complete(foreman_admin.put_element("hosts", _host_id, "owner_id", admin_id))
                             logger.info(f"* Removed permission {host}")
@@ -87,4 +87,4 @@ def main(_logger=None):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    rbac()

@@ -21,7 +21,7 @@ from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.foreman_heal import main as foreman_heal
+from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
 from quads.tools.move_and_rebuild import move_and_rebuild, switch_config
 from quads.tools.notify import main as notify
@@ -656,10 +656,10 @@ class QuadsCli:
 
         if not check:
             data = {
-                "one_day": "False",
-                "three_days": "False",
-                "five_days": "False",
-                "seven_days": "False",
+                "one_day": False,
+                "three_days": False,
+                "five_days": False,
+                "seven_days": False,
             }
             try:
                 self.quads.update_notification(schedules[0].assignment.notification.id, data)
@@ -1698,6 +1698,7 @@ class QuadsCli:
                                     assignment.id,
                                     {"provisioned": True, "validated": validate},
                                 )
+                                foreman_heal(self.logger)
                         except (
                             APIServerException,
                             APIBadRequest,
@@ -1818,7 +1819,6 @@ class QuadsCli:
             _hosts = self.quads.filter_hosts(host_kwargs)
             if _hosts:
                 for schedule in sorted(schedules, key=lambda k: k.host.name):
-                    # TODO: check data properties
                     if schedule.host.name in [host.name for host in _hosts]:
                         self.logger.info(schedule.host.name)
         else:
@@ -1838,7 +1838,7 @@ class QuadsCli:
                 if self.cli_args.get("filter"):
                     filter_args = self._filter_kwargs(self.cli_args.get("filter"))
                     host_kwargs.update(filter_args)
-                    _host = self.quads.filter_hosts(host_kwargs)
+                    _hosts = self.quads.filter_hosts(host_kwargs)
                 else:
                     _hosts = self.quads.get_hosts()
                 for host in sorted(_hosts, key=lambda k: k.name):
