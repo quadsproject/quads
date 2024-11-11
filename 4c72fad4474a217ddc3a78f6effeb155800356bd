@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efc17a85_d748c25f",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-11-11T08:48:27Z",
+      "side": 1,
+      "message": "this might as well be replaced with a single call to `env_allocation_time_exceeded()` but it would still be redundant as the call to this one is made before `notify_failure()` on line#309 which prevents the `failed` variable to be set as `True` which also prevents the `if` on line#352 from running this failure notification.",
+      "revId": "4c72fad4474a217ddc3a78f6effeb155800356bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
