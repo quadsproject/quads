@@ -46,8 +46,8 @@ def update_notification(notification_id: int) -> Response:
     update_fields = {}
     for attr in obj_attrs:
         value = data.get(attr.key)
-        if value:
-            if type(value) == str:
+        if attr.key in data:
+            if isinstance(value, str):
                 if value.lower() in ["true", "false"]:
                     value = eval(value.lower().capitalize())
             update_fields[attr.key] = value

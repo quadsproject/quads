@@ -1,7 +1,7 @@
 import logging
 
 from quads.config import Config
-from quads.tools.foreman_heal import main as foreman_heal_main
+from quads.tools.foreman_heal import rbac as foreman_heal_main
 from tests.tools.test_base import TestBase
 
 

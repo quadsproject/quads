@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
 import logging
-import os
 from datetime import datetime
 from time import sleep
 
