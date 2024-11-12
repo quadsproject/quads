@@ -58,7 +58,7 @@ class TestLshw(object):
         assert not os.path.exists(temp_filepath)
 
     @patch(
-        "quads.tools.lshw.LSHW_OUTPUT_DIR", new_callable=lambda: os.path.join(os.path.dirname(__file__), "artifacts")
+        "quads.tools.lshw.LSHW_OUTPUT_DIR", new_callable=lambda: os.path.join(os.path.dirname(__file__), "../artifacts")
     )
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")

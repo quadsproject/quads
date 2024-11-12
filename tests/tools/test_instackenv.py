@@ -11,13 +11,15 @@ class TestInstackenv(TestBase):
         Config.__setattr__("openstack_management", True)
         Config.__setattr__("openshift_management", True)
         Config.__setattr__("foreman_unavailable", True)
-        Config.__setattr__("json_web_path", os.path.join(os.path.dirname(__file__), "artifacts/"))
+        Config.__setattr__("json_web_path", os.path.join(os.path.dirname(__file__), "../artifacts/"))
         main()
-        with open(os.path.join(os.path.dirname(__file__), "artifacts/cloud99_instackenv.json")) as cloud99_instackenv:
+        with open(
+            os.path.join(os.path.dirname(__file__), "../artifacts/cloud99_instackenv.json")
+        ) as cloud99_instackenv:
             instackenv_list = list(cloud99_instackenv.readlines())
             instackenv_list = [line.strip() for line in instackenv_list]
         with open(
-            os.path.join(os.path.dirname(__file__), "artifacts/cloud99_ocpinventory.json")
+            os.path.join(os.path.dirname(__file__), "../artifacts/cloud99_ocpinventory.json")
         ) as cloud99_ocpinventory:
             ocpinventory_list = list(cloud99_ocpinventory.readlines())
             ocpinventory_list = [line.strip() for line in ocpinventory_list]

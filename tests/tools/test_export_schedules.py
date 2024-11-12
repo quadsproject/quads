@@ -7,7 +7,7 @@ from tests.tools.test_base import TestBase
 
 
 class TestExportSchedules(TestBase):
-    output_file = os.path.join(os.path.dirname(__file__), "artifacts/output.yaml")
+    output_file = os.path.join(os.path.dirname(__file__), "../artifacts/output.yaml")
 
     @patch("quads.tools.export_current_schedules.QuadsApi")
     def test_export_current_schedules_with_valid_data(self, mock_quads_api):
