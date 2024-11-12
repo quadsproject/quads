@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 tests/tools/artifacts/cloud99_ocpinventory.json_*
+junit-*
 
 # Translations
 *.mo
