@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2dda0f8_fcb0f194",
+        "filename": "src/quads/web/controller/dynamic_nav/bootstrap_render.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-11-13T16:28:22Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "1c1cd4f3_6d0d7934",
+      "revId": "58ac4a7494650aabad27374afde6e1e86d0ceab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d2ebf5d6_0639b1fa",
@@ -85,6 +103,24 @@
       "side": 1,
       "message": "File \"/home/grafuls/Sources/quads-upstream/venv-new/lib/python3.12/site-packages/quads/web/templates/base.html\", line 55, in block \u0027navbar\u0027\n    {{ nav.navbar.render(renderer\u003d\"BootStrapRender5\") }}\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/grafuls/Sources/quads-upstream/venv-new/lib/python3.12/site-packages/jinja2/environment.py\", line 485, in getattr\n    return getattr(obj, attribute)\n           ^^^^^^^^^^^^^^^^^^^^^^^\njinja2.exceptions.UndefinedError: \u0027nav\u0027 is undefined\n\n\n*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!\n\nSo you are not running your code locally to verify that it\u0027s working?\nPlease start verifying your code.\nYou just need to run 4 things the DB, init-db, the quads-server and the quads-web.\n\nDB: podman run -e POSTGRES_PASSWORD\u003dpostgres -p 5432:5432 postgres\n\nINIT-DB(with venv): SQLALCHEMY_DATABASE_URI\u003dpostgresql://postgres:postgres@localhost:5432/quads flask --app src/quads/server/app.py init-db\n\nQUADS-SERVER(with venv): gunicorn quads.server.app:create_app\\(\\) -b :5000 -w 4 -k gthread --max-requests\u003d5000 --max-requests-jitter\u003d500 --log-level\u003dDEBUG\n\nQUADS-WEB(with venv): gunicorn quads.web.app:flask_app -b :5001 -w 4 -k gthread --max-requests\u003d5000 --max-requests-jitter\u003d500 --log-level\u003dDEBUG",
       "parentUuid": "92237a95_95b7b3d6",
+      "revId": "58ac4a7494650aabad27374afde6e1e86d0ceab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "53183ee3_f4ce4b29",
+        "filename": "src/quads/web/templates/base.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-11-13T16:28:22Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "057e8608_907166fd",
       "revId": "58ac4a7494650aabad27374afde6e1e86d0ceab3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }

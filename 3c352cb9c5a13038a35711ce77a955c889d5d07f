@@ -16,6 +16,24 @@
       "message": "Here I registered the navbar.",
       "revId": "3c352cb9c5a13038a35711ce77a955c889d5d07f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d04c8b64_9b6f24a3",
+        "filename": "src/quads/web/app.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-11-13T16:28:22Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "8948fa66_7f967e26",
+      "revId": "3c352cb9c5a13038a35711ce77a955c889d5d07f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
