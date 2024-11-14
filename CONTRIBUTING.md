@@ -1,4 +1,3 @@
-[![Gerrit](https://quads-ci.scalelab.redhat.com/job/Quads-2.0/badge/icon)](https://quads-ci.scalelab.redhat.com/job/Quads-2.0/)
 
 Contributing to QUADS
 =====================
@@ -7,8 +6,8 @@ Contributing to QUADS
 The QUADS project welcomes contributions from everyone!  Please read the below steps to see how you can contribute to QUADS.
 
 ## Contribution Basics
-  * We do not use the Github Pull Request system.
-  * We use [Gerrit](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) for code review
+  * We **do not** use the Github Pull Request system.
+  * We use [Gerrit](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) for code review instead.
   * You can also find us on IRC at **#quads** on ```irc.libera.chat``` [webchat](https://web.libera.chat/?channels=#quads)
 
 ## QUADS Development Setup
@@ -29,7 +28,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
 
 ### Virtual Environment Setup
 
-  - Create virtualenv, install dependencies and the quads package
+  - Create virtualenv, install dependencies and the QUADS package
     ```bash
     python3 -m venv venv
     source venv/bin/activate
@@ -158,10 +157,15 @@ git review -d $CHANGEID
 * Keep an eye on your patchset in Gerrithub, this is where CI will run, where we'll provide feedback and where you can monitor changes and status.  Your git review command will print the correct URL to your patchset.
 
 ### Continuous Integration (CI)
-Jenkins CI pipeline currently checks the following for every submitted patchset:
+
+#### Jenkins CI Pipeline
+The CI pipeline currently checks the following for every submitted patchset:
   - shellcheck - checks for common shell syntax errors and issues
   - flake8 - checks Python tools for common syntax errors and issues
+  - functional tests - runs QUADS commands and records the exit status in containers
   - [unit tests](https://github.com/redhat-performance/quads/tree/latest/tests)
+
+#### Code Review Tips
   - You can trigger CI to run again by commenting on your patchset in gerrit with `retrigger`
 
 #### QUADS CI Architecture
