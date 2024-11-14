@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, make_response, render_template, send_from_directory
 
 from quads.web.blueprints.common import WEB_CONTENT_PATH, get_file_paths
 
@@ -18,5 +18,9 @@ def instack(cloud):
     file_paths = get_file_paths(path)
     for file in file_paths:
         if cloud in file:
-            return render_template(file)
+            response = make_response(send_from_directory(path, file))
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
     return abort(404)
