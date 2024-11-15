@@ -238,6 +238,15 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
             if isinstance(result, Exception) or not result:
                 logger.error("There was something wrong setting Foreman host parameters.")
                 return False
+
+        try:
+            asyncio.run_coroutine_threadsafe(
+                badfish.unmount_virtual_media(),
+                loop,
+            )
+        except BadfishException:
+            logger.warning(f"Could not unmount virtual media for mgmt-{host}.")
+
         if is_supported(host):
             try:
                 await badfish.boot_to_type(
@@ -250,14 +259,6 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
                 await badfish.reboot_server(graceful=False)
                 return False
         else:
-            try:
-                asyncio.run_coroutine_threadsafe(
-                    badfish.unmount_virtual_media(),
-                    loop,
-                )
-            except BadfishException:
-                logger.warning(f"Could not unmount virtual media for mgmt-{host}.")
-
             try:
                 ipmi_pxe_persistent = [
                     "chassis",
