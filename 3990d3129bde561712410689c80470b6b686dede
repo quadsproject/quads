@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "26f5dd3c_aa1c89da",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2024-11-27T11:52:41Z",
+      "side": 1,
+      "message": "Could you redo the new image so that \"podman containers\" does not have the white box background inside of the blue oval?",
+      "revId": "3990d3129bde561712410689c80470b6b686dede",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
