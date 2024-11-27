@@ -10,6 +10,27 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   * We use [Gerrit](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) for code review instead.
   * You can also find us on IRC at **#quads** on ```irc.libera.chat``` [webchat](https://web.libera.chat/?channels=#quads)
 
+    * [QUADS Development Setup](#quads-development-setup)
+        * [The QUADS Repository](#the-quads-repository)
+        * [Virtual Environment Setup](#virtual-environment-setup)
+        * [Pre-commit Hooks](#pre-commit-hooks)
+        * [Running QUADS Locally](#running-quads-locally)
+            * [Running the DB](#running-the-db)
+            * [Running the QUADS Server App](#running-the-quads-server-app)
+            * [Running the QUADS Web Flask App](#running-the-quads-web-flask-app)
+        * [Running the Tox Testing Suite](#running-the-tox-testing-suite)
+    * [Create a Tracking Issue](#create-a-tracking-issue)
+    * [Setup Github and Gerrit Account](#setup-github-and-gerrit-account)
+    * [Make a Commit and Submit Review](#make-a-commit-and-submit-review)
+        * [Integrate Git Review](#integrate-git-review)
+        * [Managing Git Review Patchsets](#managing-git-review-patchsets)
+        * [Monitor your Patchset Lifecycle](#monitor-your-patchset-lifecycle)
+        * [Continuous Integration](#continuous-integration)
+            * [Commit Hooks](#commit-hooks)
+            * [Jenkins CI Pipeline](#jenkins-ci-pipeline)
+            * [Code Review Tips](#code-review-tips)
+            * [QUADS CI Architecture](#quads-ci-architecture)
+
 ## QUADS Development Setup
 
 ### The QUADS Repository
@@ -22,8 +43,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   - Change directory to the code and create your own branch to work
     ```
     cd quads
-    git branch name_of_change
-    git checkout !$
+    git checkout -b name_of_change
     ```
 
 ### Virtual Environment Setup
@@ -41,7 +61,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
     cp -r conf/* /opt/quads/conf/
     ```
 
-### Pre-commit hooks
+### Pre-commit Hooks
 
   - Install pre-commit
     ```bash
@@ -87,7 +107,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
     ```
   - You can now access the QUADS Web UI at `http://localhost:5001/`
 
-### Running Tox testing suite
+### Running Tox Testing Suite
 
   - After all steps on the [Running QUADS Locally](#Running-QUADS-Locally) section have been completed, you can run the tests.
   - To run the full suite of tests, you can use the `tox` command
@@ -104,7 +124,8 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   - Provide a meaningful explanation, citing code lines when relevant.
   - Explain what you are trying to fix, or what you're trying to contribute.
 
-## Setup Github / Gerrit Account (one-time only)
+## Setup Github and Gerrit Account
+* **This is a one-time only setup step**
 * You'll need a Github account to proceed.
 * Setup username/email for Github and Gerrithub (one time only):
   - Ensure Github and Gerrithub are linked by [signing into Gerrithub via Github](https://review.gerrithub.io/login)
@@ -121,7 +142,7 @@ git config user.name "Venril Sathir"
 git config --add gitreview.username "vsathir"
 ```
 
-## Make a Commit, Submit Review
+## Make a Commit and Submit Review
 * Add a local commit with a meaningful, short title followed by a space and a summary (you can check our [commit history](https://github.com/redhat-performance/quads/commits/latest) for examples.
 * Add a line that relates to a new or existing github issue, e.g. ```fixes: https://github.com/redhat-performance/quads/issues/5``` or ```related-to: https://github.com/redhat-performance/quads/issues/25```
 
@@ -130,7 +151,8 @@ git add quads/api_v2.py
 git commit
 ```
 
-### Integrate Git Review (First Time Only)
+### Integrate Git Review
+* **This is a one-time only setup step**
 * Install git-review and run it for first time.
 
 ```
@@ -152,7 +174,7 @@ git review
 * If you want to make changes to your patchset you can run the ```git commit --amend``` command.
 
 ```
-vim /src/quads/quads_api.py
+vim src/quads/cli/cli.py
 git commit --amend
 git review
 ```
@@ -160,14 +182,16 @@ git review
 * If you just want to check out an existing patchset in Gerrit you can use the `git review -d $CHANGEID` command.
 
 ```
-cd /opt/container/quads
 git review -d $CHANGEID
 ```
 
 ### Monitor your Patchset Lifecycle
 * Keep an eye on your patchset in Gerrithub, this is where CI will run, where we'll provide feedback and where you can monitor changes and status.  Your git review command will print the correct URL to your patchset.
 
-### Continuous Integration (CI)
+### Continuous Integration
+
+#### Commit Hooks
+  - We use [black](https://github.com/psf/black) and [flake8](https://flake8.pycqa.org/en/latest/) pre-commit hooks.
 
 #### Jenkins CI Pipeline
 The CI pipeline currently checks the following for every submitted patchset:
