@@ -699,6 +699,43 @@ parser.add_argument(
     nargs="*",
     help="Skip specific hosts, when validating Quads assignments",
 )
+parser.add_argument(
+    "--ls-notifications",
+    dest="action",
+    action="store_const",
+    const="list_notifications",
+    help="List notifications",
+)
+parser.add_argument(
+    "--mod-notification",
+    dest="action",
+    action="store_const",
+    const="modify_notification",
+    help="Modify notification of a cloud",
+)
+
+mod_notification_arg_names = [
+    "fail", "success", "initial", "pre-initial",
+    "pre", "one-day", "three-days", "five-days", "seven-days"]
+
+
+def str_to_bool(value):
+    """Convert string to boolean."""
+    if value.lower() in {'true', 'yes', '1'}:
+        return True
+    elif value.lower() in {'false', 'no', '0'}:
+        return False
+    else:
+        raise argparse.ArgumentTypeError(f"Invalid value: {value}. Expected 'true' or 'false'.")
+
+
+for arg in mod_notification_arg_names:
+    parser.add_argument(f"--{arg}",
+                        type=str_to_bool,
+                        choices=[True, False],
+                        help=f"Set {arg} to true or false.")
+
+
 
 
 if __name__ == "__main__":  # pragma: no cover
