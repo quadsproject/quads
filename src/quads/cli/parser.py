@@ -699,6 +699,14 @@ parser.add_argument(
     nargs="*",
     help="Skip specific hosts, when validating Quads assignments",
 )
+parser.add_argument(
+    "--ls-notifications",
+    dest="action",
+    action="store_const",
+    const="list_notifications",
+    help="List notifications",
+)
+
 
 
 if __name__ == "__main__":  # pragma: no cover

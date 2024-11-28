@@ -1914,3 +1914,39 @@ class QuadsCli:
 
         validate_env(_args, _loop, self.logger)
         self.logger.info("Quads assignments validation executed.")
+
+    def action_list_notifications(self):
+        cloud_name = self.cli_args.get("cloud")
+        try:
+            if not cloud_name:
+                assignments = self.quads.get_active_assignments()
+            else:
+                assignment = self.quads.get_active_cloud_assignment(cloud_name=cloud_name)
+                assignments = [] if not assignment else [assignment]
+        except (APIServerException, APIBadRequest) as ex:
+            raise CliException(str(ex))
+        headers = ["fail", "success", "initial", "pre_initial", "pre", "one_day", "three_days", "five_days",
+                   "seven_days"]
+        rows = []
+        if assignments:
+            for ass in assignments:
+                cloud_name = str(ass.cloud.name)
+                ticket = str(ass.ticket)
+                notification = ass.notification
+                row = [cloud_name, ticket]
+                for header in headers:
+                    row.append(str(getattr(notification, header)))
+                rows.append(row)
+            headers.insert(0, "cloud")
+            headers.insert(1, "ticket")
+
+            col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
+
+            def format_row(data_row):
+                return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
+
+            table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
+            table.extend(format_row(row) for row in rows)
+            self.logger.info("\n".join(table))
+        else:
+            self.logger.warning(f"WARNING: there are no current or future schedules for {cloud_name}")
