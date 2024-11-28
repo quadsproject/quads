@@ -6,7 +6,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONF_PATH = "/opt/quads/conf/quads.yml"
+DEFAULT_CONF_PATH = "/Users/athiruma/PycharmProjects/quads/venv/quads.yaml"
 
 
 class _ConfigBase:
