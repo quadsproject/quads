@@ -37,6 +37,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Define Host Interfaces in QUADS](#define-host-interfaces-in-quads)
          * [How Provisioning Works](#how-provisioning-works)
             * [QUADS Move Host Command](#quads-move-host-command)
+              * [QUADS Move Host Command Dry Run](#quads-move-host-command-dry-run)
       * [QUADS Reporting](#quads-reporting)
         * [Future Assignment Reporting](#future-assignment-reporting)
         * [Server Availability Overview Report](#server-availability-overview-report)
@@ -301,7 +302,6 @@ crontab -e
 |-----------------------|----------|---------|
 | quads --move-hosts    | provisioning | checks for hosts to move/reclaim as scheduled |
 | quads --validate-env  | validation | checks clouds pending to be released for all enabled validation checks |
-| quads --regen-wiki    | documentation | keeps your infra wiki updated based on current state of environment |
 | quads --regen-heatmap | visualization | keeps your systems availability and usage visualization up to date |
 | quads --regen-instack | openshift/openstack | keeps optional openstack triple-o installation files up-to-date |
 | quads --notify        | notifications | check and send email or webhook/IRC notifications on events and releases |
@@ -490,7 +490,7 @@ INFO: Moving c08-h21-r630.example.com from cloud01 to cloud02 c08-h21-r630.examp
 ```
 
 ### How Provisioning Works
-#### QUADS move host command
+#### QUADS Move Host Command
 In QUADS, a `move-command` is the actionable call that provisions and moves a set of systems from one cloud environment to the other.  Via cron, QUADS routinely queries the existing schedules and when it comes time for a set of systems to move to a new environment or be reclaimed and moved back to the spare pool it will run the appropriate varation of your `move-command`.
 
 In the above example the default move command called ```/bin/echo``` for illustration purposes.  In order for this to do something more meaningful you should invoke a script with the ```--move-command``` option, which should be the path to a valid command or provisioning script/workflow.
@@ -501,6 +501,18 @@ In the above example the default move command called ```/bin/echo``` for illustr
 
 ```bash
 quads --move-hosts --move-command quads/tools/move_and_rebuild_hosts.py
+```
+
+##### QUADS Move Host Command Dry Run
+* You can use the `quads --move-hosts --dry-run` command to report what QUADS would do but only report it with no action.
+* You can also use the `--date` flag to see what actions might take place at a certain future time e.g.:
+```
+quads --move-hosts --dry-run --date "2024-12-24 22:00"
+
+Moving d16-h01-000-r650.example.com from cloud37 to cloud01, wipe = False
+Moving d16-h06-000-r650.example.com from cloud60 to cloud01, wipe = False
+Moving d16-h07-000-r650.example.com cloud60 to cloud01, wipe = False
+
 ```
 
 * You can also modify the default `move_command` in [quads](https://github.com/redhat-performance/quads/blob/latest/src/quads/cli/cli.py#L31).

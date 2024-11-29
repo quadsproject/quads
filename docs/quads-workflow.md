@@ -10,8 +10,9 @@ Below are common workflows, visualizations and features of QUADS.
     * [Example: Automated Scheduling](#example-automated-scheduling)
     * [Example: Systems Wiki](#example-systems-wiki)
     * [Example: Workload Assignments](#example-workload-assignments)
+    * [Example: Systems Availability Search](#example-systems-availability-search)
     * [Example: Systems Visualization Map](#example-systems-visualization-map)
-    * [Example: IRC and Email Notifications](#example-irc-and-email-notifications)
+    * [Example: IRC, Webhook Chat and Email Notifications](#example-irc-webhook-chat-and-email-notifications)
 
 ## QUADS Architecture
 
@@ -50,19 +51,24 @@ We color-code progress bars and status based on total amount of completion for a
 
 ![wiki](../image/quads-assignment-readiness.png)
 
+## Example: Systems Availability Search
+`quads-web` offers current and future availability search and filtering by hardware components like disk, model or any hardware metadata supported by the [hardware metadata framework](quads-host-metadata-search.md)
+
+![wiki](../image/quads-available-web.png)
+
 ## Example: Systems Visualization Map
 
 ![wiki](../image/quads-visual.png)
 
-## Example: IRC and Email Notifications
-   - We notify our Supybot IRC bot to announce when new environments are provisioned
-
-```
-<lucius> QUADS: cloud02 : 9 (OSP Newton Testing) is now active, choo choo! - http://wiki.example.com/assignments/#cloud02
-```
+## Example: IRC, Webhook Chat and Email Notifications
+   - We can notify any Chat Platform webhook or IRC supybot plugin when new environments are released.
    - We send email notifications when new environments are defined.
    - We also send email notifications with the host list for the environment 7 days prior to activation.
    - Furthermore we send email notifications when new environments are provisioned.
+
+```
+QUADS: cloud08: 32 (OCP Hybrid RDS Scale) is now active, choo choo! - https://quads.example.com/assignments/#cloud08 - jdoe
+```
 
 ```
 Greetings Citizen,
