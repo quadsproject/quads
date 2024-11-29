@@ -16,6 +16,23 @@
       "message": "retrigger",
       "revId": "54b06102e1a1e4daadb1c765f4e2c577845bf943",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30ffa674_9e6e539e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-11-29T19:57:49Z",
+      "side": 1,
+      "message": "A few things we discussed today in chat but wanted to attach here:\n\n* we need to create a --mod-host option here to include --ssm-enable true/false for selecting hosts to be self-schedule flagged or not.\n* the patch has the idea of a \"models\" filter where we can decide by model too but by host should be an override\n* --mod-host will be useful for other stuff too\n\nWe\u0027ll likely need a database schema seed for these new values.\n\nGreat patch, we can start testing this once finalized and merged by simply modifying the RPM spec we use in COPR to pull from development branch instead of latest for quads-dev RPM.  We can always revert stage by re-installing the RPM based on latest, but right now development branch was re-created at tip of latest.",
+      "revId": "54b06102e1a1e4daadb1c765f4e2c577845bf943",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
