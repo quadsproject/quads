@@ -84,6 +84,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Find Available Web Interface](#find-available-web-interface)
             * [Find a System by MAC Address](#find-a-system-by-mac-address)
             * [Find Systems by Switch IP Address](#find-systems-by-switch-ip-address)
+         * [Tenant Notifications via Email or Ticketing system](#notify-tenant)
       * [Using JIRA with QUADS](#using-jira-with-quads)
       * [Backing up QUADS](#backing-up-quads)
       * [Restoring QUADS from Backup](#restoring-quads-from-backup)
@@ -973,29 +974,29 @@ Resource properly removed
 * To validate a clouds network config:
 
 ```bash
-/opt/quads/quads/tools/verify_switchconf.py --cloud cloud10
+PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --cloud cloud10
 ```
 
 * To validate and fix a clouds network config use `--change`
 
 ```bash
-/opt/quads/quads/tools/verify_switchconf.py --cloud cloud10 --change
+PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --cloud cloud10 --change
 ```
 
 * To validate a singular hosts network switch configuration:
 ```
-/opt/quads/quads/tools/verify_switchconf.py --host host01.example.com
+PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com
 ```
 
 * To validate and fix a single hosts network config use `--change`
 
 ```
-/opt/quads/quads/tools/verify_switchconf.py --host host01.example.com --change
+PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com --change
 ```
 
 * To straddle clouds and place a single host into a cloud it does not belong in (rare use case):
 ```bash
-/opt/quads/quads/tools/verify_switchconf.py --host host01.example.com --cloud cloud10
+PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com --cloud cloud10
 ```
 
 Note, if host01.example.com is not in cloud10, but rather cloud20, you will see the following output:
@@ -1016,14 +1017,14 @@ WARNING -
 * Passing the `--change` argument will make the changes effective in the switch. Not passing this will only verify the configuration is set to the desired.
 
 ```bash
-/opt/quads/quads/tools/modify_switch_conf.py --host host01.example.com --nic1 1400 --nic2 1401 --nic3 1400 --nic4 1402 --nic5 1400
+PYTHONDIR/site-packages/quads/tools/modify_switch_conf.py --host host01.example.com --nic1 1400 --nic2 1401 --nic3 1400 --nic4 1402 --nic5 1400
 ```
 * All `--nic*` arguments are optional so this can be also done individually for all nics.
 
 #### Mapping Interface to VLAN ID
 * An easy way to figure out what VLAN corresponds to what generic `em` interface in the QUADS `--ls-interfaces` information we now include the following tool:
 ```bash
-./opt/quads/quads/tools/ls_switch_conf.py --cloud cloud32
+PYTHONDIR/site-packages/quads/tools/ls_switch_conf.py --cloud cloud32
 INFO - Cloud qinq: 1
 INFO - Interface em1 appears to be a member of VLAN 1410
 INFO - Interface em2 appears to be a member of VLAN 1410
@@ -1140,6 +1141,49 @@ quads --ls-available --schedule-start "2019-12-05 08:00" --schedule-end "2019-12
 ```bash
 quads --ls-available --schedule-end "2019-06-02 22:00"
 ```
+
+### Tenant Notifications via Email or Ticketing system
+
+* With the `notify_tenant.py` tenants can be easily emailed with important messages regarding their environment.
+* Common use cases are to inform users of outages that may impact them.  The `notify_tenant.py` can be called with various options.
+* The contents of the messages sent should be crafted in a temporary file (which is a simple jinja template that interprets 3 possible variables).
+
+  - description (taken from allocation object)
+  - cloud_name (taken from the cloud name)
+  - ticket (taken from allocation object)
+
+* For example, you can use a message template file (e.g. stored in `/tmp/message`) such as:
+
+```
+Regarding your allocation 
+
+Description: {{description}}
+Allocation: {{cloud_name}}
+Ticket: {{ticket}}
+
+We are informing you of an upcoming outage, etc.
+```
+
+* Rack based notifications
+```bash
+PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --rack "f18 e22" --email --post
+```
+  - To ensure email is sent, use the `--email` flag.
+  - To ensure message is posted to your ticketing system, use the `--post` flag.
+  - Omitting both `--email` and `--post` means no notification will get sent or posted.
+
+* Cloud based notifications
+```bash
+PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --cloud "cloudXX cloudYY" --email --post
+```
+  - The above will use the template message in `/tmp/message` and send it to the owners and cc-users of cloudXX and cloudYY.
+  - The message will also be posted to your ticketing system.
+
+* Notifications to all users.
+```bash
+PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --all --email --post
+```
+  - The above sends notifications to all active environments using your template message file in `/tmp/message`
 
 #### Find Available Hosts based on Hardware or Model
 
@@ -1335,7 +1379,7 @@ quads --validate-env --skip-network
 * In `QUADS 1.1.8` you can skip past systems and host validation (Foreman) via:
 
 ```
-/opt/quads/quads/tools/validate_env.py --skip-system
+PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-system
 ```
 
 ### Skipping Past Network and Systems Validation per Host
@@ -1343,7 +1387,7 @@ quads --validate-env --skip-network
 * In `QUADS 1.1.8` you can skip past both systems and network checks per host via:
 
 ```
-/opt/quads/quads/tools/validate_env.py --skip-hosts host01.example.com host02.example.com
+PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-hosts host01.example.com host02.example.com
 ```
 
 * Effectively, any host listed with `--skip-hosts` will pass it completely through validation.
