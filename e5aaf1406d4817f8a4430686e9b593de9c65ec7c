@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "387ff345_9703887e",
+        "filename": "src/quads/web/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-03T07:31:23Z",
+      "side": 1,
+      "message": "Thanks for working on this.  I think we need to remove debug for the patchset.",
+      "revId": "e5aaf1406d4817f8a4430686e9b593de9c65ec7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
