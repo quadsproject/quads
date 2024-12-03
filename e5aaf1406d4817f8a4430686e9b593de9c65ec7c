@@ -16,6 +16,24 @@
       "message": "Thanks for working on this.  I think we need to remove debug for the patchset.",
       "revId": "e5aaf1406d4817f8a4430686e9b593de9c65ec7c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c5fabe5_4740169f",
+        "filename": "src/quads/web/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1037546
+      },
+      "writtenOn": "2024-12-03T08:04:00Z",
+      "side": 1,
+      "message": "Thanks,removed.",
+      "parentUuid": "387ff345_9703887e",
+      "revId": "e5aaf1406d4817f8a4430686e9b593de9c65ec7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
