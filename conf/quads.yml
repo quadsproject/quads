@@ -7,7 +7,8 @@
 spare_pool_name: cloud01
 spare_pool_description: "Spare Pool"
 spare_pool_owner: quads
-
+# Define the name of the QUADS environment
+lab_name: "Lab"
 # display name for QUADS email notifications
 mail_display_name: "QUADS Scheduler"
 # set header for User-Agent:
