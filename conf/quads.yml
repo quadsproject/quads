@@ -204,3 +204,6 @@ default_pxe_interface: em2
 # This example would omit all hosts containing any of these values in their address/hostname
 # and also omit network automation portion for any hosts moving to cloud14.
 omit_network_move:
+
+# Define the name of the QUADS environment
+lab_name: LAB

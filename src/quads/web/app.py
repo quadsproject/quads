@@ -39,6 +39,11 @@ def initiate_navbar(flask_app):
     navbar.init_app(flask_app)
 
 
+def set_global_variables(flask_app):
+    lab_name = Config.get("lab_name")
+    flask_app.add_template_global(lab_name, name="lab_name")
+
+
 def create_app() -> Flask:
     flask_app = Flask(__name__)
     flask_app.url_map.strict_slashes = False
@@ -50,5 +55,6 @@ def create_app() -> Flask:
     flask_app.register_blueprint(instack_bp, url_prefix="/instack")
     flask_app.register_blueprint(wiki_bp)
     initiate_navbar(flask_app)
+    set_global_variables(flask_app)
 
     return flask_app
