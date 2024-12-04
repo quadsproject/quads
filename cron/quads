@@ -13,27 +13,6 @@ SHELL=/bin/bash
 # We use flock to make sure running crons have log management
 # https://linux.die.net/man/1/flock
 #
-#
-# NOTE YOU ONLY NEED ONE OF THE CATEGORIES BELOW
-# EITHER PICK CONTAINER or NON-CONTAINER (RPM installation) DEPENDING ON
-# YOUR DEPLOYMENT TYPE
-#
-########################################
-##### CONTAINER QUADS SERVER ENTRIES
-##### ONLY USE WITH CONTAINER DEPLOYMENT
-########################################
-# * * * * * flock -n /tmp/moveandrebuild.lock -c "echo '=== Move and Rebuild == Started @ ' $(date) ; podman exec quads quads --move-hosts ; echo '=== Move and Rebuild == Finished @ ' $(date)" 1>/dev/null 2>&1
-# * * * * * ( echo "=== Validating == @ " $(date) ; flock -n /tmp/validateenv.lock -c "podman exec quads quads --validate-env" ) 1>/dev/null 2>&1
-# 0 0 * * * ( echo "=== Sending Notifications == @ " $(date) ; flock -n /tmp/notify.lock -c "podman exec quads quads --notify" ) 1>/dev/null 2>&1
-# 0 0 * * * ( echo "=== Regenerate Heat Map == @ " $(date) ; flock -n /tmp/heatmap.lock -c "podman exec quads quads --regen-heatmap" ) 1>/dev/null 2>&1
-# * * * * * ( echo "=== Rebuild Instackenv == @ " $(date) ; flock -n /tmp/instackenv.lock -c "podman exec quads quads --regen-instack" ) 1>/dev/null 2>&1
-# 0 */3 * * 1-6 ( echo "=== Foreman RBAC == @ " $(date) ; flock -n /tmp/foremanrbac.lock -c "podman exec quads quads --foreman-rbac" ) 1>/dev/null 2>&1
-#########################################
-##### (RECOMMENDED)
-##### NON-CONTAINER QUADS SERVER ENTRIES
-##### ONLY USE WITH RPM OR SOURCE INSTALL
-##### (RECOMMENDED)
-#########################################
 #########################################
 #*/5 * * * * flock -n /tmp/moveandrebuild.lock -c "echo '=== Move and Rebuild == Started @ ' $(date) ; quads --move-hosts ; echo '=== Move and Rebuild == Finished @ ' $(date)" 1>>/var/log/move-and-rebuild.log 2>&1
 #*/25 * * * * ( echo "=== Validating == @ " $(date) ; flock -n /tmp/validateenv.lock -c "quads --validate-env" ) 1>>/var/log/validate-env.log 2>&1
@@ -41,5 +20,4 @@ SHELL=/bin/bash
 #*/20 * * * * ( echo "=== Regenerate Heat Map == @ " $(date) ; flock -n /tmp/heatmap.lock -c "quads --regen-heatmap" ) 1>/dev/null 2>&1
 #*/15 * * * * ( echo "=== Rebuild Instackenv == @ " $(date) ; flock -n /tmp/instackenv.lock -c "quads --regen-instack" ) 1>/dev/null 2>&1
 #0 */3 * * 1-6 ( echo "=== Foreman RBAC == @ " $(date) ; flock -n /tmp/foremanrbac.lock -c "quads --foreman-rbac" ) 1>/dev/null 2>&1
-########################################
 ########################################
