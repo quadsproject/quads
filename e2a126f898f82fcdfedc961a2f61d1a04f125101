@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e299d168_c40c188a",
+        "filename": "CONTRIBUTING.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-04T15:33:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4937dd2a_20c1afe3",
+      "revId": "e2a126f898f82fcdfedc961a2f61d1a04f125101",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "17c3f032_1a34fdba",
@@ -31,6 +49,24 @@
       "writtenOn": "2024-12-04T15:32:15Z",
       "side": 1,
       "message": "same as above",
+      "revId": "e2a126f898f82fcdfedc961a2f61d1a04f125101",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5703f2f6_dba72488",
+        "filename": "CONTRIBUTING.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-04T15:33:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17c3f032_1a34fdba",
       "revId": "e2a126f898f82fcdfedc961a2f61d1a04f125101",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
