@@ -146,9 +146,20 @@ git config --add gitreview.username "vsathir"
 * Add a local commit with a meaningful, short title followed by a space and a summary (you can check our [commit history](https://github.com/redhat-performance/quads/commits/latest) for examples.
 * Add a line that relates to a new or existing github issue, e.g. ```fixes: https://github.com/redhat-performance/quads/issues/5``` or ```related-to: https://github.com/redhat-performance/quads/issues/25```
 
+### Make Initial Commit
+* First make your commit
+* Leave an extra few lines of space at the bottom of the commit message
+
 ```
 git add quads/api_v2.py
 git commit
+```
+
+### Ensure Change-ID is Present
+* Now you need to amend your comment so a Gerrit Change-ID gets appended.
+
+```
+git commit --amend
 ```
 
 ### Integrate Git Review
@@ -161,7 +172,6 @@ git review -s
 ```
 
 * Now submit your patchset with git review (future patches you only need to run ```git review```)
-  - A Change-ID will be generated when you create your first patchset, make sure this is the last line in the commit message preceded by an empty line.
 
 ```
 git review
