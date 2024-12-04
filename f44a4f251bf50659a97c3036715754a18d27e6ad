@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5192e204_72f3de96",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-04T09:44:56Z",
+      "side": 1,
+      "message": "Please also add:\n\nfixes: https://github.com/redhat-performance/quads/issues/537\n\nto your commit message",
+      "revId": "f44a4f251bf50659a97c3036715754a18d27e6ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0dce28bd_f8c62170",
