@@ -87,6 +87,24 @@
       "parentUuid": "5a273890_5a5baba9",
       "revId": "f44a4f251bf50659a97c3036715754a18d27e6ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "720f1fbf_19487a9b",
+        "filename": "src/quads/web/app.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-05T16:46:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "859797ca_1a32a757",
+      "revId": "f44a4f251bf50659a97c3036715754a18d27e6ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

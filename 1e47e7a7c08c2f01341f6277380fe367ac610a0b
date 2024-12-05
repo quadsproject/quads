@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d427ed94_1b005112",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-05T16:46:46Z",
+      "side": 1,
+      "message": "Still missing updating the docs here:\n\nhttps://github.com/redhat-performance/quads?tab\u003dreadme-ov-file#changing-the-default-lab-name",
+      "revId": "1e47e7a7c08c2f01341f6277380fe367ac610a0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
