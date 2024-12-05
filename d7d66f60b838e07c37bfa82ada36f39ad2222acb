@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "34cc1a15_c0b364bb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-05T17:00:20Z",
+      "side": 1,
+      "message": "Per @grafuls comment, we still need a README.md change here:\n\nhttps://github.com/redhat-performance/quads?tab\u003dreadme-ov-file#changing-the-default-lab-name\n\nWe need to document this feature now, so remove what\u0027s already there and replace with updated documentation:\n\ne.g.\n\nYou can edit the `lab_name` variable in `/opt/quads/conf/quads.yml` to change what your QUADS environment is named.\n\nRestart `quads-web` to take effect.\n\n```\nsystemctl restart quads-web\n```",
+      "revId": "d7d66f60b838e07c37bfa82ada36f39ad2222acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
