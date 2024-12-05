@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf4f401a_2bba1b59",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2024-12-05T14:33:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2fe40f00_59d5e419",
+      "revId": "92e26a5c9d7dbc45b04ace8049bebd5e34edb213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2845447d_6a7f1256",
@@ -31,6 +49,24 @@
       "writtenOn": "2024-12-05T14:28:39Z",
       "side": 1,
       "message": "remove the `data` definition, no need to pass the cloud since you should be passing the `_ass.id`.\n`quads.update_assignment(_ass.id, {\"provisioned\": True})`",
+      "revId": "92e26a5c9d7dbc45b04ace8049bebd5e34edb213",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b005487_4a5255c5",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2024-12-05T14:33:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2845447d_6a7f1256",
       "revId": "92e26a5c9d7dbc45b04ace8049bebd5e34edb213",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
