@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "752ca92d_813bd905",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-05T08:44:21Z",
+      "side": 1,
+      "message": "Can you please use a one-line title summary for your commit message, then put the fixes: line below that\n\ne.g.\n\n```\nfeat: add lab_name variable for naming QUADS environment\n\n\nfixes: https://github.com/redhat-performance/quads/issues/537\n\n```",
+      "revId": "9997685114e03954f387f9d21e45758b20ac60cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
