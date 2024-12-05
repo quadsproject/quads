@@ -16,6 +16,24 @@
       "message": "The corner case this tries to address should get addressed in :  https://review.gerrithub.io/c/redhat-performance/quads/+/1205262  Do we really want to add this in here?  I suppose it\u0027s good to know how to get under the covers of postgres but it might be a bit confusing to get into the details and might be cause for alarm.",
       "revId": "53ba97195e8601ee8a12b2801fa296e0d2e60d26",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e6c3753_3397af54",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 1426,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-05T15:44:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb01ac12_5ed6682c",
+      "revId": "53ba97195e8601ee8a12b2801fa296e0d2e60d26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
