@@ -69,6 +69,24 @@
       "parentUuid": "f028d69f_aefde73e",
       "revId": "9997685114e03954f387f9d21e45758b20ac60cf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0374038f_354b11b9",
+        "filename": "conf/quads.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-05T16:56:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0800d475_cedc9a86",
+      "revId": "9997685114e03954f387f9d21e45758b20ac60cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
