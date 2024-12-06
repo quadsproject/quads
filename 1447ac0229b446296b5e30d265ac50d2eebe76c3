@@ -16,6 +16,24 @@
       "message": "#restoring-quads-from-backup",
       "revId": "1447ac0229b446296b5e30d265ac50d2eebe76c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3939bbf5_71714643",
+        "filename": "README.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:56:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c68bb47_a8cee741",
+      "revId": "1447ac0229b446296b5e30d265ac50d2eebe76c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
