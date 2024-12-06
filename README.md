@@ -52,6 +52,9 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Defining a New Cloud](#defining-a-new-cloud)
             * [Adding New Hosts to your Cloud](#adding-new-hosts-to-your-cloud)
             * [Adding New Hosts to your Cloud with JIRA Integration](#adding-new-hosts-to-your-cloud-with-jira-integration)
+         * [Managing Notifications](#managing-notifications)
+            * [Listing Notifications](#listing-notifications)
+            * [Modifying Notifications](modifying-notifications)
          * [Managing Faulty Hosts](#managing-faulty-hosts)
             * [Migrating to QUADS-managed Host Health](#migrating-to-quads-managed-host-health)
          * [Managing Retired Hosts](#managing-retired-hosts)
@@ -704,6 +707,42 @@ After your hosts are provisioned and moved you should see them populate under th
 quads --cloud-only --cloud cloud03
 ```
 
+### Managing Notifications
+QUADS notifications come in three forms:  Webhook/IRC, Jira and email, please see the below table.
+The types of notifications you send are configured in the QUADS [configuration file](conf/quads.yml)
+
+| Event | Type | Delivery | Database Name | Template Name |
+|-------|------|----------|---------------|---------------|
+| New environment defined | scheduling | email | pre_initial | [future_initial_message](src/quads/templates/future_initial_message) |
+| New environment allocated | scheduling | email | initial | [initial_message](src/quads/templates/initial_message) |
+| New environment allocated | scheduling | webhook/IRC | initial | [called in notify](https://github.com/redhat-performance/quads/blob/latest/src/quads/tools/notify.py#L75) |
+| New assignment scheduled | scheduling | Jira | N/A | [jira_ticket_assignment](src/quads/templates/jira_ticket_message) |
+| Change in environment | assignment | email | pre | [future_message](src/quads/templates/future_message) |
+| Environment expiring | assignment | email | one_day, three_days, five_days, seven_days | [message](src/quads/templates/message) |
+| Validation failed (admin) | validation | email | fail | [validation_failed](src/quads/templates/validation_failed) |
+| Validation success (admin) | validation | email | success | [validation_succeeded](src/quads/templates/validation_succeeded) |
+| Add to watchers failed | ticketing | Jira | N/A | [watchers_fail](src/quads/templates/watchers_fail) |
+
+#### Listing Notifications
+You can use the `quads --ls-notifications` command to list all notification status states if they are managed in the database.
+
+* Note: You can also use the [tenant notification tool](#tenant-notifications-via-email-or-ticketing-system) to send ad-hoc notifications to email or via Jira updates by environment, rack or all active tenants for ad-hoc contact.
+
+```
+# quads --ls-notifications
+cloud    ticket  fail   success  initial  pre_initial  pre    one_day  three_days  five_days  seven_days
+========================================================================================================
+cloud02  3930    False  True     True     True         False  False    False       False      False
+cloud03  3931    False  False    True     True         True   False    False       False      False
+```
+
+#### Modifying Notifications
+You can use the `quads --modify-notification` command to reset notification values, valid arguments are the database names of the notification values e.g. `--one_day` and the environment with `--cloud`
+
+```bash
+# quads --mod-notification --cloud cloud02 --initial false
+```
+
 ### Managing Faulty Hosts
 Starting with `1.1.4` QUADS can manage broken or faulty hosts for you and ensure they are ommitted from being added to a future schedule or listed as available.  Prior to `1.1.4` this is managed via the Foreman host parameter `broken_state` (true/false).
 
@@ -1155,7 +1194,7 @@ quads --ls-available --schedule-end "2019-06-02 22:00"
 * For example, you can use a message template file (e.g. stored in `/tmp/message`) such as:
 
 ```
-Regarding your allocation 
+Regarding your allocation
 
 Description: {{description}}
 Allocation: {{cloud_name}}
