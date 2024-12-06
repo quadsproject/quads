@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "d2010665_f8b54dc2",
         "filename": "bin/regenerate-wiki.sh",
@@ -20,10 +21,10 @@
         "endChar": 32
       },
       "revId": "e01335083b5ab23b14df6451acccb8323b876e8c",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
       "key": {
         "uuid": "974589a5_f8d5c2a3",
         "filename": "bin/regenerate-wiki.sh",
@@ -44,10 +45,10 @@
         "endChar": 32
       },
       "revId": "e01335083b5ab23b14df6451acccb8323b876e8c",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": false
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "1d19ad8e_af9a59db",
         "filename": "conf/quads.yml",
@@ -67,8 +68,31 @@
         "endChar": 28
       },
       "revId": "e01335083b5ab23b14df6451acccb8323b876e8c",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a498e6d7_cd358d08",
+        "filename": "conf/quads.yml",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:54:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d19ad8e_af9a59db",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 28
+      },
+      "revId": "e01335083b5ab23b14df6451acccb8323b876e8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

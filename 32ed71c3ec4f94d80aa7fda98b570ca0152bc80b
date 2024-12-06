@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "068313d7_d944812a",
         "filename": "conf/vlans.yml",
@@ -20,8 +21,31 @@
         "endChar": 1
       },
       "revId": "32ed71c3ec4f94d80aa7fda98b570ca0152bc80b",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad2f9a55_5a06909e",
+        "filename": "conf/vlans.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:54:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "068313d7_d944812a",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 1
+      },
+      "revId": "32ed71c3ec4f94d80aa7fda98b570ca0152bc80b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
