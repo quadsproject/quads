@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7abf6445_c6d5edee",
+        "filename": "src/quads/web/controller/CloudOperations.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:53:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75840f56_7a71b822",
+      "revId": "71b568a8bf5771abeb736931398f8178f55438f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a33e416a_84d0260a",
