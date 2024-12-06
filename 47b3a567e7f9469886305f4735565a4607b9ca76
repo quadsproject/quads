@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02bcb2f3_b5f05a7c",
+        "filename": "src/quads/templates/future_initial_message",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-06T16:25:04Z",
+      "side": 1,
+      "message": "GW I know, I know, but can we also add {{ admin_team_name }} to quads.yml for this?  We could use it in latest branch too.",
+      "revId": "47b3a567e7f9469886305f4735565a4607b9ca76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
