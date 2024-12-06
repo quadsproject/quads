@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "9876d10a_977e3cc1",
         "filename": "conf/quads.yml",
@@ -20,10 +21,10 @@
         "endChar": 29
       },
       "revId": "77b1aab77229b059034424554d8c39174516eae3",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "0763478b_313f526e",
         "filename": "conf/quads.yml",
@@ -44,8 +45,31 @@
         "endChar": 29
       },
       "revId": "77b1aab77229b059034424554d8c39174516eae3",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9e44046f_169cf323",
+        "filename": "conf/quads.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:55:34Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "0763478b_313f526e",
+      "range": {
+        "startLine": 184,
+        "startChar": 2,
+        "endLine": 186,
+        "endChar": 29
+      },
+      "revId": "77b1aab77229b059034424554d8c39174516eae3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
