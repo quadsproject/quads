@@ -16,6 +16,24 @@
       "message": "passing False will be ignored, change this line to:\n`modify_notifications \u003d list(filter(lambda item: self.cli_args.get(item) is not None, mod_notification_arg_names))`",
       "revId": "e36557796b7d4b633ff5088c0bdf6941d20e02be",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "51415c67_3279f457",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1965,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T13:02:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df4b7d27_f02502bb",
+      "revId": "e36557796b7d4b633ff5088c0bdf6941d20e02be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
