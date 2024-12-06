@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "e478851a_37613afe",
         "filename": "quads/tools/move_and_rebuild_hosts.py",
@@ -20,8 +21,31 @@
         "endChar": 23
       },
       "revId": "1cada5e03ca260dcfdbc70df60ce59c0ec37439a",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "64bb6442_4852f821",
+        "filename": "quads/tools/move_and_rebuild_hosts.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:56:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e478851a_37613afe",
+      "range": {
+        "startLine": 191,
+        "startChar": 16,
+        "endLine": 191,
+        "endChar": 23
+      },
+      "revId": "1cada5e03ca260dcfdbc70df60ce59c0ec37439a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
