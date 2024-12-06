@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "12032739_44f888bf",
         "filename": "quads/api_v2.py",
@@ -20,8 +21,31 @@
         "endChar": 94
       },
       "revId": "c300a032bc7b89df6312de5595a8463e5aaf2d99",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39fc2998_cf08f552",
+        "filename": "quads/api_v2.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:55:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12032739_44f888bf",
+      "range": {
+        "startLine": 474,
+        "startChar": 8,
+        "endLine": 474,
+        "endChar": 94
+      },
+      "revId": "c300a032bc7b89df6312de5595a8463e5aaf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

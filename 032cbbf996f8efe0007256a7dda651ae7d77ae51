@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "221796fd_1e1610f4",
         "filename": "bin/quads-cli",
@@ -20,8 +21,31 @@
         "endChar": 108
       },
       "revId": "032cbbf996f8efe0007256a7dda651ae7d77ae51",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e121227_0c5c31a5",
+        "filename": "bin/quads-cli",
+        "patchSetId": 4
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:55:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "221796fd_1e1610f4",
+      "range": {
+        "startLine": 444,
+        "startChar": 4,
+        "endLine": 444,
+        "endChar": 108
+      },
+      "revId": "032cbbf996f8efe0007256a7dda651ae7d77ae51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

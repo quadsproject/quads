@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "7643b708_321d1221",
         "filename": "bin/quads-cli",
@@ -20,10 +21,34 @@
         "endChar": 1
       },
       "revId": "26944e9edf8da92da9b68955a4fde4e1edd5550a",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "74a6aa1b_e0745945",
+        "filename": "bin/quads-cli",
+        "patchSetId": 3
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:55:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7643b708_321d1221",
+      "range": {
+        "startLine": 452,
+        "startChar": 0,
+        "endLine": 452,
+        "endChar": 1
+      },
+      "revId": "26944e9edf8da92da9b68955a4fde4e1edd5550a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "721c6e97_b1d55eb1",
         "filename": "quads/config.py",
@@ -43,8 +68,31 @@
         "endChar": 23
       },
       "revId": "26944e9edf8da92da9b68955a4fde4e1edd5550a",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d4bb513_65d8f4b4",
+        "filename": "quads/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:55:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "721c6e97_b1d55eb1",
+      "range": {
+        "startLine": 28,
+        "startChar": 17,
+        "endLine": 28,
+        "endChar": 23
+      },
+      "revId": "26944e9edf8da92da9b68955a4fde4e1edd5550a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
