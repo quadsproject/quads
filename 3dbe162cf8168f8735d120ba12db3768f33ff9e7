@@ -16,6 +16,24 @@
       "message": "Why not just use store_true to check for the flag and not require an argument to the flag?",
       "revId": "3dbe162cf8168f8735d120ba12db3768f33ff9e7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "909d2e21_a556be03",
+        "filename": "src/quads/cli/parser.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 705,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T13:10:27Z",
+      "side": 1,
+      "message": "https://github.com/redhat-performance/quads/blob/latest/src/quads/cli/cli.py#L53",
+      "parentUuid": "f0c107d4_cb4567af",
+      "revId": "3dbe162cf8168f8735d120ba12db3768f33ff9e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
