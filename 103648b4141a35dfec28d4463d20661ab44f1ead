@@ -34,6 +34,24 @@
       "parentUuid": "67f82629_0b8fb860",
       "revId": "103648b4141a35dfec28d4463d20661ab44f1ead",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5d64fb8_051afdf3",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2024-12-06T12:56:28Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "d3b7271f_e36b4986",
+      "revId": "103648b4141a35dfec28d4463d20661ab44f1ead",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ],
   "submitRequirementResults": []
