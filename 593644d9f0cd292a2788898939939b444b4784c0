@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10ad54d7_b04c0711",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-07T11:37:35Z",
+      "side": 1,
+      "message": "@Thirumalesh, @gonza:\n\nBecause this patch required a rebase I just went ahead and added the docs update too, additionally I set our irc notify default to false which seems like a better default.\n\nI think this is ready for review/merge now.",
+      "revId": "593644d9f0cd292a2788898939939b444b4784c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}

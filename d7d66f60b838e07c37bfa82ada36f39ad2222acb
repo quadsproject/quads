@@ -33,6 +33,24 @@
       "message": "Accidentally marked my comment resolved, we need docs too - see:\n\nhttps://review.gerrithub.io/c/redhat-performance/quads/+/1205094/comments/34cc1a15_c0b364bb",
       "revId": "d7d66f60b838e07c37bfa82ada36f39ad2222acb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c90f179c_ca6189ba",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-07T11:37:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aac1c411_ba87568b",
+      "revId": "d7d66f60b838e07c37bfa82ada36f39ad2222acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
