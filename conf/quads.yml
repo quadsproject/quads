@@ -12,7 +12,7 @@ lab_name: "Lab"
 # display name for QUADS email notifications
 mail_display_name: "QUADS Scheduler"
 # set header for User-Agent:
-mail_user_agent: "Rufus Postman 2.1.5"
+mail_user_agent: "Rufus Postman 2.1.6"
 domain: example.com
 log: /opt/quads/log/quads.log
 quads_base_url: http://127.0.0.1:5000/
