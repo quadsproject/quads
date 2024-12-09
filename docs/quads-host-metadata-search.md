@@ -214,12 +214,12 @@ curl https://quads.example.com/api/v3/hosts?interfaces.mac_address=ac:1f:6b:2d:1
   * Shows all hosts connected to a particular switch
 
 ```
-quads --ls-host --filter "interfaces.ip_address==10.1.34.216"
+quads --ls-host --filter "interfaces.switch_ip==10.1.34.216"
 ```
   * Via the API
 
 ```
-curl https://quads.example.com/api/v3/hosts?interfaces.ip_address=10.1.34.216
+curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216
 ```
 
   * Find hosts by physical switchport
@@ -240,12 +240,12 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_port=et-0/0/7:1
   * Example: Search for a host by physical switchport **and** switch IP address.
 
 ```
-quads --ls-hosts --filter "interfaces.ip_address==10.1.34.216,interfaces.switch_port==et-0/0/7:1"
+quads --ls-hosts --filter "interfaces.switch_ip==10.1.34.216,interfaces.switch_port==et-0/0/7:1"
 ```
   * Via the API
 
 ```
-curl https://quads.example.com/api/v3/hosts?interfaces.ip_address=10.1.34.216&interfaces.switch_port=et-0/0/7:1
+curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216&interfaces.switch_port=et-0/0/7:1
 ```
 
 ## Querying Host Status
