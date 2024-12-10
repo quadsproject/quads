@@ -1,9 +1,9 @@
 import os
-
 from json import JSONDecodeError
 from typing import List, Optional
 from urllib import parse as url_parse
 from urllib.parse import urlencode
+
 from requests import Response, Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.auth import HTTPBasicAuth
@@ -386,3 +386,8 @@ class QuadsApi(QuadsBase):
 
     def get_version(self) -> Response:
         return self.get("version")
+
+    def get_os_list(self) -> List:
+        response = self.get("hosts/os_list")
+        data = response.json()
+        return data

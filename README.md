@@ -1178,6 +1178,24 @@ quads --ls-available --schedule-start "2019-12-05 08:00" --schedule-end "2019-12
 quads --ls-available --schedule-end "2019-06-02 22:00"
 ```
 
+### List available os types
+
+* The ` --os-list` functionality lets you search for available operating systems.
+
+```bash
+quads --os-list
+```
+
+```bash
+Id  Title      Release Name  Family
+===================================
+2   RHEL 7.3                 Redhat
+3   RHEL 7.4                 Redhat
+4   RHEL 7.5                 Redhat
+5   RHEL 7.6                 Redhat
+```
+
+
 ### Tenant Notifications via Email or Ticketing system
 
 * With the `notify_tenant.py` tenants can be easily emailed with important messages regarding their environment.
