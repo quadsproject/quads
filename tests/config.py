@@ -2,6 +2,8 @@
 
 from datetime import datetime, timedelta
 
+from quads.config import Config
+
 # --------------------
 # AUTH
 # --------------------
@@ -342,6 +344,7 @@ ASSIGNMENT_1_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": Config.get("foreman_default_os"),
     "owner": "grafuls",
     "provisioned": False,
     "qinq": None,
@@ -389,6 +392,7 @@ ASSIGNMENT_1_UPDATE_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": Config.get("foreman_default_os"),
     "owner": "gonza",
     "provisioned": False,
     "qinq": 1,
@@ -434,6 +438,7 @@ ASSIGNMENT_2_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": Config.get("foreman_default_os"),
     "owner": "grafuls",
     "provisioned": False,
     "qinq": None,
