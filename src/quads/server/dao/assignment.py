@@ -1,12 +1,17 @@
 from datetime import datetime
 from typing import List, Type
 
-from sqlalchemy import Boolean, and_
+from sqlalchemy import and_, Boolean
 
-from quads.server.dao.baseDao import OPERATORS, BaseDao, EntryNotFound, InvalidArgument
+from quads.server.dao.baseDao import (
+    BaseDao,
+    EntryNotFound,
+    InvalidArgument,
+    OPERATORS,
+)
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.vlan import VlanDao
-from quads.server.models import Assignment, Cloud, Notification, db
+from quads.server.models import db, Assignment, Cloud, Notification
 
 
 class AssignmentDao(BaseDao):
@@ -20,6 +25,7 @@ class AssignmentDao(BaseDao):
         wipe: bool,
         ccuser: List[str],
         cloud: str,
+        ostype: str,
         vlan_id: int = None,
         is_self_schedule: bool = False,
     ) -> Assignment:
@@ -35,6 +41,7 @@ class AssignmentDao(BaseDao):
             "cloud": _cloud,
             "notification": notification,
             "is_self_schedule": is_self_schedule,
+            "ostype": ostype,
         }
         if vlan_id:
             vlan = VlanDao.get_vlan(vlan_id)

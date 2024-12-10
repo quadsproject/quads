@@ -30,7 +30,7 @@ from tests.cli.config import (
     IFMAC1,
     IFIP1,
     IFPORT1,
-    IFSPEED,
+    IFSPEED, OS_TYPE,
 )
 
 
@@ -81,8 +81,8 @@ def populate_db():
     ProcessorDao.create_processor(HOST1, "P1", "Intel", "i7", 2, 4)
     vlan1 = VlanDao.create_vlan("192.168.1.1", 122, "192.168.1.1/22", "255.255.255.255", 1)
     vlan2 = VlanDao.create_vlan("192.168.1.2", 122, "192.168.1.2/22", "255.255.255.255", 2)
-    assignment = AssignmentDao.create_assignment("test", "test", "1234", 0, False, [""], cloud.name, vlan1.vlan_id)
-    AssignmentDao.create_assignment("test", "test", "1234", 0, False, [""], mod_cloud.name, vlan2.vlan_id)
+    assignment = AssignmentDao.create_assignment("test", "test", "1234", 0, False, [""], cloud.name, OS_TYPE, vlan1.vlan_id)
+    AssignmentDao.create_assignment("test", "test", "1234", 0, False, [""], mod_cloud.name, OS_TYPE, vlan2.vlan_id)
     ScheduleDao.create_schedule(
         today,
         tomorrow,
