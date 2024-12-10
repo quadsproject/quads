@@ -3,6 +3,7 @@ import re
 from flask import Blueprint, Response, jsonify, make_response, request
 from sqlalchemy import inspect
 
+from quads.config import Config
 from quads.server.blueprints import check_access
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
@@ -130,6 +131,9 @@ def create_assignment() -> Response:
     qinq = data.get("qinq")
     wipe = data.get("wipe")
     cc_user = data.get("ccuser")
+    ostype = data.get("ostype")
+    if not ostype:
+        ostype = Config.get("foreman_default_os")
 
     required_fields = [
         "description",
@@ -185,6 +189,7 @@ def create_assignment() -> Response:
         "wipe": wipe,
         "ccuser": cc_user,
         "cloud": cloud_name,
+        "ostype": ostype,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
