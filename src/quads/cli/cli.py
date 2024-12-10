@@ -20,6 +20,7 @@ from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
+from quads.tools.external.foreman import Foreman
 from quads.tools.external.jira import Jira, JiraException
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
@@ -39,8 +40,15 @@ class QuadsCli:
     cli_args: dict
 
     def __init__(self, quads: Quads, logger: logging.Logger):
+        self.__foreman = None
+        self.__loop = None
         self.quads = quads
         self.logger = logger
+
+    def create_forman_object(self):
+        if not self.__foreman:
+            self.__loop = asyncio.get_event_loop()
+            self.__foreman = Foreman(conf["foreman_api_url"], conf["foreman_username"], conf["foreman_password"])
 
     @staticmethod
     def _confirmation_dialog(msg, default_choice="n"):
@@ -815,6 +823,17 @@ class QuadsCli:
             except (TypeError, ValueError) as ཀʖ̯ཀ:
                 self.logger.debug(ཀʖ̯ཀ, exc_info=ཀʖ̯ཀ)
                 raise CliException("Could not parse vlan id. Only integers accepted.")
+
+        if self.cli_args.get("os"):
+            os_type = self.cli_args.get("os")
+            self.create_forman_object()
+            available_os = self.__loop.run_until_complete(self.__foreman.get_available_os())
+            if len([_os["title"] for _os in available_os if _os["title"] == os_type]) >= 1:
+                data["ostype"] = os_type
+            else:
+                raise CliException(f"Could not parse os {os_type}, please check available os --os-list.")
+        else:
+            data["ostype"] = conf["foreman_default_os"]
 
         cloud_reservation_lock = int(conf["cloud_reservation_lock"])
         try:
@@ -1987,15 +2006,7 @@ class QuadsCli:
                 rows.append(row)
             headers.insert(0, "cloud")
             headers.insert(1, "ticket")
-
-            col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
-
-            def format_row(data_row):
-                return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
-
-            table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
-            table.extend(format_row(row) for row in rows)
-            self.logger.info("\n".join(table))
+            self.log_in_table_format(headers=headers, rows=rows)
         else:
             message = "WARNING: there are no current or future schedules"
             if not cloud_name:
@@ -2043,3 +2054,23 @@ class QuadsCli:
                 self.logger.error("Something went wrong while updating notification")
         else:
             self.logger.warning(f"{cloud_name}, No active cloud assignment found")
+
+    def log_in_table_format(self, headers: list, rows: list):
+        col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
+
+        def format_row(data_row):
+            return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
+
+        table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
+        table.extend(format_row(row) for row in rows)
+        self.logger.info("\n".join(table))
+
+    def action_os_list(self):
+        self.create_forman_object()
+        available_os_list = self.__loop.run_until_complete(self.__foreman.get_available_os())
+        headers = ["Id", "Title", "Release Name", "Family"]
+        rows = [
+            [available_os[header.lower().replace(" ", "_")] for header in headers]
+            for available_os in available_os_list
+        ]
+        self.log_in_table_format(headers=headers, rows=rows)

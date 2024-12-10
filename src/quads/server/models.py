@@ -1,10 +1,12 @@
 import os
 from datetime import datetime, timedelta
 from typing import Any
+
 from flask import current_app
 from flask_migrate import Migrate
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
+from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from sqlalchemy import (
     Column,
     Integer,
@@ -18,9 +20,8 @@ from sqlalchemy import (
     inspect,
     MetaData,
 )
-from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
-from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, backref
 
 try:
@@ -407,6 +408,7 @@ class Assignment(Serialize, TimestampMixin, Base):
     wipe = Column(Boolean, default=False)
     ccuser = Column(MutableList.as_mutable(PickleType), default=[])
     is_self_schedule = Column(Boolean, default=False)
+    ostype = Column(String)
 
     # many-to-one parent
     cloud_id = Column(Integer, ForeignKey("clouds.id", ondelete="SET NULL"))
@@ -422,7 +424,8 @@ class Assignment(Serialize, TimestampMixin, Base):
     def __repr__(self):
         return (
             "<Assignment(id='{}', active='{}', provisioned='{}', validated='{}', description='{}', "
-            "owner='{}', ticket='{}', qinq='{}', wipe='{}', ccuser='{}', is_self_schedule='{}', cloud='{}', vlan='{}')>".format(
+            "owner='{}', ticket='{}', qinq='{}', wipe='{}', ccuser='{}', is_self_schedule='{}', cloud='{}', vlan='{}', "
+            "ostype='{}')>".format(
                 self.id,
                 self.active,
                 self.provisioned,
@@ -436,6 +439,7 @@ class Assignment(Serialize, TimestampMixin, Base):
                 self.is_self_schedule,
                 self.cloud,
                 self.vlan,
+                self.ostype
             )
         )
 

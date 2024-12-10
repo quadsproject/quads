@@ -23,6 +23,7 @@ IFBIOSID2 = "Nic1.Interfaces.2"
 IFSPEED = 1000
 IFVENDOR1 = "Intel"
 IFVENDOR2 = "Melanox"
+OS_TYPE = "RHEL 7"
 
 RESPONSE_LS = f"""INFO     tests.cli.test_base:cli.py:418 {HOST1}"""
 

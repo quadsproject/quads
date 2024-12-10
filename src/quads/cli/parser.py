@@ -774,7 +774,21 @@ for arg in mod_notification_arg_names:
                         choices=[True, False],
                         help=f"Set {arg} to true or false.")
 
+# --os-list allows to list the operating systems
+action_group.add_argument(
+    "--os-list",
+    dest="action",
+    action="store_const",
+    const="os_list",
+    help="Lists the available operating system",
+)
 
+parser.add_argument(
+    "--os",
+    dest="os",
+    default=None,
+    help="OS Platform for Provisioning, to list available os --os-list",
+)
 
 
 if __name__ == "__main__":  # pragma: no cover

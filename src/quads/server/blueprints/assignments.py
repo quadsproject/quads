@@ -134,6 +134,7 @@ def create_assignment() -> Response:
     wipe = data.get("wipe")
     cc_user = data.get("ccuser")
     is_self_schedule = data.get("is_self_schedule")
+    ostype = data.get("ostype")
 
     required_fields = [
         "description",
@@ -190,6 +191,7 @@ def create_assignment() -> Response:
         "ccuser": cc_user,
         "cloud": cloud_name,
         "is_self_schedule": is_self_schedule,
+        "ostype": ostype,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)

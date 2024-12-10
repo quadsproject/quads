@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import asyncio
-
 from unittest.mock import patch, AsyncMock
 
 import pytest
@@ -445,7 +444,7 @@ class TestForeman(object):
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
     @pytest.mark.asyncio
     async def test_remove_extraneous_interfaces_with_semaphore_status_code200(
-        self, delete_session_mock, get_session_mock, caplog
+            self, delete_session_mock, get_session_mock, caplog
     ):
         get_resp = AsyncMock()
         get_resp.json.return_value = {
@@ -473,7 +472,7 @@ class TestForeman(object):
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
     @pytest.mark.asyncio
     async def test_remove_extraneous_interfaces_with_semaphore_status_code400(
-        self, delete_session_mock, get_session_mock, caplog
+            self, delete_session_mock, get_session_mock, caplog
     ):
         get_resp = AsyncMock()
         get_resp.json.return_value = {
@@ -820,3 +819,26 @@ class TestForeman(object):
         foreman = Foreman("https://example.com", "username", "password")
         response1 = await foreman.get_idrac_host_with_details(host_name="host.example.com")
         assert not response1
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_available_os(self, get_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": [{
+            "description": "",
+            "major": "5",
+            "minor": "3",
+            "family": "Redhat",
+            "release_name": "",
+            "password_hash": "SHA256",
+            "created_at": "2021-05-18 15:59:01 UTC",
+            "updated_at": "2021-05-18 15:59:01 UTC",
+            "id": 309172073,
+            "name": "centos",
+            "title": "centos 5.3"
+        }]}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        response1 = await foreman.get_available_os()
+        assert len(response1) == 1
