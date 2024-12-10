@@ -2,6 +2,8 @@
 
 from datetime import datetime, timedelta
 
+from tests.cli.config import OS_TYPE
+
 # --------------------
 # AUTH
 # --------------------
@@ -130,7 +132,6 @@ DISK_1_UPDATE_RESPONSE = {
     "host_id": 1,
     "id": 1,
 }
-
 
 # --------------------
 # INTERFACES
@@ -378,6 +379,7 @@ ASSIGNMENT_1_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": OS_TYPE,
     "owner": "grafuls",
     "provisioned": False,
     "qinq": None,
@@ -426,6 +428,7 @@ ASSIGNMENT_1_UPDATE_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": OS_TYPE,
     "owner": "gonza",
     "provisioned": False,
     "qinq": 1,
@@ -472,6 +475,7 @@ ASSIGNMENT_2_RESPONSE = {
         "success": False,
         "three_days": False,
     },
+    "ostype": OS_TYPE,
     "owner": "grafuls",
     "provisioned": False,
     "qinq": None,
@@ -577,6 +581,7 @@ SELF_SCHEDULE_1_RESPONSE = {
             "success": False,
             "three_days": False,
         },
+        "ostype": OS_TYPE,
         "owner": "grafuls",
         "provisioned": False,
         "qinq": None,
@@ -653,6 +658,7 @@ SELF_SCHEDULE_2_RESPONSE = {
             "success": False,
             "three_days": False,
         },
+        "ostype": OS_TYPE,
         "owner": "grafuls",
         "provisioned": False,
         "qinq": None,
@@ -813,6 +819,7 @@ SCHEDULE_1_RESPONSE = {
             "success": False,
             "three_days": False,
         },
+        "ostype": "RHEL 7",
         "owner": "grafuls",
         "provisioned": False,
         "qinq": None,
@@ -897,6 +904,7 @@ SCHEDULE_2_RESPONSE = {
             "success": False,
             "three_days": False,
         },
+        "ostype": "RHEL 7",
         "owner": "grafuls",
         "provisioned": False,
         "qinq": None,

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import aiohttp
 import asyncio
 import logging
+
+import aiohttp
 import urllib3
 from aiohttp import BasicAuth
 
@@ -384,3 +385,8 @@ class Foreman(object):
     async def get_user_roles_ids(self, user_id):
         result = await self.get_user_roles(user_id)
         return [role["id"] for _, role in result.items()]
+
+    async def get_available_os(self):
+        endpoint = "/operatingsystems"
+        result = await self.get(endpoint)
+        return result.get('results', {})

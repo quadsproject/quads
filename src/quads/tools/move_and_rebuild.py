@@ -202,10 +202,15 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
             logger.error(f"Failed to power on {host}")
             return False
         foreman_results = []
+        os_type = Config["foreman_default_os"]
+        if _assignment:
+            if _assignment.ostype:
+                os_type = _assignment.ostype
+
         params = [
             {
                 "name": "operatingsystems",
-                "value": Config["foreman_default_os"],
+                "value": os_type,
                 "identifier": "title",
             },
             {"name": "ptables", "value": Config["foreman_default_ptable"]},
