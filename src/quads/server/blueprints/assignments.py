@@ -130,6 +130,7 @@ def create_assignment() -> Response:
     qinq = data.get("qinq")
     wipe = data.get("wipe")
     cc_user = data.get("ccuser")
+    ostype = data.get("ostype")
 
     required_fields = [
         "description",
@@ -185,6 +186,7 @@ def create_assignment() -> Response:
         "wipe": wipe,
         "ccuser": cc_user,
         "cloud": cloud_name,
+        "ostype": ostype,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)

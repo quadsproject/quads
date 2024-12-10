@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List, Type
 
+from sqlalchemy import and_, Boolean
+
 from quads.server.dao.baseDao import (
     BaseDao,
     EntryNotFound,
@@ -10,7 +12,6 @@ from quads.server.dao.baseDao import (
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.vlan import VlanDao
 from quads.server.models import db, Assignment, Cloud, Notification
-from sqlalchemy import and_, Boolean
 
 
 class AssignmentDao(BaseDao):
@@ -24,6 +25,7 @@ class AssignmentDao(BaseDao):
         wipe: bool,
         ccuser: List[str],
         cloud: str,
+        ostype: str,
         vlan_id: int = None,
     ) -> Assignment:
         _cloud = CloudDao.get_cloud(cloud)
@@ -37,6 +39,7 @@ class AssignmentDao(BaseDao):
             "ccuser": ccuser,
             "cloud": _cloud,
             "notification": notification,
+            "ostype": ostype,
         }
         if vlan_id:
             vlan = VlanDao.get_vlan(vlan_id)
