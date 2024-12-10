@@ -88,6 +88,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Find a System by MAC Address](#find-a-system-by-mac-address)
             * [Find Systems by Switch IP Address](#find-systems-by-switch-ip-address)
          * [Tenant Notifications via Email or Ticketing system](#tenant-notifications-via-email-or-ticketing-system)
+         * [List Available Foreman OS Types](#list-available-foreman-os-types)
       * [Using JIRA with QUADS](#using-jira-with-quads)
       * [Backing up QUADS](#backing-up-quads)
       * [Restoring QUADS from Backup](#restoring-quads-from-backup)
@@ -1266,6 +1267,22 @@ quads --ls-hosts --filter "interfaces.mac_address==ac:1f:6b:2d:19:48"
 
 ```bash
 quads --ls-hosts --filter "interfaces.ip_address==10.1.34.210"
+```
+
+### List Available Foreman OS Types
+
+* The ` --os-list` functionality lets you search for available operating systems provided by your Foreman.
+
+```bash
+quads --os-list
+```
+
+```bash
+Id  Title      Release Name  Family
+===================================
+2   RHEL 8.6                 Redhat
+3   RHEL 9.4                 Redhat
+4   RHEL 9.5                 Redhat
 ```
 
 ## Using JIRA with QUADS

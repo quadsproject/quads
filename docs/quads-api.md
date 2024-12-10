@@ -528,6 +528,35 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
 ]
 ```
 
+### Query an available hosts os types
+
+```bash
+curl 'http://localhost/api/v3/hosts/os_list'
+```
+- Response
+```json
+[
+  {
+    "Family": "Redhat",
+    "Id": 2,
+    "Release Name": "",
+    "Title": "RHEL 7.3"
+  },
+  {
+    "Family": "Redhat",
+    "Id": 3,
+    "Release Name": "",
+    "Title": "RHEL 7.4"
+  },
+  {
+    "Family": "Redhat",
+    "Id": 4,
+    "Release Name": "",
+    "Title": "RHEL 7.5"
+  }
+]
+```
+
 ## More Examples with API POST
 
 ### Define a Host via API POST

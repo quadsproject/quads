@@ -816,6 +816,17 @@ class QuadsCli:
                 self.logger.debug(ཀʖ̯ཀ, exc_info=ཀʖ̯ཀ)
                 raise CliException("Could not parse vlan id. Only integers accepted.")
 
+        if self.cli_args.get("os"):
+            os_type = self.cli_args.get("os")
+            available_os = self.quads.get_os_list()
+            if len([_os["Title"] for _os in available_os if _os["Title"] == os_type]) >= 1:
+                data["ostype"] = os_type
+            else:
+                raise CliException(f"Could not parse os {os_type}, please check available os --os-list.")
+
+        if not data.get("ostype"):
+            data["ostype"] = conf["foreman_default_os"]
+
         cloud_reservation_lock = int(conf["cloud_reservation_lock"])
         try:
             cloud = self.quads.get_cloud(self.cli_args.get("cloud"))
@@ -1987,15 +1998,7 @@ class QuadsCli:
                 rows.append(row)
             headers.insert(0, "cloud")
             headers.insert(1, "ticket")
-
-            col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
-
-            def format_row(data_row):
-                return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
-
-            table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
-            table.extend(format_row(row) for row in rows)
-            self.logger.info("\n".join(table))
+            self.log_in_table_format(headers=headers, rows=rows)
         else:
             message = "WARNING: there are no current or future schedules"
             if not cloud_name:
@@ -2043,3 +2046,22 @@ class QuadsCli:
                 self.logger.error("Something went wrong while updating notification")
         else:
             self.logger.warning(f"{cloud_name}, No active cloud assignment found")
+
+    def log_in_table_format(self, headers: list, rows: list):
+        col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
+
+        def format_row(data_row):
+            return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
+
+        table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
+        table.extend(format_row(row) for row in rows)
+        self.logger.info("\n".join(table))
+
+    def action_os_list(self):
+        available_os_list = self.quads.get_os_list()
+        if available_os_list:
+            headers = list(available_os_list[0].keys())
+            rows = list(map(lambda item: list(item.values()), available_os_list))
+            self.log_in_table_format(headers=headers, rows=rows)
+        else:
+            self.logger.error("No available OS list")
