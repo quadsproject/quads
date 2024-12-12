@@ -27,6 +27,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
         * [Integrate Git Review](#integrate-git-review)
         * [Managing Git Review Patchsets](#managing-git-review-patchsets)
         * [Monitor your Patchset Lifecycle](#monitor-your-patchset-lifecycle)
+        * [Promoting Development to Production](#promoting-development-to-production)
         * [Continuous Integration](#continuous-integration)
             * [Commit Hooks](#commit-hooks)
             * [Jenkins CI Pipeline](#jenkins-ci-pipeline)
@@ -36,10 +37,10 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
 ## QUADS Development Setup
 
 ### The QUADS Repository
-  - Clone `latest` branch for latest.
+  - Clone `development` branch.
 
     ```
-    git clone --single-branch --branch latest https://github.com/redhat-performance/quads
+    git clone --single-branch --branch development https://github.com/redhat-performance/quads
     ```
 
   - Change directory to the code and create your own branch to work
@@ -189,7 +190,7 @@ git review
 vim src/quads/cli/cli.py
 git add src/quads/cli/cli.py
 git commit --amend
-git review
+git review development
 ```
 
 * If you just want to check out an existing patchset in Gerrit you can use the `git review -d $CHANGEID` command.
@@ -200,6 +201,26 @@ git review -d $CHANGEID
 
 ### Monitor your Patchset Lifecycle
 * Keep an eye on your patchset in Gerrithub, this is where CI will run, where we'll provide feedback and where you can monitor changes and status.  Your git review command will print the correct URL to your patchset.
+
+### Promoting Development to Production
+* This is usually done by QUADS maintainers, but to promote your change to production via the `latest` branch we now use [git cherry-pick](https://git-scm.com/docs/git-cherry-pick)
+* This will require an up-to-date checkout of the `latest` branch.
+
+Let's say your patch into `development` has commit hash `e6fcc94732266568f72d22e0cd24d9f06d9060c7` and it's the latest commit in the branch, we will use this as an example:
+
+```
+git checkout development
+git pull
+git log | head -1
+e6fcc94732266568f72d22e0cd24d9f06d9060c7
+```
+
+* Now `git cherry-pick` your change against the `latest` branch and submit review.
+
+```
+git cherry-pick e6fcc94732266568f72d22e0cd24d9f06d9060c7
+git review latest
+```
 
 ### Continuous Integration
 
