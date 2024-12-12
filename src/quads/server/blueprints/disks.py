@@ -79,7 +79,7 @@ def create_disks(hostname: str) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    if size_gb <= 0:
+    if int(size_gb) <= 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",
