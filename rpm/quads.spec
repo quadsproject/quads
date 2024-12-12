@@ -12,7 +12,7 @@
 #### Note: quads-dev = latest development branch or changes
 ####       quads     = latest stable release
 
-%define name quads-dev
+%define name quads
 %define reponame quads
 %define branch development
 %define version 2.1.6
