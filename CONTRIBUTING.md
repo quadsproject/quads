@@ -212,12 +212,14 @@ Let's say your patch into `development` has commit hash `e6fcc94732266568f72d22e
 git checkout development
 git pull
 git log | head -1
-e6fcc94732266568f72d22e0cd24d9f06d9060c7
+commit e6fcc94732266568f72d22e0cd24d9f06d9060c7
 ```
 
 * Now `git cherry-pick` your change against the `latest` branch and submit review.
 
 ```
+git checkout latest
+git pull
 git cherry-pick e6fcc94732266568f72d22e0cd24d9f06d9060c7
 git review latest
 ```
