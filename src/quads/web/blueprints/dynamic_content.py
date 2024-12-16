@@ -15,7 +15,7 @@ dynamic_content_bp = Blueprint(
 
 
 @dynamic_content_bp.route("/<page>")
-def dynamic_content(page):
+async def dynamic_content(page):
     file_paths = get_file_paths()
     for file in file_paths:
         if page in file:
@@ -24,7 +24,7 @@ def dynamic_content(page):
 
 
 @dynamic_content_bp.route("/<directory>/<page>")
-def dynamic_content_sub(directory, page):
+async def dynamic_content_sub(directory, page):
     file_paths = get_file_paths()
     for file in file_paths:
         if page in file:

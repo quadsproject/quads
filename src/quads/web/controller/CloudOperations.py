@@ -12,7 +12,7 @@ class CloudOperations:
         self.__foreman = foreman
         self.__loop = loop
 
-    def __get_cloud_summary(self) -> list:
+    async def __get_cloud_summary(self) -> list:
         """
         This method returns the cloud summary
         """
@@ -22,14 +22,14 @@ class CloudOperations:
             clouds_summary = summary_response.json()
         return clouds_summary
 
-    def __get_all_hosts(self):
+    async def __get_all_hosts(self):
         """
-        This method returns the all hosts
+        This method returns all hosts
         """
-        all_hosts = self.__loop.run_until_complete(self.__foreman.get_all_hosts())
+        all_hosts = await self.__foreman.get_all_hosts()
         return all_hosts
 
-    def get_managed_nodes(self, cloud):
+    async def get_managed_nodes(self, cloud):
         """
         This method returns the scheduled nodes
         """
@@ -37,13 +37,17 @@ class CloudOperations:
         _ass_obj = self.__quads_api.get_active_cloud_assignment(cloud)
         _hosts = self.__quads_api.filter_hosts({"cloud": cloud, "retired": False, "broken": False})
 
+        hosts = []
+        for host in _hosts:
+            _host = await self.__get_current_schedules(host.name)
+            hosts.append(_host)
         if _ass_obj:
             managed_hosts = {
                 "name": cloud,
                 "owner": _ass_obj.owner,
                 "count": len(_hosts),
                 "description": _ass_obj.description.strip(),
-                "hosts": [self.__get_current_schedules(host.name) for host in _hosts],
+                "hosts": hosts,
             }
         elif cloud == Config["spare_pool_name"]:
             managed_hosts = {
@@ -56,7 +60,7 @@ class CloudOperations:
 
         return managed_hosts
 
-    def get_daily_utilization(self) -> int:
+    async def get_daily_utilization(self) -> int:
         """
         This method returns the daily utilization
         """
@@ -68,12 +72,12 @@ class CloudOperations:
             _daily_utilization = _schedules * 100 // _host_count
         return int(_daily_utilization)
 
-    def get_cloud_summary_report(self) -> list:
+    async def get_cloud_summary_report(self) -> list:
         """
         This method returns the cloud summary
         """
         clouds_summary = []
-        for cloud in self.__get_cloud_summary():
+        for cloud in await self.__get_cloud_summary():
             if cloud.get("count") > 0:
                 cloud_name = cloud.get("name")
                 cloud["description"] = (
@@ -102,7 +106,7 @@ class CloudOperations:
                 clouds_summary.append(cloud)
         return clouds_summary
 
-    def __get_current_schedules(self, host: str) -> dict:
+    async def __get_current_schedules(self, host: str) -> dict:
         """
         This method returns the current schedules
         """
@@ -140,18 +144,18 @@ class CloudOperations:
         }
         return current_schedule
 
-    def get_domain_broken_hosts(self, domain: str):
+    async def get_domain_broken_hosts(self, domain: str):
         """
         This method returns the broken hosts
         """
         broken_hosts = self.__quads_api.filter_hosts({"broken": True})
         return [host.as_dict() for host in broken_hosts if domain in host.name]
 
-    def get_unmanaged_hosts(self, exclude_hosts: str):
+    async def get_unmanaged_hosts(self, exclude_hosts: str):
         """
         This method returns the unmanaged hosts
         """
-        all_hosts = self.__get_all_hosts()
+        all_hosts = await self.__get_all_hosts()
         blacklist = re.compile("|".join([re.escape(word) for word in exclude_hosts.split("|")]))
         mgmt_hosts = [
             property.get("sp_name")
@@ -176,7 +180,7 @@ class CloudOperations:
                 )
         return unmanaged_hosts
 
-    def get_vlans_list(self):
+    async def get_vlans_list(self):
         """
         This method returns the vlans list
         """

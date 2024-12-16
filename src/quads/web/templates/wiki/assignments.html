@@ -93,6 +93,8 @@
             ]);
         };
 
+        const cloudRequests = {};
+
         function updateHostsForCloud(cloudName) {
             const $table = $(`#hosts-${cloudName}`);
             const host_headers = {{ host_headers|tojson|safe }};
@@ -113,9 +115,16 @@
                 )
             );
 
-            $.ajax({
+            // Abort any existing request for this cloud
+            if (cloudRequests[cloudName]) {
+                cloudRequests[cloudName].abort();
+            }
+
+            // Store the new AJAX request
+            cloudRequests[cloudName] = $.ajax({
                 url: `/managed/${cloudName}`,
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     $tbody.empty();
                     
@@ -164,6 +173,15 @@
             });
         };
 
+        $(window).on('beforeunload', function() {
+            // Abort all cloud-specific requests
+            for (const cloudName in cloudRequests) {
+                if (cloudRequests[cloudName]) {
+                    cloudRequests[cloudName].abort();
+                }
+            }
+        });
+
         function updateSummaryData() {
             const $table = $(`#summary`);
             const headers = {{ headers|tojson|safe }};
@@ -196,6 +214,7 @@
             $.ajax({
                 url: '/summary',
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     const $tbody = $table.find('tbody').empty();
                     
@@ -323,6 +342,7 @@
             $.ajax({
                 url: '/utilization',
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     $('#daily-utilization').text(`Daily Utilization: ${data}%`);
                 },
@@ -356,6 +376,7 @@
             $.ajax({
                 url: '/unmanaged',
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     $tbody.empty();
                     
@@ -411,6 +432,7 @@
             $.ajax({
                 url: '/broken',
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     $tbody.empty();
                     
