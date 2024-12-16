@@ -1,8 +1,8 @@
 import os
 
-from flask import Blueprint, abort, make_response, render_template, send_from_directory
+from flask import Blueprint, abort, make_response
 
-from quads.web.blueprints.common import WEB_CONTENT_PATH, get_file_paths
+from quads.web.blueprints.common import WEB_CONTENT_PATH
 
 TEMPLATE_DIR = os.path.join(WEB_CONTENT_PATH, "instack")
 instack_bp = Blueprint(
@@ -13,7 +13,7 @@ instack_bp = Blueprint(
 
 
 @instack_bp.route("/<file>")
-def instack(file):
+async def instack(file):
     path = os.path.join(WEB_CONTENT_PATH, "instack")
     file_path = os.path.join(path, file)
     if not os.path.exists(file_path):

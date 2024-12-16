@@ -14,14 +14,14 @@ visual_bp = Blueprint(
 
 
 @visual_bp.route("/")
-def index():
+async def index():
     with open(os.path.join(VISUAL_DIR, "index.html"), "r") as f:
         html_content = f.read()
     return render_template("wiki/visuals.html", html_content=html_content)
 
 
 @visual_bp.route("/<when>")
-def visuals(when):
+async def visuals(when):
     file_paths = get_file_paths(VISUAL_DIR)
     for file in file_paths:
         if when in file:

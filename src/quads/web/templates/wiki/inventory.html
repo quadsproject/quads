@@ -55,6 +55,7 @@
             $.ajax({
                 url: `/rack/${rackId}`,
                 method: 'GET',
+                async: true,
                 success: function(data) {
                     console.log('Response data:', data);
                     
