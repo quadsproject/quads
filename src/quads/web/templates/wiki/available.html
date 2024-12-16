@@ -103,9 +103,6 @@
             document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
             };
         $(document).ready( function () {
-
-
-            $('#date_range').prop('readonly', true);
             const table = $('#results').DataTable({
                 dom: 'Blfrtip',
                 lengthChange: true,

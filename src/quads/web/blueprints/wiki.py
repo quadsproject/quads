@@ -29,12 +29,12 @@ foreman = Foreman(
 
 
 @wiki_bp.route("/", methods=["GET", "POST"])
-def index():
+async def index():
     return redirect(url_for("wiki.assignments"))
 
 
 @wiki_bp.route("/assignments", methods=["GET", "POST"])
-def assignments():
+async def assignments():
     headers = ["NAME", "SUMMARY", "OWNER", "REQUEST", "STATUS", "OSPENV", "OCPINV"]
     host_headers = [
         "ServerHostnamePublic",
@@ -56,57 +56,57 @@ def assignments():
 
 
 @wiki_bp.route("/summary")
-def summary():
+async def summary():
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    clouds_summary = cloud_operation.get_cloud_summary_report()
+    clouds_summary = await cloud_operation.get_cloud_summary_report()
     return jsonify(clouds_summary)
 
 
 @wiki_bp.route("/utilization")
-def utilization():
+async def utilization():
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    daily_utilization = cloud_operation.get_daily_utilization()
+    daily_utilization = await cloud_operation.get_daily_utilization()
     return jsonify(daily_utilization)
 
 
 @wiki_bp.route("/managed/<cloud>")
-def managed(cloud):
+async def managed(cloud):
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    managed_nodes = cloud_operation.get_managed_nodes(cloud)
+    managed_nodes = await cloud_operation.get_managed_nodes(cloud)
     return jsonify(managed_nodes)
 
 
 @wiki_bp.route("/unmanaged")
-def unmanaged():
+async def unmanaged():
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    unmanaged_hosts = cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
+    unmanaged_hosts = await cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
     return jsonify(unmanaged_hosts)
 
 
 @wiki_bp.route("/broken")
-def broken():
+async def broken():
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    domain_broken_hosts = cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
+    domain_broken_hosts = await cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
     return jsonify(domain_broken_hosts)
 
 
 @wiki_bp.route("/available", methods=["GET", "POST"])
-def available():
+async def available():
     search = ModelSearchForm(request.form)
     if request.method == "POST":
-        return search_results(search)
+        return await search_results(search)
 
     return render_template("wiki/available.html", form=search, available_hosts=[])
 
 
 @wiki_bp.route("/results")
-def search_results(search):
-    available_hosts_list = available_hosts(search)
+async def search_results(search):
+    available_hosts_list = await available_hosts(search)
     return render_template("wiki/available.html", form=search, available_hosts=available_hosts_list)
 
 
 @wiki_bp.route("/available_hosts")
-def available_hosts(search):
+async def available_hosts(search):
     models = search.data["model"]
     try:
         start, end = [datetime.strptime(date, "%Y-%m-%d").date() for date in search.data["date_range"].split(" - ")]
@@ -147,7 +147,7 @@ def available_hosts(search):
 
 
 @wiki_bp.route("/dashboard")
-def create_inventory():
+async def create_inventory():
     headers = [
         "U",
         "ServerHostnamePublic",
@@ -164,8 +164,8 @@ def create_inventory():
 
 
 @wiki_bp.route("/rack/<rack>")
-def rack(rack):
-    rack_hosts = loop.run_until_complete(foreman.get_hosts_by_rack(rack))
+async def rack(rack):
+    rack_hosts = await foreman.get_hosts_by_rack(rack)
     blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
     host_details = []
     assignments_cache = {}
@@ -200,7 +200,7 @@ def rack(rack):
 
 
 @wiki_bp.route("/vlans")
-def create_vlans():
+async def create_vlans():
     cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
-    vlans = cloud_operation.get_vlans_list()
+    vlans = await cloud_operation.get_vlans_list()
     return render_template("wiki/vlans.html", vlans=vlans)
