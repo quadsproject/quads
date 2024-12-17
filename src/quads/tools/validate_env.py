@@ -371,7 +371,7 @@ def main(_args, _loop, _logger=None):  # pragma: no cover
                 break
         if provisioned:
             quads.update_assignment(
-                _ass,
+                _ass.id,
                 {
                     "provisioned": True,
                 },
