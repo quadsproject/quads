@@ -43,6 +43,7 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        let summaryRequest, dailyUtilizationRequest, unmanagedRequest, faultyRequest;
         function createLoadingIndicator() {
             return $('<div>')
                 .addClass('loading-overlay')
@@ -173,15 +174,6 @@
             });
         };
 
-        $(window).on('beforeunload', function() {
-            // Abort all cloud-specific requests
-            for (const cloudName in cloudRequests) {
-                if (cloudRequests[cloudName]) {
-                    cloudRequests[cloudName].abort();
-                }
-            }
-        });
-
         function updateSummaryData() {
             const $table = $(`#summary`);
             const headers = {{ headers|tojson|safe }};
@@ -211,7 +203,7 @@
                 )
             );
 
-            $.ajax({
+            summaryRequest = $.ajax({
                 url: '/summary',
                 method: 'GET',
                 async: true,
@@ -339,7 +331,7 @@
         };
 
         function updateDailyUtilization() {
-            $.ajax({
+            dailyUtilizationRequest = $.ajax({
                 url: '/utilization',
                 method: 'GET',
                 async: true,
@@ -373,7 +365,7 @@
                 )
             );
 
-            $.ajax({
+            unmanagedRequest = $.ajax({
                 url: '/unmanaged',
                 method: 'GET',
                 async: true,
@@ -429,7 +421,7 @@
                 )
             );
 
-            $.ajax({
+            faultyRequest = $.ajax({
                 url: '/broken',
                 method: 'GET',
                 async: true,
@@ -471,6 +463,27 @@
             updateDailyUtilization();
             updateUnmanagedHosts();
             updateFaultyHosts();
+        });
+
+        $(window).on('beforeunload', function() {
+            // Abort all cloud-specific requests
+            for (const cloudName in cloudRequests) {
+                if (cloudRequests[cloudName]) {
+                    cloudRequests[cloudName].abort();
+                }
+            }
+            if (summaryRequest) {
+                summaryRequest.abort();
+            }
+            if (dailyUtilizationRequest) {
+                dailyUtilizationRequest.abort();
+            }
+            if (unmanagedRequest) {
+                unmanagedRequest.abort();
+            }
+            if (faultyRequest) {
+                faultyRequest.abort();
+            }
         });
     </script>
 {% endblock %}

@@ -20,9 +20,10 @@
 {% block scripts %}
     {{ super() }}
     <script>
-    $(document).ready(function() {
-        function createLoadingIndicator() {
-            return $('<div>')
+        let rackRequest;
+        $(document).ready(function() {
+            function createLoadingIndicator() {
+                return $('<div>')
                 .addClass('loading-overlay')
                 .append(
                     $('<div>')
@@ -52,7 +53,7 @@
                 )
             );
 
-            $.ajax({
+            rackRequest = $.ajax({
                 url: `/rack/${rackId}`,
                 method: 'GET',
                 async: true,
@@ -138,6 +139,13 @@
         $('.table').each(function() {
             observer.observe(this);
         });
+
+        $(window).on('beforeunload', function() {
+            if (rackRequest) {
+                rackRequest.abort();
+            }
+        });
     });
     </script>
 {% endblock %}
+
