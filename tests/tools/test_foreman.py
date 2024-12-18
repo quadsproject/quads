@@ -16,37 +16,13 @@ class TestForeman(object):
         assert foreman.url == "https://example.com"
         assert foreman.username == "username"
         assert foreman.password == "password"
-        loop = AsyncMock()
         semaphore = AsyncMock()
         Foreman(
             "https://example.com",
             "username",
             "password",
-            loop=loop,
             semaphore=semaphore,
         )
-
-    @pytest.mark.asyncio
-    async def test_exit_success(self):
-        loop = AsyncMock()
-        semaphore = AsyncMock()
-        foreman = Foreman(
-            "https://example.com",
-            "username",
-            "password",
-            loop=loop,
-            semaphore=semaphore,
-        )
-        foreman.new_loop = True
-        foreman.__exit__()
-        assert foreman.loop.is_closed()
-
-    @pytest.mark.asyncio
-    async def test_exit_failure(self):
-        foreman = Foreman("https://example.com", "username", "password")
-        foreman.new_loop = False
-        foreman.__exit__()
-        assert not foreman.loop.is_closed()
 
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
     @pytest.mark.asyncio
@@ -625,7 +601,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.get_user_roles_ids(user_id="mock1")
         assert response == ["mock1"]
@@ -647,7 +622,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.put_parameter(host_name="host.example.com", name="host.example.com", value="host1")
         assert response
@@ -668,7 +642,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.put_parameters(host_name="host.example.com", params=[{"id": "host1"}])
         assert response
@@ -694,7 +667,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.put_parameters_by_name(host="hosts", params=params)
         assert response
@@ -716,7 +688,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.put_parameters_by_name(host="hosts", params=params)
         assert not response
@@ -737,7 +708,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response1 = await foreman.put_parameter_by_name(host="hosts", name="media", value="host.example.com")
         response2 = await foreman.put_parameter_by_name(host="hosts", name="host", value="host1.example.com")
@@ -759,7 +729,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response1 = await foreman.put_parameter_by_name(host="hosts", name="media", value="host.example.com")
         response2 = await foreman.put_parameter_by_name(host="hosts", name="host", value="host.example.com")
@@ -777,7 +746,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.verify_credentials()
         assert response
@@ -793,7 +761,6 @@ class TestForeman(object):
             "username",
             "password",
             asyncio.Semaphore(5),
-            asyncio.get_event_loop(),
         )
         response = await foreman.verify_credentials()
         assert not response

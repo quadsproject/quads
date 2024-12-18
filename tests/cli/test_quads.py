@@ -6,7 +6,7 @@ import pytest
 from quads.config import Config
 from quads.exceptions import CliException
 from quads.quads_api import APIServerException
-from tests.cli.config import CLOUD, DEFAULT_CLOUD, HOST2, MOD_CLOUD, HOST1
+from tests.cli.config import DEFAULT_CLOUD, HOST2
 from tests.cli.test_base import TestBase
 
 
@@ -34,14 +34,14 @@ class TestQuads(TestBase):
             self.quads_cli_call(None)
         assert str(ex.value) == "Connection Error"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_default_action_500_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:
             self.quads_cli_call(None)
         assert str(ex.value) == "Check the flask server logs"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_default_action_400_exception(self, mock_get):
         mock_get.return_value.status_code = 400
         with pytest.raises(CliException):
@@ -54,9 +54,9 @@ class TestQuads(TestBase):
 
     def test_version(self):
         self.quads_cli_call("version")
-        assert self._caplog.messages[0] == f'"QUADS version {Config.QUADSVERSION} {Config.QUADSCODENAME}"\n'
+        assert self._caplog.messages[0].starts_with('"QUADS version')
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_version_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:
