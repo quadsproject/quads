@@ -1951,7 +1951,7 @@ class QuadsCli:
             _loop = asyncio.new_event_loop()
         asyncio.set_event_loop(_loop)
 
-        validate_env(_args, _loop, self.logger)
+        _loop.run_until_complete(validate_env(_args, self.logger))
         self.logger.info("Quads assignments validation executed.")
 
     def action_list_notifications(self):

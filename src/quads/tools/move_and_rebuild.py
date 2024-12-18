@@ -217,7 +217,6 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
             Config["foreman_username"],
             Config["foreman_password"],
             semaphore=semaphore,
-            loop=loop,
         )
 
         set_result = await foreman.set_host_parameter(host, "overcloud", "true")
