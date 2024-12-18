@@ -210,7 +210,7 @@ class TestHost(TestBase):
         assert self._caplog.messages[3] == "  cores: 2"
         assert self._caplog.messages[4] == "  threads: 4"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_processors_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         self.cli_args["host"] = HOST1
