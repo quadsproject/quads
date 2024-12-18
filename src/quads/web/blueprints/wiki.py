@@ -19,13 +19,12 @@ wiki_bp = Blueprint(
 )
 
 quads = QuadsApi(Config)
-loop = asyncio.new_event_loop()
 foreman = Foreman(
     Config["foreman_api_url"],
     Config["foreman_username"],
     Config["foreman_password"],
-    loop=loop,
 )
+cloud_operation = CloudOperations(quads_api=quads, foreman=foreman)
 
 
 @wiki_bp.route("/", methods=["GET", "POST"])
@@ -57,35 +56,30 @@ async def assignments():
 
 @wiki_bp.route("/summary")
 async def summary():
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     clouds_summary = await cloud_operation.get_cloud_summary_report()
     return jsonify(clouds_summary)
 
 
 @wiki_bp.route("/utilization")
 async def utilization():
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     daily_utilization = await cloud_operation.get_daily_utilization()
     return jsonify(daily_utilization)
 
 
 @wiki_bp.route("/managed/<cloud>")
 async def managed(cloud):
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     managed_nodes = await cloud_operation.get_managed_nodes(cloud)
     return jsonify(managed_nodes)
 
 
 @wiki_bp.route("/unmanaged")
 async def unmanaged():
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     unmanaged_hosts = await cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
     return jsonify(unmanaged_hosts)
 
 
 @wiki_bp.route("/broken")
 async def broken():
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     domain_broken_hosts = await cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
     return jsonify(domain_broken_hosts)
 
@@ -201,6 +195,5 @@ async def rack(rack):
 
 @wiki_bp.route("/vlans")
 async def create_vlans():
-    cloud_operation = CloudOperations(quads_api=quads, foreman=foreman, loop=loop)
     vlans = await cloud_operation.get_vlans_list()
     return render_template("wiki/vlans.html", vlans=vlans)

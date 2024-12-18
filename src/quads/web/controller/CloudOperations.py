@@ -7,10 +7,9 @@ from quads.quads_api import APIBadRequest, APIServerException
 
 class CloudOperations:
 
-    def __init__(self, quads_api, foreman, loop):
+    def __init__(self, quads_api, foreman):
         self.__quads_api = quads_api
         self.__foreman = foreman
-        self.__loop = loop
 
     async def __get_cloud_summary(self) -> list:
         """

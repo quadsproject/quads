@@ -244,7 +244,7 @@ class TestCloud(TestBase):
         assert assignment
         assert assignment.vlan is None
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_no_clouds(self, mock_get):
         mock_get.return_value.json.return_value = []
         self.quads_cli_call("ls_clouds")
@@ -259,7 +259,7 @@ class TestCloud(TestBase):
         assert self._caplog.messages[2] == FREE_CLOUD
         assert self._caplog.messages[3] == CLOUD
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_clouds_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:
@@ -281,7 +281,7 @@ class TestCloud(TestBase):
 
         assert self._caplog.messages[0] == f"{CLOUD}: test"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_owner_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:
@@ -303,7 +303,7 @@ class TestCloud(TestBase):
 
         assert self._caplog.messages[0] == f"1: {CLOUD}"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_vlan_exception(self, mock_get):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:
@@ -317,7 +317,7 @@ class TestCloud(TestBase):
             self.quads_cli_call("ls_vlan")
         assert str(ex.value) == "Connection Error"
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_vlan_no_vlans(self, mock_get):
         self.quads_cli_call("ls_vlan")
 
@@ -329,7 +329,7 @@ class TestCloud(TestBase):
         assert self._caplog.messages[1].startswith(f"{FREE_CLOUD} (reserved: ")
         assert self._caplog.messages[1].endswith("min remaining)")
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_free_cloud_exception(self, mock_get, define_free_cloud):
         mock_get.return_value.status_code = 500
         with pytest.raises(CliException) as ex:

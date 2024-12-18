@@ -70,7 +70,7 @@ class TestBroken(TestBase):
         host = HostDao.get_host(HOST1)
         assert host.broken
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_broken_exception(self, mock_get, mr_fixture):
         mock_get.return_value.status_code = 500
         self.cli_args["host"] = HOST1
