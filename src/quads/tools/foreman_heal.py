@@ -27,7 +27,6 @@ def rbac(_logger=None):
         Config["foreman_api_url"],
         Config["foreman_username"],
         Config["foreman_password"],
-        loop=loop,
     )
 
     ignore = [Config["spare_pool_name"]]
@@ -44,7 +43,6 @@ def rbac(_logger=None):
                 Config["foreman_api_url"],
                 cloud.name,
                 infra_pass,
-                loop=loop,
             )
 
             if cloud.name not in ignore:

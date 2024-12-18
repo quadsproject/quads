@@ -1,15 +1,13 @@
 import os
+
 from json import JSONDecodeError
 from typing import List, Optional
 from urllib import parse as url_parse
 from urllib.parse import urlencode
-
-import requests
-from requests import Response
+from requests import Response, Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.auth import HTTPBasicAuth
 
-from quads.config import Config
 from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
 
 
@@ -29,15 +27,15 @@ class Generic:
         return obj
 
 
-class QuadsApi:
+class QuadsBase(object):
     """
-    A python interface into the Quads API
+    Base class for the Quads API
     """
 
-    def __init__(self, config: Config):
+    def __init__(self, config):
         self.config = config
         self.base_url = config.API_URL
-        self.session = requests.Session()
+        self.session = Session()
         retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
         self.session.mount("http://", HTTPAdapter(max_retries=retries))
         self.auth = HTTPBasicAuth(self.config.get("quads_api_username"), self.config.get("quads_api_password"))
@@ -91,6 +89,12 @@ class QuadsApi:
             response_json = _response.json()
             raise APIBadRequest(response_json.get("message"))
         return _response
+
+
+class QuadsApi(QuadsBase):
+    """
+    A python interface into the Quads API
+    """
 
     # Hosts
     def get_hosts(self) -> List[Host]:
@@ -183,6 +187,15 @@ class QuadsApi:
             cloud_obj = Cloud(**cloud_response)
         return cloud_obj
 
+    def get_summary(self, data: dict) -> Response:
+        url_params = url_parse.urlencode(data)
+        endpoint = os.path.join("clouds", "summary")
+        url = f"{endpoint}"
+        if data:
+            url = f"{endpoint}?{url_params}"
+        response = self.get(url)
+        return response
+
     def insert_cloud(self, data) -> Response:
         return self.post("clouds", data)
 
@@ -259,16 +272,6 @@ class QuadsApi:
         for host in response.json():
             hosts.append(Host(**host))
         return hosts
-
-    # Available
-    def get_moves(self, date=None) -> List:
-        url = "moves"
-        if date:
-            url_params = url_parse.urlencode({"date": date})
-            url = f"moves?{url_params}"
-        response = self.get(url)
-        data = response.json()
-        return data
 
     def filter_available(self, data) -> List[Host]:
         response = self.get(f"available?{urlencode(data)}")
@@ -371,14 +374,15 @@ class QuadsApi:
     def create_vlan(self, data: dict) -> Response:
         return self.post("vlans", data)
 
-    def get_summary(self, data: dict) -> Response:
-        url_params = url_parse.urlencode(data)
-        endpoint = os.path.join("clouds", "summary")
-        url = f"{endpoint}"
-        if data:
-            url = f"{endpoint}?{url_params}"
+    # Moves
+    def get_moves(self, date=None) -> List:
+        url = "moves"
+        if date:
+            url_params = url_parse.urlencode({"date": date})
+            url = f"moves?{url_params}"
         response = self.get(url)
-        return response
+        data = response.json()
+        return data
 
     def get_version(self) -> Response:
         return self.get("version")

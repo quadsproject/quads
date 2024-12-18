@@ -19,12 +19,10 @@ quads = QuadsApi(Config)
 
 
 async def make_env_json(filename):
-    loop = asyncio.get_event_loop()
     foreman = Foreman(
         Config["foreman_api_url"],
         Config["foreman_username"],
         Config["foreman_password"],
-        loop=loop,
     )
 
     cloud_list = quads.get_clouds()

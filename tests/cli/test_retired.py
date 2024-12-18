@@ -76,7 +76,7 @@ class TestRetired(TestBase):
         host = HostDao.get_host(HOST1)
         assert host.retired
 
-    @patch("quads.quads_api.requests.Session.get")
+    @patch("quads.quads_api.Session.get")
     def test_ls_retired_exception(self, mock_get, retire):
         mock_get.return_value.status_code = 500
         self.cli_args["host"] = HOST1

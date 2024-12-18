@@ -29,7 +29,7 @@ quads = QuadsApi(Config)
 
 
 class Validator(object):  # pragma: no cover
-    def __init__(self, cloud, assignment, _args, _loop=None):
+    def __init__(self, cloud, assignment, _args):
         self.cloud = cloud
         self.assignment = assignment
         self.report = ""
@@ -38,9 +38,8 @@ class Validator(object):  # pragma: no cover
         self.hosts = [host for host in self.hosts if quads.get_current_schedules({"host": host.name})]
         if self.args.skip_hosts:
             self.hosts = [host for host in self.hosts if host.name not in self.args.skip_hosts]
-        self.loop = _loop if _loop else get_running_loop()
 
-    def notify_failure(self):
+    async def notify_failure(self):
         template_file = "validation_failed"
         with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
             template = Template(_file.read())
@@ -57,7 +56,7 @@ class Validator(object):  # pragma: no cover
         postman = Postman(subject, "dev-null", _cc_users, content)
         postman.send_email()
 
-    def notify_success(self):
+    async def notify_success(self):
         template_file = "validation_succeeded"
         with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
             template = Template(_file.read())
@@ -73,7 +72,7 @@ class Validator(object):  # pragma: no cover
         postman = Postman(subject, "dev-null", _cc_users, content)
         postman.send_email()
 
-    def env_allocation_time_exceeded(self):
+    async def env_allocation_time_exceeded(self):
         now = datetime.now()
         data = {
             "cloud": self.cloud,
@@ -95,7 +94,6 @@ class Validator(object):  # pragma: no cover
             Config["foreman_api_url"],
             self.cloud,
             password,
-            loop=self.loop,
         )
 
         valid_creds = await foreman.verify_credentials()
@@ -299,7 +297,7 @@ class Validator(object):  # pragma: no cover
         failed = False
         assignment = quads.get_active_cloud_assignment(self.cloud)
 
-        if self.env_allocation_time_exceeded():
+        if await self.env_allocation_time_exceeded():
             if self.hosts:
                 if not self.args.skip_system:
                     result_pst = await self.post_system_test()
@@ -317,7 +315,7 @@ class Validator(object):  # pragma: no cover
 
             if not failed:
                 if not assignment.notification.success:
-                    self.notify_success()
+                    await self.notify_success()
                     try:
                         quads.update_notification(assignment.notification.id, {"success": True, "fail": False})
                     except (APIServerException, APIBadRequest) as ex:
@@ -343,7 +341,7 @@ class Validator(object):  # pragma: no cover
                     failed = True
 
         if failed and not assignment.notification.fail:
-            self.notify_failure()
+            await self.notify_failure()
             try:
                 quads.update_notification(assignment.notification.id, {"fail": True})
             except (APIServerException, APIBadRequest) as ex:
@@ -354,7 +352,7 @@ class Validator(object):  # pragma: no cover
         return
 
 
-def main(_args, _loop, _logger=None):  # pragma: no cover
+async def main(_args, _logger=None):  # pragma: no cover
     global logger
     if _logger:
         logger = _logger
@@ -405,9 +403,9 @@ def main(_args, _loop, _logger=None):  # pragma: no cover
 
         _assignment = quads.get_active_cloud_assignment(ass.cloud.name)
         if _schedule_count and _assignment.wipe:
-            validator = Validator(ass.cloud.name, _assignment, _args, _loop=_loop)
+            validator = Validator(ass.cloud.name, _assignment, _args)
             try:
-                _loop.run_until_complete(validator.validate_env())
+                await validator.validate_env()
             except Exception as ex:
                 logger.debug(ex)
                 logger.info("Failed validation for %s" % ass.cloud.name)
@@ -451,4 +449,4 @@ if __name__ == "__main__":  # pragma: no cover
     loop_main = asyncio.get_event_loop()
     asyncio.set_event_loop(loop_main)
 
-    main(args, loop_main)
+    loop_main.run_until_complete(main(args))
