@@ -38,19 +38,21 @@ class QuadsApiAsync:
         return result
 
     async def get_monthly_schedules(self, start: datetime, end: datetime) -> List[Schedule]:
-        endpoint = os.path.join("schedules")
+        endpoint = os.path.join("schedules", "hosts_range")
         url = f"{endpoint}"
         data = {
-            "start__lte": end.strftime("%Y-%m-%dT22:00"),
-            "end__gte": start.strftime("%Y-%m-%dT22:00"),
+            "start": start.strftime("%Y-%m-%dT22:00"),
+            "end": end.strftime("%Y-%m-%dT22:00"),
         }
-        if data:
-            url_params = url_parse.urlencode(data)
-            url = f"{endpoint}?{url_params}"
-        response = await self.async_get(url)
-        schedules = []
-        for schedule in response:
-            schedules.append(Schedule().from_dict(schedule))
+        url_params = url_parse.urlencode(data)
+        url = f"{endpoint}?{url_params}"
+        schedules = await self.async_get(url)
+        return schedules
+
+    async def get_current_schedules(self) -> List[Schedule]:
+        endpoint = os.path.join("schedules/current")
+        url = f"{endpoint}"
+        schedules = await self.async_get(url)
         return schedules
 
     async def async_filter_hosts(self, data) -> List[Host]:
@@ -64,9 +66,6 @@ class QuadsApiAsync:
 
 
 class HostGenerate:
-
-    BLOCK_SIZE = 10
-
     def __init__(self):
         self.hosts = []
         self.total_current_schedules = {}
@@ -74,6 +73,7 @@ class HostGenerate:
         self.colors = []
         self.emojis = []
         self.current_host_schedules = {}
+        self.assignment_colors = {}
         self.generate_colors()
 
     def random_color(self):
@@ -92,83 +92,61 @@ class HostGenerate:
         self.colors = [self.random_color() for _ in range(100)]
         self.colors[0] = "#A9A9A9"
 
-    async def order_current_schedules_by_hostname(self, first_day, last_day):
-        if not self.total_current_schedules:
-            total_current_schedules = await self.quads_async.get_monthly_schedules(first_day, last_day)
-            for schedule in total_current_schedules:
-                host_schedules = self.total_current_schedules.get(schedule.host.name)
-                if host_schedules:
-                    host_schedules.append(schedule)
-                else:
-                    self.total_current_schedules[schedule.host.name] = [schedule]
-
-    async def get_current_host_schedules(self, host_name, first_day, last_day):
-        if not self.total_current_schedules:
-            await self.order_current_schedules_by_hostname(first_day, last_day)
-        return self.total_current_schedules.get(host_name, None)
-
-    async def process_hosts(self, host, _days, _month, _year, first_day, last_day):
-        non_allocated_count = 0
+    async def process_hosts(self, host, _days, _month, _year):
+        allocated_count = 0
         __days = []
-        schedules = await self.get_current_host_schedules(host.name, first_day, last_day)
+        schedules = self.total_current_schedules.get(host.name, [])
         for j in range(1, _days + 1):
-            chosen_color = "01"
             cell_date = "%s-%.2d-%.2d 01:00" % (_year, _month, j)
             cell_time = datetime.strptime(cell_date, "%Y-%m-%d %H:%M")
             _day = {
                 "day": j,
-                "chosen_color": chosen_color,
-                "emoji": "&#%s;" % self.emojis[int(chosen_color) - 1],
-                "color": self.colors[int(chosen_color) - 1],
+                "cloud": "cloud01",
+                "color": self.colors[0],
                 "cell_date": cell_date,
                 "cell_time": cell_time,
             }
             if schedules:
                 for schedule in schedules:
-                    chosen_color = schedule.assignment.cloud.name[5:] if schedules else "01"
-                    schedule_start_date = schedule.start
-                    schedule_end_date = schedule.end
+                    if schedule.get("assignment_id") not in self.assignment_colors:
+                        self.assignment_colors[schedule.get("assignment_id")] = len(self.assignment_colors) + 1
+                    chosen_color = self.assignment_colors[schedule.get("assignment_id")]
+                    schedule_start_date = datetime.strptime(schedule.get("start").split(".")[0], "%Y-%m-%dT%H:%M:%S")
+                    schedule_end_date = datetime.strptime(schedule.get("end").split(".")[0], "%Y-%m-%dT%H:%M:%S")
                     if schedule_start_date <= cell_time <= schedule_end_date:
-                        assignment = schedule.assignment
-                        _day["display_description"] = assignment.description
-                        _day["display_owner"] = assignment.owner
-                        _day["display_ticket"] = assignment.ticket
-                        _day["chosen_color"] = chosen_color
-                        _day["emoji"] = "&#%s;" % self.emojis[int(chosen_color) - 1]
-                        _day["color"] = self.colors[int(chosen_color) - 1]
+                        _day["display_description"] = schedule.get("description")
+                        _day["display_owner"] = schedule.get("owner")
+                        _day["display_ticket"] = schedule.get("ticket")
+                        _day["cloud"] = schedule.get("cloud")
+                        _day["emoji"] = "&#%s;" % self.emojis[chosen_color]
+                        _day["color"] = self.colors[chosen_color]
+                        allocated_count += 1
                         break
-            else:
-                non_allocated_count += 1
             __days.append(_day)
-        return __days, non_allocated_count
+        return __days, allocated_count
 
     async def generator(self, _days, _month, _year, _gentime):
         self.hosts = await self.quads_async.async_filter_hosts(data={"retired": False, "broken": False})
         last_day = datetime(_year, _month, _days)
         first_day = first_day_month(last_day)
-        if not self.total_current_schedules:
-            await self.order_current_schedules_by_hostname(first_day, last_day)
+        self.total_current_schedules = await self.quads_async.get_monthly_schedules(first_day, last_day)
+        current_schedules_today = await self.quads_async.get_current_schedules()
 
-        total_current_schedules = self.total_current_schedules
         lines = []
-        non_allocated_count = 0
-        host_blocks = [self.hosts[i : i + self.BLOCK_SIZE] for i in range(0, len(self.hosts), self.BLOCK_SIZE)]
+        allocated_count = 0
 
-        for host_block in host_blocks:
-            tasks = [self.process_hosts(host, _days, _month, _year, first_day, last_day) for host in host_block]
-            results = await asyncio.gather(*tasks)
-
-            for host, (days, non_allocated) in zip(host_block, results):
-                lines.append({"hostname": host.name, "days": days})
-                non_allocated_count += non_allocated
+        for host in self.hosts:
+            days, allocated = await self.process_hosts(host, _days, _month, _year)
+            lines.append({"hostname": host.name, "days": days})
+            allocated_count += allocated
 
         total_hosts = len(self.hosts)
-        total_use = len(total_current_schedules)
+        total_use = len(current_schedules_today)
         if int(total_hosts) == 0:
             utilization_daily = 0
             utilization = 0
         else:
-            utilization = 100 - (non_allocated_count * 100 // (_days * total_hosts))
+            utilization = allocated_count * 100 // (_days * total_hosts)
             utilization_daily = total_use * 100 // total_hosts
         with open(os.path.join(Config.TEMPLATES_PATH, "simple_table_emoji")) as _file:
             template = Template(_file.read())
