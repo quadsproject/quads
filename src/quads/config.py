@@ -108,6 +108,9 @@ class _Config(_ConfigBase):
         "r720xd",
         "7425",
         "7525",
+        "xe8640",
+        "xe9680",
+        "r960",
     ]
 
     OFFSETS = {"em1": 0, "em2": 1, "em3": 2, "em4": 3, "em5": 4}
