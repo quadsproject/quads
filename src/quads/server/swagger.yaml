@@ -1395,6 +1395,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /schedules/hosts_range/:
+    get:
+      summary: Returns a dictionary with hosts as keys and schedules as values on a given range of dates
+      tags:
+        - Schedules
+      parameters:
+        - name: start
+          in: query
+          description: start date
+          required: false
+          schema:
+            type: string
+        - name: end
+          in: query
+          description: end date
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ScheduleHostsRange
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleHostsRange'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /assignments/active/:
     get:
       summary: Returns a list with all active assignments
@@ -2021,6 +2058,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Processor'
+    ScheduleHostsRange:
+      type: object
+      properties:
+        host:
+          type: string
+          example: host.example.com
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schedule'
     Assignment:
       type: object
       properties:

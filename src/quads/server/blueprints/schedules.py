@@ -75,6 +75,15 @@ def get_future_schedule() -> Response:
     return jsonify([_schedule.as_dict() for _schedule in _schedules])
 
 
+@schedule_bp.route("/hosts_range")
+def get_hosts_range_schedule() -> Response:
+    data = request.args.to_dict()
+    start = data.get("start")
+    end = data.get("end")
+    _schedules = ScheduleDao.get_hosts_range_schedules(start, end)
+    return jsonify({row[0]: row[1] for row in _schedules})
+
+
 @schedule_bp.route("/", methods=["POST"])
 @check_access(["admin", "user"])
 def create_schedule() -> Response:

@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from sqlalchemy import Boolean, func
-from werkzeug.serving import can_fork
 
 from quads.config import Config
 from quads.server.dao.baseDao import (
