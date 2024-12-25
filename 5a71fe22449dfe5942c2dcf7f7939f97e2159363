@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06dca837_c9e1da51",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2024-12-25T16:58:50Z",
+      "side": 1,
+      "message": "Hey, thanks for working on this.  We\u0027re doing all changes against the development branch now.  Please re-submit your patchset against development.\n\nhttps://github.com/redhat-performance/quads/blob/latest/CONTRIBUTING.md#managing-git-review-patchsets",
+      "revId": "5a71fe22449dfe5942c2dcf7f7939f97e2159363",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
