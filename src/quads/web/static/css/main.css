@@ -43,6 +43,7 @@ th, td {
     display: table;
     font-size: 95%;
 }
+
 #myBtn {
   display: none; /* Hidden by default */
   position: fixed; /* Fixed/sticky position */
@@ -58,14 +59,20 @@ th, td {
   border-radius: 10px; /* Rounded corners */
   font-size: 18px; /* Increase font size */
 }
-
 #myBtn:hover {
   background-color: #555; /* Add a dark-grey background on hover */
 }
+
 .top-icon {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: bevel;
     stroke-width: 1.5px;
     stroke: #ffffff;
+}
+
+.quads-logo {
+    width: 40px;
+    height: 40px;
+    margin: 0;
 }
