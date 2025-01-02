@@ -120,3 +120,4 @@ wordpress_data/
 codecov
 tests/cli/artifacts/*
 tests/tools/artifacts/*
+tests/artifacts/*
