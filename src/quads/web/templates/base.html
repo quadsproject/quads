@@ -19,50 +19,63 @@
 					<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 				{%- endblock styles %}
 			{%- endblock head %}
-			<style>
-                .dropdown-submenu {
-                    position: relative;
-                }
-
-                .dropdown-menu a {
-                    padding: 0;
-                }
-
-                .dropdown-submenu .dropdown-menu {
-                    top: 0;
-                    left: 100%;
-                    margin-top: -1px;
-                }
-			</style>
 		</head>
 		<body{% block body_attribs %}{% endblock body_attribs %}>
 		{% block body -%}
 			<button onclick="topFunction()" id="myBtn" title="Go to top">
-				<span class="scroll-top"><svg width="36px" height="36px" viewBox="0 0 24 24"
-											  xmlns="http://www.w3.org/2000/svg"><defs><style>.top-icon {
-                    fill: none;
-                    stroke-linecap: round;
-                    stroke-linejoin: bevel;
-                    stroke-width: 1.5px;
-                }</style></defs><g id="ic-chevron-top"><path class="top-icon"
-															 d="M16.78,14.2l-4.11-4.11a1,1,0,0,0-1.41,0l-4,4"></path></g></svg></span>
+				<span class="scroll-top">
+					<svg width="36px" height="36px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+						<defs>
+							<style>
+								.top-icon {
+									fill: none;
+									stroke-linecap: round;
+									stroke-linejoin: bevel;
+									stroke-width: 1.5px;
+								}
+							</style>
+						</defs>
+						<g id="ic-chevron-top">
+							<path class="top-icon" d="M16.78,14.2l-4.11-4.11a1,1,0,0,0-1.41,0l-4,4"></path>
+						</g>
+					</svg>
+				</span>
 			</button>
 			{% block navbar %}
 				<div class="shadow-sm mb-5 bg-white rounded">
 					<div class="container">
-						<p class="fs-5 mt-2">{{ lab_name }} <small style="font-size: 14px">Dynamic
-							Inventory</small></p>
+						<p class="fs-5 mt-2">
+							<a href="https://quads.dev" target="_blank" rel="noopener noreferrer">
+								<img class="quads-logo" src="{{ url_for('static', filename='image/quads.png') }}" alt="quads_logo">
+							</a>
+							{{ lab_name }} <small style="font-size: 14px">Dynamic Inventory</small>
+						</p>
 						{{ nav.navbar.render(renderer="BootStrapRender5") }}
 					</div>
 
 				</div>
 			{%- endblock navbar %}
 			{% block content -%}
-				<div class="container">
-					{% block page_content %}
-					{% endblock %}
-				</div>
+				<main>
+					<div class="container">
+						{% block page_content %}
+						{% endblock %}
+					</div>
+				</main>
 			{%- endblock content %}
+			{% block footer %}
+				<footer class="footer mt-auto py-3 bg-light">
+					<div class="container">
+						<div class="row">
+							<div class="col text-center">
+								<p class="text-muted mb-0">
+									<a href="https://quads.dev" target="_blank" rel="noopener noreferrer">QUADS</a>: the infrastructure deployment time machine.
+								</p>
+							</div>
+						</div>
+					</div>
+				</footer>
+			{%- endblock footer %}
 
 			{% block scripts %}
 				<script type="text/javascript"
