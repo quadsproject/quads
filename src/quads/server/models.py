@@ -1,10 +1,12 @@
 import os
 from datetime import datetime, timedelta
 from typing import Any
+
 from flask import current_app
 from flask_migrate import Migrate
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
+from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from sqlalchemy import (
     Column,
     Integer,
@@ -18,9 +20,8 @@ from sqlalchemy import (
     inspect,
     MetaData,
 )
-from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
-from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, backref
 
 try:
@@ -530,6 +531,9 @@ class Host(Serialize, TimestampMixin, Base):
     retired = Column(Boolean, default=False)
     last_build = Column(DateTime)
     can_self_schedule = Column(Boolean, default=True)
+    rack = Column(String)
+    uloc = Column(String)
+    blade = Column(String)
 
     # many-to-one
     cloud_id = Column(Integer, ForeignKey("clouds.id"))
@@ -556,7 +560,7 @@ class Host(Serialize, TimestampMixin, Base):
             "<Host(id='{}', name='{}', model='{}', host_type='{}', build='{}', "
             "validated='{}', switch_config_applied='{}', broken='{}', retired='{}', "
             "last_build='{}', can_self_schedule='{}', cloud='{}', default_cloud='{}', interfaces='{}', "
-            "disks='{}', memory='{}', processors='{}')>".format(
+            "disks='{}', memory='{}', processors='{}', rack='{}', uloc='{}', blade='{}')>".format(
                 self.id,
                 self.name,
                 self.model,
@@ -574,6 +578,9 @@ class Host(Serialize, TimestampMixin, Base):
                 self.disks,
                 self.memory,
                 self.processors,
+                self.rack,
+                self.uloc,
+                self.blade
             )
         )
 

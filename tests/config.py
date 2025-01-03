@@ -131,7 +131,6 @@ DISK_1_UPDATE_RESPONSE = {
     "id": 1,
 }
 
-
 # --------------------
 # INTERFACES
 # --------------------
@@ -598,6 +597,7 @@ SELF_SCHEDULE_1_RESPONSE = {
     "build_start": None,
     "end": "Tue, 06 Jun 2023 22:00:00 GMT",
     "host": {
+        'blade': None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -616,8 +616,10 @@ SELF_SCHEDULE_1_RESPONSE = {
         "last_build": None,
         "model": "R640",
         "name": "host2.example.com",
+        'rack': None,
         "retired": False,
         "switch_config_applied": False,
+        'uloc': None,
         "validated": False,
     },
     "host_id": 2,
@@ -674,6 +676,7 @@ SELF_SCHEDULE_2_RESPONSE = {
     "build_start": None,
     "end": "Tue, 06 Jun 2023 22:00:00 GMT",
     "host": {
+        'blade': None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -692,8 +695,10 @@ SELF_SCHEDULE_2_RESPONSE = {
         "last_build": None,
         "model": "1029P",
         "name": "host3.example.com",
+        'rack': None,
         "retired": False,
         "switch_config_applied": False,
+        'uloc': None,
         "validated": False,
     },
     "host_id": 3,
@@ -835,6 +840,7 @@ SCHEDULE_1_RESPONSE = {
     "created_at": "Tue, 07 Mar 2023 11:36:53 GMT",
     "end": "Tue, 18 Mar 2042 22:00:00 GMT",
     "host": {
+        'blade': None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -856,8 +862,10 @@ SCHEDULE_1_RESPONSE = {
         "last_build": None,
         "model": "R640",
         "name": "host2.example.com",
+        'rack': None,
         "retired": False,
         "switch_config_applied": False,
+        'uloc': None,
         "validated": False,
     },
     "host_id": 2,
@@ -919,6 +927,7 @@ SCHEDULE_2_RESPONSE = {
     "created_at": "Tue, 07 Mar 2023 11:36:53 GMT",
     "end": "Fri, 18 Mar 2044 22:00:00 GMT",
     "host": {
+        'blade': None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -940,8 +949,10 @@ SCHEDULE_2_RESPONSE = {
         "last_build": None,
         "model": "1029P",
         "name": "host3.example.com",
+        'rack': None,
         "retired": False,
         "switch_config_applied": False,
+        'uloc': None,
         "validated": False,
     },
     "host_id": 3,
