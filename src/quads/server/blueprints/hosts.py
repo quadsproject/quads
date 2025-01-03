@@ -155,6 +155,9 @@ def create_host() -> Response:
     default_cloud = data.get("default_cloud")
     host_type = data.get("host_type")
     can_self_schedule = data.get("can_self_schedule")
+    rack = data.get("rack")
+    uloc = data.get("uloc")
+    blade = data.get("blade")
 
     if not model:
         response = {
@@ -225,6 +228,9 @@ def create_host() -> Response:
         can_self_schedule=can_self_schedule,
         default_cloud=_default_cloud,
         cloud=_default_cloud,
+        rack=rack,
+        uloc=uloc,
+        blade=blade,
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()

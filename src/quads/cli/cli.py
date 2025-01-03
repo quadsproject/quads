@@ -961,6 +961,9 @@ class QuadsCli:
             "host_type": self.cli_args.get("hosttype"),
             "model": self.cli_args.get("model"),
             "force": self.cli_args.get("force"),
+            "rack": self.cli_args.get("rack"),
+            "uloc": self.cli_args.get("uloc"),
+            "blade": self.cli_args.get("blade"),
         }
         try:
             _host = self.quads.create_host(data)
