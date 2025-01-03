@@ -18,7 +18,8 @@ from quads.server.models import Cloud, Host, db
 class HostDao(BaseDao):
     @classmethod
     def create_host(
-        cls, name: str, model: str, host_type: str, default_cloud: str, can_self_schedule: bool = False
+        cls, name: str, model: str, host_type: str, default_cloud: str, can_self_schedule: bool = False,
+            rack: str = None, uloc: str = None, blade: str = None
     ) -> Host:
         _host_obj = cls.get_host(name)
         if _host_obj:
@@ -35,6 +36,9 @@ class HostDao(BaseDao):
             can_self_schedule=can_self_schedule,
             default_cloud=_default_cloud_obj,
             cloud=_default_cloud_obj,
+            rack=rack,
+            uloc=uloc,
+            blade=blade,
         )
         db.session.add(_host)
         cls.safe_commit()
