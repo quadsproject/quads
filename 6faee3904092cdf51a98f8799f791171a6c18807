@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bae0bfe8_e71f315d",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1037546
+      },
+      "writtenOn": "2025-01-06T10:01:18Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "48f1e9d1_f318f582",
+      "revId": "6faee3904092cdf51a98f8799f791171a6c18807",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0edc5aa7_9d42b95c",
@@ -41,6 +59,30 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d9f72821_cdcd5e1b",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1037546
+      },
+      "writtenOn": "2025-01-06T10:01:18Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "0edc5aa7_9d42b95c",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 49
+      },
+      "revId": "6faee3904092cdf51a98f8799f791171a6c18807",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "33933815_dd450b72",
@@ -54,6 +96,24 @@
       "writtenOn": "2025-01-06T08:26:37Z",
       "side": 1,
       "message": "Check for null value should be enough\nif _assignment.ostype:",
+      "revId": "6faee3904092cdf51a98f8799f791171a6c18807",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d55cbb96_fedf461b",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1037546
+      },
+      "writtenOn": "2025-01-06T10:01:18Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "33933815_dd450b72",
       "revId": "6faee3904092cdf51a98f8799f791171a6c18807",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
