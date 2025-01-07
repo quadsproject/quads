@@ -27,7 +27,7 @@
     <br>
     <b>Percentage Utilized (Monthly): {{ utilization }}%</b>
     <br>
-    <b>Percentage Utilized (Today): {{ "%.2d" % utilization_daily }}%</b>
+    <b>Percentage Utilized (Today): {{ utilization_daily }}%</b>
     <br>
     <b>Total Systems in Use: {{ total_use }}</b>
     <br>
@@ -46,7 +46,7 @@
     <td>{{ line["hostname"] }}</td>
     {% for day in line["days"] %}
         <td
-        {% if day["chosen_color"]|int == 1 :  %}
+        {% if day["cloud"] == "cloud01" :  %}
         class="degradient"
         {% else %}
         class="gradient"
@@ -56,11 +56,11 @@
         style="font-size:20px;text-align:center;"
         title=
         "Description: {{ day["display_description"] }}
-Env: cloud{{ day["chosen_color"] }}
+Env: {{ day["cloud"] }}
 Owner: {{ day["display_owner"] }}
 Ticket: {{ day["display_ticket"] }}
 Day: {{ day["day"] }}">
-        {% if day["chosen_color"]|int != 1 :  %}
+        {% if day["cloud"] != "cloud01" :  %}
             {{ day["emoji"] }}
         {% endif %}
         </td>

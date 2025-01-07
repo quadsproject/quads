@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import List, Type
-from sqlalchemy import and_, Boolean
 from sqlalchemy.orm import RelationshipProperty, relationship
+
+from sqlalchemy import Boolean, and_, func
+from sqlalchemy.dialects.postgresql import array_agg
 
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError, OPERATORS
@@ -207,6 +209,47 @@ class ScheduleDao(BaseDao):
 
         current_schedule = query.all()
         return current_schedule
+
+    @staticmethod
+    def get_hosts_range_schedules(start: datetime = None, end: datetime = None):
+        now = datetime.now()
+        _start = start if start else now
+        _end = end if end else now
+        hosts_schedules = (
+            db.session.query(
+                Host.name,
+                func.coalesce(
+                    array_agg(
+                        func.json_build_object(
+                            "id",
+                            Schedule.id,
+                            "assignment_id",
+                            Schedule.assignment_id,
+                            "start",
+                            Schedule.start,
+                            "end",
+                            Schedule.end,
+                            "cloud",
+                            Cloud.name,
+                            "description",
+                            Assignment.description,
+                            "owner",
+                            Assignment.owner,
+                            "ticket",
+                            Assignment.ticket,
+                        )
+                    ),
+                    [],
+                ),
+            )
+            .outerjoin(Schedule, Host.id == Schedule.host_id)
+            .outerjoin(Assignment, Schedule.assignment_id == Assignment.id)
+            .outerjoin(Cloud, Assignment.cloud_id == Cloud.id)
+            .filter(Schedule.start <= _end, Schedule.end >= _start)
+            .group_by(Host.name)
+            .all()
+        )
+        return hosts_schedules
 
     @staticmethod
     def is_host_available(hostname, start, end, exclude=None) -> bool:
