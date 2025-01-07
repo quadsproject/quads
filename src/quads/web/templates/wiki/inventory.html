@@ -5,7 +5,7 @@
     <h2><b>{{ lab_name }} Dashboard</b></h2>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-9 col-sm-12 col-10">
+            <div class="col-md-10">
                 {% for rack in racks.split() %}
                     <p><strong>Rack {{ rack }}</strong></p>
                     <table class="table" id="rack-{{ rack }}" data-rack-id={{ rack }}>
