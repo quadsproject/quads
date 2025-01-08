@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89b68e26_1f470739",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-08T09:12:31Z",
+      "side": 1,
+      "message": "@thiru, rebased this one as well.  For both this feature as well as your other one we\u0027re going to need docs.  For this one we\u0027ll want to document the CLI options in existing examples for providing rack, u-location, blade",
+      "revId": "835b271722d37e59736c99f56c77f1beb9bc7cb0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
