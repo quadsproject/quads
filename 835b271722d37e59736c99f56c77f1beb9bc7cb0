@@ -16,6 +16,23 @@
       "message": "@thiru, rebased this one as well.  For both this feature as well as your other one we\u0027re going to need docs.  For this one we\u0027ll want to document the CLI options in existing examples for providing rack, u-location, blade",
       "revId": "835b271722d37e59736c99f56c77f1beb9bc7cb0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84984803_a40b03f6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-08T09:22:20Z",
+      "side": 1,
+      "message": "the docs need to be updated for this too, good place to put it is the area where we explain how to define a new host:\n\nhttps://github.com/redhat-performance/quads/tree/latest?tab\u003dreadme-ov-file#define-your-quads-hosts\n\nI\u0027m not sure if we want to make rack, u-loc, blade mandatory or not?  @grafuls ?\n\nWe should likely leave an option to modify it later if not, though without them the `/inventory` will not populate correctly so perhaps we can mention leaving generic values.\n\nWhen we move to managing cloud resources in some capacity these values could be swapped for cloud-equivalent details but still allow keeping those assets in the inventory list but in their own respective section.  Thoughts?",
+      "revId": "835b271722d37e59736c99f56c77f1beb9bc7cb0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
