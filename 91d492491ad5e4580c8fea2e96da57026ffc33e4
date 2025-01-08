@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "031da4d1_84cc2ebd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-08T09:02:26Z",
+      "side": 1,
+      "message": "@thiru I rebased your patch against the tip of development for you.",
+      "revId": "91d492491ad5e4580c8fea2e96da57026ffc33e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
