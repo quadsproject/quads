@@ -4,6 +4,7 @@ Below are common workflows, visualizations and features of QUADS.
 
 * [QUADS Workflow and Examples](#quads-workflow-and-visuals)
     * [QUADS Architecture](#quads-architecture)
+    * [QUADS Software Design](#quads-design)
     * [QUADS Data Structure](#quads-data-structure)
     * [QUADS Foreman Provisioning Workflow](#quads-foreman-provisioning-workflow)
     * [QUADS Move and Rebuild Provisioning UML](#quads-move-and-rebuild-provisioning-uml)
@@ -15,9 +16,14 @@ Below are common workflows, visualizations and features of QUADS.
     * [Example: IRC, Webhook Chat and Email Notifications](#example-irc-webhook-chat-and-email-notifications)
 
 ## QUADS Architecture
+This is the QUADS architecture using Flask, Python3, SQLAlchemy, Jinja, Nginx, Gunicorn and PostgreSQL.
 
+![quadsarchitecture](../image/quads-architecture.jpg)
 
-![quadsarchitecture](../image/quads-architecture.png)
+## QUADS Software Design
+Below is a [GitDiagram](https://gitdiagram.com/)-generated software design diagram of the QUADS codebase.
+
+![quadsdiagram](../image/quads-git-diagram.png)
 
 ## QUADS Data Structure
 This is how our scheduling data, collections and data model look like within PostgreSQL.
