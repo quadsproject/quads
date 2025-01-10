@@ -73,6 +73,30 @@
       },
       "revId": "3d0e6a6d148bc8c5a6536ad305351191433c562e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa267bd8_c1bf3bf1",
+        "filename": "docs/quads-api.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-10T14:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c84d9667_da111bb6",
+      "range": {
+        "startLine": 531,
+        "startChar": 3,
+        "endLine": 531,
+        "endChar": 37
+      },
+      "revId": "3d0e6a6d148bc8c5a6536ad305351191433c562e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
