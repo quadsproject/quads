@@ -1,7 +1,9 @@
+import asyncio
 import re
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request, g
+from quads.tools.external.jira import Jira, JiraException
 from sqlalchemy import inspect
 
 from quads.config import Config
@@ -301,7 +303,6 @@ def create_self_assignment() -> Response:
     kwargs = {
         "description": description,
         "owner": owner,
-        "ticket": ticket,
         "qinq": qinq,
         "wipe": wipe,
         "ccuser": cc_user,
@@ -310,6 +311,43 @@ def create_self_assignment() -> Response:
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
+
+    loop = asyncio.get_event_loop()
+    try:
+        jira = Jira(
+            Config["jira_url"],
+            loop=loop,
+        )
+    except JiraException as ex:  # pragma: no cover
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Jira connection failed: {ex}",
+        }
+        return make_response(jsonify(response), 400)
+    description = ""
+    for key, value in kwargs.items():
+        description += f"{key}: {value}\n"
+
+    try:
+        response = loop.run_until_complete(
+            jira.create_ticket(
+                summary=f"[SS] {description}",
+                description=description,
+                labels=["SELF-SCHEDULED"],
+            )
+        )
+    except JiraException as ex:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Jira ticket creation failed: {ex}",
+        }
+        return make_response(jsonify(response), 400)
+
+    ticket = response.get("key").split("-")[1]
+    kwargs["ticket"] = ticket
+
     _assignment_obj = AssignmentDao.create_assignment(**kwargs)
     return jsonify(_assignment_obj.as_dict())
 

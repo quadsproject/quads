@@ -120,6 +120,48 @@ class Jira(object):
             logger.error("Resource not found: %s" % self.url + endpoint)
         return False
 
+    async def create_ticket(self, summary, description, labels=None):
+        """Create a Jira ticket."""
+        if labels is None:
+            labels = []
+        endpoint = "/issue/"
+        logger.debug("POST new ticket")
+        short_summary = summary.split("\r")
+        title = f"{short_summary[0]}"
+
+        data = {
+            "fields": {
+                "project": {"key": self.ticket_queue},
+                "issuetype": {"name": "Task"},
+                "summary": title,
+                "description": description,
+            }
+        }
+        if labels:
+            data["fields"].update({"labels": labels})
+
+        response = await self.post_request(endpoint, data)
+        return response
+
+    async def create_subtask(self, parent_ticket, cloud, description, type_of_subtask):
+        """Create a Jira subtask for a specified parent ticket."""
+        endpoint = "/issue/"
+        logger.debug("POST new subtask")
+        title = f"{cloud} {type_of_subtask}"
+
+        data = {
+            "fields": {
+                "project": {"key": self.ticket_queue},
+                "issuetype": {"id": "5"},
+                "parent": {"key": f"{self.ticket_queue}-{parent_ticket}"},
+                "summary": title,
+                "labels": [type_of_subtask.upper()],
+                "description": description,
+            }
+        }
+        response = await self.post_request(endpoint, data)
+        return response
+
     async def add_watcher(self, ticket, watcher):
         issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
         endpoint = "/issue/%s/watchers" % issue_id
@@ -203,6 +245,19 @@ class Jira(object):
             return None
         return result
 
+    async def get_user_by_email(self, email):
+        """Find a Jira user by email."""
+        endpoint = f"/user/search?username={email}"
+        logger.debug("GET user: %s" % endpoint)
+        result = await self.get_request(endpoint)
+        if not result:
+            logger.error("User not found")
+            return None
+        for user in result:
+            if user.get("emailAddress") == email:
+                return user
+        return None
+
     async def get_all_pending_tickets(self):
         transition_id = await self.get_transition_id("In Progress")
         query = {"status": transition_id}
@@ -245,4 +300,18 @@ class Jira(object):
         if not result:
             logger.error("Failed to get pending tickets")
             return None
+        return result
+
+    async def get_field_allowed_values(self, field_id, ticket_id=1):
+        """Get list of allowed values from JIRA API for a specified field."""
+        endpoint = f"/issue/{self.ticket_queue}-{ticket_id}/editmeta"
+        result = await self.get_request(endpoint)
+        if not result:
+            logger.error("Failed to get allowed values")
+            return None
+        try:
+            result = result["fields"][f"customfield_{field_id}"]["allowedValues"]
+            result = [entry["value"] for entry in result if not entry["value"].startswith("One or more of the")]
+        except (ValueError, AttributeError):
+            logger.error("Failed to get allowed values")
         return result
