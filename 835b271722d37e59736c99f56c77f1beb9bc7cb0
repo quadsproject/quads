@@ -33,6 +33,24 @@
       "message": "the docs need to be updated for this too, good place to put it is the area where we explain how to define a new host:\n\nhttps://github.com/redhat-performance/quads/tree/latest?tab\u003dreadme-ov-file#define-your-quads-hosts\n\nI\u0027m not sure if we want to make rack, u-loc, blade mandatory or not?  @grafuls ?\n\nWe should likely leave an option to modify it later if not, though without them the `/inventory` will not populate correctly so perhaps we can mention leaving generic values.\n\nWhen we move to managing cloud resources in some capacity these values could be swapped for cloud-equivalent details but still allow keeping those assets in the inventory list but in their own respective section.  Thoughts?",
       "revId": "835b271722d37e59736c99f56c77f1beb9bc7cb0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f4fbcb1b_ca129650",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-01-10T10:36:19Z",
+      "side": 1,
+      "message": "Yes, unless we do a full move and populate all these fields with the actual data I would leave it as optional for now. Maybe we add a conditional where if those values are populated on DB we use those instead of parsing the hostname.",
+      "parentUuid": "84984803_a40b03f6",
+      "revId": "835b271722d37e59736c99f56c77f1beb9bc7cb0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
