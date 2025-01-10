@@ -1110,6 +1110,26 @@ paths:
       security:
         - BearerAuth: [ ]
 
+  /vlans/free/:
+    get:
+      summary: Returns a list with all the free vlans
+      tags:
+        - Vlans
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Vlan'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /vlans/{vlan_id}/:
     get:
       summary: Returns a detail of a specific vlan by id

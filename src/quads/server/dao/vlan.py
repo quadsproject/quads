@@ -1,7 +1,7 @@
 from typing import List
 
 from quads.server.dao.baseDao import BaseDao
-from quads.server.models import Vlan, db
+from quads.server.models import Assignment, Vlan, db
 
 
 class VlanDao(BaseDao):
@@ -25,7 +25,16 @@ class VlanDao(BaseDao):
 
     @staticmethod
     def get_vlans() -> List[Vlan]:
-        # TODO:Union with assignments table on assignments.vlan_id=Vlan.vlan_id where assignments.active=True
-        # to include a column with the assignment ID
-        vlans = db.session.query(Vlan).all()
+        vlans = db.session.query(Vlan).order_by(Vlan.vlan_id).all()
+        return vlans
+
+    @staticmethod
+    def get_free_vlans() -> List[Vlan]:
+        vlans = (
+            db.session.query(Vlan)
+            .outerjoin(Assignment, (Vlan.id == Assignment.vlan_id) & (Assignment.active == True))
+            .filter(Assignment.id == None)  # noqa: E711
+            .order_by(Vlan.vlan_id)
+            .all()
+        )
         return vlans

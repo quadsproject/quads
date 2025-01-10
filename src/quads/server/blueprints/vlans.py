@@ -26,6 +26,16 @@ def get_vlan(vlan_id: int) -> Response:
 @vlan_bp.route("/")
 def get_vlans() -> Response:
     _vlans = VlanDao.get_vlans()
+    if not _vlans:
+        return jsonify([])
+    return jsonify([_vlan.as_dict() for _vlan in _vlans])
+
+
+@vlan_bp.route("/free")
+def get_free_vlans() -> Response:
+    _vlans = VlanDao.get_free_vlans()
+    if not _vlans:
+        return jsonify([])
     return jsonify([_vlan.as_dict() for _vlan in _vlans])
 
 
