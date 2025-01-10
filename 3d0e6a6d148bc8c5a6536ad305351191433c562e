@@ -16,6 +16,46 @@
       "message": "@thiru, I amended your docs because they were missing a top TOC entry.  It\u0027s better I did this becuase I noticed another unrelated section that\u0027s not in the right lexical order",
       "revId": "3d0e6a6d148bc8c5a6536ad305351191433c562e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ad1451b_a34a1f40",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-10T12:54:33Z",
+      "side": 1,
+      "message": "Looks good just minor docs change required.",
+      "revId": "3d0e6a6d148bc8c5a6536ad305351191433c562e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c84d9667_da111bb6",
+        "filename": "docs/quads-api.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-10T12:54:33Z",
+      "side": 1,
+      "message": "We still need a markdown TOC entry for this, look at the top of the page for the ordering like the rest.\n\nAlso, categories are always capitalized e.g. \"Query Available OS Types\"",
+      "range": {
+        "startLine": 531,
+        "startChar": 3,
+        "endLine": 531,
+        "endChar": 37
+      },
+      "revId": "3d0e6a6d148bc8c5a6536ad305351191433c562e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
