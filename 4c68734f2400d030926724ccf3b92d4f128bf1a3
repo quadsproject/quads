@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "539e4b8d_dcc2290b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-11T17:54:40Z",
+      "side": 1,
+      "message": "@grafuls I\u0027m thinkng we want to implement this as optional per: https://github.com/redhat-performance/quads/issues/562\n\nperhaps this can come in a second patch though?",
+      "revId": "4c68734f2400d030926724ccf3b92d4f128bf1a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
