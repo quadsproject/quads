@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "f06e30fc_40b2e5a2",
         "filename": "quads/api_v2.py",
@@ -20,8 +21,8 @@
         "endChar": 32
       },
       "revId": "719838e74f4712f7b83d46264cd7906344c1b13a",
-      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
-      "unresolved": true
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
-  ]
+  ],
+  "submitRequirementResults": []
 }
