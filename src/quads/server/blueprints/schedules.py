@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from flask import Blueprint, Response, jsonify, make_response, request
+from flask import Blueprint, Response, g, jsonify, make_response, request
 
 from quads.config import Config
 from quads.server.blueprints import check_access
@@ -114,6 +114,13 @@ def create_schedule() -> Response:
             "message": f"No active assignment for cloud: {cloud}",
         }
         return make_response(jsonify(response), 400)
+    if not _assignment.is_self_schedule and "admin" not in [role.name for role in g.current_user.roles]:
+        response = {
+            "status_code": 403,
+            "error": "Forbidden",
+            "message": f"You({g.current_user.email}) don't have permission to create a schedule on {cloud}",
+        }
+        return make_response(jsonify(response), 403)
 
     existing_schedules = ScheduleDao.get_current_schedule(cloud=_cloud)
     if _assignment.is_self_schedule and len(existing_schedules) >= Config.get("ssm_host_limit", 10):

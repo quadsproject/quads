@@ -76,7 +76,7 @@ def check_access(roles):
                     "error": "Bad Request",
                 }
                 return Response(response=json.dumps(response), status=400)
-            g.current_user = username
+            g.current_user = current_user
             return f(*args, **kwargs)
 
         return decorated_function

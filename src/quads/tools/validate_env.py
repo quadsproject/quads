@@ -409,6 +409,9 @@ async def main(_args, _logger=None):  # pragma: no cover
             except Exception as ex:
                 logger.debug(ex)
                 logger.info("Failed validation for %s" % ass.cloud.name)
+        elif _schedule_count and not _assignment.wipe:
+            logger.info(f"Auto-Validating {ass.cloud.name} as marked for no wipe")
+            quads.update_assignment(ass.id, {"validated": True})
 
 
 if __name__ == "__main__":  # pragma: no cover

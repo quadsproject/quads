@@ -456,7 +456,7 @@ def terminate_assignment(assignment_id) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    username = g.current_user.split("@")[0]
+    username = g.current_user.email.split("@")[0]
     if username != _assignment.owner:
         response = {
             "status_code": 403,
