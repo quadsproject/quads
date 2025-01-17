@@ -136,10 +136,11 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 
 ## Requirements
    - Recent [Fedora Server](https://fedoraproject.org/server/download/) for RPM installations
-   - 1 x modest sized VM for QUADS and the associated Wiki component
+   - 1 x modest sized VM (8 vcpu 8GB mem) for quads-server and quads-web/UI component processes
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
    - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](http://www.jnpr.net/techpubs/en_US/junos14.1/topics/concept/qinq-tunneling-qfx-series.html), but command sets can be extended to support other network switch models as future RFE's.
    - We use [badfish](https://github.com/redhat-performance/badfish) for Dell systems to manage boot order to accomodate OpenStack deployments via Ironic/Triple-O as well as to control power actions via the Redfish API.
+   - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.
 
 ## Setup Overview
    - Documentation for setting up and using QUADS is available in detail within this repository.
