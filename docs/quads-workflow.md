@@ -4,7 +4,7 @@ Below are common workflows, visualizations and features of QUADS.
 
 * [QUADS Workflow and Examples](#quads-workflow-and-visuals)
     * [QUADS Architecture](#quads-architecture)
-    * [QUADS Software Design](#quads-design)
+    * [QUADS Software Design](#quads-software-design)
     * [QUADS Data Structure](#quads-data-structure)
     * [QUADS Foreman Provisioning Workflow](#quads-foreman-provisioning-workflow)
     * [QUADS Move and Rebuild Provisioning UML](#quads-move-and-rebuild-provisioning-uml)
