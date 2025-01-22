@@ -226,7 +226,7 @@ class Jira(object):
         return result
 
     async def search_tickets(self, query=None):
-        project = {"project": Config["ticket_queue"]}
+        project = {"project": f'"{Config["ticket_queue"]}"'}
         prefix = "/search?jql="
         query_items = []
 
