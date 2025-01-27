@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7650eb66_238f7c7b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-01-27T20:15:44Z",
+      "side": 1,
+      "message": "Hey @kambiz I think you need to base this on the development branch per our development workflow.\n\nhttps://github.com/redhat-performance/quads/blob/latest/CONTRIBUTING.md#the-quads-repository\n\nYou could get this into place manually in ALIAS however, but we\u0027d want to test this in STAGE (which is based on development branch) to ensure there aren\u0027t any side effects for \"normal\" interfaces",
+      "revId": "29a10b194cd1d09a7a47870243856b0a67137680",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
