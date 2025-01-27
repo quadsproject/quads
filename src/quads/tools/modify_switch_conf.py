@@ -25,6 +25,9 @@ def verify(_host_name, change=False, nic1=None, nic2=None, nic3=None, nic4=None,
     if _host_obj.interfaces:
         interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
         for i, interface in enumerate(interfaces):
+            port_speed = int(interface.speed) // 1000
+            if port_speed < 0:
+                port_speed = 0
             vlan = _nics.get(interface.name)
             if vlan:
                 ssh_helper = SSHHelper(interface.switch_ip, Config["junos_username"])
@@ -71,6 +74,7 @@ def verify(_host_name, change=False, nic1=None, nic2=None, nic3=None, nic4=None,
                         juniper = Juniper(
                             interface.switch_ip,
                             interface.switch_port,
+                            port_speed,
                             vlan_member,
                             vlan,
                         )
