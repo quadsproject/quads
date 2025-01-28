@@ -146,7 +146,7 @@ def update_interface(hostname: str) -> Response:
             update_fields[key] = value
 
     speed = update_fields.get("speed")
-    if speed and not speed > 0:
+    if int(speed) and not int(speed) > 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",
