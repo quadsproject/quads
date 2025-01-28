@@ -110,6 +110,7 @@ def verify(_cloud_name, _host_name, change=False):  # pragma: no cover
                                 juniper = Juniper(
                                     interface.switch_ip,
                                     interface.switch_port,
+                                    interface.speed,
                                     old_vlan,
                                     vlan,
                                 )
@@ -122,6 +123,7 @@ def verify(_cloud_name, _host_name, change=False):  # pragma: no cover
                             juniper = Juniper(
                                 interface.switch_ip,
                                 interface.switch_port,
+                                interface.speed,
                                 vlan_member,
                                 vlan,
                             )
