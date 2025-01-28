@@ -11,9 +11,10 @@ class JuniperException(Exception):
 
 
 class Juniper(object):
-    def __init__(self, ip_address, switch_port, old_vlan, new_vlan):
+    def __init__(self, ip_address, switch_port, port_speed, old_vlan, new_vlan):
         self.ip_address = ip_address
         self.switch_port = switch_port
+        self.port_speed = port_speed
         self.old_vlan = str(old_vlan)
         self.new_vlan = str(new_vlan)
         self.child = None
@@ -44,6 +45,8 @@ class Juniper(object):
             self.execute("rollback")
             self.execute(f"delete interfaces {self.switch_port}")
             self.execute(f"set interfaces {self.switch_port} apply-groups QinQ_vl{self.new_vlan}")
+            if int(self.port_speed) > 0:
+                self.execute(f"set interfaces {self.switch_port} speed {self.port_speed}g")
 
             if self.old_vlan:
                 self.execute(f"delete vlans vlan{self.old_vlan} interface {self.switch_port}")
@@ -68,6 +71,8 @@ class Juniper(object):
                 f"set interfaces {self.switch_port} unit 0 family ethernet-switching vlan members vlan{self.new_vlan}"
             )
 
+            if int(self.port_speed) > 0:
+                self.execute(f"set interfaces {self.switch_port} speed {self.port_speed}g")
             if self.old_vlan and self.old_vlan != self.new_vlan:
                 self.execute(f"delete vlans vlan{self.old_vlan} interface {self.switch_port}")
 

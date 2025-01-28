@@ -68,6 +68,7 @@ def switch_config(host, old_cloud, new_cloud):  # pragma: no cover
                 juniper = Juniper(
                     interface.switch_ip,
                     interface.switch_port,
+                    interface.speed,
                     old_vlan,
                     _new_ass_cloud_obj.vlan.vlan_id,
                 )
@@ -82,7 +83,7 @@ def switch_config(host, old_cloud, new_cloud):  # pragma: no cover
                     return False
         else:
             if int(old_vlan) != int(new_vlan):
-                juniper = Juniper(interface.switch_ip, interface.switch_port, old_vlan, new_vlan)
+                juniper = Juniper(interface.switch_ip, interface.switch_port, interface.speed, old_vlan, new_vlan)
                 success = juniper.set_port()
 
                 if success:

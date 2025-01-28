@@ -57,7 +57,7 @@ class TestCreateInterfaces:
     def test_invalid_speed(self, test_client, auth, prefill):
         """
         | GIVEN: Defaults, auth token, clouds and hosts
-        | WHEN: User tries to create an interface with invalid speed (<= 0)
+        | WHEN: User tries to create an interface with invalid speed (< 0)
         | THEN: Interface should not be created
         """
         auth_header = auth.get_auth_header()
@@ -72,7 +72,7 @@ class TestCreateInterfaces:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert response.json["message"] == "Argument can't be negative or zero: speed"
+        assert response.json["message"] == "Argument can't be negative: speed"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid(self, test_client, auth, prefill):
@@ -283,7 +283,7 @@ class TestUpdateInterfaces:
         )
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
-        assert response.json["message"] == "Argument can't be negative or zero: speed"
+        assert response.json["message"] == "Argument can't be negative: speed"
 
 
 class TestDeleteInterfaces:
