@@ -71,6 +71,7 @@ def verify(_host_name, change=False, nic1=None, nic2=None, nic3=None, nic4=None,
                         juniper = Juniper(
                             interface.switch_ip,
                             interface.switch_port,
+                            interface.speed,
                             vlan_member,
                             vlan,
                         )
