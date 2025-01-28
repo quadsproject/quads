@@ -68,11 +68,11 @@ def create_interface(hostname: str) -> Response:
             }
             return make_response(jsonify(response), 400)
 
-    if int(speed) and not int(speed) > 0:
+    if int(speed) and not int(speed) >= 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",
-            "message": "Argument can't be negative or zero: speed",
+            "message": "Argument can't be negative: speed",
         }
         return make_response(jsonify(response), 400)
 
@@ -146,11 +146,11 @@ def update_interface(hostname: str) -> Response:
             update_fields[key] = value
 
     speed = update_fields.get("speed")
-    if speed and not speed > 0:
+    if speed and not speed >= 0:
         response = {
             "status_code": 400,
             "error": "Bad Request",
-            "message": "Argument can't be negative or zero: speed",
+            "message": "Argument can't be negative: speed",
         }
         return make_response(jsonify(response), 400)
 

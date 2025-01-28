@@ -1151,7 +1151,7 @@ class QuadsCli:
                     "mac_address": interface.mac_address,
                     "switch_ip": interface.switch_ip,
                     "switch_port": interface.switch_port,
-                    "speed": interface.speed if interface.speed else 1,
+                    "speed": interface.speed if interface.speed else 0,
                     "vendor": interface.vendor,
                     "pxe_boot": interface.pxe_boot,
                     "maintenance": interface.maintenance,
