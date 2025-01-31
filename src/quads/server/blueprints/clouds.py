@@ -37,7 +37,7 @@ def get_clouds() -> Response:
 
     else:
         _clouds = CloudDao.get_clouds()
-    return jsonify([_cloud.as_dict() for _cloud in _clouds] if _clouds else {})
+    return make_response(jsonify([_cloud.as_dict() for _cloud in _clouds] if _clouds else {}), 200)
 
 
 @cloud_bp.route("/free/")
@@ -52,7 +52,7 @@ def get_free_clouds() -> Response:
     """
     _clouds = CloudDao.get_free_clouds()
 
-    return jsonify([_cloud.as_dict() for _cloud in _clouds])
+    return make_response(jsonify([_cloud.as_dict() for _cloud in _clouds]), 200)
 
 
 @cloud_bp.route("/", methods=["POST"])
@@ -86,7 +86,7 @@ def create_cloud() -> Response:
         return Response(response=json.dumps(response), status=400)
 
     _cloud_obj = CloudDao.create_cloud(cloud_name)
-    return jsonify(_cloud_obj.as_dict())
+    return make_response(jsonify(_cloud_obj.as_dict()), 201)
 
 
 @cloud_bp.route("/<cloud>/", methods=["PATCH"])
@@ -130,7 +130,7 @@ def update_cloud(cloud) -> Response:
         return make_response(jsonify(response), 400)
 
     _cloud_obj = CloudDao.update_cloud(cloud, **data)
-    return jsonify(_cloud_obj.as_dict())
+    return make_response(jsonify(_cloud_obj.as_dict()), 200)
 
 
 @cloud_bp.route("/<cloud>/", methods=["DELETE"])
@@ -158,7 +158,7 @@ def delete_cloud(cloud: str) -> Response:
         "status_code": 200,
         "message": f"Cloud {cloud} deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)
 
 
 @cloud_bp.route("/summary/")
@@ -204,4 +204,4 @@ def get_summary() -> Response:
             }
         )
 
-    return jsonify(clouds_summary)
+    return make_response(jsonify(clouds_summary), 200)

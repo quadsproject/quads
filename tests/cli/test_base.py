@@ -4,7 +4,7 @@ import pytest
 
 from quads.cli import QuadsCli
 from quads.config import DEFAULT_CONF_PATH, Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 _logger = logging.getLogger("test_log")
 _logger.setLevel(logging.INFO)

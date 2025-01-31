@@ -69,7 +69,7 @@ def get_available() -> Response:
                 if _cloud != _sched_cloud:
                     continue
             available.append(host.name)
-    return jsonify(available)
+    return make_response(jsonify(available), 200)
 
 
 @available_bp.route("/<hostname>")
@@ -96,4 +96,4 @@ def is_available(hostname) -> Response:
         _end = _start + timedelta(minutes=1)
 
     available = ScheduleDao.is_host_available(hostname, _start, _end)
-    return jsonify({hostname: str(available)})
+    return make_response(jsonify({hostname: str(available)}), 200)

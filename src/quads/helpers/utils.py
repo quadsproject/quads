@@ -1,7 +1,6 @@
 import calendar
 import re
-
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from quads.config import Config
 

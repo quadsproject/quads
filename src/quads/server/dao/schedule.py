@@ -5,13 +5,7 @@ from sqlalchemy import Boolean, and_, func
 from sqlalchemy.dialects.postgresql import array_agg
 
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import (
-    OPERATORS,
-    BaseDao,
-    EntryNotFound,
-    InvalidArgument,
-    SQLError,
-)
+from quads.server.dao.baseDao import OPERATORS, BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.models import Assignment, Cloud, Host, Schedule, db

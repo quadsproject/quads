@@ -155,7 +155,7 @@ class TestCreateDisks:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json == DISK_1_RESPONSE
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -173,7 +173,7 @@ class TestCreateDisks:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json == DISK_2_RESPONSE
 
 
@@ -353,8 +353,7 @@ class TestDeleteDisks:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Disk deleted"
+        assert response.status_code == 204
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_id(self, test_client, auth, prefill):

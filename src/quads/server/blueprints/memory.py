@@ -12,7 +12,7 @@ memory_bp = Blueprint("memory", __name__)
 @memory_bp.route("/")
 def get_all_memory() -> Response:
     _memories = MemoryDao.get_memories()
-    return jsonify([_memory.as_dict() for _memory in _memories])
+    return make_response(jsonify([_memory.as_dict() for _memory in _memories]), 200)
 
 
 @memory_bp.route("/<memory_id>")
@@ -26,7 +26,7 @@ def get_memory(memory_id: int) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    return jsonify(_memory.as_dict())
+    return make_response(jsonify(_memory.as_dict()), 200)
 
 
 @memory_bp.route("/<hostname>", methods=["POST"])
@@ -82,7 +82,7 @@ def create_memory(hostname: str) -> Response:
     _memory_obj = Memory(handle=handle, size_gb=size_gb, host_id=_host.id)
     db.session.add(_memory_obj)
     BaseDao.safe_commit()
-    return jsonify(_memory_obj.as_dict())
+    return make_response(jsonify(_memory_obj.as_dict()), 201)
 
 
 @memory_bp.route("/<memory_id>", methods=["DELETE"])
@@ -103,4 +103,4 @@ def delete_memory(memory_id: int) -> Response:
         "status_code": 200,
         "message": "Memory deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)

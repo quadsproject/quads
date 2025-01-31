@@ -1,4 +1,5 @@
 import logging
+
 import pexpect
 
 from quads.config import Config

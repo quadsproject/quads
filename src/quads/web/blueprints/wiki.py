@@ -4,9 +4,10 @@ from datetime import datetime, time
 
 from flask import Blueprint, redirect, url_for, render_template, request, jsonify
 
+from quads.exceptions import APIBadRequest, APIServerException
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
-from quads.quads_api import QuadsApi, APIBadRequest, APIServerException
 from quads.tools.external.foreman import Foreman
 from quads.config import Config
 from quads.web.controller.CloudOperations import CloudOperations

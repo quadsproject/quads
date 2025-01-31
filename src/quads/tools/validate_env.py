@@ -5,24 +5,22 @@ import logging
 import os
 import re
 import socket
-
 from datetime import datetime
+
 from jinja2 import Template
 from paramiko import SSHException
 from paramiko.ssh_exception import NoValidConnectionsError
 
 from quads.config import Config
-from quads.exceptions import CliException
+from quads.exceptions import APIBadRequest, APIServerException, CliException
 from quads.helpers.utils import is_supported
-from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.badfish import BadfishException, badfish_factory
 from quads.tools.external.foreman import Foreman
-from quads.tools.helpers import get_running_loop
-from quads.tools.move_and_rebuild import switch_config
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
-
+from quads.tools.move_and_rebuild import switch_config
 
 logger = logging.getLogger(__name__)
 quads = QuadsApi(Config)

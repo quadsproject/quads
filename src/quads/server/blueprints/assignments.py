@@ -2,8 +2,7 @@ import asyncio
 import re
 from datetime import datetime
 
-from flask import Blueprint, Response, jsonify, make_response, request, g
-from quads.tools.external.jira import Jira, JiraException
+from flask import Blueprint, Response, g, jsonify, make_response, request
 from sqlalchemy import inspect
 
 from quads.config import Config
@@ -14,6 +13,7 @@ from quads.server.dao.cloud import CloudDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
 from quads.server.models import Assignment
+from quads.tools.external.jira import Jira, JiraException
 
 assignment_bp = Blueprint("assignments", __name__)
 
@@ -41,7 +41,7 @@ def get_assignments() -> Response:
 
     else:
         _assignments = AssignmentDao.get_assignments()
-    return jsonify([_assignment.as_dict() for _assignment in _assignments])
+    return make_response(jsonify([_assignment.as_dict() for _assignment in _assignments]), 200)
 
 
 @assignment_bp.route("/<assignment_id>/")
@@ -65,7 +65,7 @@ def get_assignment(assignment_id: str) -> Response:
             "message": f"Assignment not found: {assignment_id}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify(_assignment.as_dict())
+    return make_response(jsonify(_assignment.as_dict()), 200)
 
 
 @assignment_bp.route("/active/<cloud_name>/")
@@ -91,7 +91,7 @@ def get_active_cloud_assignment(cloud_name: str) -> Response:
     response = {}
     if _assignment:
         response = _assignment.as_dict()
-    return jsonify(response)
+    return make_response(jsonify(response), 200)
 
 
 @assignment_bp.route("/active/")
@@ -109,7 +109,7 @@ def get_active_assignments() -> Response:
     if _assignments:
         for _ass in _assignments:
             response.append(_ass.as_dict())
-    return jsonify(response)
+    return make_response(jsonify(response), 200)
 
 
 @assignment_bp.route("/", methods=["POST"])
@@ -198,7 +198,7 @@ def create_assignment() -> Response:
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
     _assignment_obj = AssignmentDao.create_assignment(**kwargs)
-    return jsonify(_assignment_obj.as_dict())
+    return make_response(jsonify(_assignment_obj.as_dict()), 201)
 
 
 @assignment_bp.route("/self/", methods=["POST"])
@@ -361,7 +361,7 @@ def create_self_assignment() -> Response:
             return make_response(jsonify(response), 400)
 
     _assignment_obj = AssignmentDao.create_assignment(**kwargs)
-    return jsonify(_assignment_obj.as_dict())
+    return make_response(jsonify(_assignment_obj.as_dict()), 201)
 
 
 @assignment_bp.route("/<assignment_id>/", methods=["PATCH"])
@@ -435,7 +435,7 @@ def update_assignment(assignment_id: str) -> Response:
         setattr(assignment_obj, key, value)
 
     BaseDao.safe_commit()
-    return jsonify(assignment_obj.as_dict())
+    return make_response(jsonify(assignment_obj.as_dict()), 200)
 
 
 @assignment_bp.route("/terminate/<assignment_id>/", methods=["POST"])
@@ -487,7 +487,7 @@ def terminate_assignment(assignment_id) -> Response:
         "status_code": 200,
         "message": "Assignment terminated",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)
 
 
 @assignment_bp.route("/", methods=["DELETE"])
@@ -523,7 +523,7 @@ def delete_assignment() -> Response:
         }
         return make_response(jsonify(response), 400)
     response = {
-        "status_code": 200,
+        "status_code": 204,
         "message": "Assignment deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)
