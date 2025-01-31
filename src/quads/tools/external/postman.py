@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
-from smtplib import SMTPException, SMTP
-
 from email.message import EmailMessage
+from smtplib import SMTP, SMTPException
+
 from quads.config import Config
 
 logger = logging.getLogger(__name__)

@@ -156,7 +156,7 @@ class TestCreateHosts:
                     headers=auth_header,
                 )
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json["id"] == num
             assert response.json["name"] == req["name"]
             assert response.json["model"] == req["model"].upper()
@@ -499,8 +499,7 @@ class TestDeleteHosts:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Host deleted"
+        assert response.status_code == 204
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_undefined_host(self, test_client, auth, prefill):

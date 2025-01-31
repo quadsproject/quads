@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 import asyncio
-from urllib.parse import urlparse
-
-import aiohttp
-from aiohttp import BasicAuth
-
 import json
 import logging
 import os
 import re
 import sys
 import warnings
+from urllib.parse import urlparse
+
+import aiohttp
 import yaml
+from aiohttp import BasicAuth
 
 warnings.filterwarnings("ignore")
 

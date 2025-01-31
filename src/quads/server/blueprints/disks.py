@@ -14,7 +14,7 @@ disk_bp = Blueprint("disks", __name__)
 @disk_bp.route("/")
 def get_all_disks() -> Response:
     _disks = DiskDao.get_disks()
-    return jsonify([_disk.as_dict() for _disk in _disks])
+    return make_response(jsonify([_disk.as_dict() for _disk in _disks]), 200)
 
 
 @disk_bp.route("/<disk_id>")
@@ -27,7 +27,7 @@ def get_disk(disk_id: int) -> Response:
             "message": f"Disk not found: {disk_id}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify(_disk.as_dict())
+    return make_response(jsonify(_disk.as_dict()), 200)
 
 
 @disk_bp.route("/<hostname>", methods=["POST"])
@@ -90,7 +90,7 @@ def create_disks(hostname: str) -> Response:
     _disk_obj = Disk(disk_type=disk_type, size_gb=size_gb, count=count, host_id=_host.id)
     db.session.add(_disk_obj)
     BaseDao.safe_commit()
-    return jsonify(_disk_obj.as_dict())
+    return make_response(jsonify(_disk_obj.as_dict()), 201)
 
 
 @disk_bp.route("/<hostname>", methods=["PATCH"])
@@ -113,7 +113,7 @@ def update_disk(hostname: str) -> Response:
             "error": "Bad Request",
             "message": f"Disk not found for {hostname}: {disk_id}",
         }
-        return Response(response=json.dumps(response), status=400)
+        return make_response(jsonify(response), 400)
 
     update_fields = {}
     keys = ["disk_type", "size_gb", "count"]
@@ -141,7 +141,7 @@ def update_disk(hostname: str) -> Response:
     for key, value in update_fields.items():
         setattr(disk_object, key, value)
     BaseDao.safe_commit()
-    return jsonify(disk_object.as_dict())
+    return make_response(jsonify(disk_object.as_dict()), 200)
 
 
 @disk_bp.route("/<disk_id>", methods=["DELETE"])
@@ -162,4 +162,4 @@ def delete_disk(disk_id: int) -> Response:
         "status_code": 200,
         "message": "Disk deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)

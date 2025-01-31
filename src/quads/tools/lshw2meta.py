@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import os
 import json
+import os
 
 from jsonpath_ng import parse
 
 from quads.config import Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 quads = QuadsApi(Config)
 

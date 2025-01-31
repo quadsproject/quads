@@ -4,16 +4,16 @@ import asyncio
 import functools
 import json
 import os
-import time
 import pathlib
+import time
 from collections import defaultdict
-from distutils.util import strtobool
 from datetime import datetime
+from distutils.util import strtobool
 from shutil import copyfile
 
-from quads.quads_api import QuadsApi
-from quads.tools.external.foreman import Foreman
 from quads.config import Config
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
+from quads.tools.external.foreman import Foreman
 
 quads = QuadsApi(Config)
 

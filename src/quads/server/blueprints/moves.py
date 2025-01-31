@@ -45,4 +45,4 @@ def get_moves() -> Response:
             "message": "Something went wrong, please try again.",
         }
         return make_response(jsonify(response), 500)
-    return jsonify(result)
+    return make_response(jsonify(result), 200)

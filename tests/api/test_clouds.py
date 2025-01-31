@@ -20,7 +20,7 @@ class TestCreateClouds:
                     headers=auth_header,
                 )
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json["id"] == cloud_id
             assert response.json["name"] == cloud_name
             duration = datetime.utcnow() - datetime.strptime(
@@ -181,8 +181,7 @@ class TestDeleteClouds:
         cloud_id = 1
         cloud_name = f"cloud{str(cloud_id).zfill(2)}"
         response = unwrap_json(test_client.delete(f"/api/v3/clouds/{cloud_name}", headers=auth_header))
-        assert response.status_code == 200
-        assert response.json["message"] == f"Cloud {cloud_name} deleted"
+        assert response.status_code == 204
 
     def test_invalid_missing_arg(self, test_client, auth):
         """

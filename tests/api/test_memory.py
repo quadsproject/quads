@@ -117,9 +117,9 @@ class TestCreateMemory:
                 headers=auth_header,
             )
         )
-        assert response_1.status_code == 200
+        assert response_1.status_code == 201
         assert response_1.json == MEMORY_1_RESPONSE
-        assert response_2.status_code == 200
+        assert response_2.status_code == 201
         assert response_2.json == MEMORY_3_RESPONSE
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -251,5 +251,4 @@ class TestDeleteMemory:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Memory deleted"
+        assert response.status_code == 204

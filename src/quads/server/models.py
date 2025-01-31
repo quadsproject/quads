@@ -4,31 +4,32 @@ from typing import Any
 
 from flask import current_app
 from flask_migrate import Migrate
-from flask_security import UserMixin, RoleMixin
+from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
+from jwt import ExpiredSignatureError, InvalidTokenError, decode, encode
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
     Boolean,
-    ForeignKey,
-    PickleType,
+    Column,
     DateTime,
-    func,
-    create_engine,
-    inspect,
+    ForeignKey,
+    Integer,
     MetaData,
+    PickleType,
+    String,
+    create_engine,
+    func,
+    inspect,
 )
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import backref, relationship
 
 try:
     from sqlalchemy.orm import declarative_base
 except ImportError:
     from sqlalchemy.ext.declarative import declarative_base
-from werkzeug.security import generate_password_hash, check_password_hash
+
+from werkzeug.security import check_password_hash, generate_password_hash
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -439,7 +440,7 @@ class Assignment(Serialize, TimestampMixin, Base):
                 self.is_self_schedule,
                 self.cloud,
                 self.vlan,
-                self.ostype
+                self.ostype,
             )
         )
 
@@ -583,7 +584,7 @@ class Host(Serialize, TimestampMixin, Base):
                 self.processors,
                 self.rack,
                 self.uloc,
-                self.blade
+                self.blade,
             )
         )
 

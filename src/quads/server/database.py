@@ -1,5 +1,6 @@
-from sqlalchemy_utils import database_exists, create_database
-from quads.server.models import Base, Role, User, engine_from_config, db
+from sqlalchemy_utils import create_database, database_exists
+
+from quads.server.models import Base, Role, User, db, engine_from_config
 
 
 def init_db(config=None):

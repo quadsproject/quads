@@ -66,7 +66,7 @@ class TestNotifyTenant(TestBase):
         )
 
     @patch("quads.tools.external.jira.aiohttp.ClientSession.post")
-    @patch("quads.tools.notify_tenant.QuadsApi.filter_assignments")
+    @patch("quads.tools.notify_tenant.quads.filter_assignments")
     @pytest.mark.asyncio
     def test_notify_tenant_post_message(self, mock_ass, mock_post, setup):
         resp = AsyncMock()
