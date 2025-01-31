@@ -6,7 +6,8 @@ import logging
 import yaml
 
 from quads.config import Config
-from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
+from quads.exceptions import APIBadRequest, APIServerException
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

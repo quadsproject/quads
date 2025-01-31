@@ -6,7 +6,7 @@ from time import sleep
 
 from quads.config import Config
 from quads.helpers.utils import is_supported, get_vlan
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.badfish import badfish_factory, BadfishException
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.juniper import Juniper

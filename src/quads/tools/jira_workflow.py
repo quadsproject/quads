@@ -3,7 +3,7 @@ import asyncio
 import logging
 import sys
 
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.jira import Jira, JiraException
 from quads.config import Config
 

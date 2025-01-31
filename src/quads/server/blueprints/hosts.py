@@ -30,13 +30,7 @@ def get_hosts() -> Response:
     else:
         _hosts = HostDao.get_hosts()
 
-    if _hosts and type(_hosts[0]) is Host:
-        return jsonify([_host.as_dict() for _host in _hosts])
-    else:
-        for _host in _hosts:
-            return jsonify([tuple(_host) for _host in _hosts])
-
-    return jsonify(_hosts)
+    return make_response(jsonify([_host.as_dict() for _host in _hosts]), 200)
 
 
 @host_bp.route("/<hostname>")
@@ -49,7 +43,7 @@ def get_host(hostname: str) -> Response:
             "message": f"Host not found: {hostname}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify(_host.as_dict())
+    return make_response(jsonify(_host.as_dict()), 200)
 
 
 @host_bp.route("/<hostname>/memory")
@@ -62,7 +56,7 @@ def get_host_memory(hostname: str) -> Response:
             "message": f"Host not found: {hostname}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify([_memory.as_dict() for _memory in _host.memory])
+    return make_response(jsonify([_memory.as_dict() for _memory in _host.memory]), 200)
 
 
 @host_bp.route("/<hostname>/processors")
@@ -75,7 +69,7 @@ def get_host_processors(hostname: str) -> Response:
             "message": f"Host not found: {hostname}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify([_processors.as_dict() for _processors in _host.processors])
+    return make_response(jsonify([_processors.as_dict() for _processors in _host.processors]), 200)
 
 
 @host_bp.route("/<hostname>/disks")
@@ -88,7 +82,7 @@ def get_host_disks(hostname: str) -> Response:
             "message": f"Host not found: {hostname}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify([_disks.as_dict() for _disks in _host.disks])
+    return make_response(jsonify([_disks.as_dict() for _disks in _host.disks]), 200)
 
 
 @host_bp.route("/<hostname>/interfaces")
@@ -101,7 +95,7 @@ def get_host_interfaces(hostname: str) -> Response:
             "message": f"Host not found: {hostname}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify([_interface.as_dict() for _interface in _host.interfaces])
+    return make_response(jsonify([_interface.as_dict() for _interface in _host.interfaces]), 200)
 
 
 @host_bp.route("/<hostname>", methods=["PATCH"])
@@ -146,7 +140,7 @@ def update_host(hostname: str) -> Response:
 
     BaseDao.safe_commit()
 
-    return jsonify(_host.as_dict())
+    return make_response(jsonify(_host.as_dict()), 200)
 
 
 @host_bp.route("/", methods=["POST"])
@@ -237,7 +231,7 @@ def create_host() -> Response:
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()
-    return jsonify(_host_obj.as_dict())
+    return make_response(jsonify(_host_obj.as_dict()), 201)
 
 
 @host_bp.route("/<hostname>", methods=["DELETE"])
@@ -254,10 +248,9 @@ def delete_host(hostname: str) -> Response:
 
     HostDao.remove_host(hostname)
     response = {
-        "status_code": 200,
-        "message": "Host deleted",
+        "message": f"Resource {hostname} deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)
 
 
 @host_bp.route("/os_list", methods=["GET"])
