@@ -26,7 +26,7 @@ def get_interfaces(interface_id: int) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    return jsonify(_interface.as_dict())
+    return make_response(jsonify(_interface.as_dict()), 200)
 
 
 @interface_bp.route("/<hostname>", methods=["POST"])
@@ -90,7 +90,7 @@ def create_interface(hostname: str) -> Response:
     )
     db.session.add(_interface_obj)
     BaseDao.safe_commit()
-    return jsonify(_interface_obj.as_dict())
+    return make_response(jsonify(_interface_obj.as_dict()), 201)
 
 
 @interface_bp.route("/<hostname>", methods=["PATCH"])
@@ -157,7 +157,7 @@ def update_interface(hostname: str) -> Response:
     for key, value in update_fields.items():
         setattr(interface_obj, key, value)
     BaseDao.safe_commit()
-    return jsonify(interface_obj.as_dict())
+    return make_response(jsonify(interface_obj.as_dict()), 200)
 
 
 @interface_bp.route("/<hostname>/<if_name>", methods=["DELETE"])
@@ -177,10 +177,10 @@ def delete_interface(hostname: str, if_name: str) -> Response:
             db.session.delete(interface)
             BaseDao.safe_commit()
             response = {
-                "status_code": 200,
+                "status_code": 204,
                 "message": "Interface deleted",
             }
-            return jsonify(response)
+            return make_response(jsonify(response), 204)
 
     response = {
         "status_code": 400,

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import aiohttp
 import asyncio
 import logging
+
+import aiohttp
 import urllib3
 from aiohttp import BasicAuth
 

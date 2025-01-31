@@ -29,7 +29,7 @@ def get_schedules() -> Response:
 
     else:
         _schedules = ScheduleDao.get_schedules()
-    return jsonify([_schedule.as_dict() for _schedule in _schedules])
+    return make_response(jsonify([_schedule.as_dict() for _schedule in _schedules]), 200)
 
 
 @schedule_bp.route("/<schedule_id>")
@@ -42,7 +42,7 @@ def get_schedule(schedule_id: int) -> Response:
             "message": f"Schedule not found: {schedule_id}",
         }
         return make_response(jsonify(response), 400)
-    return jsonify(_schedule.as_dict())
+    return make_response(jsonify(_schedule.as_dict()), 200)
 
 
 @schedule_bp.route("/current")
@@ -61,7 +61,7 @@ def get_current_schedule() -> Response:
         cloud = CloudDao.get_cloud(cloud_name)
         _kwargs["cloud"] = cloud
     _schedules = ScheduleDao.get_current_schedule(**_kwargs)
-    return jsonify([_schedule.as_dict() for _schedule in _schedules])
+    return make_response(jsonify([_schedule.as_dict() for _schedule in _schedules]), 200)
 
 
 @schedule_bp.route("/future")
@@ -72,7 +72,7 @@ def get_future_schedule() -> Response:
     host = HostDao.get_host(hostname)
     cloud = CloudDao.get_cloud(cloud_name)
     _schedules = ScheduleDao.get_future_schedules(host, cloud)
-    return jsonify([_schedule.as_dict() for _schedule in _schedules])
+    return make_response(jsonify([_schedule.as_dict() for _schedule in _schedules]), 200)
 
 
 @schedule_bp.route("/hosts_range")
@@ -81,7 +81,7 @@ def get_hosts_range_schedule() -> Response:
     start = data.get("start")
     end = data.get("end")
     _schedules = ScheduleDao.get_hosts_range_schedules(start, end)
-    return jsonify({row[0]: row[1] for row in _schedules})
+    return make_response(jsonify({row[0]: row[1] for row in _schedules}), 200)
 
 
 @schedule_bp.route("/", methods=["POST"])
@@ -201,7 +201,7 @@ def create_schedule() -> Response:
     db.session.add(_schedule_obj)
     BaseDao.safe_commit()
 
-    return jsonify(_schedule_obj.as_dict())
+    return make_response(jsonify(_schedule_obj.as_dict()), 201)
 
 
 @schedule_bp.route("/<schedule_id>", methods=["PATCH"])
@@ -309,7 +309,7 @@ def update_schedule(schedule_id: int) -> Response:
 
     updated_schedule = ScheduleDao.update_schedule(int(schedule_id), **parsed_data)
 
-    return jsonify(updated_schedule.as_dict())
+    return make_response(jsonify(updated_schedule.as_dict()), 200)
 
 
 @schedule_bp.route("/<schedule_id>", methods=["DELETE"])
@@ -330,4 +330,4 @@ def delete_schedule(schedule_id: int) -> Response:
         "status_code": 200,
         "message": "Schedule deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)

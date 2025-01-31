@@ -1,18 +1,13 @@
 from datetime import datetime
 from typing import List, Type
 
-from sqlalchemy import and_, Boolean
+from sqlalchemy import Boolean, and_
 
 from quads.config import Config
-from quads.server.dao.baseDao import (
-    BaseDao,
-    EntryNotFound,
-    InvalidArgument,
-    OPERATORS,
-)
+from quads.server.dao.baseDao import OPERATORS, BaseDao, EntryNotFound, InvalidArgument
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.vlan import VlanDao
-from quads.server.models import db, Assignment, Cloud, Notification
+from quads.server.models import Assignment, Cloud, Notification, db
 
 
 class AssignmentDao(BaseDao):

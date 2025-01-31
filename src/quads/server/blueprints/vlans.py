@@ -20,23 +20,23 @@ def get_vlan(vlan_id: int) -> Response:
         }
         return make_response(jsonify(response), status_code)
 
-    return jsonify(_vlan.as_dict())
+    return make_response(jsonify(_vlan.as_dict()), 200)
 
 
 @vlan_bp.route("/")
 def get_vlans() -> Response:
     _vlans = VlanDao.get_vlans()
     if not _vlans:
-        return jsonify([])
-    return jsonify([_vlan.as_dict() for _vlan in _vlans])
+        return make_response(jsonify([]), 200)
+    return make_response(jsonify([_vlan.as_dict() for _vlan in _vlans]), 200)
 
 
 @vlan_bp.route("/free")
 def get_free_vlans() -> Response:
     _vlans = VlanDao.get_free_vlans()
     if not _vlans:
-        return jsonify([])
-    return jsonify([_vlan.as_dict() for _vlan in _vlans])
+        return make_response(jsonify([]), 200)
+    return make_response(jsonify([_vlan.as_dict() for _vlan in _vlans]), 200)
 
 
 @vlan_bp.route("/", methods=["POST"])
@@ -83,7 +83,7 @@ def create_vlan() -> Response:
     )
     db.session.add(_vlan_obj)
     BaseDao.safe_commit()
-    return jsonify(_vlan_obj.as_dict())
+    return make_response(jsonify(_vlan_obj.as_dict()), 201)
 
 
 @vlan_bp.route("/<vlan_id>", methods=["DELETE"])
@@ -104,7 +104,7 @@ def delete_vlan(vlan_id: int) -> Response:
         "status_code": 200,
         "message": "Vlan deleted",
     }
-    return jsonify(response)
+    return make_response(jsonify(response), 204)
 
 
 @vlan_bp.route("/<vlan_id>", methods=["PATCH"])
@@ -136,4 +136,4 @@ def update_vlan(vlan_id: int) -> Response:
 
     BaseDao.safe_commit()
 
-    return jsonify(_vlan.as_dict())
+    return make_response(jsonify(_vlan.as_dict()), 200)

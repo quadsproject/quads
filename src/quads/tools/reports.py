@@ -1,16 +1,10 @@
 import logging
 import sys
-
-from quads.config import Config
-from quads.helpers.utils import (
-    date_span,
-    first_day_month,
-    last_day_month,
-    month_delta_past,
-)
 from datetime import datetime, timedelta
 
-from quads.quads_api import QuadsApi
+from quads.config import Config
+from quads.helpers.utils import date_span, first_day_month, last_day_month, month_delta_past
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))

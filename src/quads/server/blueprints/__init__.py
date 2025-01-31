@@ -1,7 +1,7 @@
 import json
 from functools import wraps
 
-from flask import Response, request, g
+from flask import Response, g, request
 
 from quads.server.models import Role, User, db
 

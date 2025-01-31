@@ -61,7 +61,7 @@ def register() -> Response:
             "status": "fail",
             "message": "User already exists. Please Log in.",
         }
-        return Response(response=json.dumps(response), status=401)
+        return make_response(jsonify(response), 401)
 
 
 @auth_bp.route("/login/", methods=["POST"])
@@ -85,7 +85,7 @@ def login() -> Response:
                 "message": "Successful login",
                 "auth_token": auth_token,
             }
-            return jsonify(response_object)
+            return make_response(jsonify(response_object), 201)
         else:
             response = {
                 "status_code": 401,

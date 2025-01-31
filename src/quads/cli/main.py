@@ -24,7 +24,7 @@ from typing import Optional
 from quads.cli import parser, QuadsCli
 from quads.config import Config, DEFAULT_CONF_PATH
 from quads.exceptions import CliException
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.logger import ColorFormatter
 
 logger = logging.getLogger(__name__)

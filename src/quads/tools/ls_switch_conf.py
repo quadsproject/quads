@@ -4,7 +4,7 @@ import argparse
 import logging
 
 from quads.config import Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.ssh_helper import SSHHelper
 
 logger = logging.getLogger(__name__)

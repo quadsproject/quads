@@ -2,16 +2,17 @@
 # encoding: utf-8
 
 import argparse
-from flask import Flask, Blueprint, jsonify, Response
-from flask_security import SQLAlchemySessionUserDatastore
-from flask_cors import CORS
+
+from flask import Blueprint, Flask, Response, jsonify
 from flask.cli import with_appcontext
+from flask_cors import CORS
+from flask_security import SQLAlchemySessionUserDatastore
 
-from quads.server.database import create_user, populate, drop_all
+from quads.server.database import create_user, drop_all
 from quads.server.database import init_db as db_init
-from quads.server.extensions import basic_auth, security, login_manager
-from quads.server.models import User, db, Role, migrate
-
+from quads.server.database import populate
+from quads.server.extensions import basic_auth, login_manager, security
+from quads.server.models import Role, User, db, migrate
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
@@ -94,9 +95,7 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from quads.server.blueprints.moves import moves_bp
     from quads.server.blueprints.assignments import assignment_bp
-    from quads.server.blueprints.notifications import notification_bp
     from quads.server.blueprints.auth import auth_bp
     from quads.server.blueprints.available import available_bp
     from quads.server.blueprints.clouds import cloud_bp
@@ -104,10 +103,12 @@ def register_blueprints(app):
     from quads.server.blueprints.hosts import host_bp
     from quads.server.blueprints.interfaces import interface_bp
     from quads.server.blueprints.memory import memory_bp
+    from quads.server.blueprints.moves import moves_bp
+    from quads.server.blueprints.notifications import notification_bp
     from quads.server.blueprints.processors import processor_bp
     from quads.server.blueprints.schedules import schedule_bp
-    from quads.server.blueprints.vlans import vlan_bp
     from quads.server.blueprints.version import version_bp
+    from quads.server.blueprints.vlans import vlan_bp
 
     # Register blueprints
     api_prefix = f"/api/{app.config.get('API_VERSION')}"

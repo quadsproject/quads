@@ -4,13 +4,7 @@ from typing import List, Optional, Type
 from sqlalchemy import Boolean, or_, select
 
 from quads.config import Config
-from quads.server.dao.baseDao import (
-    OPERATORS,
-    BaseDao,
-    EntryExisting,
-    EntryNotFound,
-    InvalidArgument,
-)
+from quads.server.dao.baseDao import OPERATORS, BaseDao, EntryExisting, EntryNotFound, InvalidArgument
 from quads.server.models import Assignment, Cloud, Schedule, db
 
 
