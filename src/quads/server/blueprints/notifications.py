@@ -12,7 +12,7 @@ notification_bp = Blueprint("notifications", __name__)
 @notification_bp.route("/")
 def get_all_notifications() -> Response:
     _notifications = NotificationDao.get_notifications()
-    return jsonify([_notification.as_dict() for _notification in _notifications])
+    return make_response(jsonify([_notification.as_dict() for _notification in _notifications]), 200)
 
 
 @notification_bp.route("/<notification_id>")
@@ -26,7 +26,7 @@ def get_notification(notification_id: int) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    return jsonify(_notification.as_dict())
+    return make_response(jsonify(_notification.as_dict()), 200)
 
 
 @notification_bp.route("/<notification_id>", methods=["PATCH"])
@@ -56,4 +56,4 @@ def update_notification(notification_id: int) -> Response:
         setattr(notification_obj, key, value)
 
     BaseDao.safe_commit()
-    return jsonify(notification_obj.as_dict())
+    return make_response(jsonify(notification_obj.as_dict()), 200)

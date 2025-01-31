@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from quads.config import Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.foreman import Foreman
 
 import asyncio

@@ -17,7 +17,7 @@ from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
 from quads.helpers.utils import first_day_month, last_day_month
 from quads.quads_api import APIBadRequest, APIServerException
-from quads.quads_api import QuadsApi as Quads
+from quads.quads_api_proxy import QuadsApiProxy as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
 from quads.tools.external.jira import Jira, JiraException

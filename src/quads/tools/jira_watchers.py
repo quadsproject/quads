@@ -7,7 +7,7 @@ import sys
 from datetime import timedelta
 from jinja2 import Template
 from quads.config import Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 from quads.tools.external.jira import Jira, JiraException
 from quads.tools.external.postman import Postman

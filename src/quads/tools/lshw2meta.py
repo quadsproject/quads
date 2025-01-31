@@ -6,7 +6,7 @@ import json
 from jsonpath_ng import parse
 
 from quads.config import Config
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 quads = QuadsApi(Config)
 

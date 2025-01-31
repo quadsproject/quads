@@ -4,9 +4,10 @@ from datetime import datetime, time
 
 from flask import Blueprint, redirect, url_for, render_template, request, jsonify
 
+from quads.exceptions import APIBadRequest, APIServerException
+from quads.quads_api_proxy import QuadsApiProxy
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
-from quads.quads_api import QuadsApi, APIBadRequest, APIServerException
 from quads.tools.external.foreman import Foreman
 from quads.config import Config
 from quads.web.controller.CloudOperations import CloudOperations
@@ -17,7 +18,7 @@ wiki_bp = Blueprint(
     template_folder=WEB_CONTENT_PATH,
 )
 
-quads = QuadsApi(Config)
+quads = QuadsApiProxy(Config)
 foreman = Foreman(
     Config["foreman_api_url"],
     Config["foreman_username"],

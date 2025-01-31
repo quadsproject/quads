@@ -10,7 +10,7 @@ from quads.helpers.utils import (
 )
 from datetime import datetime, timedelta
 
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))

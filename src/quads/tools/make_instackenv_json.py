@@ -11,7 +11,7 @@ from distutils.util import strtobool
 from datetime import datetime
 from shutil import copyfile
 
-from quads.quads_api import QuadsApi
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
 from quads.tools.external.foreman import Foreman
 from quads.config import Config
 

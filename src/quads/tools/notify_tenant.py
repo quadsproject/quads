@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
-import asyncio
 import logging
 import os
-import requests
+import asyncio
 
-from datetime import datetime, timedelta
-from enum import Enum
 from jinja2 import Template
 
 from quads.config import Config
-from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
+from quads.exceptions import APIBadRequest, APIServerException
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
 from quads.tools.external.jira import Jira, JiraException

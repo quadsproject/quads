@@ -10,7 +10,8 @@ from enum import Enum
 from distlib.version import is_semver
 from jinja2 import Template
 from quads.config import Config
-from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
+from quads.exceptions import APIBadRequest, APIServerException
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
 
