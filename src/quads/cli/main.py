@@ -24,7 +24,6 @@ from typing import Optional
 from quads.cli import parser, QuadsCli
 from quads.config import Config, DEFAULT_CONF_PATH
 from quads.exceptions import CliException
-from quads.quads_api import QuadsApi
 from quads.tools.logger import ColorFormatter
 
 logger = logging.getLogger(__name__)
@@ -49,14 +48,9 @@ def main(_logger: logging = logger) -> Optional[int]:
 
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
-    Config.load_from_yaml(DEFAULT_CONF_PATH)
-
     sys.path.append(os.path.dirname(__file__) + "/../")
 
-    quads = QuadsApi(config=Config)
-
     qcli = QuadsCli(
-        quads=quads,
         logger=_logger,
     )
 

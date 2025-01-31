@@ -3,7 +3,7 @@
 import logging
 import os
 
-from paramiko import SSHClient, AutoAddPolicy, SSHConfig, SSHException
+from paramiko import AutoAddPolicy, SSHClient, SSHConfig, SSHException
 
 logger = logging.getLogger(__name__)
 logging.getLogger("paramiko").setLevel(logging.WARNING)

@@ -4,17 +4,15 @@ import argparse
 import asyncio
 import logging
 import os
-import requests
 
-from datetime import datetime, timedelta
-from enum import Enum
 from jinja2 import Template
 
 from quads.config import Config
-from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
+from quads.exceptions import APIBadRequest, APIServerException
+from quads.quads_api_proxy import QuadsApiProxy as QuadsApi
+from quads.tools.external.jira import Jira, JiraException
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
-from quads.tools.external.jira import Jira, JiraException
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")

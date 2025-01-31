@@ -1,10 +1,7 @@
 import logging
-
 import pytest
 
 from quads.cli import QuadsCli
-from quads.config import DEFAULT_CONF_PATH, Config
-from quads.quads_api import QuadsApi
 
 _logger = logging.getLogger("test_log")
 _logger.setLevel(logging.INFO)
@@ -19,12 +16,7 @@ class TestBase:
         self._caplog = caplog
 
     def quads_cli_call(self, action):
-        Config.load_from_yaml(DEFAULT_CONF_PATH)
-
-        quads = QuadsApi(config=Config)
-
         qcli = QuadsCli(
-            quads=quads,
             logger=_logger,
         )
 

@@ -1,7 +1,5 @@
 import argparse
 
-default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
-
 parser = argparse.ArgumentParser(description="Query current cloud for a given host")
 action_group = parser.add_mutually_exclusive_group()
 
@@ -619,7 +617,7 @@ parser.add_argument(
     "--move-command",
     dest="movecommand",
     type=str,
-    default=default_move_command,
+    default=None,
     help="External command to move a host",
 )
 
@@ -778,25 +776,30 @@ action_group.add_argument(
 )
 
 mod_notification_arg_names = [
-    "fail", "success", "initial", "pre-initial",
-    "pre", "one-day", "three-days", "five-days", "seven-days"]
+    "fail",
+    "success",
+    "initial",
+    "pre-initial",
+    "pre",
+    "one-day",
+    "three-days",
+    "five-days",
+    "seven-days",
+]
 
 
 def str_to_bool(value):
     """Convert string to boolean."""
-    if value.lower() in {'true', 'yes', '1'}:
+    if value.lower() in {"true", "yes", "1"}:
         return True
-    elif value.lower() in {'false', 'no', '0'}:
+    elif value.lower() in {"false", "no", "0"}:
         return False
     else:
         raise argparse.ArgumentTypeError(f"Invalid value: {value}. Expected 'true' or 'false'.")
 
 
 for arg in mod_notification_arg_names:
-    parser.add_argument(f"--{arg}",
-                        type=str_to_bool,
-                        choices=[True, False],
-                        help=f"Set {arg} to true or false.")
+    parser.add_argument(f"--{arg}", type=str_to_bool, choices=[True, False], help=f"Set {arg} to true or false.")
 
 # --os-list allows to list the operating systems
 action_group.add_argument(

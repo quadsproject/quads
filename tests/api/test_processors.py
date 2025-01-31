@@ -112,7 +112,7 @@ class TestCreateProcessors:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json == PROCESSOR_1_RESPONSE
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -130,7 +130,7 @@ class TestCreateProcessors:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json == PROCESSOR_2_RESPONSE
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -245,5 +245,4 @@ class TestDeleteProcessors:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Processor deleted"
+        assert response.status_code == 204

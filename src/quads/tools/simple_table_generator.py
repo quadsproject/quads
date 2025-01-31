@@ -14,7 +14,7 @@ from requests import Response
 
 from quads.config import Config
 from quads.helpers.utils import first_day_month
-from quads.server.models import Schedule, Host
+from quads.server.models import Host, Schedule
 
 
 class QuadsApiAsync:

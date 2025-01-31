@@ -44,7 +44,7 @@ class TestCreateVLANs:
                 json=VLAN_1_REQUEST,
             )
         )
-        assert response_1.status_code == 200
+        assert response_1.status_code == 201
         assert response_1.json == VLAN_1_RESPONSE
         response_2 = unwrap_json(
             test_client.post(
@@ -53,7 +53,7 @@ class TestCreateVLANs:
                 json=VLAN_2_REQUEST,
             )
         )
-        assert response_2.status_code == 200
+        assert response_2.status_code == 201
         assert response_2.json == VLAN_2_RESPONSE
 
     def test_invalid_already_exists(self, test_client, auth):
@@ -211,5 +211,4 @@ class TestDeleteVLANs:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Vlan deleted"
+        assert response.status_code == 204

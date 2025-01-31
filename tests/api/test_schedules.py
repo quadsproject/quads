@@ -225,7 +225,7 @@ class TestCreateSchedule:
             resp["host"]["default_cloud"]["last_redefined"] = response.json["host"]["default_cloud"]["last_redefined"]
             resp["start"] = response.json["start"]
             resp["end"] = response.json["end"]
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json == resp
 
     @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
@@ -247,7 +247,7 @@ class TestCreateSchedule:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         response_dict = response.json.copy()
         del response_dict["created_at"]
@@ -276,7 +276,7 @@ class TestCreateSchedule:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         response_2 = unwrap_json(
             test_client.post(
@@ -727,5 +727,4 @@ class TestDeleteSchedule:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
-        assert response.json["message"] == "Schedule deleted"
+        assert response.status_code == 204

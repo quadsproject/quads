@@ -7,7 +7,6 @@ from urllib.parse import urlencode
 
 from quads.cli import QuadsCli
 from quads.config import DEFAULT_CONF_PATH, Config
-from quads.quads_api import QuadsApi
 from tests.config import start_date
 from tests.helpers import unwrap_json
 
@@ -27,8 +26,7 @@ def quads_cli_call(action):
         "movecommand": "/quads/quads/tools/move_and_rebuild.py",
     }
     Config.load_from_yaml(DEFAULT_CONF_PATH)
-    quads = QuadsApi(config=Config)
-    qcli = QuadsCli(quads=quads, logger=_logger)
+    qcli = QuadsCli(logger=_logger)
     try:
         qcli.run(action=action, cli_args=_cli_args)
     except Exception as ex:
