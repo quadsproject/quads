@@ -9,7 +9,7 @@ from sqlalchemy import inspect
 from quads.config import Config
 from quads.server.blueprints import check_access
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
+from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
@@ -189,10 +189,10 @@ def create_assignment() -> Response:
         "owner": owner,
         "ticket": ticket,
         "qinq": qinq,
-        "wipe": wipe,
+        "wipe": str(wipe).lower() in ["true", "y", 1, "yes"],
         "ccuser": cc_user,
         "cloud": cloud_name,
-        "is_self_schedule": is_self_schedule,
+        "is_self_schedule": str(is_self_schedule).lower() in ["true", "y", 1, "yes"],
         "ostype": ostype,
     }
     if _vlan:
@@ -202,7 +202,7 @@ def create_assignment() -> Response:
 
 
 @assignment_bp.route("/self/", methods=["POST"])
-@check_access(["user"])
+@check_access(["admin", "user"])
 def create_self_assignment() -> Response:
     """
     Creates a new self assignment in the database.
@@ -305,7 +305,7 @@ def create_self_assignment() -> Response:
         "description": description,
         "owner": owner,
         "qinq": qinq,
-        "wipe": wipe,
+        "wipe": str(wipe).lower() in ["true", "y", 1, "yes"],
         "ccuser": cc_user,
         "is_self_schedule": True,
         "cloud": _cloud.name,
@@ -316,7 +316,7 @@ def create_self_assignment() -> Response:
 
     create_jira_ticket = Config.get("ssm_jira_create_ticket", False)
     if create_jira_ticket:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         try:
             jira = Jira(
                 Config["jira_url"],
@@ -331,7 +331,7 @@ def create_self_assignment() -> Response:
             return make_response(jsonify(response), 400)
         description = ""
         for key, value in kwargs.items():
-            description += f"{key}: {value}\n"
+            description += f"{key}: {value} | "
 
         try:
             response = loop.run_until_complete(
@@ -360,8 +360,16 @@ def create_self_assignment() -> Response:
             }
             return make_response(jsonify(response), 400)
 
-    _assignment_obj = AssignmentDao.create_assignment(**kwargs)
-    return jsonify(_assignment_obj.as_dict())
+    try:
+        _assignment_obj = AssignmentDao.create_assignment(**kwargs)
+    except SQLError as ex:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Failed to commit assignment to database: {ex}",
+        }
+        return make_response(jsonify(response), 400)
+    return make_response(jsonify(_assignment_obj.as_dict()), 201)
 
 
 @assignment_bp.route("/<assignment_id>/", methods=["PATCH"])
@@ -439,7 +447,7 @@ def update_assignment(assignment_id: str) -> Response:
 
 
 @assignment_bp.route("/terminate/<assignment_id>/", methods=["POST"])
-@check_access(["user"])
+@check_access(["admin", "user"])
 def terminate_assignment(assignment_id) -> Response:
     """
     Terminates an existing assignment.
@@ -458,14 +466,15 @@ def terminate_assignment(assignment_id) -> Response:
         }
         return make_response(jsonify(response), 400)
 
-    username = g.current_user.email.split("@")[0]
-    if username != _assignment.owner:
-        response = {
-            "status_code": 403,
-            "error": "Forbidden",
-            "message": f"You({username}) don't have permission to terminate this assignment({_assignment.owner})",
-        }
-        return make_response(jsonify(response), 403)
+    if "admin" not in g.current_user.roles:
+        username = g.current_user.email.split("@")[0]
+        if username != _assignment.owner:
+            response = {
+                "status_code": 403,
+                "error": "Forbidden",
+                "message": f"You({username}) don't have permission to terminate this assignment({_assignment.owner})",
+            }
+            return make_response(jsonify(response), 403)
 
     _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
     if not _schedules:
