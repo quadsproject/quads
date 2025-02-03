@@ -22,6 +22,7 @@ class Jira(object):
         self.url = url
         self.username = username
         self.password = password
+        self.ticket_queue = Config["ticket_queue"]
         if not loop:
             self.loop = asyncio.new_event_loop()
             self.new_loop = True
@@ -86,17 +87,17 @@ class Jira(object):
                         json=payload,
                         verify_ssl=False,
                     ) as response:
-                        await response.json(content_type="application/json")
+                        _response = await response.json(content_type="application/json")
         except Exception as ex:
             logger.debug(ex)
             logger.error("There was something wrong with your request.")
             return False
         if response.status in [200, 201, 204]:
             logger.info("Post successful.")
-            return True
+            return True, _response
         if response.status == 404:
             logger.error("Resource not found: %s" % self.url + endpoint)
-        return False
+        return False, _response
 
     async def put_request(self, endpoint, payload):
         logger.debug("POST: {%s:%s}" % (endpoint, payload))
@@ -131,7 +132,7 @@ class Jira(object):
 
         data = {
             "fields": {
-                "project": {"key": self.ticket_queue},
+                "project": {"key": f'"{self.ticket_queue}"'},
                 "issuetype": {"name": "Task"},
                 "summary": title,
                 "description": description,
@@ -140,7 +141,7 @@ class Jira(object):
         if labels:
             data["fields"].update({"labels": labels})
 
-        response = await self.post_request(endpoint, data)
+        result, response = await self.post_request(endpoint, data)
         return response
 
     async def create_subtask(self, parent_ticket, cloud, description, type_of_subtask):
@@ -151,7 +152,7 @@ class Jira(object):
 
         data = {
             "fields": {
-                "project": {"key": self.ticket_queue},
+                "project": f'"{self.ticket_queue}"',
                 "issuetype": {"id": "5"},
                 "parent": {"key": f"{self.ticket_queue}-{parent_ticket}"},
                 "summary": title,
@@ -159,40 +160,40 @@ class Jira(object):
                 "description": description,
             }
         }
-        response = await self.post_request(endpoint, data)
+        result, response = await self.post_request(endpoint, data)
         return response
 
     async def add_watcher(self, ticket, watcher):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/watchers" % issue_id
         logger.debug("POST transition: {%s:%s}" % (issue_id, watcher))
         data = watcher
-        response = await self.post_request(endpoint, data)
-        return response
+        result, response = await self.post_request(endpoint, data)
+        return result
 
     async def add_label(self, ticket, label):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s" % issue_id
         data = {"update": {"labels": [{"add": label}]}}
         response = await self.put_request(endpoint, data)
         return response
 
     async def post_comment(self, ticket, comment):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/comment" % issue_id
         payload = {"body": comment}
-        response = await self.post_request(endpoint, payload)
-        return response
+        result, response = await self.post_request(endpoint, payload)
+        return result
 
     async def post_transition(self, ticket, transition):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/transitions" % issue_id
         payload = {"transition": {"id": transition}}
-        response = await self.post_request(endpoint, payload)
-        return response
+        result, response = await self.post_request(endpoint, payload)
+        return result
 
     async def get_transitions(self, ticket):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/transitions" % issue_id
         result = await self.get_request(endpoint)
         if not result:
@@ -207,7 +208,7 @@ class Jira(object):
             return []
 
     async def get_project_transitions(self):
-        endpoint = "/project/%s/statuses" % Config["ticket_queue"]
+        endpoint = "/project/%s/statuses" % self.ticket_queue
         result = await self.get_request(endpoint)
         if not result:
             logger.error("Failed to get project transitions")
@@ -217,7 +218,7 @@ class Jira(object):
         if transitions:
             return transitions
         else:
-            logger.error("No transitions found under %s" % Config["ticket_queue"])
+            logger.error("No transitions found under %s" % self.ticket_queue)
             return []
 
     async def get_transition_id(self, status):
@@ -227,7 +228,7 @@ class Jira(object):
                 return transition["id"]
 
     async def get_ticket(self, ticket):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s" % issue_id
         result = await self.get_request(endpoint)
         if not result:
@@ -236,7 +237,7 @@ class Jira(object):
         return result
 
     async def get_watchers(self, ticket):
-        issue_id = "%s-%s" % (Config["ticket_queue"], ticket)
+        issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/watchers" % issue_id
         logger.debug("GET watchers: %s" % endpoint)
         result = await self.get_request(endpoint)
@@ -281,7 +282,7 @@ class Jira(object):
         return result
 
     async def search_tickets(self, query=None):
-        project = {"project": f'"{Config["ticket_queue"]}"'}
+        project = {"project": f'"{self.ticket_queue}"'}
         prefix = "/search?jql="
         query_items = []
 

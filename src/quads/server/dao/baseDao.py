@@ -57,6 +57,13 @@ class BaseDao:
         :return: True if the commit was successful, False if a rollback occurred.
         """
         try:
+            for obj in db.session.new:
+                current_app.logger.debug(f"New: {obj.__class__.__name__}: {obj}")
+            for obj in db.session.dirty:
+                current_app.logger.debug(f"Modified: {obj.__class__.__name__}: {obj}")
+            for obj in db.session.deleted:
+                current_app.logger.debug(f"Deleted: {obj.__class__.__name__}: {obj}")
+
             db.session.commit()
             return True
         except SQLAlchemyError as error:
