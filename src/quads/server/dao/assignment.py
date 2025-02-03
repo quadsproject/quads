@@ -4,12 +4,7 @@ from typing import List, Type
 from sqlalchemy import and_, Boolean
 
 from quads.config import Config
-from quads.server.dao.baseDao import (
-    BaseDao,
-    EntryNotFound,
-    InvalidArgument,
-    OPERATORS,
-)
+from quads.server.dao.baseDao import OPERATORS, BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.vlan import VlanDao
 from quads.server.models import db, Assignment, Cloud, Notification
@@ -55,7 +50,9 @@ class AssignmentDao(BaseDao):
         except Exception as ex:  # pragma: no cover
             print(ex)
         db.session.add(_assignment_obj)
-        cls.safe_commit()
+        result = cls.safe_commit()
+        if not result:
+            raise SQLError("Failed to commit assignment to database")
 
         return _assignment_obj
 
@@ -96,6 +93,10 @@ class AssignmentDao(BaseDao):
                 if not cloud:
                     raise EntryNotFound
                 assignment.cloud = cloud
+                continue
+
+            if key == "wipe":
+                assignment.wipe = str(value).lower() in ["true", "y", 1, "yes"]
                 continue
 
             if getattr(assignment, key):

@@ -7,7 +7,6 @@ import requests
 from datetime import datetime, timedelta
 from enum import Enum
 
-from distlib.version import is_semver
 from jinja2 import Template
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
