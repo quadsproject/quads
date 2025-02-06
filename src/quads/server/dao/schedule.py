@@ -108,13 +108,13 @@ class ScheduleDao(BaseDao):
             first_field = fields[0]
             field_name = fields[-1]
             if "__" in k:
-                for op in OPERATORS.keys():
-                    if op in field_name:
-                        if first_field == field_name:
-                            first_field = field_name[: field_name.index(op)]
-                        field_name = field_name[: field_name.index(op)]
-                        operator = OPERATORS[op]
-                        break
+                op = f"__{k.split('__')[-1]}"
+                operator = OPERATORS.get(op)
+                if not operator:
+                    raise InvalidArgument(f"{op} is not a valid operator.")
+                if first_field == field_name:
+                    first_field = field_name[: field_name.index(op)]
+                field_name = field_name[: field_name.index(op)]
 
             if value and isinstance(value, str) and value.lower() == "none":
                 value = None
