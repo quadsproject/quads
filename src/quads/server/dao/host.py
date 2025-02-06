@@ -17,7 +17,17 @@ from quads.server.models import db, Host, Cloud
 
 class HostDao(BaseDao):
     @classmethod
-    def create_host(cls, name: str, model: str, host_type: str, default_cloud: str) -> Host:
+    def create_host(
+        cls,
+        name: str,
+        model: str,
+        host_type: str,
+        default_cloud: str,
+        can_self_schedule: bool = False,
+        rack: str = None,
+        uloc: str = None,
+        blade: str = None,
+    ) -> Host:
         _host_obj = cls.get_host(name)
         if _host_obj:
             raise EntryExisting
@@ -109,13 +119,13 @@ class HostDao(BaseDao):
             first_field = fields[0]
             field_name = fields[-1]
             if "__" in k:
-                for op in OPERATORS.keys():
-                    if op in field_name:
-                        if first_field == field_name:
-                            first_field = field_name[: field_name.index(op)]
-                        field_name = field_name[: field_name.index(op)]
-                        operator = OPERATORS[op]
-                        break
+                op = f"__{k.split('__')[-1]}"
+                operator = OPERATORS.get(op)
+                if not operator:
+                    raise InvalidArgument(f"{op} is not a valid operator.")
+                if first_field == field_name:
+                    first_field = field_name[: field_name.index(op)]
+                field_name = field_name[: field_name.index(op)]
 
             if fields[0].lower() == "group_by":
                 first_field = value
