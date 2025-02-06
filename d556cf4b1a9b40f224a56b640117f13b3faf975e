@@ -16,6 +16,24 @@
       "message": "Shouldn\u0027t this be op \u003d f\"{op}\u003d\" ?",
       "revId": "d556cf4b1a9b40f224a56b640117f13b3faf975e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a1e83c6_26d71a66",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-02-06T14:05:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51c102d1_1f713929",
+      "revId": "d556cf4b1a9b40f224a56b640117f13b3faf975e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
