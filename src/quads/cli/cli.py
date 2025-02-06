@@ -148,6 +148,10 @@ class QuadsCli:
                 if op in condition:
                     op_found = True
                     k, v = condition.split(op)
+                    if v.startswith("="):
+                        op = f"{op}="
+                        op_suffix = ops.get(op)
+                        v = v[1:]
                     keys = k.split(".")
 
                     try:
