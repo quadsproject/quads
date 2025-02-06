@@ -148,6 +148,10 @@ class QuadsCli:
                 if op in condition:
                     op_found = True
                     k, v = condition.split(op)
+                    if v.startswith("="):
+                        op = f"{op}="
+                        op_suffix = ops.get(op)
+                        v = v[1:]
                     keys = k.split(".")
 
                     try:
@@ -861,7 +865,7 @@ class QuadsCli:
                     cloud_response = self.quads.insert_cloud(data)
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     raise CliException(str(ex))
-                if cloud_response.status_code == 200:
+                if cloud_response.status_code == 201:
                     self.logger.info(f'Cloud {self.cli_args.get("cloud")} created.')
 
             if (
@@ -873,7 +877,7 @@ class QuadsCli:
                     response = self.quads.insert_assignment(data)
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     raise CliException(str(ex))
-                if response.status_code == 200:
+                if response.status_code == 201:
                     self.logger.info("Assignment created.")
                 if cloud:
                     try:
