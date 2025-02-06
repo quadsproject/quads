@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51c102d1_1f713929",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2025-02-06T13:17:55Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be op \u003d f\"{op}\u003d\" ?",
+      "revId": "d556cf4b1a9b40f224a56b640117f13b3faf975e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
