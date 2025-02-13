@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6bc63a48_18086348",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-02-13T12:58:40Z",
+      "side": 1,
+      "message": "nice double kill.",
+      "revId": "7b610f20b57182199cbc82eb6e9eadfa675cfec0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
