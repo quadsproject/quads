@@ -5,7 +5,7 @@ ssm_host_limit: 10
 # Set default lifetime in days for self-schedules
 ssm_default_lifetime: 5
 # How many clouds (and auth tokens, one per cloud) a unique user ID can have
-ssm_user_cloud_limit: 2
+ssm_user_cloud_limit: 3
 # Set to true to create a Jira ticket when a self-schedule is created
 ssm_jira_create_ticket: false
 

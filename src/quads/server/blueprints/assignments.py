@@ -491,19 +491,12 @@ def terminate_assignment(assignment_id) -> Response:
             }
             return make_response(jsonify(response), 403)
 
-    _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
-    if not _schedules:
-        response = {
-            "status_code": 400,
-            "error": "Bad Request",
-            "message": f"No active schedule for {assignment_id}",
-        }
-        return make_response(jsonify(response), 400)
-
-    for sched in _schedules:
-        sched.end = datetime.now()
-
     _assignment.active = False
+
+    _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
+    if _schedules:
+        for sched in _schedules:
+            sched.end = datetime.now()
 
     BaseDao.safe_commit()
 
