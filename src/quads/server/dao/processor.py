@@ -15,6 +15,7 @@ class ProcessorDao(BaseDao):
         product: str,
         cores: int,
         threads: int,
+        processor_type: str,
     ) -> Processor:
         _host_obj = HostDao.get_host(hostname)
         if not _host_obj:
@@ -26,6 +27,7 @@ class ProcessorDao(BaseDao):
             cores=cores,
             threads=threads,
             host_id=_host_obj.id,
+            processor_type=processor_type,
         )
         db.session.add(_processor)
         cls.safe_commit()

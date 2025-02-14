@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from sqlalchemy import (
     Column,
+    Enum,
     Integer,
     String,
     Boolean,
@@ -439,7 +440,7 @@ class Assignment(Serialize, TimestampMixin, Base):
                 self.is_self_schedule,
                 self.cloud,
                 self.vlan,
-                self.ostype
+                self.ostype,
             )
         )
 
@@ -479,6 +480,7 @@ class Processor(Serialize, Base):
     product = Column(String)
     cores = Column(Integer)
     threads = Column(Integer)
+    processor_type = Column(Enum("CPU", "GPU", name="processor_type_enum"))
 
     host_id = Column(Integer, ForeignKey("hosts.id"))
 
@@ -583,7 +585,7 @@ class Host(Serialize, TimestampMixin, Base):
                 self.processors,
                 self.rack,
                 self.uloc,
-                self.blade
+                self.blade,
             )
         )
 

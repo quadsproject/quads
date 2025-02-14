@@ -120,6 +120,7 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                     # processor
                     for processor in host_obj.processors:
                         quads.remove_processor(str(processor.id))
+                    # CPU
                     for child in [child for child in children if child.value["class"] == "processor"]:
                         configuration = child.value.get("configuration")
                         if configuration.get("cores") and configuration.get("threads"):
@@ -129,9 +130,25 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                                 "product": child.value.get("product"),
                                 "cores": int(configuration.get("cores")),
                                 "threads": int(configuration.get("threads")),
+                                "processor_type": "CPU",
                             }
                             processor = quads.create_processor(
                                 hostname,
                                 data,
                             )
-                            print(f"  Created processor: {data}")
+                            print(f"  Created CPU processor: {data}")
+                    # GPU
+                    for child in [child for child in children if child.value["class"] == "display"]:
+                        configuration = child.value.get("configuration")
+                        if configuration.get("driver") == "nouveau":
+                            data = {
+                                "handle": child.value.get("handle"),
+                                "vendor": child.value.get("vendor"),
+                                "product": child.value.get("product"),
+                                "processor_type": "GPU",
+                            }
+                            processor = quads.create_processor(
+                                hostname,
+                                data,
+                            )
+                            print(f"  Created GPU processor: {data}")
