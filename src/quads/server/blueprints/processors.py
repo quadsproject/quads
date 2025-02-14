@@ -48,13 +48,14 @@ def create_processor(hostname: str) -> Response:
     product = data.get("product")
     cores = data.get("cores")
     threads = data.get("threads")
+    processor_type = data.get("processor_type")
     required_fields = [
         "handle",
         "vendor",
         "product",
-        "cores",
-        "threads",
+        "processor_type",
     ]
+
     for field in required_fields:
         if not data.get(field):
             response = {
@@ -63,22 +64,6 @@ def create_processor(hostname: str) -> Response:
                 "message": f"Missing argument: {field}",
             }
             return make_response(jsonify(response), 400)
-
-    if not cores > 0:
-        response = {
-            "status_code": 400,
-            "error": "Bad Request",
-            "message": "Argument can't be negative or zero: cores",
-        }
-        return make_response(jsonify(response), 400)
-
-    if not threads > 0:
-        response = {
-            "status_code": 400,
-            "error": "Bad Request",
-            "message": "Argument can't be negative or zero: threads",
-        }
-        return make_response(jsonify(response), 400)
 
     processors = ProcessorDao.get_processor_for_host(_host.id)
     if any(processor.handle == handle for processor in processors):
@@ -96,6 +81,7 @@ def create_processor(hostname: str) -> Response:
         cores=cores,
         threads=threads,
         host_id=_host.id,
+        processor_type=processor_type,
     )
     db.session.add(_processor_obj)
     BaseDao.safe_commit()
