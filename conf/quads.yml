@@ -7,8 +7,6 @@
 spare_pool_name: cloud01
 spare_pool_description: "Spare Pool"
 spare_pool_owner: quads
-# Define the name of the QUADS environment
-lab_name: "Lab"
 # display name for QUADS email notifications
 mail_display_name: "QUADS Scheduler"
 # set header for User-Agent:
@@ -45,11 +43,6 @@ ircbot_channel: #yourchannel
 webhook_notify: false
 webhook_url: https://chat.example.com/v1/spaces/AAABBBCCC
 
-# (optional ticket system URL) in this case we're using JIRA
-ticket_url: https://issues.example.com/browse
-# (optional ticket queue name) this is typically the ticket queue
-# name or abbreviation in the case of JIRA
-ticket_queue: SCALELAB
 # Jira Specific Variables
 jira_url: https://issues.example.com/rest/api/2
 
@@ -103,14 +96,9 @@ exclude_hosts: cyclades|s4810|z9000|5548|foreman|c08-h30-r630|c08-h05-r930|b08-|
 # e.g. c01-h23-r620 is an r620 type host in rack c01 at u-location 23
 racks: b09 b10 c01 c02 c03 c04 c05 c06 c07 c08 c09 c10
 
-# visual web dir is where the visual HTML representation of the lab usage goes
-visual_web_dir: /opt/quads/web/visual
 # this is where we place the generated instackenv.json files
 # directory needs to be readable by the nginx user
 json_web_path: /opt/quads/web/instack
-# path to the user specific web content for quads-web
-web_content_path: /opt/quads/web
-web_exclude_dirs: .git static instack visual
 # number of days of retaining old .json files
 json_retention_days: 0
 

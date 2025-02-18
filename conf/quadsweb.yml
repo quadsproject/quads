@@ -1,0 +1,15 @@
+# path to the user specific web content for quads-web
+web_content_path: /opt/quads/web
+web_exclude_dirs: .git static instack visual
+
+# visual web dir is where the visual HTML representation of the lab usage goes
+visual_web_dir: /opt/quads/web/visual
+
+# (optional ticket system URL) in this case we're using JIRA
+ticket_url: https://issues.example.com/browse
+# (optional ticket queue name) this is typically the ticket queue
+# name or abbreviation in the case of JIRA
+ticket_queue: SCALELAB
+
+# Define the name of the QUADS environment
+lab_name: "Lab"

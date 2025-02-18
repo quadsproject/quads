@@ -56,6 +56,7 @@
                             <th scope="col">Hostname</th>
                             <th scope="col">Cloud</th>
                             <th scope="col">Model</th>
+                            <th scope="col">Processors</th>
                             <th scope="col">Disks</th>
                         </tr>
                     </thead>
@@ -70,6 +71,12 @@
                             <td>{{ host["name"] }}</td>
                             <td>{{ host["cloud"] }}</td>
                             <td>{{ host["model"] }}</td>
+                            {% if host.processors %}
+                                <td data-bs-toggle="modal"
+                                    data-bs-target="#baseModal" onclick="updateProcessors({{ host.processors }})">&#129504;</td>
+                            {% else %}
+                                <td>&#10060;</td>
+                            {% endif %}
                             {% if host.disks %}
                                 <td data-bs-toggle="modal"
                                     data-bs-target="#baseModal" onclick="updateDisks({{ host.disks }})">&#128190;</td>
@@ -93,13 +100,30 @@
     <script>
         const updateDisks = (disks) => {
             document.getElementsByClassName('modal-title')[0].innerHTML = 'Disks'
+            let th_data = "<tr><th>Type</th><th>Size</th><th>Count</th></tr>"
             let td_data = ""
             disks.forEach(disk => {
-                td_data += `<tr><td>${disk["disk_type"]}</td>`
+                td_data += `<tr>`
+                td_data += `<td>${disk["disk_type"]}</td>`
                 td_data += `<td>${disk["disk_size"]}</td>`
-                td_data += `<td>${disk["disk_count"]}</td></tr>`
+                td_data += `<td>${disk["disk_count"]}</td>`
+                td_data += `</tr>`
             })
-            let th_data = "<tr><th>DiskType</th><th>DiskSize</th><th>DiskCount</th></tr>"
+            document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
+            };
+        const updateProcessors = (processors) => {
+            document.getElementsByClassName('modal-title')[0].innerHTML = 'Processors'
+            let th_data = "<tr><th>Type</th><th>Vendor</th><th>Product</th><th>Cores</th><th>Threads</th></tr>"
+            let td_data = ""
+            processors.forEach(processor => {
+                td_data += `<tr>`
+                td_data += `<td>${processor["processor_type"]}</td>`
+                td_data += `<td>${processor["vendor"]}</td>`
+                td_data += `<td>${processor["product"]}</td>`
+                td_data += `<td>${processor["cores"]}</td>`
+                td_data += `<td>${processor["threads"]}</td>`
+                td_data += `</tr>`
+            })
             document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
             };
         $(document).ready( function () {

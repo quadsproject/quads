@@ -141,6 +141,7 @@ rm -rf %{buildroot}
 /opt/quads/conf/quads.cron.example
 /usr/bin/quads
 %config(noreplace) /opt/quads/conf/quads.yml
+%config(noreplace) /opt/quads/conf/quadsweb.yml
 %config(noreplace) /opt/quads/conf/selfservice.yml
 %config(noreplace) /opt/quads/conf/vlans.yml
 %config(noreplace) /opt/quads/conf/hosts_metadata.yml
