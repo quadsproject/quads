@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d30db09_59292e4b",
+        "filename": "conf/quadsweb.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-02-18T18:19:37Z",
+      "side": 1,
+      "message": "I think we still want to have a configurable setting here to show or not show GPU as it will extend the quads-web display tables and if a lab never plans to have GPU why show them?\n\nSomething like:  enable_gpu_inventory: true/false (default is false)",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 53
+      },
+      "revId": "cd4b267fb7e9ddfa02067e9db02164db8f406e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "760786c6_aecfd5f4",
+        "filename": "conf/quadsweb.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-02-18T18:19:37Z",
+      "side": 1,
+      "message": "Nice reshifting of all this.  I think since the quads-server does actually call jira library and performs heavy lifting this should remain in the main quads.yml?",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 22
+      },
+      "revId": "cd4b267fb7e9ddfa02067e9db02164db8f406e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
