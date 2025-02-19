@@ -72,6 +72,30 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a87c278_e7c6bfd0",
+        "filename": "conf/quadsweb.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-02-19T07:26:39Z",
+      "side": 1,
+      "message": "That\u0027s a good point, I will amend it accordingly.",
+      "parentUuid": "73858240_0bf60d61",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 53
+      },
+      "revId": "cd4b267fb7e9ddfa02067e9db02164db8f406e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "760786c6_aecfd5f4",
