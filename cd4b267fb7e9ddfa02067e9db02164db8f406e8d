@@ -50,6 +50,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "73858240_0bf60d61",
+        "filename": "conf/quadsweb.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-02-19T05:22:35Z",
+      "side": 1,
+      "message": "I think utilizing processors table makes sense for the DB design but on the front-end the CPU is likely self-evident from the model.  Therefore calling it GPU and only displaying that may be simpler (if it has one, or it\u0027s enabled lab-wide).  \n\nCarrying processors on quads-web modals will also require us to make sure it\u0027s seeded, which isn\u0027t a big deal since we can assume uniformity by server model by that same token.\n\nI can see it either way and don\u0027t feel strongly about it.  Maybe what you\u0027re proposing is better as more information is better than less information so long as the density of information is presented cleanly.\n\nOne benefit of having only a GPU column is tenants can easily see across a range of models what has GPU and what doesn\u0027t rather than combining this with CPU under \"Processors\" which all systems would have to have anyway to function.",
+      "parentUuid": "c41fae67_71d12eec",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 53
+      },
+      "revId": "cd4b267fb7e9ddfa02067e9db02164db8f406e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "760786c6_aecfd5f4",
         "filename": "conf/quadsweb.yml",
         "patchSetId": 1
@@ -85,6 +109,30 @@
       "side": 1,
       "message": "That\u0027s correct. I only took out the variable which are only used on quads-web.",
       "parentUuid": "760786c6_aecfd5f4",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 22
+      },
+      "revId": "cd4b267fb7e9ddfa02067e9db02164db8f406e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9bc6559_b2fdcf94",
+        "filename": "conf/quadsweb.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-02-19T05:22:35Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "89bf28e8_a0b8136a",
       "range": {
         "startLine": 8,
         "startChar": 0,
