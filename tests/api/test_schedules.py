@@ -256,6 +256,7 @@ class TestCreateSchedule:
         del response_dict["host"]["default_cloud"]["last_redefined"]
         del response_dict["assignment"]["created_at"]
         del response_dict["assignment"]["cloud"]["last_redefined"]
+        SELF_SCHEDULE_1_RESPONSE["end"] = "Sun, 04 Jun 2023 21:00:00 GMT"
         assert response_dict == SELF_SCHEDULE_1_RESPONSE
 
     @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)

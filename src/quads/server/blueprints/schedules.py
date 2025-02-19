@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from calendar import day_name
 
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
@@ -158,7 +159,20 @@ def create_schedule() -> Response:
             return make_response(jsonify(response), 400)
 
         start = datetime.now()
-        end = start + timedelta(days=Config.get("ssm_default_lifetime", 1))
+
+        ssm_deadline_day = Config.get("ssm_deadline_day", "sunday").lower()
+        ssm_deadline_hour = Config.get("ssm_deadline_hour", "21")
+        ssm_default_lifetime = Config.get("ssm_default_lifetime", 1)
+
+        day_mapping = {day.lower(): i for i, day in enumerate(day_name)}
+        target_day = day_mapping.get(ssm_deadline_day)
+        current_day = start.weekday()
+
+        days_ahead = target_day - current_day
+        if days_ahead < ssm_default_lifetime:
+            end = start.replace(hour=ssm_deadline_hour, minute=0, second=0, microsecond=0) + timedelta(days=days_ahead)
+        else:
+            end = start + timedelta(days=ssm_default_lifetime)
     else:
         start = data.get("start")
         end = data.get("end")

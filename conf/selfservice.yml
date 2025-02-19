@@ -8,3 +8,9 @@ ssm_default_lifetime: 5
 ssm_user_cloud_limit: 2
 # Set to true to create a Jira ticket when a self-schedule is created
 ssm_jira_create_ticket: false
+
+# Set to true to enable the scheduling window
+ssm_enable_sched_window: true
+# Set the end date for the scheduling window
+ssm_deadline_day: sunday
+ssm_deadline_hour: 21
