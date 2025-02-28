@@ -1621,14 +1621,18 @@ class QuadsCli:
 
                 if not self.cli_args.get("dryrun"):
                     try:
-                        _old_cloud_obj = self.quads.get_cloud(results[0]["current"])
-                        old_cloud_schedule = self.quads.get_current_schedules({"cloud": _old_cloud_obj.name})
+                        old_clouds = set()
+                        for result in results:
+                            old_clouds.add(result["current"])
+                        for old_cloud in old_clouds:
+                            _old_cloud_obj = self.quads.get_cloud(old_cloud)
+                            old_cloud_schedule = self.quads.get_current_schedules({"cloud": _old_cloud_obj.name})
 
-                        if not old_cloud_schedule and _old_cloud_obj.name != "cloud01":
-                            _old_ass_cloud_obj = self.quads.get_active_cloud_assignment(_old_cloud_obj.name)
-                            if _old_ass_cloud_obj:
-                                payload = {"active": False}
-                                self.quads.update_assignment(_old_ass_cloud_obj.id, payload)
+                            if not old_cloud_schedule and _old_cloud_obj.name != "cloud01":
+                                _old_ass_cloud_obj = self.quads.get_active_cloud_assignment(_old_cloud_obj.name)
+                                if _old_ass_cloud_obj:
+                                    payload = {"active": False}
+                                    self.quads.update_assignment(_old_ass_cloud_obj.id, payload)
                     except (
                         APIServerException,
                         APIBadRequest,
@@ -1908,8 +1912,8 @@ class QuadsCli:
         _args = {
             "cloud": self.cli_args.get("cloud"),
             "skip_system": self.cli_args.get("skip_system"),
-            "skip_network": self.cli_args.get("skip_system"),
-            "skip_hosts": self.cli_args.get("skip_system"),
+            "skip_network": self.cli_args.get("skip_network"),
+            "skip_hosts": self.cli_args.get("skip_hosts"),
         }
         _loop = asyncio.get_event_loop()
         if _loop.is_closed():

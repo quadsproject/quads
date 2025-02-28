@@ -17,7 +17,6 @@ from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.tools.external.badfish import BadfishException, badfish_factory
 from quads.tools.external.foreman import Foreman
-from quads.tools.helpers import get_running_loop
 from quads.tools.move_and_rebuild import switch_config
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
@@ -36,8 +35,9 @@ class Validator(object):  # pragma: no cover
         self.args = _args
         self.hosts = quads.filter_hosts({"cloud": self.cloud, "validated": False})
         self.hosts = [host for host in self.hosts if quads.get_current_schedules({"host": host.name})]
-        if self.args.skip_hosts:
-            self.hosts = [host for host in self.hosts if host.name not in self.args.skip_hosts]
+        self.skip_hosts = self.args.skip_hosts[0] if self.args.skip_hosts else None
+        if self.skip_hosts:
+            self.hosts = [host for host in self.hosts if host.name not in self.skip_hosts]
 
     async def notify_failure(self):
         template_file = "validation_failed"
@@ -107,59 +107,53 @@ class Validator(object):  # pragma: no cover
         build_hosts = await foreman.get_build_hosts()
 
         pending = []
-        data = {"cloud": self.cloud}
-        schedules = quads.get_current_schedules(data)
-        if schedules:
-            for schedule in schedules:
-                if schedule.host and schedule.host.name in build_hosts:
-                    pending.append(schedule.host.name)
+        for hostname in self.hosts:
+            if hostname in build_hosts:
+                pending.append(hostname)
 
-            if self.args.skip_hosts:
-                pending = [host for host in pending if host not in self.args.skip_hosts]
-
-            if pending:
-                logger.info("The following hosts are marked for build and will now be rebooted:")
-                self.report = self.report + "The following hosts are marked for build:\n"
-                for host in pending:
-                    logger.info(host)
-                    try:
-                        nc = Netcat(host)
-                        healthy = await nc.health_check()
-                    except OSError:
-                        healthy = False
-                    if not healthy:
+        if pending:
+            logger.info("The following hosts are marked for build and will now be rebooted:")
+            self.report = self.report + "The following hosts are marked for build:\n"
+            for hostname in pending:
+                logger.info(hostname)
+                try:
+                    nc = Netcat(hostname)
+                    healthy = await nc.health_check()
+                except OSError:
+                    healthy = False
+                if not healthy:
+                    logger.warning(
+                        "Host %s didn't pass the health check. "
+                        "Potential provisioning in process. SKIPPING." % hostname
+                    )
+                    continue
+                badfish = None
+                try:
+                    badfish = await badfish_factory(
+                        "mgmt-" + hostname,
+                        str(Config["ipmi_username"]),
+                        str(Config["ipmi_password"]),
+                    )
+                    if is_supported(hostname):
+                        await badfish.boot_to_type(
+                            "foreman",
+                            "/opt/quads/conf/idrac_interfaces.yml",
+                        )
+                    else:
+                        await badfish.set_next_boot_pxe()
+                    await badfish.reboot_server()
+                except BadfishException as ಥ﹏ಥ:
+                    logger.debug(ಥ﹏ಥ)
+                    if badfish:
                         logger.warning(
-                            "Host %s didn't pass the health check. "
-                            "Potential provisioning in process. SKIPPING." % host
+                            f"There was something wrong trying to boot from Foreman interface for: {hostname}"
                         )
-                        continue
-                    badfish = None
-                    try:
-                        badfish = await badfish_factory(
-                            "mgmt-" + host,
-                            str(Config["ipmi_username"]),
-                            str(Config["ipmi_password"]),
-                        )
-                        if is_supported(host):
-                            await badfish.boot_to_type(
-                                "foreman",
-                                "/opt/quads/conf/idrac_interfaces.yml",
-                            )
-                        else:
-                            await badfish.set_next_boot_pxe()
                         await badfish.reboot_server()
-                    except BadfishException as ಥ﹏ಥ:
-                        logger.debug(ಥ﹏ಥ)
-                        if badfish:
-                            logger.warning(
-                                f"There was something wrong trying to boot from Foreman interface for: {host}"
-                            )
-                            await badfish.reboot_server()
-                        else:
-                            logger.error(f"Could not initiate Badfish instance for: {host}")
+                    else:
+                        logger.error(f"Could not initiate Badfish instance for: {hostname}")
 
-                    self.report = self.report + "%s\n" % host
-                return False
+                self.report = self.report + "%s\n" % hostname
+            return False
 
         failed = False
         for host in self.hosts:
@@ -390,7 +384,7 @@ async def main(_args, _logger=None):  # pragma: no cover
 
     if _args.skip_hosts:
         hosts = []
-        for hostname in _args.skip_hosts:
+        for hostname in _args.skip_hosts[0]:
             try:
                 host = quads.get_host(hostname)
             except (APIServerException, APIBadRequest) as ex:
