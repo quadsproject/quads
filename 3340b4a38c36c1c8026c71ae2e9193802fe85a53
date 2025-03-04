@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69008c33_ff8d9a75",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-03-04T15:34:12Z",
+      "side": 1,
+      "message": "Please change this to something more concise:\n\nFull-featured API for self-service scheduling of systems/assignments",
+      "range": {
+        "startLine": 129,
+        "startChar": 1,
+        "endLine": 129,
+        "endChar": 87
+      },
+      "revId": "3340b4a38c36c1c8026c71ae2e9193802fe85a53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2636dc74_689f1c37",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 1006,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-03-04T15:34:12Z",
+      "side": 1,
+      "message": "You could roll with this but I think you wanted your other description here?  Either is fine.  \n\nOr otherwise something like \"QUADS supports full-featured self service provisioning via the API documented here[docs]\"",
+      "range": {
+        "startLine": 1006,
+        "startChar": 1,
+        "endLine": 1006,
+        "endChar": 108
+      },
+      "revId": "3340b4a38c36c1c8026c71ae2e9193802fe85a53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
