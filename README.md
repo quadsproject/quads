@@ -73,6 +73,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
+      * [Using the Self-Scheduling API](#using-the-self-scheduling-api)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
          * [Verify or Correct Cloud and Host Network Switch Settings](#verify-or-correct-cloud-and-host-network-switch-settings)
@@ -125,6 +126,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
    - Email notifications to users for new future assignments, releases and expirations.
    - Flask-based Web UI for searching for available bare-metal systems in the future based on model.
    - Open, RESTful JSON API and RBAC for controlling access
+   - Full-featured API for self-service scheduling of systems/assignments
 
 ## Design
    - Main components: `Python3, Flask, SqlAlchemy, PostgreSQL, Jinja2`
@@ -159,6 +161,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 | Add Clouds and Hosts | [docs](#adding-new-hosts-to-quads) | Configure your hosts and environments in QUADS |
 | Host Metadata Model and Search | [docs](/docs/quads-host-metadata-search.md) | Host metadata info and filtering |
 | Using the JSON API | [docs](/quads-api.md) | Interacting with the RESTful JSON API |
+| Using the Self-Scheduling API | [docs](/docs/quads-self-schedule.md) | Full-featured API for self-service scheduling of systems/assignments |
 | Using JIRA with QUADS | [docs](/docs/using-jira-with-quads.md) | Optional JIRA tools and library for QUADS |
 
 ## QUADS Workflow
@@ -998,6 +1001,9 @@ Resource properly removed
 
 ## Using the QUADS JSON API
 * All QUADS actions under the covers uses the [JSON API v3](/docs/quads-api.md)
+
+## Self-Scheduling Hosts
+* QUADS supports full-featured self service provisioning via the API documented [here](/docs/quads-self-schedule.md).
 
 ## Filtering Systems by Hardware Capability
 * We provide a flexible host hardware [metadata and filtering model](/docs/quads-host-metadata-search.md) via the API.
