@@ -30,23 +30,23 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
 ### Register via REST
 
 ```bash
-curl -k 
-  -X POST 
-  -H "Content-Type: application/json" 
-  -d '{"email": "${EMAIL}", "password": "${PASSWORD}"}' 
+curl -k
+  -X POST
+  -H "Content-Type: application/json"
+  -d '{"email": "${EMAIL}", "password": "${PASSWORD}"}'
   http://quads.example.com/api/v3/register
 ```
 
 ### Login via REST
 
 ```bash
-export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<< 
-  $(curl -k 
-    -X POST 
-    -u "${EMAIL}:${PASSWORD}" 
-    -H "Content-Type: application/json" 
-    http://quads.example.com/api/v3/login/ | 
-    awk -F\: '{print $2}' | 
+export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<<
+  $(curl -k
+    -X POST
+    -u "${EMAIL}:${PASSWORD}"
+    -H "Content-Type: application/json"
+    http://quads.example.com/api/v3/login/ |
+    awk -F\: '{print $2}' |
     awk -F\, '{print $1}'
   )
 )
@@ -63,11 +63,11 @@ curl https://quads.example.com/api/v3/available\?can_self_schedule\=true
 ### Create an assignment via REST
 
 ```bash
-curl -k 
-  -X POST 
-  -H "Authorization: Bearer $TOKEN" 
-  -H "Content-Type: application/json" 
-  -d '{"description": "Short description here", "owner": "${EMAIL}", "qinq": 1, "vlan": "620", "wipe": "true"}' 
+curl -k
+  -X POST
+  -H "Authorization: Bearer $TOKEN"
+  -H "Content-Type: application/json"
+  -d '{"description": "Short description here", "owner": "${EMAIL}", "qinq": 1, "vlan": "620", "wipe": "true"}'
   http://quads.example.com/api/v3/assignments/self
 ```
 
@@ -79,10 +79,10 @@ curl -k
 ### Schedule a host via REST
 
 ```bash
-curl -k 
-  -X POST 
-  -H "Authorization: Bearer $TOKEN" 
-  -H "Content-Type: application/json" 
+curl -k
+  -X POST
+  -H "Authorization: Bearer $TOKEN"
+  -H "Content-Type: application/json"
   -d '{"cloud":"cloud02", "hostname": "host1.example.com"}' http://quads.example.com/api/v3/schedules
 ```
 
@@ -104,9 +104,9 @@ curl http://quads.example.com/api/v3/assignments/{assignment_id} | jq | grep val
 ### Terminate assignment via REST
 
 ```bash
-curl -k 
-  -X POST 
-  -H "Authorization: Bearer $TOKEN" 
+curl -k
+  -X POST
+  -H "Authorization: Bearer $TOKEN"
   http://quads.example.com/api/v3/assignments/terminate/{assignment_id}
 ```
 
