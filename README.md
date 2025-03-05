@@ -90,6 +90,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Find Systems by Switch IP Address](#find-systems-by-switch-ip-address)
          * [Tenant Notifications via Email or Ticketing system](#tenant-notifications-via-email-or-ticketing-system)
          * [List Available Foreman OS Types](#list-available-foreman-os-types)
+         * [QUADS Schema Change](#quads-schema-change)
       * [Using JIRA with QUADS](#using-jira-with-quads)
       * [Backing up QUADS](#backing-up-quads)
       * [Restoring QUADS from Backup](#restoring-quads-from-backup)
@@ -1291,6 +1292,10 @@ Id  Title      Release Name  Family
 3   RHEL 9.4                 Redhat
 4   RHEL 9.5                 Redhat
 ```
+
+### QUADS Schema Change
+
+* For more information see [QUADS Schema Change](/docs/quads-schema-change.md)
 
 ## Using JIRA with QUADS
 * We utilize the JIRA ticketing system internally for R&D infrastructure requests managed by QUADS.

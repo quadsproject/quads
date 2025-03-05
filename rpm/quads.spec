@@ -113,6 +113,7 @@ mkdir %{buildroot}/etc/logrotate.d/ -p
 mkdir %{buildroot}/etc/nginx/conf.d/ -p
 mkdir %{buildroot}/etc/postfix/postfix-files.d/ -p
 mkdir %{buildroot}%{python3_sitelib}/quads/ -p
+mkdir %{buildroot}%{prefix}/migrations -p
 tar cf - conf | ( cd %{buildroot}%{prefix} ; tar xvpBf - )
 cp -rf systemd/quads-server.service %{buildroot}/etc/systemd/system/
 cp -rf systemd/quads-web.service %{buildroot}/etc/systemd/system/
@@ -124,6 +125,7 @@ cp -rf container/etc/nginx/conf.d/apiv3_ssl.conf.example %{buildroot}/etc/nginx/
 cp -rf container/etc/postfix/postfix-files.d/quads.cf %{buildroot}/etc/postfix/postfix-files.d/
 echo 'export SQLALCHEMY_DATABASE_URI="postgresql://postgres:postgres@localhost:5432/quads"' > %{buildroot}/etc/profile.d/quads.sh
 echo 'eval "$(register-python-argcomplete quads)"' >> %{buildroot}/etc/profile.d/quads.sh
+cp -rf migrations/* %{buildroot}%{prefix}/migrations/
 %py3_install
 
 %clean
