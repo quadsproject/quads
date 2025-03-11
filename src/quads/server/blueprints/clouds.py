@@ -189,7 +189,10 @@ def get_summary() -> Response:
             schedules = ScheduleDao.get_current_schedule(cloud=_cloud, date=date)
             count = len(schedules)
             total_count += count
-            _assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
+            if schedules:
+                _assignment = AssignmentDao.get_assignment(schedules[0].assignment_id)
+            else:
+                _assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
 
         clouds_summary.append(
             {
