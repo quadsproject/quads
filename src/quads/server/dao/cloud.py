@@ -72,17 +72,10 @@ class CloudDao(BaseDao):
 
     @staticmethod
     def get_free_clouds() -> List[Cloud]:
-        active_or_future_schedules = (
-            select(Cloud.id)
-            .join(Assignment)
-            .join(Schedule)
-            .filter(or_(Schedule.end > datetime.now(), Schedule.start > datetime.now()))
-            .distinct()
-        )
+        active_or_future_schedules = select(Cloud.id).join(Assignment).filter(Assignment.active == True).distinct()
         free_clouds = (
             db.session.query(Cloud)
             .outerjoin(Assignment)
-            .outerjoin(Schedule)
             .filter(~Cloud.id.in_(active_or_future_schedules))
             .filter(Cloud.name != Config["spare_pool_name"])
             .order_by(Cloud.name)
