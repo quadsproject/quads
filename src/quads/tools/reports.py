@@ -140,49 +140,6 @@ def process_scheduled(_logger, month, now):
     _logger.info(f"{start.year}-{f_month:<3}| " f"{scheduled:>9}| " f"{hosts:>8}| " f"{utilization:>10}%| ")
 
 
-def report_detailed(_logger, _start, _end):
-    start = _start.replace(hour=21, minute=59, second=0)
-    end = _end.replace(hour=22, minute=1, second=0)
-    payload = {
-        "start": start.strftime("%Y-%m-%dT%H:%M"),
-        "end": end.strftime("%Y-%m-%dT%H:%M"),
-    }
-    schedules = quads.get_schedules(payload)
-
-    headers = [
-        "Owner",
-        "Ticket",
-        "Cloud",
-        "Description",
-        "Systems",
-        "Scheduled",
-        "Duration",
-    ]
-    _logger.info(
-        f"{headers[0]:<9}| "
-        f"{headers[1]:>9}| "
-        f"{headers[2]:>8}| "
-        f"{headers[3]:>10}| "
-        f"{headers[4]:>5}| "
-        f"{headers[5]:>10}| "
-        f"{headers[6]:>5}| "
-    )
-
-    for schedule in schedules:
-        if schedule:
-            delta = schedule.end - schedule.start
-            description = schedule.assignment.description[: len(headers[3])]
-            _logger.info(
-                f"{schedule.assignment.owner:<9}| "
-                f"{schedule.assignment.ticket:>9}| "
-                f"{schedule.assignment.cloud.name:>8}| "
-                f"{description:>11}| "
-                f"{len(schedules):>7}| "
-                f"{str(schedule.start)[:10]:>9}| "
-                f"{delta.days:>8}| "
-            )
-
-
 if __name__ == "__main__":  # pragma: no cover
     _start = first_day_month(datetime.now())
     _end = last_day_month(datetime.now())

@@ -105,6 +105,7 @@ def register_blueprints(app):
     from quads.server.blueprints.interfaces import interface_bp
     from quads.server.blueprints.memory import memory_bp
     from quads.server.blueprints.processors import processor_bp
+    from quads.server.blueprints.reports import reports_bp
     from quads.server.blueprints.schedules import schedule_bp
     from quads.server.blueprints.vlans import vlan_bp
     from quads.server.blueprints.version import version_bp
@@ -124,6 +125,7 @@ def register_blueprints(app):
     api_bp.register_blueprint(vlan_bp, url_prefix="/vlans")
     api_bp.register_blueprint(disk_bp, url_prefix="/disks")
     api_bp.register_blueprint(processor_bp, url_prefix="/processors")
+    api_bp.register_blueprint(reports_bp, url_prefix="/reports")
     api_bp.register_blueprint(memory_bp, url_prefix="/memory")
     api_bp.register_blueprint(moves_bp, url_prefix="/moves")
     app.register_blueprint(api_bp)

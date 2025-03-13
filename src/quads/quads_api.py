@@ -384,6 +384,12 @@ class QuadsApi(QuadsBase):
         data = response.json()
         return data
 
+    # Reports
+    def get_detailed_report(self, start, end) -> Response:
+        url_params = url_parse.urlencode({"start": start, "end": end})
+        url = f"reports/detailed?{url_params}"
+        return self.get(url)
+
     def get_version(self) -> Response:
         return self.get("version")
 

@@ -585,7 +585,39 @@ class QuadsCli:
 
     def action_report_detailed(self):
         start, end = self._helper_report_start_end()
-        reports.report_detailed(self.logger, start, end)
+        start = start.replace(hour=21, minute=59, second=0)
+        end = end.replace(hour=22, minute=1, second=0)
+        details = self.quads.get_detailed_report(start, end)
+
+        headers = [
+            "Owner",
+            "Ticket",
+            "Cloud",
+            "Description",
+            "Systems",
+            "Scheduled",
+            "Duration",
+        ]
+        self.logger.info(
+            f"{headers[0]:<9}| "
+            f"{headers[1]:>9}| "
+            f"{headers[2]:>8}| "
+            f"{headers[3]:>10}| "
+            f"{headers[4]:>5}| "
+            f"{headers[5]:>10}| "
+            f"{headers[6]:>5}| "
+        )
+
+        for detail in details:
+            self.logger.info(
+                f"{detail['owner']:<9}| "
+                f"{detail['ticket']:>9}| "
+                f"{detail['cloud']:>8}| "
+                f"{detail['description']:>11}| "
+                f"{detail['count']:>7}| "
+                f"{detail['start']:>9}| "
+                f"{detail['delta']:>8}| "
+            )
 
     def action_extend(self):
         weeks = self.cli_args.get("weeks")
