@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b492103f_ff506a67",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-03-14T17:20:04Z",
+      "side": 1,
+      "message": "@grafuls you can likely reference one or both of these:\n\nhttps://github.com/redhat-performance/quads/issues/581\nhttps://github.com/redhat-performance/quads/issues/580",
+      "revId": "dbc4d152ed861722871770353c03fd2c86769234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
