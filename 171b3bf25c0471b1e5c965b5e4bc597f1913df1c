@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "05b96c64_cffb301b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2025-03-20T13:11:20Z",
+      "side": 1,
+      "message": "I can get behind this, although I almost feel like the default behavior of doing \n\n    quads --host foo.example.com\n\nor \n\n    quads --host foo.example.com --date \"YYYY-MM-DD hh:mm\"\n    \nshould be to spit out the cloud membership of the specified host.",
+      "revId": "171b3bf25c0471b1e5c965b5e4bc597f1913df1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
