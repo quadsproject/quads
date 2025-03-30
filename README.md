@@ -1,5 +1,5 @@
-QUADS (quick and dirty scheduler)
-=================================
+QUADS
+=====
 ![quads](/image/quads.png)
 
 QUADS automates the future scheduling, end-to-end provisioning and delivery of bare-metal servers and networks.
@@ -10,10 +10,11 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 
 ![quads-rpm-build](https://copr.fedorainfracloud.org/coprs/quadsdev/python3-quads/package/quads/status_image/last_build.png)
 
-   * [QUADS (quick and dirty scheduler)](#quads-quick-and-dirty-scheduler)
+   * [QUADS](#quads)
       * [What does it do?](#what-does-it-do)
       * [Design](#design)
       * [Requirements](#requirements)
+      * [Deployment Scale Limits](#deployment-scale-limits)
       * [Setup Overview](#setup-overview)
       * [QUADS Workflow](#quads-workflow)
       * [QUADS Switch and Host Setup](#quads-switch-and-host-setup)
@@ -130,6 +131,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
    - Installation via RPM for Fedora Linux.
    - We use [Badfish](https://github.com/redhat-performance/badfish) for managing bare-metal IPMI
    - We use [Foreman](https://theforeman.org/) for the systems provisioning backend.
+   - We also provide a standalone [Python client library](https://python-quads-lib.readthedocs.io/en/stable/readme.html#installation) for interacting with the QUADS framework programmatically.
    - A typical QUADS deployment might look like this:
 
 ![quadsarchitecture](/image/quads-architecture.jpg)
@@ -138,10 +140,20 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
    - Recent [Fedora Server](https://fedoraproject.org/server/download/) for RPM installations
    - 1 x modest sized VM (8 vcpu 8GB mem) for combined QUADS stack (quads-server, quads-web, quads-db)
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
-   - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](http://www.jnpr.net/techpubs/en_US/junos14.1/topics/concept/qinq-tunneling-qfx-series.html), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) in layer 2 can theoretically work.
+   - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
    - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.  Most enterprise server vendors come standard with IPMI interfaces and the [Redfish API](https://en.wikipedia.org/wiki/Redfish_(specification)).
 
- ## Setup Overview
+## Deployment Scale Limits
+
+_How many hosts and environments can a single QUADS instance use?_
+
+QUADS is designed to handle large amounts of hosts spread across independent, isolated multi-tenant environments.
+QUADS is limited only by the VLAN limit in the [IEEE 802.1Q](https://standards.ieee.org/ieee/802.1Q/6844/) spec which specifies **4090** usable VLANS per VLAN-tagged Layer 2 network.
+   - Each QUADS instance can scale to the number of individual isolated environments as equal to `4090 / highest number of internal interfaces in a host minus one (for your spare cloud)`
+   - For example, if the maximum number of QUADS-managed internal interfaces I had in one of my hosts was 4, QUADS can support 1,021 individual environments with a combined host count of [24,540 servers.](https://x.com/i/grok/share/OzKXShaLzPiZazD46dzyJPZvo) or `98,160 vmembers / 4` per VLAN-tagged layer 2 network and typically a single QUADS instance until [multi-Foreman](https://github.com/redhat-performance/quads/issues/384) support is added.
+   - For comparison our largest R&D QUADS instance operates around 1,300 bare-metal systems across 100 defined environments so QUADS can scale well past the datacenter space we could grow into in one physical location.
+
+## Setup Overview
    - Documentation for setting up and using QUADS is available in detail within this repository.
    - Below is a high-level overview of a greenfield setup, some of this may exist already for you.
 
