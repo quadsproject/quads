@@ -108,3 +108,163 @@ main {
     flex-shrink: 0;
     margin-top: 50px!important;
 }
+
+/* Dark Theme Styles */
+[data-bs-theme="dark"] {
+    /* Ensure root html element also gets dark background */
+    html {
+        background-color: #212529;
+    }
+
+    /* Body background and text color */
+    body {
+        background-color: #212529; /* Dark background */
+        color: #dee2e6; /* Lighter text */
+    }
+
+    /* Adjust custom box style */
+    .box {
+        background: #343a40; /* Darker gray for box */
+        border-color: #495057;
+        color: #ced4da;
+    }
+
+    /* Adjust scroll-to-top button */
+    #myBtn {
+        background-color: #495057; /* Darker button background */
+        color: #f8f9fa;
+    }
+    #myBtn:hover {
+        background-color: #6c757d;
+    }
+    .top-icon {
+        stroke: #f8f9fa; /* Ensure icon is visible */
+    }
+
+    /* Adjust custom link hover */
+    .link-secondary-hover {
+        color: #adb5bd; /* Lighter gray for link */
+    }
+    .link-secondary-hover:hover {
+        color: #6ea8fe; /* Bootstrap's dark mode link hover color */
+    }
+
+    /* Adjust nav item color */
+    .nav-item {
+        color: #adb5bd; /* Lighter gray for nav item */
+    }
+
+    /* General Table adjustments */
+    .table {
+        /* Bootstrap dark table variables are generally good,
+           but you can override specific things here if needed */
+        border-color: #495057;
+    }
+    th, td {
+        border-color: inherit; /* Ensure table cells use the table's border color */
+    }
+
+     /* Ensure footer has appropriate dark theme colors if bg-light was used */
+    .footer.bg-light {
+        background-color: #343a40 !important; /* Override bg-light */
+        color: #adb5bd;
+    }
+    .footer .text-muted {
+        color: #adb5bd !important;
+    }
+    .footer a {
+        color: #6ea8fe;
+    }
+
+    /* Adjust dropdown menu background/text if needed */
+    .dropdown-menu {
+        background-color: #343a40;
+        border-color: #495057;
+    }
+    .dropdown-menu .dropdown-item {
+        color: #dee2e6;
+    }
+    .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
+        color: #fff;
+        background-color: #0d6efd;
+    }
+
+    /* Adjust form inputs (Bootstrap usually handles this well, but overrides can go here) */
+    .form-control,
+    .form-select,
+    .dtpick {
+        background-color: #495057;
+        border-color: #6c757d;
+        color: #fff;
+    }
+    .form-control::placeholder {
+        color: #adb5bd;
+    }
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #495057;
+        border-color: #86b7fe; /* Bootstrap focus color */
+        color: #fff;
+    }
+
+}
+
+/* New SVG Theme Toggle Button Styles */
+.theme-toggle {
+  background: none;
+  border: none;
+  padding: 0.2rem; /* Adjust padding */
+  margin-top: 0.1rem; /* Adjust vertical alignment if needed */
+  color: var(--bs-emphasis-color); /* Use Bootstrap variable for text/icon color */
+  cursor: pointer;
+  position: relative; /* Needed for absolute positioning of pseudo-elements if used later */
+  isolation: isolate; /* Prevent z-index issues with other elements */
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  opacity: 1;
+}
+
+.sun-and-moon > .sun,
+.sun-and-moon > .moon,
+.sun-and-moon > .sun-beams {
+  transform-origin: center center;
+  transition: transform 0.5s ease-in-out;
+}
+
+/* Dark Mode: Moon visible, Sun hidden */
+[data-bs-theme="dark"] .sun-and-moon > .sun {
+  transform: scale(1.75);
+}
+
+[data-bs-theme="dark"] .sun-and-moon > .moon > circle {
+  /* The mask moves to reveal the moon */
+  transform: translateX(-7px);
+}
+
+[data-bs-theme="dark"] .sun-and-moon > .sun-beams {
+  transform: rotateZ(-25deg);
+  opacity: 0;
+}
+
+/* Light Mode (Default): Sun visible, Moon hidden */
+/* Default state - Sun */
+.sun-and-moon > .sun {
+    transform: scale(1); /* Default sun size */
+}
+
+/* Default State - Moon mask */
+.sun-and-moon > .moon > circle {
+  transform: translateX(0); /* Mask fully covers the moon area */
+  transition: transform 0.35s cubic-bezier(.5,-.5,.5,1.5); /* Smoother mask transition */
+}
+
+/* Default State - Sun Beams */
+.sun-and-moon > .sun-beams {
+    transform: rotateZ(0deg);
+    opacity: 1;
+    transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out; /* Add opacity transition */
+}
