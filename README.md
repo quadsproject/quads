@@ -148,11 +148,27 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 _How many hosts and environments can a single QUADS instance use?_
 
 QUADS is designed to handle large amounts of hosts spread across independent, isolated multi-tenant environments.
-QUADS is limited only by the VLAN limit in the [IEEE 802.1Q](https://standards.ieee.org/ieee/802.1Q/6844/) spec which specifies **4090** usable VLANS per VLAN-tagged Layer 2 network.
-   - Each QUADS instance can scale to the number of individual isolated **environments** as equal to `4090 / highest number of internal interfaces in a host minus one (for your spare cloud)`
-   - Each QUADS instance can scale to a number of **hosts** equal to `98,160 / highest number of internal interfaces in a host`
-   - For example, if the maximum number of QUADS-managed internal interfaces I had in one of my hosts was 4, QUADS can support 1,021 individual environments with a combined host count of [24,540 servers.](https://x.com/i/grok/share/OzKXShaLzPiZazD46dzyJPZvo) or `98,160 vmembers / 4` per VLAN-tagged layer 2 network and typically a single QUADS instance until [multi-Foreman](https://github.com/redhat-performance/quads/issues/384) support is added.
-   - For comparison our largest R&D QUADS instance operates around 1,300 bare-metal systems across 100 defined environments so QUADS can scale well past the datacenter space we could grow into in one physical location.
+QUADS is physically limited by the VLAN limit in the [IEEE 802.1Q](https://standards.ieee.org/ieee/802.1Q/6844/) spec which specifies **4090** usable VLANS per VLAN-tagged Layer 2 network.
+
+* In theory each QUADS instance can scale to the number of individual isolated **environments** as equal to `4090 / highest number of internal interfaces in a host minus one (for your spare cloud)`
+* Each QUADS instance can scale to a number of **hosts** equal to `98,160 / highest number of internal interfaces in a host`
+
+   > [!NOTE]
+   > Our current implementation iterates VLAN assignments by 10 so that means the formula  is `4090 / 10 minus 10` for maximum available VLAN-tagged environments or _clouds_ which reduces the maximum amount of multi-tenant environments by 60% or more of this total.
+
+   > [!TIP]
+   > In [RFE #589](https://github.com/redhat-performance/quads/issues/589) we'll be removing this increment-by-10 approach from the codebase so that scale of usable VLAN-tagged environments will likely double to their theoritical limit.
+
+For example, right now QUADS can support 399 individual environments with a combined host count of [24,540 servers.](https://x.com/i/grok/share/OzKXShaLzPiZazD46dzyJPZvo) or `98,160 vmembers / 4` per VLAN-tagged layer 2 network and typically a single QUADS instance until [multi-Foreman](https://github.com/redhat-performance/quads/issues/384) support is added if the highest number of internal interfaces in a host is 4.
+
+Consult the below chart on host and network scale limits:
+
+* Current and future limits per VLAN-tagged layer 2 Network
+
+| Component | Current Limit | Future RFE #589 Limit | Notes |
+|-----------|---------------|-----------------------|-------|
+| Cloud Environments | 399 | 1268 | assuming 4x interfaces max/host|
+| Physical Hosts | 24,540 | 24,540 | assuming 4x interfaces max/host|
 
 ## Setup Overview
    - Documentation for setting up and using QUADS is available in detail within this repository.
