@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f4d0adad_6ecef5fe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1038755
+      },
+      "writtenOn": "2025-04-02T15:20:40Z",
+      "side": 1,
+      "message": "This should fix the litepicker date picker box.\nOn the available.html the model and date selection boxes weren\u0027t consistent either (common dtpick class fortunately), so now they look the same.\nAlso I pulled .warning css out of the child html page and put it into main.css where I gave it a theme specific override as well.",
+      "revId": "13a08a1979e3c767be8d7da428c7608ad3788572",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
