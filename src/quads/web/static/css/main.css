@@ -207,6 +207,90 @@ main {
         color: #fff;
     }
 
+    /* Container and background colors */
+    --litepicker-container-months-color-bg: #212529;
+    --litepicker-container-months-box-shadow-color: #000;
+    --litepicker-footer-color-bg: #2c3034;
+    --litepicker-footer-box-shadow-color: #000;
+    --litepicker-tooltip-color-bg: #2c3034;
+
+    /* Text colors */
+    --litepicker-month-header-color: #e9ecef;
+    --litepicker-month-weekday-color: #adb5bd;
+    --litepicker-month-week-number-color: #adb5bd;
+    --litepicker-day-color: #e9ecef;
+    --litepicker-day-color-hover: #0d6efd;
+    --litepicker-is-today-color: #dc3545;
+    --litepicker-is-locked-color: #6c757d;
+    --litepicker-highlighted-day-color: #e9ecef;
+
+    /* Button colors */
+    --litepicker-button-prev-month-color: #adb5bd;
+    --litepicker-button-next-month-color: #adb5bd;
+    --litepicker-button-prev-month-color-hover: #0d6efd;
+    --litepicker-button-next-month-color-hover: #0d6efd;
+    --litepicker-button-cancel-color: #fff;
+    --litepicker-button-cancel-color-bg: #6c757d;
+    --litepicker-button-apply-color: #fff;
+    --litepicker-button-apply-color-bg: #0d6efd;
+    --litepicker-button-reset-color: #adb5bd;
+    --litepicker-button-reset-color-hover: #0d6efd;
+
+    /* Selection colors */
+    --litepicker-is-in-range-color: rgba(13, 110, 253, 0.2);
+    --litepicker-is-start-color: #fff;
+    --litepicker-is-start-color-bg: #0d6efd;
+    --litepicker-is-end-color: #fff;
+    --litepicker-is-end-color-bg: #0d6efd;
+    --litepicker-highlighted-day-color-bg: #ffc107;
+
+    /* Additional dark theme styles for Litepicker */
+    .litepicker .container__months {
+        border: 1px solid #495057;
+    }
+
+    .litepicker .container__days .day-item {
+        border-radius: 3px;
+    }
+
+    .litepicker .container__days .day-item:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .litepicker .container__footer {
+        border-top: 1px solid #495057;
+    }
+
+    .litepicker .container__tooltip {
+        border: 1px solid #495057;
+    }
+
+    .litepicker .container__tooltip:after {
+        border-top-color: #2c3034;
+    }
+
+    .litepicker .container__tooltip:before {
+        border-top-color: #495057;
+    }
+
+    /* Dark theme overrides for dtpick */
+    .dtpick {
+        color: #fff;
+        background-color: #495057;
+        border-color: #6c757d;
+    }
+
+    .dtpick:focus {
+        color: #fff;
+        background-color: #495057;
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Warning style for dark theme */
+    .warning {
+        background-color: #4a3c2d !important;
+    }
 }
 
 /* New SVG Theme Toggle Button Styles */
@@ -267,4 +351,32 @@ main {
     transform: rotateZ(0deg);
     opacity: 1;
     transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out; /* Add opacity transition */
+}
+
+/* Style for dtpick class to ensure consistent appearance */
+.dtpick {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.dtpick:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Warning style for light theme */
+.warning {
+    background-color: #f7e5d7 !important;
 }
