@@ -5,6 +5,11 @@
 	{%- block html %}
 		<head>
 			{%- block head %}
+				<script>
+					document.documentElement.setAttribute('data-bs-theme',
+						localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
+				</script>
+
 				<title>{% block title %}{{ title|default }}{% endblock title %}</title>
 
 				{%- block metas %}
