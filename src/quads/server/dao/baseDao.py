@@ -2,7 +2,7 @@ from flask import current_app
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
-from quads.server.models import Disk, Host, Interface, Memory, Processor, db
+from quads.server.models import Disk, Interface, Memory, Processor, db
 
 FILTERING_OPERATORS = {
     "==": "eq",
@@ -15,6 +15,7 @@ FILTERING_OPERATORS = {
     "ilike": "ilike",
     "in": "in",
 }
+
 OPERATORS = {
     "__ne": "!=",
     "__lt": "<",
@@ -25,6 +26,7 @@ OPERATORS = {
     "__ilike": "ilike",
     "__in": "in",
 }
+
 HAVING_OPERATORS = {
     "==": lambda column, value: column == value,
     "!=": lambda column, value: column != value,
@@ -33,11 +35,21 @@ HAVING_OPERATORS = {
     ">=": lambda column, value: column >= value,
     "<=": lambda column, value: column <= value,
 }
+
 MAP_HOST_META = {
     "interfaces": Interface,
     "disks": Disk,
     "memory": Memory,
     "processors": Processor,
+}
+
+AGGREGATION_FUNCTIONS = {"disks": func.sum, "interfaces": func.count, "memory": func.sum, "processors": func.sum}
+
+VALID_ATTRIBUTES = {
+    "disks": ["count"],
+    "interfaces": ["count"],
+    "memory": ["size_gb"],
+    "processors": ["cores", "threads"],
 }
 
 
@@ -79,6 +91,40 @@ class BaseDao:
             current_app.logger.error("SQL Commit Failed!  Rolling back...")
             current_app.logger.error(error.args)
             return False
+
+    @staticmethod
+    def apply_count_filter(query, model, parent_column, column_name, op, value, group_by_column, aggregation_func):
+        """
+        Applies a count-based filter to the query for a given column.
+
+        Args:
+            query: The SQLAlchemy query object.
+            model: The model being queried.
+            parent_column: The parent column to join on.
+            column_name: The name of the column to filter.
+            op: The operator for the HAVING clause.
+            value: The value to compare against.
+            aggregation_func: The aggregation function to use (e.g., func.count or func.sum).
+
+        Returns:
+            The modified query object.
+        """
+        if group_by_column:
+            raise Exception(f"Group by column not allowed for {column_name} count")
+
+        query = query.outerjoin(parent_column, parent_column.host_id == model.id).group_by(model.id)
+        if value:
+            operator_func = HAVING_OPERATORS.get(op)
+            if operator_func:
+                query = query.having(
+                    operator_func(
+                        aggregation_func(parent_column.id if column_name == "interfaces" else parent_column.count),
+                        value,
+                    )
+                )
+            else:
+                raise Exception(f"Invalid filter operator: {op}")
+        return query
 
     @classmethod
     def create_query_select(cls, model, filters=None, columns=None, group_by=None, order_by=None):
@@ -133,17 +179,12 @@ class BaseDao:
             if value == "null":
                 value = None
 
-            if column_name == "disks" and attrs[1] == "count":
-                if group_by_column:
-                    raise Exception("Group by column not allowed for disks count")
-
-                query = query.outerjoin(parent_column, parent_column.host_id == model.id).group_by(model.id)
-                if value:
-                    operator_func = HAVING_OPERATORS.get(op)
-                    if operator_func:
-                        query = query.having(operator_func(func.sum(column), value))
-                    else:
-                        raise Exception("Invalid filter operator: %s" % op)
+            # Check if the column name and attribute are valid for aggregation
+            if column_name in AGGREGATION_FUNCTIONS and attrs[1] in VALID_ATTRIBUTES.get(column_name, []):
+                aggregation_func = AGGREGATION_FUNCTIONS[column_name]
+                query = cls.apply_count_filter(
+                    query, model, parent_column, column_name, op, value, group_by_column, aggregation_func
+                )
             else:
                 query = query.filter(getattr(column, attr)(value))
 
