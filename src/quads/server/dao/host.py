@@ -113,9 +113,9 @@ class HostDao(BaseDao):
     @staticmethod
     def filter_hosts_dict(data: dict) -> List[Host]:
         filter_tuples = []
-        operator = "=="
         group_by = None
         for k, value in data.items():
+            operator = "=="
             fields = k.split(".")
             if len(fields) > 2:
                 raise InvalidArgument(f"Too many arguments: {fields}")
