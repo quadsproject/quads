@@ -113,9 +113,9 @@ class HostDao(BaseDao):
     @staticmethod
     def filter_hosts_dict(data: dict) -> List[Host]:
         filter_tuples = []
-        operator = "=="
         group_by = None
         for k, value in data.items():
+            operator = "=="
             fields = k.split(".")
             if len(fields) > 2:
                 raise InvalidArgument(f"Too many arguments: {fields}")
@@ -131,7 +131,7 @@ class HostDao(BaseDao):
                     first_field = field_name[: field_name.index(op)]
                 field_name = field_name[: field_name.index(op)]
 
-            if fields[0].lower() == "group_by":
+            if first_field.lower() == "group_by":
                 first_field = value
                 group_by = value
                 k = value
@@ -151,7 +151,7 @@ class HostDao(BaseDao):
                     if len(fields) > 1:
                         field_name = f"{first_field.lower()}.{field_name.lower()}"
 
-            if fields[0].lower() != "group_by":
+            if first_field.lower() != "group_by":
                 filter_tuples.append(
                     (
                         field_name,
