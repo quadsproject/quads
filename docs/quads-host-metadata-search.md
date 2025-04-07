@@ -104,7 +104,7 @@ quads --export-host-details /tmp/my_host_data.yml
 | disks.size_gb          |  integer   | disk size in GB              | ==,!=,<,<=,>,>= |
 | disks.disks_type       |  string    | nvme,sata,ssd                | ==,!=           |
 | disks.count            |  integer   | number of disks              | ==,!=,<,<=,>,>= |
-| interfaces__size       |  integer   | number of interfaces         | ==,!=,<,<=,>,>= |
+| interfaces.count       |  integer   | number of interfaces         | ==,!=,<,<=,>,>= |
 | interfaces.name        |  string    | name of interface            | ==,!=           |
 | interfaces.mac_address |  string    | mac address                  | ==,!=           |
 | interfaces.switch_port |  string    | switch port                  | ==,!=           |
