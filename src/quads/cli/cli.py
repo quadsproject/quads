@@ -179,7 +179,7 @@ class QuadsCli:
                             kwargs[key] = value
                     else:
                         if keys[0].strip().lower() == "model":
-                            if str(value).upper() not in conf["models"].split(","):
+                            if str(value).upper() not in conf["models"].upper().split(","):
                                 self.logger.warning(f"Accepted model names are: {conf['models']}")
                                 raise CliException("Model type not recognized.")
 

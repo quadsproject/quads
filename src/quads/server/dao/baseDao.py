@@ -25,6 +25,14 @@ OPERATORS = {
     "__ilike": "ilike",
     "__in": "in",
 }
+HAVING_OPERATORS = {
+    "==": lambda column, value: column == value,
+    "!=": lambda column, value: column != value,
+    ">": lambda column, value: column > value,
+    "<": lambda column, value: column < value,
+    ">=": lambda column, value: column >= value,
+    "<=": lambda column, value: column <= value,
+}
 MAP_HOST_META = {
     "interfaces": Interface,
     "disks": Disk,
@@ -97,6 +105,7 @@ class BaseDao:
                 raise Exception("Invalid filter: %s" % expression)
             if op not in FILTERING_OPERATORS:
                 raise Exception("Invalid filter operation: %s" % op)
+
             attrs = column_name.split(".")
             if len(attrs) > 1:
                 column_name = attrs[0]
@@ -107,26 +116,43 @@ class BaseDao:
                 column = getattr(model, column_name, None)
             if not column:
                 raise Exception("Invalid filter column: %s" % column_name)
+
+            try:
+                attr = (
+                    list(
+                        filter(
+                            lambda e: hasattr(column, e % FILTERING_OPERATORS[op]),
+                            ["%s", "%s_", "__%s__"],
+                        )
+                    )[0]
+                    % FILTERING_OPERATORS[op]
+                )
+            except IndexError:  # pragma: no cover
+                raise Exception("Invalid filter operator: %s" % FILTERING_OPERATORS[op])
+
+            if value == "null":
+                value = None
+
+            if column_name == "disks" and attrs[1] == "count":
+                if group_by_column:
+                    raise Exception("Group by column not allowed for disks count")
+
+                query = query.outerjoin(parent_column, parent_column.host_id == model.id).group_by(model.id)
+                if value:
+                    operator_func = HAVING_OPERATORS.get(op)
+                    if operator_func:
+                        query = query.having(operator_func(func.sum(column), value))
+                    else:
+                        raise Exception("Invalid filter operator: %s" % op)
             else:
-                try:
-                    attr = (
-                        list(
-                            filter(
-                                lambda e: hasattr(column, e % FILTERING_OPERATORS[op]),
-                                ["%s", "%s_", "__%s__"],
-                            )
-                        )[0]
-                        % FILTERING_OPERATORS[op]
-                    )
-                except IndexError:  # pragma: no cover
-                    raise Exception("Invalid filter operator: %s" % FILTERING_OPERATORS[op])
-                if value == "null":
-                    value = None
                 query = query.filter(getattr(column, attr)(value))
+
         if group_by_column:
             query = query.group_by(group_by_column)
+
         if order_by is not None and not group_by:
             query = query.order_by(order_by)
+
         return query.all()
 
     @classmethod
