@@ -109,9 +109,9 @@ class HostDao(BaseDao):
     @staticmethod
     def filter_hosts_dict(data: dict) -> List[Host]:
         filter_tuples = []
-        operator = "=="
         group_by = None
         for k, value in data.items():
+            operator = "=="
             fields = k.split(".")
             if len(fields) > 2:
                 raise InvalidArgument(f"Too many arguments: {fields}")
@@ -139,7 +139,7 @@ class HostDao(BaseDao):
                     value = value.lower() in ["true", "y", 1, "yes"]
             except AttributeError:
                 if first_field in ["cloud", "default_cloud"]:
-                    cloud = CloudDao.get_cloud(value)
+                    cloud = CloudDao.get_cloud(value.lower())
                     if not cloud:
                         raise EntryNotFound(f"Cloud not found: {value}")
                     value = cloud
