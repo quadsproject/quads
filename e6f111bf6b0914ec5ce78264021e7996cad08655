@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ef9991bb_05b97efa",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-04-09T16:05:21Z",
+      "side": 1,
+      "message": "I would say we can remove this, and state instead that you can use any naming convention you want but this is what we use.\n\nI would mention too that you want CNAME for your out-of-band interfaces to be mgmt-$HOSTNAME if you don\u0027t use that convention for IPMI/OOB.",
+      "range": {
+        "startLine": 143,
+        "startChar": 2,
+        "endLine": 143,
+        "endChar": 54
+      },
+      "revId": "e6f111bf6b0914ec5ce78264021e7996cad08655",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
