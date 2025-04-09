@@ -143,10 +143,10 @@ set interfaces xe-0/0/1:3 apply-groups QinQ_vl1140
   * Create DNS records using the following name format (in Foreman a new host entry will work)
   * If you already have your own naming convention then CNAMES will work.
 ```
-(rack name)-h(u-location)-(system type)-(domain)
+(rack name)-(u-location)-(blade)-(system type)-(domain)
 ```
 ```
-b08-h13-r620.rdu.openstack.engineering.example.com
+b08-h13-000-r620.rdu.openstack.engineering.example.com
 ```
 
 * Optional PDU power management configuration

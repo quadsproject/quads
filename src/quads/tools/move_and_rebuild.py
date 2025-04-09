@@ -178,6 +178,9 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
         try:
             badfish = await badfish_factory(
                 "mgmt-%s" % host,
+                _host_obj.rack,
+                _host_obj.uloc,
+                _host_obj.blade,
                 Config["ipmi_username"],
                 Config["ipmi_password"],
                 propagate=True,
@@ -294,6 +297,9 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
             try:
                 badfish = await badfish_factory(
                     "mgmt-%s" % host,
+                    _host_obj.rack,
+                    _host_obj.uloc,
+                    _host_obj.blade,
                     Config["ipmi_username"],
                     Config["ipmi_password"],
                     propagate=True,

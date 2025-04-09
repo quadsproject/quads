@@ -107,34 +107,37 @@ class Validator(object):  # pragma: no cover
         build_hosts = await foreman.get_build_hosts()
 
         pending = []
-        for hostname in self.hosts:
-            if hostname in build_hosts:
-                pending.append(hostname)
+        for host in self.hosts:
+            if host.name in build_hosts:
+                pending.append(host.name)
 
         if pending:
             logger.info("The following hosts are marked for build and will now be rebooted:")
             self.report = self.report + "The following hosts are marked for build:\n"
-            for hostname in pending:
-                logger.info(hostname)
+            for host in pending:
+                logger.info(host.name)
                 try:
-                    nc = Netcat(hostname)
+                    nc = Netcat(host.name)
                     healthy = await nc.health_check()
                 except OSError:
                     healthy = False
                 if not healthy:
                     logger.warning(
                         "Host %s didn't pass the health check. "
-                        "Potential provisioning in process. SKIPPING." % hostname
+                        "Potential provisioning in process. SKIPPING." % host.name
                     )
                     continue
                 badfish = None
                 try:
                     badfish = await badfish_factory(
-                        "mgmt-" + hostname,
+                        "mgmt-" + host.name,
+                        host.rack,
+                        host.uloc,
+                        host.blade,
                         str(Config["ipmi_username"]),
                         str(Config["ipmi_password"]),
                     )
-                    if is_supported(hostname):
+                    if is_supported(host.name):
                         await badfish.boot_to_type(
                             "foreman",
                             "/opt/quads/conf/idrac_interfaces.yml",
@@ -146,13 +149,13 @@ class Validator(object):  # pragma: no cover
                     logger.debug(ಥ﹏ಥ)
                     if badfish:
                         logger.warning(
-                            f"There was something wrong trying to boot from Foreman interface for: {hostname}"
+                            f"There was something wrong trying to boot from Foreman interface for: {host.name}"
                         )
                         await badfish.reboot_server()
                     else:
-                        logger.error(f"Could not initiate Badfish instance for: {hostname}")
+                        logger.error(f"Could not initiate Badfish instance for: {host.name}")
 
-                self.report = self.report + "%s\n" % hostname
+                self.report = self.report + "%s\n" % host.name
             return False
 
         failed = False
@@ -166,6 +169,9 @@ class Validator(object):  # pragma: no cover
         try:
             await badfish_factory(
                 "mgmt-" + host.name,
+                host.rack,
+                host.uloc,
+                host.blade,
                 str(Config["ipmi_cloud_username"]),
                 password,
             )

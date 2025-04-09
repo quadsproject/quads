@@ -20,9 +20,11 @@ RETRIES = 15
 logger = logging.getLogger(__name__)
 
 
-async def badfish_factory(_host, _username, _password, loop=None, _retries=RETRIES, propagate=False):
+async def badfish_factory(
+    _host, _rack, _uloc, _blade, _username, _password, loop=None, _retries=RETRIES, propagate=False
+):
     logger.propagate = propagate
-    badfish = Badfish(_host, _username, _password, loop, _retries)
+    badfish = Badfish(_host, _rack, _uloc, _blade, _username, _password, loop, _retries)
     await badfish.init()
     return badfish
 
@@ -32,8 +34,11 @@ class BadfishException(Exception):
 
 
 class Badfish:
-    def __init__(self, _host, _username, _password, loop=None, _retries=RETRIES):
+    def __init__(self, _host, _rack, _uloc, _blade, _username, _password, loop=None, _retries=RETRIES):
         self.host = _host
+        self.rack = _rack
+        self.uloc = _uloc
+        self.blade = _blade
         self.username = _username
         self.password = _password
         self.retries = _retries

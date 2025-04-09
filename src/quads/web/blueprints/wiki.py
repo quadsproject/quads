@@ -187,7 +187,7 @@ async def rack(rack):
                 owner = assignment.owner if assignment else "QUADS"
                 host_details.append(
                     {
-                        "U": host_obj.name.split("-")[1][1:],
+                        "U": host_obj.rack[1:],
                         "ServerHostnamePublic": host_obj.name.split(".")[0],
                         "Serial": properties.get("svctag", ""),
                         "MAC": properties.get("mac", ""),
