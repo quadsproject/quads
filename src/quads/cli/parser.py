@@ -760,27 +760,27 @@ parser.add_argument(
     help="Modify notification of a cloud",
 )
 
-action_group.add_argument(
+parser.add_argument(
     "--rack",
-    dest="action",
-    action="store_const",
-    const="rack",
+    dest="rack",
+    type=str,
+    default=None,
     help="rack name of the host",
 )
 
-action_group.add_argument(
+parser.add_argument(
     "--blade",
-    dest="action",
-    action="store_const",
-    const="blade",
+    dest="blade",
+    type=str,
+    default=None,
     help="blade name of the host",
 )
 
-action_group.add_argument(
+parser.add_argument(
     "--uloc",
-    dest="action",
-    action="store_const",
-    const="uloc",
+    dest="uloc",
+    type=str,
+    default=None,
     help="U-location name of the host",
 )
 

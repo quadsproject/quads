@@ -190,6 +190,22 @@ def create_host() -> Response:
         }
         return make_response(jsonify(response), 400)
 
+    if not rack:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing argument: rack",
+        }
+        return make_response(jsonify(response), 400)
+
+    if not uloc:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing argument: uloc",
+        }
+        return make_response(jsonify(response), 400)
+
     _host = HostDao.get_host(hostname)
     if _host:
         response = {
