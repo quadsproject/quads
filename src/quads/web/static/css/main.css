@@ -192,7 +192,8 @@ main {
     /* Adjust form inputs (Bootstrap usually handles this well, but overrides can go here) */
     .form-control,
     .form-select,
-    .dtpick {
+    .dtpick,
+    .dt-input {
         background-color: #495057;
         border-color: #6c757d;
         color: #fff;
@@ -201,7 +202,8 @@ main {
         color: #adb5bd;
     }
     .form-control:focus,
-    .form-select:focus {
+    .form-select:focus,
+    .dt-input:focus {
         background-color: #495057;
         border-color: #86b7fe; /* Bootstrap focus color */
         color: #fff;
