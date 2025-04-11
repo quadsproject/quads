@@ -14,12 +14,23 @@
             </div>
         </div>
     </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Warning</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script>
+
         let rackRequest;
         $(document).ready(function() {
             function createLoadingIndicator() {
@@ -59,6 +70,11 @@
                 async: true,
                 success: function(data) {
                     console.log('Response data:', data);
+                    if (data.error) {
+                        $('#errorToast .toast-body').text("Error connecting to Foreman. Some data may be missing.");
+                        var toast = new bootstrap.Toast($('#errorToast'));
+                        toast.show();
+                    }
                     
                     // Update header row
                     const $thead = $table.find('thead').empty().append(
@@ -74,7 +90,7 @@
                     // Update table body
                     const $tbody = $table.find('tbody').empty();
                     
-                    if (!data || data.length === 0) {
+                    if (!data.host_details || data.host_details.length === 0) {
                         $tbody.append(
                             $('<tr>').append(
                                 $('<td>')
@@ -87,7 +103,7 @@
                     }
 
                     $tbody.append(
-                        data.map(host => 
+                        data.host_details.map(host => 
                             $('<tr>').append(
                                 headers.map(header => {
                                     if (header === "IPMIURL") {
@@ -115,6 +131,9 @@
                 },
                 error: function(xhr, status, error) {
                     console.error(`Error fetching data for rack ${rackId}:`, error);
+                    $('#errorToast .toast-body').text("Error fetching data for rack " + rackId + ": " + error);
+                    var toast = new bootstrap.Toast($('#errorToast'));
+                    toast.show();
                 }
             });
         };
