@@ -2,7 +2,7 @@ import re
 
 from datetime import datetime, time
 
-from flask import Blueprint, redirect, url_for, render_template, request, jsonify
+from flask import Blueprint, flash, redirect, url_for, render_template, request, jsonify
 
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
@@ -167,37 +167,41 @@ async def create_inventory():
 
 @wiki_bp.route("/rack/<rack>")
 async def rack(rack):
-    rack_hosts = await foreman.get_hosts_by_rack(rack)
+    hosts = quads.filter_available(data={"rack": rack})
     blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
     host_details = []
     assignments_cache = {}
-    for host, properties in rack_hosts.items():
-        if not blacklist.search(host) and properties.get("sp_name", False):
-            try:
-                host_obj = quads.get_host(host)
-            except (APIBadRequest, APIServerException):
-                continue
-            if host_obj and not host_obj.retired:
-                if assignments_cache.get(host_obj.cloud.name, False):
-                    assignment = assignments_cache[host_obj.cloud.name]
+    error_occurred = False
+
+    for host in hosts:
+        foreman_host = {}
+        response = await foreman.get_host(host.name)
+        if not response:
+            error_occurred = True
+        foreman_host = response.get(host.name, foreman_host)
+        if not blacklist.search(host.name):
+            if host and not host.retired:
+                if assignments_cache.get(host.cloud.name, False):
+                    assignment = assignments_cache[host.cloud.name]
                 else:
-                    assignment = quads.get_active_cloud_assignment(host_obj.cloud.name)
-                    assignments_cache[host_obj.cloud.name] = assignment
+                    assignment = quads.get_active_cloud_assignment(host.cloud.name)
+                    assignments_cache[host.cloud.name] = assignment
                 owner = assignment.owner if assignment else "QUADS"
                 host_details.append(
                     {
-                        "U": host_obj.rack[1:],
-                        "ServerHostnamePublic": host_obj.name.split(".")[0],
-                        "MAC": properties.get("mac", ""),
-                        "IP": properties.get("ip", ""),
-                        "IPMIADDR": properties.get("sp_ip", ""),
-                        "IPMIURL": host_obj.name,
-                        "IPMIMAC": properties.get("sp_mac", ""),
-                        "Workload": host_obj.cloud.name,
+                        "U": host.rack[1:],
+                        "ServerHostnamePublic": host.name.split(".")[0],
+                        "MAC": foreman_host.get("mac", ""),
+                        "IP": foreman_host.get("ip", ""),
+                        "IPMIADDR": foreman_host.get("sp_ip", ""),
+                        "IPMIURL": host.name,
+                        "IPMIMAC": foreman_host.get("sp_mac", ""),
+                        "Workload": host.cloud.name,
                         "Owner": owner,
                     }
                 )
-    return jsonify(host_details)
+
+    return jsonify({"host_details": host_details, "error": error_occurred})
 
 
 @wiki_bp.route("/vlans")
