@@ -86,7 +86,7 @@ class _Config(_ConfigBase):
     FPING_TIMEOUT = 10000
 
     QUADSVERSION = "2.2.0"
-    QUADSCODENAME = "bowie"
+    QUADSCODENAME = "maximillian"
 
     SUPPORTED = [
         "fc640",

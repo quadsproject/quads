@@ -379,19 +379,20 @@ systemctl restart quads-server
 You will need to do this when you introduce new system models into your fleet if they are new.
 
 ##### Define your QUADS Hosts
+> [!NOTE]
+> Before proceeding here please read [adding new QUADS hosts](/docs/switch-host-setup.md#adding-new-quads-host) in the environment setup documentation as it covers physically adding your systems and DNS (or CNAME) entries for your host IPMI interfaces.
+> Hosts should be defined and exist in Foreman first before adding them to QUADS.
 
-   - Define the hosts in the environment (Foreman Example)
-     - Note the ```--host-type``` parameter, this is a mandatory, free-form label that can be anything.  It will be used later for ```post-config``` automation and categorization.
-     - If you don't want systems to be reprovisioned when they move into a cloud environment append `--no-wipe` to the define command.
-     - We are excluding anything starting with mgmt- and including servers with the name r630.
-     - You can now optionally include rack, uloc and blade information too.
-     - Note that you **must define the model(s) of systems before you define them** in the previous step.
+> ![TIP]
+> The ```--host-type``` parameter is a mandatory, free-form label that can be anything that makes sense to you for organization.
 
-```bash
-for h in $(hammer host list --per-page 1000 | egrep -v "mgmt|c08-h30"| grep r630 | awk '{ print $3 }') ; do quads --define-host $h --default-cloud cloud01 --host-type general --model R630 --rack f01 --uloc h01 --blade b01; done
-```
+> ![NOTE]
+> You must include `--rack` and `--uloc` when defining hosts.
+> If you don't use traditional datacenter server racks and u-locations just use some description that makes sense for you.
+> The argument `--blade` is optional and only used for blade systems to identify a bladecenter member in a chassis.
+> You **must define the model(s) of systems before you define them** in the previous step.
 
-   - The command **without Foreman** would be simply:
+   - Define your QUADS hosts:
 
 ```bash
 quads --define-host --host <hostname> --default-cloud cloud01 --host-type general --model R630 --rack f01 --uloc h01 --blade b01
@@ -401,7 +402,7 @@ quads --define-host --host <hostname> --default-cloud cloud01 --host-type genera
 
    - Define the host interfaces, these are the internal interfaces you want QUADS to manage for VLAN automation
    - Do this for every interface you want QUADS to manage per host (we are working on auto-discovery of this step).
-   - The variable `default_pxe_interface` on the quads.yml will set the default value of `pxe_boot=True` for that interface while any other interface will have a default value of `False` unless specified via `--pxe-boot` or `--no-pxe-boot`. This can be later modified via `--mod-interface`.
+   - The variable `default_pxe_interface` in the `/opt/quads/conf/quads.yml` will set the default value of `pxe_boot=True` for that interface while any other interface will have a default value of `False` unless specified via `--pxe-boot` or `--no-pxe-boot`. This can be later modified via `--mod-interface`.
 
 ```bash
 quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:0 --interface-vendor "Intel" --interface-speed 1000 --host <hostname>

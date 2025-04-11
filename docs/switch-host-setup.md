@@ -26,7 +26,7 @@ General guidelines of how to setup your network switches, servers and DNS for QU
         * [Run Tool to Import VLANS into the Database](#run-tool-to-import-vlans-into-the-database)
 
 ## Network Architecture
-   - We use top-of-rack switches that connect up to two distribution switches (Juniper QFX5200 currently)
+   - We use top-of-rack switches that connect up to two distribution switches (Juniper QFX5200/QFX5130 currently)
    - Each TOR switch is uplinked to a pair of distribution (QFX5200 also) configured via MC-LAG
 
 ## Physical Switch Setup
@@ -140,19 +140,14 @@ set interfaces xe-0/0/1:3 apply-groups QinQ_vl1140
 ## Adding New QUADS Host
 * Rack the new systems to be added to QUADS
   * The provisioning interface is typically wired into a 1GbE NIC and connected to a switch **not** managed by QUADS.
-  * Create DNS records using the following name format (in Foreman a new host entry will work)
-  * If you already have your own naming convention then CNAMES will work.
+  * Starting in QUADS 2.2.x you do not need to adhere to our host naming conventions but you **must put in place DNS CNAMES** for your IPMI/OOB interfaces to be `mgmt-$your-server-name` because we still rely on that for the _console_ links in generated wiki and inventory.
+  * Below is the hostname convention we use internally:
 ```
 (rack name)-(u-location)-(blade)-(system type)-(domain)
 ```
 ```
-b08-h13-000-r620.rdu.openstack.engineering.example.com
+b08-h13-000-r620.rdu.scalelab.example.com
 ```
-
-* Optional PDU power management configuration
-  * ~~Once the host is added, and if you have pdu_management enabled, you will also want to ensure you have your host PDU connections mapped out.  For more information on how to setup the PDU-connections.txt file please refer to [docs/pdu-setup.md](https://github.com/redhat-performance/quads/docs/pdu-setup.md)~~
-
-  * **NOTE** As of `1.1.0` PDU management is currently unavailable but will be added back in soon.
 
 ### Sending Notification Emails from a Container
    * If you want to send email from QUADS containers (and not the localhost MTA) you will need changes to the localhost MTA of the host running your podman container to facilitate relaying mail through it, as cgroup and container isolation do not permit this without additional settings.
@@ -180,7 +175,11 @@ inet_interfaces = all
 
 ### Integration into Foreman or a Provisioning System
    * We will not be covering setting up [Foreman](https://theforeman.org) however that is documented [extensively here](https://theforeman.org/manuals/nightly/#3.InstallingForeman).
-   * We do provide some [example templates](https://github.com/redhat-performance/quads/tree/master/templates) for post-provisioning creation of system interface config files like ```/etc/sysconfig/network-scripts/ifcfg-*``` for use with QUADs.
+
+> [!IMPORTANT]
+> QUADS requires that each QUADS-managed internal host interface fits a certain 172.x.x IP addressing scheme for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
+> This requires Foreman templates suited to the models of your fleet systems
+   * We provide some [example templates](/templates) for post-provisioning creation of system interface configs as an example, you'll need to tune and test this to accomodate for your own infrastructure.
 
 #### Foreman Tuning
    * Because we use `asyncio` and make direct calls to the Foreman API you may want to adjust your `MaxKeepAliveRequests` in your Apache configuration for `mod_passenger` to accomodate more simultaneous connections.
