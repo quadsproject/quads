@@ -2,6 +2,7 @@ alembic>=1.10.3
 aiohttp>=3.9.5
 decorator>=5.1.1
 Flask==2.2.5
+Flask[async]==2.2.5
 Flask-Cors>=3.0.10
 Flask-HTTPAuth==3.2.3
 Flask-Login>=0.6.2
