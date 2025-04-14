@@ -234,7 +234,7 @@ find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
 
-* Tue Apr 08 2024 Will Foster <wfoster@redhat.com>
+* Tue Apr 08 2025 Will Foster <wfoster@redhat.com>
 - 2.2.0 Beta release
 - self-scheduling feature
 - GPU hardware filtering
