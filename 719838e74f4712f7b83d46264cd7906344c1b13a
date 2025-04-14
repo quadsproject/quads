@@ -22,6 +22,30 @@
       },
       "revId": "719838e74f4712f7b83d46264cd7906344c1b13a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13fe902b_fa64135f",
+        "filename": "quads/api_v2.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-04-14T14:01:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f06e30fc_40b2e5a2",
+      "range": {
+        "startLine": 337,
+        "startChar": 12,
+        "endLine": 337,
+        "endChar": 32
+      },
+      "revId": "719838e74f4712f7b83d46264cd7906344c1b13a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ],
   "submitRequirementResults": []
