@@ -167,7 +167,7 @@ async def create_inventory():
 
 @wiki_bp.route("/rack/<rack>")
 async def rack(rack):
-    hosts = quads.filter_available(data={"rack": rack})
+    hosts = quads.filter_hosts(data={"rack": rack})
     blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
     host_details = []
     assignments_cache = {}
