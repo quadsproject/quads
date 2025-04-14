@@ -1269,8 +1269,8 @@ quads --cloud-only --cloud cloud13 --filter "model==FC640"
 
 #### Find Available Web Interface
 
-* We now have a Flask-based `--ls-available` web interface available on `quadshost`.
-* This is provided via the `quads-web` systemd service.
+* We have a Flask-based `--ls-available` web interface available on `quadshost`.
+* This is provided via `quads-web`.
 * You will need to seed the `models` data for your systems using the new [host metadata feature](/docs/quads-host-metadata-search.md)
 
 ![quads-available-web](/image/quads-available-web.png)
