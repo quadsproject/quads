@@ -135,7 +135,7 @@ set interfaces xe-0/0/1:3 apply-groups QinQ_vl1140
 ```
 
 ## QUADS Host Network Setup
-*  QUADS host interface information is now kept in the QUADS database, you can define this afterward at the time of defining your QUADS-managed host.  Refer to the host interface section of the [QUADS Usage Documentation](https://github.com/redhat-performance/quads/tree/master#quads-usage-documentation) after following the rest of this document.
+*  QUADS host interface information is now kept in the QUADS database, you can define this afterward at the time of defining your QUADS-managed host.  Refer to the host interface section of the [QUADS Usage Documentation](https://github.com/redhat-performance/quads/tree/latest#quads-usage-documentation) after following the rest of this document.
 
 ## Adding New QUADS Host
 * Rack the new systems to be added to QUADS
@@ -177,7 +177,7 @@ inet_interfaces = all
    * We will not be covering setting up [Foreman](https://theforeman.org) however that is documented [extensively here](https://theforeman.org/manuals/nightly/#3.InstallingForeman).
 
 > [!IMPORTANT]
-> QUADS requires that each QUADS-managed internal host interface fits a certain 172.x.x IP addressing scheme for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
+> QUADS requires that each QUADS-managed internal host interface fits [a certain 172.x.x IP addressing scheme](https://github.com/redhat-performance/quads/blob/latest/src/quads/config.py#L122) for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
 > This requires Foreman templates suited to the models of your fleet systems
    * We provide some [example templates](/templates) for post-provisioning creation of system interface configs as an example, you'll need to tune and test this to accomodate for your own infrastructure.
 
@@ -248,7 +248,10 @@ for clouduser in $(seq 10 32); do hammer user-group add-user --name cloudusers -
 
 ![clouduser_rbac3](../image/cloud_rbac3.png?raw=true)
 
-   * In order for non-admin environment users (e.g. cloud02, cloud03) to see only their hosts the hosts simply need to have their ownership changed to that respective cloud user. [foreman_heal.py](https://github.com/redhat-performance/quads/blob/master/quads/tools/foreman_heal.py) will take care of this for you, we typically run this every 3 hours outside of [cron](https://github.com/redhat-performance/quads/blob/master/cron/quads#L45).  This will both setup system ownership as well as fix inconsistencies if they exist when run.
+   * In order for non-admin environment users (e.g. cloud02, cloud03) to see only their hosts the hosts simply need to have their ownership changed to that respective cloud user. [foreman_heal.py](https://github.com/redhat-performance/quads/blob/latest/src/quads/tools/foreman_heal.py) will take care of this for you, we typically run this every 3 hours outside of [cron](https://github.com/redhat-performance/quads/blob/latest/cron).  This will both setup system ownership as well as fix inconsistencies if they exist when run.
+
+> [!NOTE]
+> `foreman_heal.py` is called automatically when new assignments go out or when QUADS moves systems.
 
    * If you'd prefer to manage this yourself with `hammer cli` then we're just running the equivalent of `hammer host update --name host01.example.com --owner newcloudusername`
 
@@ -264,7 +267,7 @@ for clouduser in $(seq 10 32); do hammer user-group add-user --name cloudusers -
    * Refer to your vendor out-of-band documentation for other system types if you want to add ssh keys.
 
 #### Create QUADS IPMI Credentials
-   * IPMI credentials are defined in [the QUADS configuration file](https://github.com/redhat-performance/quads/blob/master/conf/quads.yml#L138) so adjust accordingly to your environment and preference.
+   * IPMI credentials are defined in [the QUADS configuration file](https://github.com/redhat-performance/quads/blob/latest/conf/quads.yml#L113) so adjust accordingly to your environment and preference.
    * Note: SuperMicro systems (and perhaps other vendors) do not have the `root` user by default, if not you'll need to create it.
    * Check if the `root` user exists first, Dell systems come with a `root` user by default so this step can be omitted.
 

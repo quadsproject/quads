@@ -151,6 +151,10 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/quads/conf/idrac_interfaces.yml
 %config(noreplace) /etc/logrotate.d/logrotate_quads.conf
 %config(noreplace) /etc/postfix/postfix-files.d/quads.cf
+%config(noreplace) %{python3_sitelib}/quads/templates/message
+%config(noreplace) %{python3_sitelib}/quads/templates/initial_message
+%config(noreplace) %{python3_sitelib}/quads/templates/future_initial_message
+%config(noreplace) %{python3_sitelib}/quads/templates/future_message
 
 %{python3_sitelib}/quads/
 %{python3_sitelib}/quads-*.egg-info/
