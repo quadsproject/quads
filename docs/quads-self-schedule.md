@@ -27,27 +27,29 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
 
 ## Via REST API
 
+* In this example we're using the following values
+
+| Email           | Username  | Password   | QUADS Server      |
+|-----------------|-----------|------------|-------------------|
+| joe@example.com | joe       | make one up| quads.example.com |
+
 ### Register via REST
 
 ```bash
-curl -k
-  -X POST
-  -H "Content-Type: application/json"
-  -d '{"email": "${EMAIL}", "password": "${PASSWORD}"}'
-  http://quads.example.com/api/v3/register
+curl -s -k \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"email": "joe@example.com", "password": "a_password_here"}' \
+  https://quads.example.com/api/v3/register
 ```
 
 ### Login via REST
 
 ```bash
-export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<<
-  $(curl -k
-    -X POST
-    -u "${EMAIL}:${PASSWORD}"
-    -H "Content-Type: application/json"
-    http://quads.example.com/api/v3/login/ |
-    awk -F\: '{print $2}' |
-    awk -F\, '{print $1}'
+export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<< $(curl -s -k -X POST \
+    -u "joe@example.com:a_password_here" \
+    -H "Content-Type: application/json" \
+    https://quads.example.com/api/v3/login/ | awk -F\: '{print $2}' | awk -F\, '{print $1}'
   )
 )
 ```
@@ -55,63 +57,69 @@ export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<<
 ### Get available hosts via REST
 
 ```bash
-curl https://quads.example.com/api/v3/available\?can_self_schedule\=true
+curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ```
   > [!TIP]
   > Additional HW [filtering](https://github.com/redhat-performance/quads/blob/latest/docs/quads-host-metadata-search.md#example-hardware-filter-searches) is available via the `filter` parameter.
 
 ### Create an assignment via REST
 
-```bash
-curl -k
-  -X POST
-  -H "Authorization: Bearer $TOKEN"
-  -H "Content-Type: application/json"
-  -d '{"description": "Short description here", "owner": "${EMAIL}", "qinq": 1, "vlan": "620", "wipe": "true"}'
-  http://quads.example.com/api/v3/assignments/self
-```
+> [!NOTE]
+> The `owner` field is the username as it is on the email address but without the domain part.
+> Passing no cloud will auto select the first available one.
+> A JIRA ticket is created automatically if none is provided and if the service is enabled.
+> There are other options as well like if your lab supports it like `"vlan": > "620",` for an optional, routable VLAN.
 
-  > [!NOTE]
-  > The `owner` field is the username as it is on the email address but without the domain part.
-  > Passing no cloud will auto select the first available one.
-  > A JIRA ticket is created automatically if none is provided and if the service is enabled.
+```bash
+curl -s -k \
+  -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Short description here", "owner": "joe", "qinq": 0, "wipe": "true"}' \
+  http://quads.example.com/api/v3/assignments/self | jq
+```
 
 ### Schedule a host via REST
 
+> [!NOTE]
+> Use the cloud name that was used in the assignment creation or returned in the assignment creation response.
+> `"name": "cloud02"`
+> Start and end dates are not required.
+> Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/redhat-performance/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
+
+> [!NOTE]]
+> Replace `host01.example.com` with any desired free host from your previous available query
+
 ```bash
-curl -k
-  -X POST
-  -H "Authorization: Bearer $TOKEN"
-  -H "Content-Type: application/json"
-  -d '{"cloud":"cloud02", "hostname": "host1.example.com"}' http://quads.example.com/api/v3/schedules
+curl -s -k \
+  -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"cloud":"cloud02", "hostname": "host1.example.com"}' http://quads.example.com/api/v3/schedules | jq
 ```
 
-  > [!NOTE]
-  > Use the cloud name that was used in the assignment creation or returned in the assignment creation response.
-  > Start and end dates are not required.
-  > Start date is now and end date is 3 days from now.
+> [!TIP]
+> To add more than one host to your assignment run the schedule command for as many other hosts as you need.
+> This is managed by the `ssm_host_limit` setting in `/opt/quads/conf/selfservice.yml`
 
 ### Wait for validation via REST
 
-```bash
-curl http://quads.example.com/api/v3/assignments/{assignment_id} | jq | grep validated
-```
+> [!NOTE]
+> The `assignment id` is the one returned in the assignment creation response e.g. `"assignment_id": 111,`
+> You can poll this endpoint every so often until the assignment is validated.
 
-  > [!NOTE]
-  > The assignment id is the one returned in the assignment creation response.
-  > You can pull this endpoint every so often until the assignment is validated.
+```bash
+curl -s http://quads.example.com/api/v3/assignments/assignment_id | jq | grep validated
+```
 
 ### Terminate assignment via REST
 
 ```bash
-curl -k
-  -X POST
-  -H "Authorization: Bearer $TOKEN"
-  http://quads.example.com/api/v3/assignments/terminate/{assignment_id}
+curl -s -k \
+  -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  https://quads.example.com/api/v3/assignments/terminate/assignment_id | jq
 ```
-
-  > [!NOTE]
-  > The assignment id is the one returned in the assignment creation response.
 
 ## Via python-quads-lib
 
@@ -131,8 +139,8 @@ quads = QuadsApi(username, password, base_url)
 quads.login()
 ```
 
-  > [!NOTE]
-  > If using the quads-lib with the context manager, you don't need to call the login method and the logout method will be called automatically when the context manager is exited.
+> [!NOTE]
+> If using the [quads-lib](https://python-quads-lib.readthedocs.io/en/latest/usage.html) with the context manager, you don't need to call the login method and the logout method will be called automatically when the context manager exits.
 
 ### Get available hosts via Python
 ```python
@@ -150,11 +158,10 @@ from quads_lib import QuadsApi
 
 description = "Short description here"
 owner = "user"
-qinq = 1
-vlan = "620"
+qinq = 0
 wipe = True
 payload = {
-  "description": description, "owner": owner, "qinq": qinq, "vlan": vlan, "wipe": wipe}
+  "description": description, "owner": owner, "qinq": qinq, "wipe": wipe}
 
 with QuadsApi(username, password, base_url) as quads:
     assignment = quads.create_assignment(payload)
