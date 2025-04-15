@@ -222,7 +222,7 @@ quads --ls-hosts --filter "processors.product==TU104GL [Tesla T4]"
   * Via the API
 
 ```
-curl 'https://quads.example.com/api/v3/hosts?processors.product=TU104GL%20\[Tesla%20T4\] | jq'
+curl 'https://quads.example.com/api/v3/hosts?processors.product=TU104GL%20\[Tesla%20T4\]' | jq
 ```
 
 #### Example Network Filter Searches
