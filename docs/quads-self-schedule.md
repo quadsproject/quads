@@ -68,7 +68,7 @@ curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 > The `owner` field is the username as it is on the email address but without the domain part.
 > Passing no cloud will auto select the first available one.
 > A JIRA ticket is created automatically if none is provided and if the service is enabled.
-> There are other options as well like if your lab supports it like `"vlan": > "620",` for an optional, routable VLAN.
+> There are other options as well like if your lab supports it like `"vlan": "620",` for an optional, routable VLAN.
 
 ```bash
 curl -s -k \
