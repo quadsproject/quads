@@ -15,6 +15,7 @@ In QUADS `1.1.4` and above we've implemented a metadata model in the QUADS datab
   * [Querying Host Information](#querying-host-information)
      * [Example Filter Searches](#example-filter-searches)
         * [Example Hardware Filter Searches](#example-hardware-filter-searches)
+        * [Example GPU Filter Searches](#example-gpu-filter-searches)
         * [Example Network Filter Searches](#example-network-filter-searches)
            * [Combined Network Search Example](#combined-network-search-example)
    * [Querying Host Status](#querying-host-status)
@@ -121,8 +122,8 @@ quads --export-host-details /tmp/my_host_data.yml
 | memory.handle          |  string    | DIMM details                 | ==,!=           |
 | memory.size_gb         |  integer   | amount of system memory      | ==,!=,<,<=,>,>= |
 | processors.handle      |  string    | CPU details                  | ==,!=           |
-| processors.vendor      |  string    | CPU vendor information       | ==,!=           |
-| processors.product     |  string    | CPU model information        | ==,!=           |
+| processors.vendor      |  string    | CPU/GPU vendor information   | ==,!=           |
+| processors.product     |  string    | CPU/GPU model information    | ==,!=           |
 | processors.cores       |  integer   | CPU cores in the system      | ==,!=,<,<=,>,>= |
 | processors.threads     |  integer   | CPU threads in the system    | ==,!=,<,<=,>,>= |
 
@@ -197,6 +198,31 @@ quads --ls-hosts --filter "model==FC640,interfaces__size==5"
 
 ```
 curl https://quads.example.com/api/v3/hosts?model=FC640&interfaces__size=5
+```
+
+#### Example GPU Filter Searches
+  * List all systems with an Nvidia GPU
+
+```
+quads --ls-hosts --filter "processors.vendor==NVIDIA Corporation"
+```
+
+  * Via the API
+
+```
+curl https://quads.example.com/api/v3/hosts?processors.vendor=NVIDIA%20Corporation | jq
+```
+
+  * List all systems with an Nvidia Tesla T4 GPU
+
+```
+quads --ls-hosts --filter "processors.product==TU104GL [Tesla T4]"
+```
+
+  * Via the API
+
+```
+curl 'https://quads.example.com/api/v3/hosts?processors.product=TU104GL%20\[Tesla%20T4\] | jq'
 ```
 
 #### Example Network Filter Searches
