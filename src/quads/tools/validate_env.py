@@ -109,7 +109,7 @@ class Validator(object):  # pragma: no cover
         pending = []
         for host in self.hosts:
             if host.name in build_hosts:
-                pending.append(host.name)
+                pending.append(host)
 
         if pending:
             logger.info("The following hosts are marked for build and will now be rebooted:")
