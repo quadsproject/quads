@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e39021f_f0d3ca32",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-04-15T07:29:29Z",
+      "side": 1,
+      "message": "self-approving version bump for architecture diagram",
+      "revId": "c2bd4f0ae0a97c2e5a06b0421a7813cbbd40d3bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
