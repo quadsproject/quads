@@ -89,6 +89,7 @@ class Validator(object):  # pragma: no cover
         return False
 
     async def post_system_test(self):
+        logger.debug("Starting system test")
         password = f"{Config['infra_location']}@{self.assignment.ticket}"
         foreman = Foreman(
             Config["foreman_api_url"],
@@ -100,8 +101,8 @@ class Validator(object):  # pragma: no cover
         if not valid_creds:
             logger.error("Unable to query Foreman for cloud: %s" % self.cloud)
             logger.error("Verify Foreman password is correct: %s" % password)
-            self.report = self.report + "Unable to query Foreman for cloud: %s\n" % self.cloud
-            self.report = self.report + "Verify Foreman password is correct: %s\n" % password
+            self.report += f"Unable to query Foreman for cloud: {self.cloud}\n"
+            self.report += f"Verify Foreman password is correct: {password}\n"
             return False
 
         build_hosts = await foreman.get_build_hosts()
@@ -113,7 +114,7 @@ class Validator(object):  # pragma: no cover
 
         if pending:
             logger.info("The following hosts are marked for build and will now be rebooted:")
-            self.report = self.report + "The following hosts are marked for build:\n"
+            self.report += "The following hosts are marked for build:\n"
             for host in pending:
                 logger.info(host.name)
                 try:
@@ -155,17 +156,17 @@ class Validator(object):  # pragma: no cover
                     else:
                         logger.error(f"Could not initiate Badfish instance for: {host.name}")
 
-                self.report = self.report + "%s\n" % host.name
+                self.report += f"{host.name}\n"
             return False
 
-        failed = False
-        for host in self.hosts:
-            failed = await self.verify_badfish_creds(host, password)
+        tasks = [self.verify_badfish_creds(host, password) for host in self.hosts]
+        results = await asyncio.gather(*tasks)
 
-        return not failed
+        return not any(results)
 
     @staticmethod
     async def verify_badfish_creds(host, password):
+        logger.debug(f"Verifying badfish credentials for: {host.name}")
         try:
             await badfish_factory(
                 "mgmt-" + host.name,
@@ -181,6 +182,7 @@ class Validator(object):  # pragma: no cover
         return False
 
     async def post_network_test(self):
+        logger.debug("Starting network test")
         test_host = self.hosts[0]
         hosts_down = []
         switch_config_missing = []
