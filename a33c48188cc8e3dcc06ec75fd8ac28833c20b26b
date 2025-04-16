@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "131600ac_2a0c0740",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-04-16T16:11:52Z",
+      "side": 1,
+      "message": "with the same schedule dates",
+      "range": {
+        "startLine": 184,
+        "startChar": 20,
+        "endLine": 184,
+        "endChar": 43
+      },
+      "revId": "a33c48188cc8e3dcc06ec75fd8ac28833c20b26b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b603f08_378e863b",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-04-16T16:11:52Z",
+      "side": 1,
+      "message": "I don\u0027t entirely agree with this statement, if you look at it from the DB perspective, it\u0027s not the host that stores the history of all the clouds but the historical schedule entries which have the refence to the host",
+      "revId": "a33c48188cc8e3dcc06ec75fd8ac28833c20b26b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
