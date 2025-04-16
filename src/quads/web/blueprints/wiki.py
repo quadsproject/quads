@@ -162,7 +162,15 @@ async def create_inventory():
         "Workload",
         "Owner",
     ]
-    return render_template("wiki/inventory.html", headers=headers, racks=Config["racks"])
+    try:
+        racks = quads.get_host_racks()
+        if not racks:
+            flash("No racks found in the database.", "error")
+            return redirect(url_for("wiki.index"))
+    except (APIBadRequest, APIServerException):
+        flash("Failed to retrieve racks from the database.", "error")
+        return redirect(url_for("wiki.index"))
+    return render_template("wiki/inventory.html", headers=headers, racks=" ".join(racks.keys()))
 
 
 @wiki_bp.route("/rack/<rack>")
