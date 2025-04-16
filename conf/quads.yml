@@ -92,10 +92,6 @@ foreman_rbac_exclude:
 # want to pull into the wiki. (this is a regexp, e.g. 'host1|host2')
 exclude_hosts: cyclades|s4810|z9000|5548|foreman|c08-h30-r630|c08-h05-r930|b08-|e05-h25|zfs01
 
-# Foreman naming convention is <rack>-<u-location>-<type>
-# e.g. c01-h23-r620 is an r620 type host in rack c01 at u-location 23
-racks: b09 b10 c01 c02 c03 c04 c05 c06 c07 c08 c09 c10
-
 # this is where we place the generated instackenv.json files
 # directory needs to be readable by the nginx user
 json_web_path: /opt/quads/web/instack

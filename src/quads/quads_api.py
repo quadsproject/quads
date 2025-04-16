@@ -110,6 +110,10 @@ class QuadsApi(QuadsBase):
         response = self.get("hosts?group_by=model")
         return response.json()
 
+    def get_host_racks(self, retired: bool = False, broken: bool = False):
+        response = self.get(f"hosts?retired={retired}&broken={broken}&group_by=rack")
+        return response.json()
+
     def filter_hosts(self, data) -> List[Host]:
         url_params = url_parse.urlencode(data)
         response = self.get(f"hosts?{url_params}")
