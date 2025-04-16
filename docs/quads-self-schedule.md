@@ -141,7 +141,7 @@ curl -s -k \
 from quads_lib import QuadsApi
 username = "joe@example.com"
 password = "a_new_password"
-base_url = "https://quads.example.com/api/v3/
+base_url = "https://quads.example.com/api/v3/"
 quads = QuadsApi(username, password, base_url)
 quads.register()
 ```
