@@ -16,6 +16,7 @@ In QUADS `1.1.4` and above we've implemented a metadata model in the QUADS datab
      * [Example Filter Searches](#example-filter-searches)
         * [Example Hardware Filter Searches](#example-hardware-filter-searches)
         * [Example GPU Filter Searches](#example-gpu-filter-searches)
+        * [Example Self Service Searches](#example-self-service-searches)
         * [Example Network Filter Searches](#example-network-filter-searches)
            * [Combined Network Search Example](#combined-network-search-example)
    * [Querying Host Status](#querying-host-status)
@@ -118,6 +119,7 @@ quads --export-host-details /tmp/my_host_data.yml
 | validated              |  boolean   | validated status             | ==,!=           |
 | broken                 |  boolean   | broken status                | ==,!=           |
 | retired                |  boolean   | retired status               | ==,!=           |
+| can_self_schedule      |  boolean   | query self-service capable   | ==,!=           |
 | switch_config_applied  |  boolean   | host switch config status    | ==,!=           |
 | memory.handle          |  string    | DIMM details                 | ==,!=           |
 | memory.size_gb         |  integer   | amount of system memory      | ==,!=,<,<=,>,>= |
@@ -223,6 +225,31 @@ quads --ls-hosts --filter "processors.product==TU104GL [Tesla T4]"
 
 ```
 curl 'https://quads.example.com/api/v3/hosts?processors.product=TU104GL%20\[Tesla%20T4\]' | jq
+```
+#### Example Self Service Searches
+
+  * Query the self-service / self-scheduling capability of hosts
+
+```
+quads --ls-hosts --filter "can_self_schedule==true"
+```
+
+  * Via the API
+
+```
+curl -s http://quads.example.com/api/v3/hosts?can_self_schedule\=true | jq .[].name
+```
+
+  * Query self-service / self-scheduling hosts that are **available now.**
+
+```
+quads --ls-available --filter "can_self_schedule==true"
+```
+
+  * Via the API
+
+```
+curl -s http://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ```
 
 #### Example Network Filter Searches
