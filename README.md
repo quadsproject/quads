@@ -155,10 +155,10 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 
 ### What is a Cloud
 * A `cloud` is a defined static environment / slot where workloads run in an isolated multi-tenant context.
-   - defined ahead of time and corresponds to a set of unique L2 VLANs
-   - re-defined and re-purposed for future workloads via metadata e.g. `--description` `--cloud-owner` `--cloud-ticket` etc.
-   - a cloud can only have one current _active_ `assignment` associated with it.
-   - QUADS moves sets of hosts into or out of clouds depending on their schedule by modifying their VLAN memberships.
+* Clouds are [defined ahead of time](/docs/switch-host-setup.md#greenfield-tor-switch-configuration) and correspond to sets of unique L2 VLANs
+* They are re-defined and re-purposed for future workloads via metadata e.g. `--description` `--cloud-owner` `--cloud-ticket` etc.
+* A cloud can only have one current _active_ `assignment` associated with it.
+* QUADS moves sets of hosts into or out of clouds depending on their schedule by modifying their VLAN memberships.
 
 ### What is an Assignment
 * An `assignment` is any past, present or future workload running in an cloud.
@@ -1315,7 +1315,7 @@ quads --cloud-only --cloud cloud13 --filter "model==FC640"
 #### Find Available Web Interface
 
 * We have a Flask-based `--ls-available` web interface available on `quadshost`.
-* This is provided via the `quads-web` systemd service.
+* This is provided via `quads-web`.
 * You will need to seed the `models` data for your systems using the new [host metadata feature](/docs/quads-host-metadata-search.md)
 
 ![quads-available-web](/image/quads-available-web.png)
