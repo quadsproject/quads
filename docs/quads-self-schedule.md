@@ -66,8 +66,11 @@ curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 
 > [!NOTE]
 > The `owner` field is the username as it is on the email address but without the domain part.
+>
 > Passing no cloud will auto select the first available one.
+>
 > A JIRA ticket is created automatically if none is provided and if the service is enabled.
+>
 > There are other options as well like if your lab supports it like `"vlan": "620",` for an optional, routable VLAN.
 
 ```bash
@@ -83,8 +86,11 @@ curl -s -k \
 
 > [!NOTE]
 > Use the cloud name that was used in the assignment creation or returned in the assignment creation response.
+>
 > `"name": "cloud02"`
+>
 > Start and end dates are not required.
+>
 > Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/redhat-performance/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
 
 > [!NOTE]]
@@ -100,12 +106,14 @@ curl -s -k \
 
 > [!TIP]
 > To add more than one host to your assignment run the schedule command for as many other hosts as you need.
+>
 > This is managed by the `ssm_host_limit` setting in `/opt/quads/conf/selfservice.yml`
 
 ### Wait for validation via REST
 
 > [!NOTE]
 > The `assignment id` is the one returned in the assignment creation response e.g. `"assignment_id": 111,`
+>
 > You can poll this endpoint every so often until the assignment is validated.
 
 ```bash
@@ -125,9 +133,15 @@ curl -s -k \
 
 * Requires the [python-quads-lib](https://python-quads-lib.readthedocs.io/en/stable/readme.html#installation) library.
 
+> [!IMPORTANT]
+> For `base_url` use the full FQDN and API url: e.g. `https://quads.example.com/api/v3/`
+
 ### Register via Python
 ```python
 from quads_lib import QuadsApi
+username = "joe@example.com"
+password = "a_new_password"
+base_url = "https://quads.example.com/api/v3/
 quads = QuadsApi(username, password, base_url)
 quads.register()
 ```
