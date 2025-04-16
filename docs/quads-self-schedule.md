@@ -93,7 +93,7 @@ curl -s -k \
 >
 > Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/redhat-performance/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
 
-> [!NOTE]]
+> [!NOTE]
 > Replace `host01.example.com` with any desired free host from your previous available query
 
 ```bash
