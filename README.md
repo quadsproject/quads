@@ -14,6 +14,10 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
       * [What does it do?](#what-does-it-do)
       * [Design](#design)
       * [Requirements](#requirements)
+      * [QUADS Terminology](#quads-terminology)
+         * [What is a Cloud](#what-is-a-cloud)
+         * [What is an Assignment](#what-is-an-assignment)
+         * [What is a Schedule](#what-is-a-schedule)
       * [Deployment Scale Limits](#deployment-scale-limits)
       * [Setup Overview](#setup-overview)
       * [QUADS Workflow](#quads-workflow)
@@ -146,6 +150,48 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
    - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
    - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.  Most enterprise server vendors come standard with IPMI interfaces and the [Redfish API](https://en.wikipedia.org/wiki/Redfish_(specification)).
+
+## QUADS Terminology
+
+### What is a Cloud
+* A `cloud` is a defined static environment / slot where workloads run in an isolated multi-tenant context.
+   - defined ahead of time and corresponds to a set of unique L2 VLANs
+   - re-defined and re-purposed for future workloads via metadata e.g. `--description` `--cloud-owner` `--cloud-ticket` etc.
+   - a cloud can only have one current _active_ `assignment` associated with it.
+   - QUADS moves sets of hosts into or out of clouds depending on their schedule by modifying their VLAN memberships.
+
+### What is an Assignment
+* An `assignment` is any past, present or future workload running in an cloud.
+* Each assignment has a unique id.
+* There is no limit to the amount of past or future assignments a cloud can have but there can only be one _active_ assignment per cloud.
+
+```
+quads=# select * from assignments where id = 57;
+ id | active | provisioned | validated |     description      |  owner   | ticket | qinq | wipe |
+                   ccuser                                                                     | cloud_id | vlan_id |        created_at         | is
+_self_schedule | ostype
+----+--------+-------------+-----------+----------------------+----------+--------+------+------+--------------------------------------------------
+----------------------------------------------------------------------------------------------+----------+---------+---------------------------+---
+---------------+--------
+ 57 | t      | t           | t         | CNV OCP Desched Perf | lguoqing | 3848   |    0 | t    | \x8005953b000000000000008c1673716c616c6368656d792
+e6578742e6d757461626c65948c0b4d757461626c654c6973749493945d948c07736862657272799461859452942e |       18 |         | 2024-10-15 09:02:54.11267 | f
+               |
+(1 row)
+```
+
+### What is a Schedule
+* A `schedule` is host-level metadata for each QUADS-managed host that tells it what `cloud` it is part of, where it should move to or from if needed and when.
+* A host schedule is referenced by a unique `schedule-id`.
+* One to many hosts with the same schedule date(s) comprise a QUADS environment or workload in a cloud, referenced by an `assignment`.
+
+```
+# quads --ls-schedule --host e33-h03-000-r650.example.com
+Default cloud: cloud01
+Current cloud: cloud04
+Current schedule: 3181
+1844| start=2024-05-26T22:00, end=2024-11-10T22:00, cloud=cloud27
+3181| start=2024-12-04T17:00, end=2025-05-04T22:00, cloud=cloud04
+```
 
 ## Deployment Scale Limits
 
