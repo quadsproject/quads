@@ -118,6 +118,7 @@ quads --export-host-details /tmp/my_host_data.yml
 | validated              |  boolean   | validated status             | ==,!=           |
 | broken                 |  boolean   | broken status                | ==,!=           |
 | retired                |  boolean   | retired status               | ==,!=           |
+| can_self_schedule      |  boolean   | query self-service capable   | ==,!=           |
 | switch_config_applied  |  boolean   | host switch config status    | ==,!=           |
 | memory.handle          |  string    | DIMM details                 | ==,!=           |
 | memory.size_gb         |  integer   | amount of system memory      | ==,!=,<,<=,>,>= |
@@ -261,6 +262,32 @@ quads --ls-host --filter "interfaces.switch_port==et-0/0/7:1"
 
 ```
 curl https://quads.example.com/api/v3/hosts?interfaces.switch_port=et-0/0/7:1
+```
+
+#### Example Self Service Search
+
+  * Query the self-service / self-scheduling capability of hosts
+
+```
+quads --ls-hosts --filter "can_self_schedule==true"
+```
+
+  * Via the API
+
+```
+curl -s http://quads.example.com/api/v3/hosts?can_self_schedule\=true | jq .[].name
+```
+
+  * Query self-service / self-scheduling hosts that are **available now.**
+
+```
+quads --ls-available --filter "can_self_schedule==true"
+```
+
+  * Via the API
+
+```
+curl -s http://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ```
 
 ##### Combined Network Search Example

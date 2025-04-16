@@ -57,7 +57,6 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Listing Notifications](#listing-notifications)
             * [Modifying Notifications](modifying-notifications)
          * [Managing Faulty Hosts](#managing-faulty-hosts)
-            * [Migrating to QUADS-managed Host Health](#migrating-to-quads-managed-host-health)
          * [Managing Retired Hosts](#managing-retired-hosts)
             * [Retiring Hosts](#retiring-hosts)
          * [Extending the <strong>Schedule</strong> of an Existing Cloud](#extending-the-schedule-of-an-existing-cloud)
@@ -82,6 +81,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Mapping Interface to VLAN ID](#mapping-interface-to-vlan-id)
          * [Modifying Cloud-level Attributes](#modifying-cloud-level-attributes)
          * [Looking into the Future](#looking-into-the-future)
+         * [Query a Host Cloud Membership](#query-a-host-cloud-membership)
          * [Dry Run for Pending Actions](#dry-run-for-pending-actions)
          * [Find Free Cloud Environment](#find-free-cloud-environment)
          * [Find Available Hosts](#find-available-hosts)
@@ -383,7 +383,7 @@ You will need to do this when you introduce new system models into your fleet if
 > Before proceeding here please read [adding new QUADS hosts](/docs/switch-host-setup.md#adding-new-quads-host) in the environment setup documentation as it covers physically adding your systems and DNS (or CNAME) entries for your host IPMI interfaces.
 > Hosts should be defined and exist in Foreman first before adding them to QUADS.
 
-> ![TIP]
+> [!TIP]
 > The ```--host-type``` parameter is a mandatory, free-form label that can be anything that makes sense to you for organization.
 
 > ![NOTE]
@@ -526,6 +526,15 @@ In the above example the default move command called ```/bin/echo``` for illustr
 
 ```bash
 quads --move-hosts --move-command quads/tools/move_and_rebuild_hosts.py
+```
+
+##### Query a Host Cloud Membership
+* You can use `quads --ls-host-cloud --host hostname` to show it's current cloud environment membership.
+
+```bash
+quads --ls-host-cloud --host host01.example.com
+
+cloud19
 ```
 
 ##### QUADS Move Host Command Dry Run
@@ -688,11 +697,11 @@ quads --mod-cloud --cloud cloud03 --vlan none
 quads --define-cloud --cloud cloud03 --description "Messaging AMQ" --cloud-owner epresley --cc-users "jdoe, jhoffa" --cloud-ticket 423625 --qinq 1
 ```
 
-   * Note: in QUADS `1.1.4` you can change any of these values selectively via the `--mod-cloud` command [described below](#modifying-cloud-level-attributes).
-   * Note: in QUADS `2.0` the `--force` command is no longer needed for defining inactive environments future use.
+> [!NOTE]
+> You can change any of these values selectively via the `--mod-cloud` command [described below](#modifying-cloud-level-attributes).
 
    - Now that you've defined your new cloud you'll want to allocate machines and a schedule.
-     - We're going to find the first 20 Dell r620's and assign them as an example.
+   - We're going to find the first 20 Dell r620's and assign them as an example.
 
 #### Adding New Hosts to your Cloud
 ```bash
@@ -706,7 +715,8 @@ quads --host-list /tmp/RT423624 --add-schedule --schedule-start "2016-10-17 00:0
 
 #### Adding New Hosts to your Cloud with JIRA Integration
 
-   - **NOTE** If you are using [JIRA integration features](/docs/using-jira-with-quads.md) with QUADS 1.1.5 and higher you can utilize `--host-list` along with a list of hosts and it will take care of updating your `--cloud-ticket` in JIRA for you in one swoop.
+> [!NOTE]
+> If you are using [JIRA integration features](/docs/using-jira-with-quads.md) you can utilize `--host-list` along with a list of hosts and it will take care of updating your `--cloud-ticket` in JIRA for you in one swoop.
 
 ```bash
 quads --add-schedule --host-list /tmp/hosts --schedule-start "2021-04-20 22:00" --schedule-end "2021-05-02 22:00" --schedule-cloud cloud20
@@ -785,23 +795,14 @@ Host f18-h23-000-r620.example.com is now marked as repaired.
 * Hosts marked as faulty will be ommitted from `--ls-available`
 * Hosts marked as faulty are not able to be scheduled until they are marked as repaired again.
 
-#### Migrating to QUADS-managed Host Health
-
-* If you previously used the `broken_state` Foreman host parameter to manage your broken or out-of-service systems within your fleet you'll want to migrate to using the new methodology of the QUADS database handling this for you for versions `1.1.4` and higher.
-* You can use the following command to query Foreman and convert `broken_state` host parameters and status into QUADS:
-
-```bash
-for h in $(hammer host list --per-page 1000 --search params.broken_state=true | grep $(egrep ^domain /opt/quads/conf/quads.yml | awk '{ print $NF }') | awk '{ print $3 }') ; do quads --mark-broken --host $h ; done
-```
-
 ### Managing Retired Hosts
 
-* With QUADS `1.1.5` and higher we now have the `--retire`, `--unretire` and `--ls-retire` features to manage decomissioning or reviving hosts.
+* The quads commmands `--retire`, `--unretire` and `--ls-retire` features to manage decomissioning or reviving hosts.
 * Hosts marked as retired will still retain their scheduling history and data, but will not show as available unless filtered.
    - To list retired hosts:
 
 ```bash
-quads --ls-retire
+quads --ls-retired
 ```
 * To retire a host:
 ```bash
@@ -828,8 +829,6 @@ for host in $(cat /tmp/retired_hosts); do yes | quads --shrink --host $host --no
 
 Occasionally you'll want to extend the lifetime of a particular assignment. QUADS lets you do this with one command but you'll want to double-check things first.
 In this example we'll be extending the assignment end date for cloud02
-
-In QUADS version `1.1.4` or higher or the current `latest` branch you can extend a cloud environment with a simple command.
 
 ```bash
 quads --extend --cloud cloud02 --weeks 2 --check
@@ -1027,8 +1026,8 @@ Resource properly removed
 ## Additional Tools and Commands
 
 ### Verify or Correct Cloud and Host Network Switch Settings
-* The tool `/opt/quads/quads/verify_switchconf.py` can be used to both validate and correct network switch configs.
-* This can be run at a cloud level (and with 1.1.5+ also at the per-host level).
+* `python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py` can be used to both validate and correct network switch configs.
+* This can be run at a cloud environment level or per-host level.
 * It's advised to run it first without `--change` to see if it would fix something.
 * This will also check/correct optional routable VLANs if those are in use.
 * To validate a clouds network config:
@@ -1073,7 +1072,7 @@ WARNING -
 ```
 
 ### Modify or check a specific Host Network Switch Settings
-* With the `modify_switch_conf.py` tool you can set up each individual network interface to a specific vlan id.
+* With the `$PYTHONDIR/site-packages/quads/modify_switch_conf.py` tool you can set up each individual network interface to a specific vlan id.
 * Passing the `--change` argument will make the changes effective in the switch. Not passing this will only verify the configuration is set to the desired.
 
 ```bash
@@ -1247,7 +1246,7 @@ python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/mes
 
 #### Find Available Hosts based on Hardware or Model
 
-* In QUADS `1.1.4` and higher you can now filter your availability search based on hardware capabilities or model type.
+* You can filter your availability search based on hardware capabilities or model type.
 * Using this feature requires [importing hardware metadata](/docs/quads-host-metadata-search.md#how-to-import-host-metadata)
 * Example below using `--filter "model==1029U-TRTP"`
 
@@ -1269,7 +1268,7 @@ quads --cloud-only --cloud cloud13 --filter "model==FC640"
 
 #### Find Available Web Interface
 
-* We now have a Flask-based `--ls-available` web interface available on `quadshost`.
+* We have a Flask-based `--ls-available` web interface available on `quadshost`.
 * This is provided via the `quads-web` systemd service.
 * You will need to seed the `models` data for your systems using the new [host metadata feature](/docs/quads-host-metadata-search.md)
 
@@ -1279,7 +1278,7 @@ quads --cloud-only --cloud cloud13 --filter "model==FC640"
 * Not selecting a model assumes a search for anything available.
 
 #### Find a System by MAC Address
-* You can utilize the new metadata model and `--filter` command in `1.1.4` and above along with `--ls-hosts` to search for a system by MAC Address.
+* You can utilize the metadata model and `--filter` command with `--ls-hosts` to search for a system by MAC Address.
 
 ```bash
 quads --ls-hosts --filter "interfaces.mac_address==ac:1f:6b:2d:19:48"
@@ -1448,7 +1447,7 @@ ICMP Host Unreachable from 10.1.38.126 for ICMP Echo sent to f12-h14-000-1029u.r
 
 ### Skipping Past Network Validation
 
-* In `QUADS 1.1.6+` you can skip past network validation via:
+* You can skip past network validation via:
 
 ```bash
 quads --validate-env --skip-network
@@ -1456,7 +1455,7 @@ quads --validate-env --skip-network
 
 ### Skipping Past Host and Systems Validation
 
-* In `QUADS 1.1.8` you can skip past systems and host validation (Foreman) via:
+* You can skip past systems and host validation (Foreman) via:
 
 ```
 python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-system
@@ -1464,7 +1463,7 @@ python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-system
 
 ### Skipping Past Network and Systems Validation per Host
 
-* In `QUADS 1.1.8` you can skip past both systems and network checks per host via:
+* You can skip past both systems and network checks per host via:
 
 ```
 python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-hosts host01.example.com host02.example.com
