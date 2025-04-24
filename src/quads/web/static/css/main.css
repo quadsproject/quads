@@ -293,6 +293,23 @@ main {
     .warning {
         background-color: #4a3c2d !important;
     }
+
+    /* DataTables copy-to-clipboard popup */
+    .dt-button-info {
+        background-color: #343a40;
+        color: #dee2e6;
+        border: 1px solid #495057;
+        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+    }
+    .dt-button-info h2 {
+        color: #fff;
+        background-color: transparent;
+        border-bottom: 1px solid #495057;
+        padding-left: 0;
+    }
+    .dt-button-info div {
+        color: #adb5bd;
+    }
 }
 
 /* New SVG Theme Toggle Button Styles */
