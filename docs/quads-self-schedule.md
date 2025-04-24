@@ -133,15 +133,12 @@ curl -s -k \
 
 * Requires the [python-quads-lib](https://python-quads-lib.readthedocs.io/en/stable/readme.html#installation) library.
 
-> [!IMPORTANT]
-> For `base_url` use the full FQDN and API url: e.g. `https://quads.example.com/api/v3/`
-
 ### Register via Python
 ```python
 from quads_lib import QuadsApi
 username = "joe@example.com"
 password = "a_new_password"
-base_url = "https://quads.example.com/api/v3/"
+base_url = "https://quads.example.com"
 quads = QuadsApi(username, password, base_url)
 quads.register()
 ```
