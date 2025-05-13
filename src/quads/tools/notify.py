@@ -228,9 +228,8 @@ def main(_logger=None):
                 logger.debug(str(ex))
                 logger.error("Could not update notification: %s." % ass.notification.id)
 
-        if Config["email_notify"]:
-            _days = Days.less_than(3) if ass.is_self_schedule else Days
-            for day in _days:
+        if Config["email_notify"] and not ass.is_self_schedule:
+            for day in Days:
                 future_schedules = None
                 future = datetime.now() + timedelta(days=day.value)
                 future_date = "%4d-%.2d-%.2dT22:00" % (
@@ -250,7 +249,7 @@ def main(_logger=None):
                 host_list = set(current_hosts) - set(future_hosts)
                 if host_list and future > current_schedules[0].end:
                     if not getattr(ass.notification, day.name.lower()):
-                        logger.info("=============== Additional Message")
+                        logger.info("=============== Expiration Notification")
                         cloud = ass.cloud.name
                         create_message(
                             cloud,
