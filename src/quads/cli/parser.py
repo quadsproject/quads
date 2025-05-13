@@ -733,7 +733,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--skip-network",
-    dest="skip_network  ",
+    dest="skip_network",
     action="store_true",
     default=False,
     help="Skip network tests, when validating Quads assignments",
