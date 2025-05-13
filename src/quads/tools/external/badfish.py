@@ -313,8 +313,9 @@ class Badfish:
                 raise BadfishException
         return definitions
 
-    async def get_host_types_from_yaml(self, _interfaces_path):
-        definitions = await self.read_yaml(_interfaces_path)
+    @staticmethod
+    async def get_host_types_from_yaml(_interfaces_path):
+        definitions = await Badfish.read_yaml(_interfaces_path)
         host_types = set()
         for line in definitions:
             _split = line.split("_")
@@ -529,6 +530,7 @@ class Badfish:
 
         else:
             logger.warning("No changes were made since the boot order already matches the requested.")
+            return False
         return True
 
     async def change_boot_order(self, _host_type, _interfaces_path):

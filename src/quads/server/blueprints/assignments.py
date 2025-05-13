@@ -137,6 +137,7 @@ def create_assignment() -> Response:
     cc_user = data.get("ccuser")
     is_self_schedule = data.get("is_self_schedule")
     ostype = data.get("ostype")
+    boot_order = data.get("boot_order")
 
     required_fields = [
         "description",
@@ -194,6 +195,7 @@ def create_assignment() -> Response:
         "cloud": cloud_name,
         "is_self_schedule": str(is_self_schedule).lower() in ["true", "y", 1, "yes"],
         "ostype": ostype,
+        "boot_order": boot_order,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
@@ -245,7 +247,7 @@ def create_self_assignment() -> Response:
     wipe = data.get("wipe")
     cc_user = data.get("cc_user")
     ostype = data.get("ostype")
-
+    boot_order = data.get("boot_order")
     required_fields = [
         "description",
         "owner",
@@ -310,6 +312,7 @@ def create_self_assignment() -> Response:
         "is_self_schedule": True,
         "cloud": _cloud.name,
         "ostype": ostype,
+        "boot_order": boot_order,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)

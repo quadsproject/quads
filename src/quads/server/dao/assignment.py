@@ -23,6 +23,7 @@ class AssignmentDao(BaseDao):
         cloud: str,
         vlan_id: int = None,
         ostype: str = None,
+        boot_order: str = None,
         is_self_schedule: bool = False,
     ) -> Assignment:
         _cloud = CloudDao.get_cloud(cloud)
@@ -38,9 +39,12 @@ class AssignmentDao(BaseDao):
             "notification": notification,
             "is_self_schedule": is_self_schedule,
             "ostype": ostype,
+            "boot_order": boot_order,
         }
         if not ostype:
             kwargs["ostype"] = Config.get("foreman_default_os")
+        if not boot_order:
+            kwargs["boot_order"] = Config.get("foreman_default_boot_order")
         if vlan_id:
             vlan = VlanDao.get_vlan(vlan_id)
             if vlan:
