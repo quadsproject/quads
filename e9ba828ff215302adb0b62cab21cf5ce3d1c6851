@@ -22,6 +22,30 @@
       },
       "revId": "e9ba828ff215302adb0b62cab21cf5ce3d1c6851",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e30dbf9_79482e95",
+        "filename": "conf/quads.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-05-13T17:27:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8869eabe_8cf4e13d",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 38
+      },
+      "revId": "e9ba828ff215302adb0b62cab21cf5ce3d1c6851",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
