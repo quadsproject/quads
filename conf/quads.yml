@@ -81,11 +81,13 @@ foreman_password: password
 foreman_default_os: "RHEL 7"
 foreman_default_ptable: "generic-rhel7"
 foreman_default_medium: "RHEL Local"
-
+foreman_default_boot_order: "foreman"
 # Foreman RBAC fix ignore
 # variable to pass cloud names to be excluded from foreman_heal
 # with values separated by pipes 'cloud32|cloud04' or singularly 'cloud02'
 foreman_rbac_exclude:
+
+badfish_interfaces_path: /opt/quads/conf/idrac_interfaces.yml
 
 # omit these hosts (used for wiki generation)
 # These are typically hosts known to your foreman that you don't

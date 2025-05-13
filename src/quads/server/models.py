@@ -410,6 +410,7 @@ class Assignment(Serialize, TimestampMixin, Base):
     ccuser = Column(MutableList.as_mutable(PickleType), default=[])
     is_self_schedule = Column(Boolean, default=False)
     ostype = Column(String)
+    boot_order = Column(String)
 
     # many-to-one parent
     cloud_id = Column(Integer, ForeignKey("clouds.id", ondelete="SET NULL"))
@@ -426,7 +427,7 @@ class Assignment(Serialize, TimestampMixin, Base):
         return (
             "<Assignment(id='{}', active='{}', provisioned='{}', validated='{}', description='{}', "
             "owner='{}', ticket='{}', qinq='{}', wipe='{}', ccuser='{}', is_self_schedule='{}', cloud='{}', vlan='{}', "
-            "ostype='{}')>".format(
+            "ostype='{}', boot_order='{}')>".format(
                 self.id,
                 self.active,
                 self.provisioned,
@@ -441,6 +442,7 @@ class Assignment(Serialize, TimestampMixin, Base):
                 self.cloud,
                 self.vlan,
                 self.ostype,
+                self.boot_order,
             )
         )
 
