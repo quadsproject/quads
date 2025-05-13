@@ -386,6 +386,7 @@ ASSIGNMENT_1_REQUEST = {
 }
 ASSIGNMENT_1_RESPONSE = {
     "active": True,
+    "boot_order": "foreman",
     "ccuser": ["gonza"],
     "cloud": {"id": 2, "last_redefined": "___", "name": "cloud02"},
     "cloud_id": 2,
@@ -435,6 +436,7 @@ ASSIGNMENT_1_UPDATE_REQUEST = {
 }
 ASSIGNMENT_1_UPDATE_RESPONSE = {
     "active": True,
+    "boot_order": "foreman",
     "ccuser": ["gonza", "grafuls"],
     "cloud": {"id": 4, "last_redefined": "___", "name": "cloud04"},
     "cloud_id": 4,
@@ -482,6 +484,7 @@ ASSIGNMENT_2_REQUEST = {
 }
 ASSIGNMENT_2_RESPONSE = {
     "active": True,
+    "boot_order": "foreman",
     "ccuser": ["gonza"],
     "cloud": {"id": 3, "last_redefined": "___", "name": "cloud03"},
     "cloud_id": 3,
@@ -530,6 +533,7 @@ SELF_ASSIGNMENT_1_REQUEST = {
 }
 SELF_ASSIGNMENT_1_RESPONSE = {
     "active": True,
+    "boot_order": "foreman",
     "ccuser": ["gonza"],
     "cloud": {"id": 4, "last_redefined": "___", "name": "cloud04"},
     "cloud_id": 4,
@@ -586,6 +590,7 @@ SELF_SCHEDULE_1_REQUEST = {
 SELF_SCHEDULE_1_RESPONSE = {
     "assignment": {
         "active": True,
+        "boot_order": "foreman",
         "ccuser": ["gonza"],
         "cloud": {
             "id": 4,
@@ -666,6 +671,7 @@ SELF_SCHEDULE_2_REQUEST = {
 SELF_SCHEDULE_2_RESPONSE = {
     "assignment": {
         "active": True,
+        "boot_order": "foreman",
         "ccuser": ["gonza"],
         "cloud": {
             "id": 4,
@@ -746,6 +752,7 @@ SELF_SCHEDULE_3_REQUEST = {
 SELF_SCHEDULE_3_RESPONSE = {
     "assignment": {
         "active": True,
+        "boot_order": "foreman",
         "ccuser": ["gonza"],
         "cloud": {
             "id": 4,
@@ -828,6 +835,7 @@ SCHEDULE_1_REQUEST = {
 SCHEDULE_1_RESPONSE = {
     "assignment": {
         "active": True,
+        "boot_order": "foreman",
         "ccuser": ["gonza"],
         "cloud": {
             "id": 2,
@@ -916,6 +924,7 @@ SCHEDULE_2_REQUEST = {
 SCHEDULE_2_RESPONSE = {
     "assignment": {
         "active": True,
+        "boot_order": "foreman",
         "ccuser": ["gonza"],
         "cloud": {
             "id": 3,

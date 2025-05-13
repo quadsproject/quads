@@ -150,9 +150,11 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
 
     _target_cloud = quads.get_cloud(new_cloud)
     ticket = ""
+    boot_order = Config.get("foreman_default_boot_order")
     _assignment = quads.get_active_cloud_assignment(_target_cloud.name)
     if _assignment:
         ticket = _assignment.ticket
+        boot_order = _assignment.boot_order
     ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else Config["ipmi_password"]
 
     ipmi_set_pass = [
@@ -191,11 +193,11 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
 
         if is_supported(host):
             try:
-                interfaces_path = "/opt/quads/conf/idrac_interfaces.yml"
-                await badfish.change_boot("director", interfaces_path)
-
-                # wait 10 minutes for the boot order job to complete
-                await asyncio.sleep(600)
+                interfaces_path = Config.get("badfish_interfaces_path")
+                result = await badfish.change_boot(boot_order, interfaces_path)
+                if result:
+                    # wait 10 minutes for the boot order job to complete
+                    await asyncio.sleep(600)
             except BadfishException:
                 logger.error(f"Could not set boot order via Badfish for mgmt-{host}.")
                 return False

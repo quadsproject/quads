@@ -784,6 +784,30 @@ parser.add_argument(
     help="U-location name of the host",
 )
 
+# --os-list allows to list the operating systems
+action_group.add_argument(
+    "--os-list",
+    dest="action",
+    action="store_const",
+    const="os_list",
+    help="Lists the available operating system",
+)
+
+parser.add_argument(
+    "--os",
+    dest="os",
+    default=None,
+    help="OS Platform for Provisioning, to list available os --os-list",
+)
+
+parser.add_argument(
+    "--boot-order",
+    dest="boot_order",
+    type=str,
+    default=None,
+    help="Preferred boot order type for the host",
+)
+
 mod_notification_arg_names = [
     "fail",
     "success",
@@ -809,22 +833,6 @@ def str_to_bool(value):
 
 for arg in mod_notification_arg_names:
     parser.add_argument(f"--{arg}", type=str_to_bool, choices=[True, False], help=f"Set {arg} to true or false.")
-
-# --os-list allows to list the operating systems
-action_group.add_argument(
-    "--os-list",
-    dest="action",
-    action="store_const",
-    const="os_list",
-    help="Lists the available operating system",
-)
-
-parser.add_argument(
-    "--os",
-    dest="os",
-    default=None,
-    help="OS Platform for Provisioning, to list available os --os-list",
-)
 
 
 if __name__ == "__main__":  # pragma: no cover

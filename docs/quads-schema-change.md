@@ -103,7 +103,12 @@ When deploying QUADS or updating to a new version, you may need to upgrade your 
    flask --app quads.server.app db upgrade
    ```
 
-This will automatically apply any pending migrations in the correct order to bring your database schema up to date with the latest version.
+> [!NOTE]
+> On a new deployment, you are required to run `flask --app quads.server.app db init` command to initialize the database. Since there are already existing migrations, you will need to stamp the head of the migrations before you can run the upgrade.
+>```bash
+>flask --app quads.server.app db stamp head
+>```
+>This will automatically apply any pending migrations in the correct order to bring your database schema up to date with the latest version.
 
 > [!NOTE]
 > Always backup your database before performing schema upgrades in production environments.
