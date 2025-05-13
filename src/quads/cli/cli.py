@@ -20,6 +20,7 @@ from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
+from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
@@ -830,6 +831,18 @@ class QuadsCli:
 
         if not data.get("ostype"):
             data["ostype"] = conf["foreman_default_os"]
+
+        if self.cli_args.get("boot_order"):
+            boot_order = self.cli_args.get("boot_order")
+            interfaces_path = conf.get("badfish_interfaces_path")
+            host_types = Badfish.get_host_types_from_yaml(interfaces_path)
+            if boot_order in host_types:
+                data["boot_order"] = boot_order
+            else:
+                raise CliException(f"Could not parse boot order {boot_order}, available boot orders: {host_types}")
+
+        if not data.get("boot_order"):
+            data["boot_order"] = conf["foreman_default_boot_order"]
 
         cloud_reservation_lock = int(conf["cloud_reservation_lock"])
         try:
