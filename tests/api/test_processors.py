@@ -1,6 +1,5 @@
 import pytest
 
-from tests.helpers import unwrap_json
 from tests.config import (
     PROCESSOR_1_REQUEST,
     PROCESSOR_1_RESPONSE,
@@ -9,6 +8,7 @@ from tests.config import (
     PROCESSOR_3_REQUEST,
     PROCESSOR_4_REQUEST,
 )
+from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, hosts"]
 

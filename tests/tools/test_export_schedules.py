@@ -1,7 +1,7 @@
 import os
+from unittest.mock import MagicMock, patch
 
-from unittest.mock import patch, MagicMock
-from quads.quads_api import APIServerException, APIBadRequest
+from quads.quads_api import APIBadRequest, APIServerException
 from quads.tools.export_current_schedules import export_current_schedules
 from tests.tools.test_base import TestBase
 

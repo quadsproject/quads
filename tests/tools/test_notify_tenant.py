@@ -1,16 +1,15 @@
 import asyncio
-import tempfile
-import pytest
 import os
-from unittest.mock import patch, AsyncMock, MagicMock
-from tests.tools.test_base import TestBase
+import tempfile
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from quads.tools.notify_tenant import (
-    verify_argparse as notify_tenant_verify_argparse,
-    determine_action as notify_tenant_determine_action,
-    send_message as notify_tenant_send_message,
-    post_message as notify_tenant_post_message,
-)
+import pytest
+
+from quads.tools.notify_tenant import determine_action as notify_tenant_determine_action
+from quads.tools.notify_tenant import post_message as notify_tenant_post_message
+from quads.tools.notify_tenant import send_message as notify_tenant_send_message
+from quads.tools.notify_tenant import verify_argparse as notify_tenant_verify_argparse
+from tests.tools.test_base import TestBase
 
 
 class FakeArgs(object):

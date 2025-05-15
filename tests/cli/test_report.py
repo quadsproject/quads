@@ -1,8 +1,8 @@
+from datetime import datetime, timedelta
+
 import pytest
 
-from datetime import datetime, timedelta
 from quads.exceptions import CliException
-
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
