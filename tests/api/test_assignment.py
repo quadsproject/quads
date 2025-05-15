@@ -1,8 +1,7 @@
-import pytest
-
 from datetime import datetime
 
-from tests.helpers import unwrap_json
+import pytest
+
 from tests.config import (
     ASSIGNMENT_1_REQUEST,
     ASSIGNMENT_1_RESPONSE,
@@ -11,6 +10,7 @@ from tests.config import (
     ASSIGNMENT_2_REQUEST,
     ASSIGNMENT_2_RESPONSE,
 )
+from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, vlans"]
 

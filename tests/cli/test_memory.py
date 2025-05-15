@@ -1,10 +1,7 @@
 import pytest
 
 from quads.exceptions import CliException
-from tests.cli.config import (
-    HOST1,
-    HOST2,
-)
+from tests.cli.config import HOST1, HOST2
 from tests.cli.test_base import TestBase
 
 
