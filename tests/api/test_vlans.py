@@ -1,12 +1,12 @@
-from tests.helpers import unwrap_json
 from tests.config import (
     VLAN_1_REQUEST,
     VLAN_1_RESPONSE,
-    VLAN_2_REQUEST,
-    VLAN_2_RESPONSE,
     VLAN_1_UPDATE_REQUEST,
     VLAN_1_UPDATE_RESPONSE,
+    VLAN_2_REQUEST,
+    VLAN_2_RESPONSE,
 )
+from tests.helpers import unwrap_json
 
 
 class TestCreateVLANs:

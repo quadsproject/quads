@@ -1,10 +1,9 @@
 import os
-
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-from quads.quads_api import APIBadRequest
 
+from quads.quads_api import APIBadRequest
 from quads.tools.import_current_schedules import import_current_schedules
 from tests.tools.test_base import TestBase
 

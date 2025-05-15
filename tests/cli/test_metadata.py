@@ -7,11 +7,7 @@ from quads.exceptions import CliException
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.models import db
-from tests.cli.config import (
-    CLOUD,
-    HOST_TYPE,
-    MODEL1,
-)
+from tests.cli.config import CLOUD, HOST_TYPE, MODEL1
 from tests.cli.test_base import TestBase
 
 
