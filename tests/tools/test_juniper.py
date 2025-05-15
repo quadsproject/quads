@@ -1,4 +1,4 @@
-from unittest.mock import patch, AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pexpect
 import pytest

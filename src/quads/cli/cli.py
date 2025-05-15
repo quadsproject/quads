@@ -22,9 +22,10 @@ from quads.server.models import Assignment
 from quads.tools import reports
 from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
+from quads.tools.external.switch import Switch
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
-from quads.tools.move_and_rebuild import move_and_rebuild, switch_config
+from quads.tools.move_and_rebuild import move_and_rebuild
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
 from quads.tools.validate_env import main as validate_env
@@ -241,6 +242,33 @@ class QuadsCli:
             raise CliException(str(ex))
         for host in _hosts:
             self.logger.info(host.name)
+
+    def action_ls_switch_conf(self):
+        _cloud = self.cli_args.get("cloud")
+        _all = self.cli_args.get("all")
+
+        switch = Switch()
+        switch.ls_config(_cloud, _all)
+
+    def action_mod_switch_conf(self):
+        _host = self.cli_args.get("host")
+        _change = self.cli_args.get("change")
+        _nic1 = self.cli_args.get("nic1")
+        _nic2 = self.cli_args.get("nic2")
+        _nic3 = self.cli_args.get("nic3")
+        _nic4 = self.cli_args.get("nic4")
+        _nic5 = self.cli_args.get("nic5")
+
+        switch = Switch()
+        switch.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5)
+
+    def action_verify_switch_conf(self):
+        _host = self.cli_args.get("host")
+        _cloud = self.cli_args.get("cloud")
+        _change = self.cli_args.get("change")
+
+        switch = Switch()
+        switch.verify(_host, _cloud, _change)
 
     def _call_api_action(self, action: str):
         try:
@@ -1667,7 +1695,7 @@ class QuadsCli:
                                     omits = omits.split(",")
                                     omit = [omit for omit in omits if omit in host or omit == new]
                                 if not omit:
-                                    switch_tasks.append(functools.partial(switch_config, host, current, new))
+                                    switch_tasks.append(functools.partial(Switch().configure, host, current, new))
                             else:
                                 if wipe:
                                     subprocess.check_call(
