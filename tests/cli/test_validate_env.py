@@ -40,7 +40,7 @@ def validate_fixture(request):
 
 class TestValidateEnv(TestBase):
     @patch("quads.tools.validate_env.socket.gethostbyname", switch_config_stub)
-    @patch("quads.tools.validate_env.switch_config", switch_config_stub)
+    @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
     @patch("quads.tools.external.postman.SMTP")
@@ -62,7 +62,7 @@ class TestValidateEnv(TestBase):
         assert ass.validated is True
 
     @patch("quads.tools.validate_env.socket.gethostbyname", switch_config_stub)
-    @patch("quads.tools.validate_env.switch_config", switch_config_stub)
+    @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
     @patch("quads.tools.external.postman.SMTP")

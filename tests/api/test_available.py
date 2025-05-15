@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
 import pytest
-
-from urllib.parse import urlencode
 
 from tests.helpers import unwrap_json
 
