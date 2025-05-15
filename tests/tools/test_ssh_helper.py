@@ -1,8 +1,9 @@
-import pytest
+from unittest.mock import MagicMock, patch
 
-from unittest.mock import patch, MagicMock
-from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
+import pytest
 from paramiko import SSHException
+
+from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from tests.tools.test_base import TestBase
 
 
