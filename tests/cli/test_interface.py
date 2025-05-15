@@ -8,21 +8,21 @@ from quads.server.dao.host import HostDao
 from quads.server.dao.interface import InterfaceDao
 from quads.server.models import db
 from tests.cli.config import (
-    IFSPEED,
-    HOST2,
-    IFNAME2,
-    IFMAC2,
-    IFIP2,
-    IFPORT2,
-    IFBIOSID2,
-    IFVENDOR2,
     HOST1,
-    IFNAME1,
+    HOST2,
     IFBIOSID1,
-    IFMAC1,
+    IFBIOSID2,
     IFIP1,
+    IFIP2,
+    IFMAC1,
+    IFMAC2,
+    IFNAME1,
+    IFNAME2,
     IFPORT1,
+    IFPORT2,
+    IFSPEED,
     IFVENDOR1,
+    IFVENDOR2,
 )
 from tests.cli.test_base import TestBase
 

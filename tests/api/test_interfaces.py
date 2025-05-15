@@ -1,12 +1,12 @@
 import pytest
 
-from tests.helpers import unwrap_json
 from tests.config import (
     INTERFACE_1_REQUEST,
     INTERFACE_1_RESPONSE,
     INTERFACE_1_UPDATE_REQUEST,
     INTERFACE_1_UPDATE_RESPONSE,
 )
+from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, hosts"]
 

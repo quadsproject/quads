@@ -57,6 +57,13 @@ parser.add_argument(
     action="store_true",
     help="Force host or cloud update when already defined",
 )
+parser.add_argument(
+    "--change",
+    dest="change",
+    action="store_true",
+    default=False,
+    help="Commit changes on switch",
+)
 
 parser.add_argument(
     "--dry-run",
@@ -398,6 +405,27 @@ action_group.add_argument(
     const="ls_retired",
     help="List all hosts marked as retired",
 )
+action_group.add_argument(
+    "--ls-switch-conf",
+    dest="action",
+    action="store_const",
+    const="ls_switch_conf",
+    help="List switch configuration",
+)
+action_group.add_argument(
+    "--mod-switch-conf",
+    dest="action",
+    action="store_const",
+    const="mod_switch_conf",
+    help="Modify switch configuration",
+)
+action_group.add_argument(
+    "--verify-switch-conf",
+    dest="action",
+    action="store_const",
+    const="verify_switch_conf",
+    help="Verify switch configuration",
+)
 
 parser.add_argument(
     "--cloud-only",
@@ -489,7 +517,7 @@ parser.add_argument(
     "--all",
     dest="all",
     action="store_true",
-    help="Get all hosts data over the summary",
+    help="Include all available data in the output",
 )
 parser.add_argument(
     "--schedule-id",
@@ -841,6 +869,11 @@ def str_to_bool(value):
 
 for arg in mod_notification_arg_names:
     parser.add_argument(f"--{arg}", type=str_to_bool, choices=[True, False], help=f"Set {arg} to true or false.")
+
+nics = ["nic1", "nic2", "nic3", "nic4", "nic5"]
+
+for nic in nics:
+    parser.add_argument(f"--{nic}", type=str, default=None, help=f"Switch port for {nic}")
 
 
 if __name__ == "__main__":  # pragma: no cover

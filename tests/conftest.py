@@ -1,15 +1,11 @@
-import pytest
 import base64
 
-from quads.server.database import init_db
-from tests.helpers import unwrap_json
-from quads.server.app import (
-    create_app,
-    populate,
-    user_datastore,
-    drop_all,
-)
+import pytest
+
+from quads.database import init_db
+from quads.server.app import create_app, drop_all, populate, user_datastore
 from tests.config import *
+from tests.helpers import unwrap_json
 
 
 @pytest.fixture(scope="module")

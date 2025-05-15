@@ -1,10 +1,10 @@
 import base64
-
 from unittest.mock import patch
 
 from sqlalchemy.exc import SQLAlchemyError
-from tests.helpers import unwrap_json
+
 from tests.config import EXPIRED_TEST_TOKEN
+from tests.helpers import unwrap_json
 
 auth_token_global = ""
 

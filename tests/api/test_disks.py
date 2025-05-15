@@ -1,15 +1,15 @@
 import pytest
 
-from tests.helpers import unwrap_json
 from tests.config import (
     DISK_1_REQUEST,
     DISK_1_RESPONSE,
+    DISK_1_UPDATE_REQUEST,
+    DISK_1_UPDATE_RESPONSE,
     DISK_2_REQUEST,
     DISK_2_RESPONSE,
     DISK_3_REQUEST,
-    DISK_1_UPDATE_REQUEST,
-    DISK_1_UPDATE_RESPONSE,
 )
+from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, hosts"]
 
