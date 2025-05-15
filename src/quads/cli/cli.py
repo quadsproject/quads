@@ -22,6 +22,7 @@ from quads.server.models import Assignment
 from quads.tools import reports
 from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
+from quads.tools.external.switch import Switch
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
 from quads.tools.move_and_rebuild import move_and_rebuild, switch_config
@@ -1667,7 +1668,9 @@ class QuadsCli:
                                     omits = omits.split(",")
                                     omit = [omit for omit in omits if omit in host or omit == new]
                                 if not omit:
-                                    switch_tasks.append(functools.partial(switch_config, host, current, new))
+                                    switch_tasks.append(
+                                        functools.partial(Switch(host, self.logger).configure, current, new)
+                                    )
                             else:
                                 if wipe:
                                     subprocess.check_call(
