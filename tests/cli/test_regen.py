@@ -1,5 +1,4 @@
 import os
-
 from datetime import datetime
 
 from quads.config import Config

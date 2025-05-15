@@ -1093,37 +1093,49 @@ Resource properly removed
 
 ## Additional Tools and Commands
 
+### Get host details
+* Get details about a specific host
+```bash
+quads --host host01.example.com
+```
+
+### Get hosts in a cloud
+* Get a list of all hosts currently in a cloud
+```bash
+quads --cloud cloud10
+```
+
 ### Verify or Correct Cloud and Host Network Switch Settings
-* `python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py` can be used to both validate and correct network switch configs.
+* `quads --verify-switch-conf` can be used to both validate and correct network switch configs.
 * This can be run at a cloud environment level or per-host level.
 * It's advised to run it first without `--change` to see if it would fix something.
 * This will also check/correct optional routable VLANs if those are in use.
 * To validate a clouds network config:
 
 ```bash
-python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --cloud cloud10
+quads --verify-switch-conf --cloud cloud10
 ```
 
 * To validate and fix a clouds network config use `--change`
 
 ```bash
-python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --cloud cloud10 --change
+quads --verify-switch-conf --cloud cloud10 --change
 ```
 
 * To validate a singular hosts network switch configuration:
 ```
-python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com
+quads --verify-switch-conf --host host01.example.com
 ```
 
 * To validate and fix a single hosts network config use `--change`
 
 ```
-python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com --change
+quads --verify-switch-conf --host host01.example.com --change
 ```
 
 * To straddle clouds and place a single host into a cloud it does not belong in (rare use case):
 ```bash
-python3 $PYTHONDIR/site-packages/quads/tools/verify_switchconf.py --host host01.example.com --cloud cloud10
+quads --verify-switch-conf --host host01.example.com --cloud cloud10
 ```
 
 Note, if host01.example.com is not in cloud10, but rather cloud20, you will see the following output:
@@ -1140,18 +1152,18 @@ WARNING -
 ```
 
 ### Modify or check a specific Host Network Switch Settings
-* With the `$PYTHONDIR/site-packages/quads/modify_switch_conf.py` tool you can set up each individual network interface to a specific vlan id.
+* With the `quads --mod-switch-conf` tool you can set up each individual network interface to a specific vlan id.
 * Passing the `--change` argument will make the changes effective in the switch. Not passing this will only verify the configuration is set to the desired.
 
 ```bash
-python3 $PYTHONDIR/site-packages/quads/tools/modify_switch_conf.py --host host01.example.com --nic1 1400 --nic2 1401 --nic3 1400 --nic4 1402 --nic5 1400
+quads --mod-switch-conf --host host01.example.com --nic1 1400 --nic2 1401 --nic3 1400 --nic4 1402 --nic5 1400
 ```
 * All `--nic*` arguments are optional so this can be also done individually for all nics.
 
 #### Mapping Interface to VLAN ID
 * An easy way to figure out what VLAN corresponds to what generic `em` interface in the QUADS `--ls-interfaces` information we now include the following tool:
 ```bash
-python3 $PYTHONDIR/site-packages/quads/tools/ls_switch_conf.py --cloud cloud32
+quads --ls-switch-conf --cloud cloud32
 INFO - Cloud qinq: 1
 INFO - Interface em1 appears to be a member of VLAN 1410
 INFO - Interface em2 appears to be a member of VLAN 1410
@@ -1269,49 +1281,6 @@ quads --ls-available --schedule-start "2019-12-05 08:00" --schedule-end "2019-12
 quads --ls-available --schedule-end "2019-06-02 22:00"
 ```
 
-### Tenant Notifications via Email or Ticketing system
-
-* With the `notify_tenant.py` tenants can be easily emailed with important messages regarding their environment.
-* Common use cases are to inform users of outages that may impact them.  The `notify_tenant.py` can be called with various options.
-* The contents of the messages sent should be crafted in a temporary file (which is a simple jinja template that interprets 3 possible variables).
-
-  - description (taken from allocation object)
-  - cloud_name (taken from the cloud name)
-  - ticket (taken from allocation object)
-
-* For example, you can use a message template file (e.g. stored in `/tmp/message`) such as:
-
-```
-Regarding your allocation
-
-Description: {{description}}
-Allocation: {{cloud_name}}
-Ticket: {{ticket}}
-
-We are informing you of an upcoming outage, etc.
-```
-
-* Rack based notifications
-```bash
-python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --rack "f18 e22" --email --post
-```
-  - To ensure email is sent, use the `--email` flag.
-  - To ensure message is posted to your ticketing system, use the `--post` flag.
-  - Omitting both `--email` and `--post` means no notification will get sent or posted.
-
-* Cloud based notifications
-```bash
-python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --cloud "cloudXX cloudYY" --email --post
-```
-  - The above will use the template message in `/tmp/message` and send it to the owners and cc-users of cloudXX and cloudYY.
-  - The message will also be posted to your ticketing system.
-
-* Notifications to all users.
-```bash
-python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --all --email --post
-```
-  - The above sends notifications to all active environments using your template message file in `/tmp/message`
-
 #### Find Available Hosts based on Hardware or Model
 
 * You can filter your availability search based on hardware capabilities or model type.
@@ -1358,6 +1327,49 @@ quads --ls-hosts --filter "interfaces.mac_address==ac:1f:6b:2d:19:48"
 ```bash
 quads --ls-hosts --filter "interfaces.ip_address==10.1.34.210"
 ```
+
+### Tenant Notifications via Email or Ticketing system
+
+* With the `notify_tenant.py` tenants can be easily emailed with important messages regarding their environment.
+* Common use cases are to inform users of outages that may impact them.  The `notify_tenant.py` can be called with various options.
+* The contents of the messages sent should be crafted in a temporary file (which is a simple jinja template that interprets 3 possible variables).
+
+  - description (taken from allocation object)
+  - cloud_name (taken from the cloud name)
+  - ticket (taken from allocation object)
+
+* For example, you can use a message template file (e.g. stored in `/tmp/message`) such as:
+
+```
+Regarding your allocation
+
+Description: {{description}}
+Allocation: {{cloud_name}}
+Ticket: {{ticket}}
+
+We are informing you of an upcoming outage, etc.
+```
+
+* Rack based notifications
+```bash
+python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --rack "f18 e22" --email --post
+```
+  - To ensure email is sent, use the `--email` flag.
+  - To ensure message is posted to your ticketing system, use the `--post` flag.
+  - Omitting both `--email` and `--post` means no notification will get sent or posted.
+
+* Cloud based notifications
+```bash
+python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --cloud "cloudXX cloudYY" --email --post
+```
+  - The above will use the template message in `/tmp/message` and send it to the owners and cc-users of cloudXX and cloudYY.
+  - The message will also be posted to your ticketing system.
+
+* Notifications to all users.
+```bash
+python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/message --subject "Upcoming outage notification" --all --email --post
+```
+  - The above sends notifications to all active environments using your template message file in `/tmp/message`
 
 ### List Available Foreman OS Types
 

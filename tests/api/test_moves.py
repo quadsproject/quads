@@ -1,9 +1,8 @@
 import logging
 from datetime import timedelta
+from urllib.parse import urlencode
 
 import pytest
-
-from urllib.parse import urlencode
 
 from quads.cli import QuadsCli
 from quads.config import DEFAULT_CONF_PATH, Config
