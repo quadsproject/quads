@@ -1,12 +1,7 @@
 import pytest
 
+from tests.config import MEMORY_1_REQUEST, MEMORY_1_RESPONSE, MEMORY_3_REQUEST, MEMORY_3_RESPONSE
 from tests.helpers import unwrap_json
-from tests.config import (
-    MEMORY_1_REQUEST,
-    MEMORY_1_RESPONSE,
-    MEMORY_3_REQUEST,
-    MEMORY_3_RESPONSE,
-)
 
 prefill_settings = ["clouds, hosts"]
 

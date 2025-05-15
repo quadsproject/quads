@@ -12,25 +12,25 @@ from quads.server.dao.memory import MemoryDao
 from quads.server.dao.processor import ProcessorDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
-from quads.server.database import drop_all, populate, init_db
+from quads.server.database import drop_all, init_db, populate
 from tests.cli.config import (
     CLOUD,
-    HOST_TYPE,
     DEFAULT_CLOUD,
-    HOST1,
-    MODEL1,
-    HOST2,
-    MODEL2,
     DEFINE_CLOUD,
-    REMOVE_CLOUD,
-    MOD_CLOUD,
-    IFNAME1,
-    IFVENDOR1,
+    HOST1,
+    HOST2,
+    HOST_TYPE,
     IFBIOSID1,
-    IFMAC1,
     IFIP1,
+    IFMAC1,
+    IFNAME1,
     IFPORT1,
     IFSPEED,
+    IFVENDOR1,
+    MOD_CLOUD,
+    MODEL1,
+    MODEL2,
+    REMOVE_CLOUD,
 )
 from tests.tools.config import HOST_E20
 
