@@ -1,13 +1,10 @@
+from datetime import datetime
+from unittest.mock import patch
+
 import pytest
 
-from unittest.mock import patch
-from datetime import datetime
-
+from tests.config import HOST_1_REQUEST, HOST_2_REQUEST
 from tests.helpers import unwrap_json
-from tests.config import (
-    HOST_1_REQUEST,
-    HOST_2_REQUEST,
-)
 
 prefill_settings = ["clouds"]
 

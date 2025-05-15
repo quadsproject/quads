@@ -1,26 +1,24 @@
+from datetime import datetime, timedelta
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 import pytest
 
-from datetime import datetime, timedelta
-from urllib.parse import urlencode
-
 from quads.config import Config
-
-from tests.helpers import unwrap_json
 from tests.config import (
     SCHEDULE_1_REQUEST,
     SCHEDULE_1_RESPONSE,
+    SCHEDULE_1_UPDATE_REQUEST,
     SCHEDULE_2_REQUEST,
     SCHEDULE_2_RESPONSE,
-    SCHEDULE_1_UPDATE_REQUEST,
     SELF_SCHEDULE_1_REQUEST,
     SELF_SCHEDULE_1_RESPONSE,
     SELF_SCHEDULE_2_REQUEST,
     SELF_SCHEDULE_2_RESPONSE,
-    SELF_SCHEDULE_NON_REQUEST,
     SELF_SCHEDULE_3_REQUEST,
+    SELF_SCHEDULE_NON_REQUEST,
 )
+from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, vlans, hosts, assignments"]
 prefill_schedule = ["clouds, vlans, hosts, assignments, schedules"]

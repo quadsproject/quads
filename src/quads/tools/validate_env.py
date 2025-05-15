@@ -17,10 +17,10 @@ from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.tools.external.badfish import BadfishException, badfish_factory
 from quads.tools.external.foreman import Foreman
-from quads.tools.move_and_rebuild import switch_config
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
+from quads.tools.external.switch import Switch
 
 
 logger = logging.getLogger(__name__)
@@ -198,7 +198,8 @@ class Validator(object):  # pragma: no cover
                 previous_schedule = quads.get_schedules(data=data)
                 if previous_schedule:
                     previous_cloud = previous_schedule[0].assignment.cloud.name
-                result = switch_config(host.name, previous_cloud, host.cloud.name)
+                switch = Switch()
+                result = switch.verify(host.name, previous_cloud, host.cloud.name)
                 if result:
                     try:
                         quads.update_host(host.name, {"switch_config_applied": True})
@@ -414,44 +415,3 @@ async def main(_args, _logger=None):  # pragma: no cover
         elif _schedule_count and not _assignment.wipe:
             logger.info(f"Auto-Validating {ass.cloud.name} as marked for no wipe")
             quads.update_assignment(ass.id, {"validated": True})
-
-
-if __name__ == "__main__":  # pragma: no cover
-    parser = argparse.ArgumentParser(description="Validate Quads assignments")
-    parser.add_argument(
-        "--skip-system",
-        action="store_true",
-        default=False,
-        help="Skip system tests.",
-    )
-    parser.add_argument(
-        "--skip-network",
-        action="store_true",
-        default=False,
-        help="Skip network tests.",
-    )
-    parser.add_argument(
-        "--skip-hosts",
-        action="append",
-        nargs="*",
-        help="Skip specific hosts.",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        default=False,
-        help="Show debugging information.",
-    )
-    parser.add_argument("--cloud", default="", help="Run validation only on specified cloud.")
-    args = parser.parse_args()
-
-    level = logging.INFO
-    if args.debug:
-        level = logging.DEBUG
-
-    logging.basicConfig(level=level, format="%(message)s")
-
-    loop_main = asyncio.get_event_loop()
-    asyncio.set_event_loop(loop_main)
-
-    loop_main.run_until_complete(main(args))

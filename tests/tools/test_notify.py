@@ -1,25 +1,25 @@
 import asyncio
-from unittest.mock import patch, MagicMock
-from tests.cli.config import NetcatStub
+from unittest.mock import MagicMock, patch
 
 from quads.tools.notify import (
-    create_message,
     create_future_initial_message,
     create_future_message,
     create_initial_message,
+    create_message,
 )
+from tests.cli.config import NetcatStub
 from tests.config import (
-    INITIAL_MESSAGE,
     CC_USERS,
-    OWNER,
-    INITIAL_SUBJECT,
-    SUBJECT,
-    MESSAGE,
-    FUTURE_INITIAL_SUBJECT,
     FUTURE_INITIAL_MESSAGE,
-    FUTURE_SUBJECT,
+    FUTURE_INITIAL_SUBJECT,
     FUTURE_MESSAGE,
+    FUTURE_SUBJECT,
+    INITIAL_MESSAGE,
+    INITIAL_SUBJECT,
+    MESSAGE,
+    OWNER,
     POST_TEXT,
+    SUBJECT,
 )
 
 

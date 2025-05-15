@@ -1,14 +1,12 @@
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from paramiko.ssh_exception import SSHException
 
-from quads.server.dao.cloud import CloudDao
-from quads.server.dao.host import HostDao
-from quads.tools.lshw import run_lshw, main as lshw_main
-from tests.cli.config import CLOUD
+from quads.tools.lshw import main as lshw_main
+from quads.tools.lshw import run_lshw
 
 
 class TestLshw(object):
