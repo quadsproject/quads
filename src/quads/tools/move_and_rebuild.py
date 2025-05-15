@@ -270,16 +270,17 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
             logger.warning(f"Could not detach remote image for mgmt-{host}.")
 
         if is_supported(host):
-            try:
-                await badfish.boot_to_type(
-                    "foreman",
-                    "/opt/quads/conf/idrac_interfaces.yml",
-                )
-                await badfish.reboot_server(graceful=False)
-            except BadfishException:
-                logger.error(f"Error setting PXE boot via Badfish on {host}.")
-                await badfish.reboot_server(graceful=False)
-                return False
+            if boot_order != Config["foreman_default_boot_order"]:
+                try:
+                    await badfish.boot_to_type(
+                        "foreman",
+                        "/opt/quads/conf/idrac_interfaces.yml",
+                    )
+                    await badfish.reboot_server(graceful=False)
+                except BadfishException:
+                    logger.error(f"Error setting PXE boot via Badfish on {host}.")
+                    await badfish.reboot_server(graceful=False)
+                    return False
         else:
             try:
                 ipmi_pxe_persistent = [
