@@ -1042,7 +1042,12 @@ class QuadsCli:
         }
 
         try:
-            self.quads.update_host(hostname, data)
+            response = self.quads.update_host(hostname, data)
+            _json = response.json()
+            for key in ["interfaces", "disks", "memory", "processors"]:
+                _json.pop(key, None)
+            yaml_str = yaml.dump(_json, default_flow_style=False, sort_keys=False)
+            self.logger.info("\n" + yaml_str)
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
             raise CliException(str(ex))
 
