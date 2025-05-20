@@ -69,6 +69,27 @@ class QuadsCli:
 
             return exit_code
 
+        host = self.cli_args.get("host")
+        if host:
+            try:
+                _host = self.quads.get_host(host)
+                _host_dict = _host.as_dict()
+                yaml_str = yaml.dump(_host_dict, default_flow_style=False, sort_keys=False)
+                self.logger.info("\n" + yaml_str)
+            except (APIServerException, APIBadRequest) as ex:
+                raise CliException(str(ex))
+            return 0
+
+        cloud = self.cli_args.get("cloud")
+        if cloud:
+            try:
+                _hosts = self.quads.filter_hosts({"cloud": cloud})
+                for host in _hosts:
+                    self.logger.info(host.name)
+            except (APIServerException, APIBadRequest) as ex:
+                raise CliException(str(ex))
+            return 0
+
         # default action
         try:
             clouds = self.quads.get_clouds()
@@ -1042,7 +1063,12 @@ class QuadsCli:
         }
 
         try:
-            self.quads.update_host(hostname, data)
+            response = self.quads.update_host(hostname, data)
+            _json = response.json()
+            for key in ["interfaces", "disks", "memory", "processors"]:
+                _json.pop(key, None)
+            yaml_str = yaml.dump(_json, default_flow_style=False, sort_keys=False)
+            self.logger.info("\n" + yaml_str)
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
             raise CliException(str(ex))
 

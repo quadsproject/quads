@@ -11,8 +11,7 @@ from tests.cli.test_base import TestBase
 
 class TestQuads(TestBase):
     def test_default_action(self):
-
-        # TODO: Check host duplication here
+        self.cli_args = {}
         self.quads_cli_call(None)
         assert self._caplog.messages[0] == f"{DEFAULT_CLOUD}:"
         assert self._caplog.messages[1] == f"  - {HOST2}"
@@ -20,7 +19,7 @@ class TestQuads(TestBase):
     @patch("quads.quads_api.QuadsApi.is_available")
     def test_default_action_available_exception(self, mock_is_available):
         mock_is_available.side_effect = APIServerException("Connection Error")
-        # TODO: Check host duplication here
+        self.cli_args = {}
         with pytest.raises(CliException) as ex:
             self.quads_cli_call(None)
         assert str(ex.value) == "Connection Error"
@@ -28,7 +27,7 @@ class TestQuads(TestBase):
     @patch("quads.quads_api.QuadsApi.get_current_schedules")
     def test_default_action_schedules_exception(self, mock_current_schedules):
         mock_current_schedules.side_effect = APIServerException("Connection Error")
-        # TODO: Check host duplication here
+        self.cli_args = {}
         with pytest.raises(CliException) as ex:
             self.quads_cli_call(None)
         assert str(ex.value) == "Connection Error"

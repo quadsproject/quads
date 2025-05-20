@@ -204,6 +204,7 @@ def get_summary() -> Response:
                 "ccuser": _assignment.ccuser if _assignment else "",
                 "provisioned": _assignment.provisioned if _assignment else False,
                 "validated": _assignment.validated if _assignment else False,
+                "is_self_schedule": _assignment.is_self_schedule if _assignment else False,
             }
         )
 
