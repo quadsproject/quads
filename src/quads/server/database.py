@@ -1,22 +1,41 @@
-from sqlalchemy_utils import database_exists, create_database
-from quads.server.models import Base, Role, User, engine_from_config, db
+from sqlalchemy import text
+
+from quads.server.models import Base, Engine, Role, User, db, engine_from_config
 
 
 def init_db(config=None):
     # Import all modules here that might define models so that
     # they will be registered properly on the metadata. Otherwise,
     # you will have to import them first before calling init_db()
+    import quads.server.models
+
+    engine = Engine
     if config:
-        Engine = engine_from_config(config)
-    if not database_exists(Engine.url):
-        create_database(Engine.url)
-    Base.metadata.create_all(bind=Engine)
+        engine = engine_from_config(config)
+
+    try:
+        conn = engine.connect()
+        conn.close()
+    except Exception:
+        import sqlalchemy
+
+        url = engine.url
+        default_url = url.set(database="postgres")
+        tmp_engine = sqlalchemy.create_engine(default_url)
+        conn = tmp_engine.connect()
+        conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+        conn.execute(text(f"CREATE DATABASE {url.database}"))
+        conn.close()
+        tmp_engine.dispose()
+
+    Base.metadata.create_all(bind=engine)
 
 
 def drop_all(config=None):
+    engine = Engine
     if config:
-        Engine = engine_from_config(config)
-    Base.metadata.drop_all(bind=Engine)
+        engine = engine_from_config(config)
+    Base.metadata.drop_all(bind=engine)
 
 
 def populate(user_datastore):

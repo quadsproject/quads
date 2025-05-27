@@ -67,7 +67,6 @@ Requires: python3-flask-cors >= 3.0.10
 Requires: python3-jwt >= 1.6.4
 Requires: python3-dotenv >= 0.19.2
 Requires: python3-sqlalchemy >= 1.4.50
-Requires: python3-sqlalchemy-utils >= 0.37.8
 Requires: python3-psycopg2 >= 2.9.6
 Requires: python3-gunicorn >= 20.1.0
 Requires: python3-validators >= 0.20.0

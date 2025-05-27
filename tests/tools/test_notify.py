@@ -23,10 +23,6 @@ from tests.config import (
 )
 
 
-def run_async(func):
-    return asyncio.run(func)
-
-
 class TestNotify:
     @patch("quads.tools.notify.Netcat", NetcatStub)
     @patch("quads.tools.notify.Postman")
@@ -40,7 +36,7 @@ class TestNotify:
         cc = ["cc1", "cc2"]
 
         # Call the function
-        run_async(create_initial_message(OWNER, cloud, cloud_info, ticket, cc))
+        asyncio.run(create_initial_message(OWNER, cloud, cloud_info, ticket, cc))
 
         # Assert that Postman was called with the correct arguments
         mock_postman.assert_called_once_with(
