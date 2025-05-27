@@ -110,6 +110,10 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
          * [Validate Only a Specific Cloud](#validate-only-a-specific-cloud)
          * [Mapping Internal VLAN Interfaces to Problem Hosts](#mapping-internal-vlan-interfaces-to-problem-hosts)
          * [Dealing with the Postgres Database](#dealing-with-the-postgres-database)
+            * [Cleaning up Orphaned Active Assignments](#cleaning-up-orphaned-active-assignments)
+               * [Finding Orphaned Assignments](#finding-orphaned-assignments)
+               * [Removing Orphaned Active Assignments](#removing-orphaned-active-assignments)
+               * [Finding and Inactivating All Orphaned Active Assignments](#finding-and-inactivating-all-orphaned-active-assignments)
       * [Contact QUADS Developers](#contact-quads-developers)
       * [QUADS Talks and Media](#quads-talks-and-media)
 
@@ -1617,6 +1621,52 @@ quads=# select * from assignments where cloud_id = 18;
 (1 row)
 ```
   - Now your new assignment should get proper attention from `quads --validate-env`
+
+#### Cleaning up Orphaned Active Assignments
+Sometimes failed attempts to use the self-scheduling API and workflows may result in orphaned, active assignments with no host schedules associated with it.
+
+> [!CAUTION]
+> It's very important to clear empty, active assignments as they will continue to consume the QUADS cloud/environment and hold it hostage unless they are marked inactive.
+
+* In [RFE #605](https://github.com/redhat-performance/quads/issues/605) we'll look to address this automatically as a maintenance task or scheduling mechanic but for now this must be done in the database.
+
+##### Finding Orphaned Assignments
+```
+quads=# select * from assignments a left join schedules s on a.id = s.assignment_id where a.active = true and s.id is null;
+```
+
+You'll see the following output if there are any matches:
+
+```
+ id  | active | provisioned | validated |                 description                 | owner | ticket | qinq | wipe |    ccuser    | cloud_id | vl
+an_id |         created_at         | is_self_schedule |  ostype  | id | start | end | build_start | build_end | assignment_id | host_id | created_a
+t
+-----+--------+-------------+-----------+---------------------------------------------+-------+--------+------+------+--------------+----------+---
+------+----------------------------+------------------+----------+----+-------+-----+-------------+-----------+---------------+---------+----------
+--
+ 140 | t      | t           | f         | compare IPv6 vs IPv4 dataplane performance  | hnhan | 4324   |    0 | t    | \x80055d942e |       17 |
+      | 2025-05-26 18:46:14.533    | t                | RHEL 9.4 |    |       |     |             |           |               |         |
+ 141 | t      | t           | f         | compare IPv6 vs IPv4 dataplane performance  | hnhan | 4325   |    0 | f    | \x80055d942e |       23 |
+      | 2025-05-26 18:55:35.862754 | t                | RHEL 9.4 |    |       |     |             |           |               |         |
+(2 rows)
+```
+
+* We can see `schedule_id` `140` and `141` are abandoned, having no host schedules yet they are still flagged as active.
+
+##### Removing Orphaned Active Assignments
+```
+quads=# update assignments set active = false where id = 140;
+UPDATE 1
+quads=# update assignments set active = false where id = 141;
+UPDATE 1
+```
+
+##### Finding and Inactivating All Orphaned Active Assignments
+The following query will find and inactivate all orphaned active assignments in one swoop.
+
+```
+quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EXISTS (SELECT 1 FROM schedules s WHERE s.assignment_id = a.id);
+```
 
 ## Contact QUADS Developers
 
