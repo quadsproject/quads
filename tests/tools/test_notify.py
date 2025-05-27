@@ -24,7 +24,7 @@ from tests.config import (
 
 
 def run_async(func):
-    return asyncio.get_event_loop().run_until_complete(func)
+    return asyncio.run(func)
 
 
 class TestNotify:
