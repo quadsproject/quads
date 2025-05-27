@@ -15,7 +15,7 @@
 %define name quads-dev
 %define reponame quads
 %define branch development
-%define version 2.2.0
+%define version 2.2.2
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Summary: Automated future scheduling, documentation, end-to-end provisioning and assignment of servers and networks.
@@ -237,6 +237,13 @@ fi;
 find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
+
+* Tue May 27 2025 Will Foster <wfoster@redhat.com>
+- 2.2.2 release
+- add boot_order feature for clouds
+- performance improvements to M&R
+- better logging for self-scheduling
+- other fixes
 
 * Tue Apr 08 2025 Will Foster <wfoster@redhat.com>
 - 2.2.0 Beta release
