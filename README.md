@@ -54,6 +54,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
          * [Creating a New Cloud Assignment and Schedule](#creating-a-new-cloud-assignment-and-schedule)
             * [QUADS VLAN Options](#quads-vlan-options)
             * [Optional QUADS Public VLAN](#optional-quads-public-vlan)
+            * [Optional Cloud Boot Order](#optional-cloud-boot-order)
             * [Defining a New Cloud](#defining-a-new-cloud)
             * [Adding New Hosts to your Cloud](#adding-new-hosts-to-your-cloud)
             * [Adding New Hosts to your Cloud with JIRA Integration](#adding-new-hosts-to-your-cloud-with-jira-integration)
@@ -736,6 +737,23 @@ If you need to clear the vlan association with your cloud, you can pass any stri
 ```bash
 quads --mod-cloud --cloud cloud03 --vlan none
 ```
+
+#### Optional Cloud Boot Order
+
+QUADS supports two pre-defined BIOS boot orders for supported Dell systems based on [badfish](https://github.com/redhat-performance/badfish) [BIOS boot orders](https://github.com/redhat-performance/badfish?tab=readme-ov-file#idrac-and-data-format).  You define and manage this in your [idrac_interfaces.yml](conf/idrac_interfaces.yml).
+
+```
+quads --define-cloud --cloud cloud03 --boot-order foreman
+```
+
+You can change this at any time via `--mod-cloud`
+
+```
+quads --mod-cloud --cloud cloud03 --boot-order director
+```
+
+> [!TIP]
+> You can leverage `idrac_interfaces.yml` to define any BIOS boot order for systems you like as reported via `badfish --check-boot` and leverage either the `foreman` or `director` labels to enforce this based on key/value pairs.
 
 #### Defining a New Cloud
 
