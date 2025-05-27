@@ -1,6 +1,5 @@
-from sqlalchemy_utils import database_exists, create_database
-
 from quads.server.models import Base, Engine, engine_from_config
+from sqlalchemy import text
 
 
 def init_db(config=None):
@@ -13,8 +12,21 @@ def init_db(config=None):
     if config:
         engine = engine_from_config(config)
 
-    if not database_exists(engine.url):
-        create_database(engine.url)
+    try:
+        conn = engine.connect()
+        conn.close()
+    except Exception:
+        import sqlalchemy
+
+        url = engine.url
+        default_url = url.set(database="postgres")
+        tmp_engine = sqlalchemy.create_engine(default_url)
+        conn = tmp_engine.connect()
+        conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+        conn.execute(text(f"CREATE DATABASE {url.database}"))
+        conn.close()
+        tmp_engine.dispose()
+
     quads.server.models.Base.metadata.create_all(bind=engine)
 
 
