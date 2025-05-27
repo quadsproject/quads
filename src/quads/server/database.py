@@ -1,4 +1,3 @@
-from sqlalchemy_utils import database_exists, create_database
 from quads.server.models import Base, Role, User, engine_from_config, db
 
 
@@ -8,8 +7,20 @@ def init_db(config=None):
     # you will have to import them first before calling init_db()
     if config:
         Engine = engine_from_config(config)
-    if not database_exists(Engine.url):
-        create_database(Engine.url)
+    try:
+        conn = Engine.connect()
+        conn.close()
+    except Exception:
+        import sqlalchemy
+
+        url = Engine.url
+        default_url = url.set(database="quads")
+        tmp_engine = sqlalchemy.create_engine(default_url)
+        conn = tmp_engine.connect()
+        conn.execute("COMMIT")
+        conn.execute(f"CREATE DATABASE {url.database}")
+        conn.close()
+        tmp_engine.dispose()
     Base.metadata.create_all(bind=Engine)
 
 
