@@ -856,7 +856,8 @@ class QuadsCli:
         if self.cli_args.get("boot_order"):
             boot_order = self.cli_args.get("boot_order")
             interfaces_path = conf.get("badfish_interfaces_path")
-            host_types = Badfish.get_host_types_from_yaml(interfaces_path)
+            loop = asyncio.get_event_loop()
+            host_types = loop.run_until_complete(Badfish.get_host_types_from_yaml(interfaces_path))
             if boot_order in host_types:
                 data["boot_order"] = boot_order
             else:
