@@ -6,9 +6,10 @@ from flask import Blueprint, Response, g, jsonify, make_response, request
 from quads.config import Config
 from quads.server.blueprints import check_access
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
+from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
+from quads.server.dao.notification import NotificationDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.models import Schedule, db
 
@@ -107,6 +108,7 @@ def create_schedule() -> Response:
             "message": f"Cloud not found: {cloud}",
         }
         return make_response(jsonify(response), 400)
+
     _assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
     if not _assignment:
         response = {
@@ -211,9 +213,27 @@ def create_schedule() -> Response:
             "message": "Host is not available for the specified date range",
         }
         return make_response(jsonify(response), 400)
-    _schedule_obj = Schedule(start=_start, end=_end, assignment=_assignment, host=_host)
-    db.session.add(_schedule_obj)
-    BaseDao.safe_commit()
+
+    try:
+        _schedule_obj = ScheduleDao.create_schedule(start=_start, end=_end, assignment=_assignment, host=_host)
+    except SQLError as ex:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": str(ex),
+        }
+        return make_response(jsonify(response), 400)
+
+    if _assignment.notification.pre:
+        try:
+            NotificationDao.update_notification(_assignment.notification.id, pre=False)
+        except SQLError as ex:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": str(ex),
+            }
+            return make_response(jsonify(response), 400)
 
     return jsonify(_schedule_obj.as_dict())
 
@@ -322,6 +342,18 @@ def update_schedule(schedule_id: int) -> Response:
         return make_response(jsonify(response), 400)
 
     updated_schedule = ScheduleDao.update_schedule(int(schedule_id), **parsed_data)
+
+    _assignment = AssignmentDao.get_assignment(schedule.assignment.id)
+    if _assignment.notification.pre:
+        try:
+            NotificationDao.update_notification(_assignment.notification.id, pre=False)
+        except SQLError as ex:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": str(ex),
+            }
+            return make_response(jsonify(response), 400)
 
     return jsonify(updated_schedule.as_dict())
 

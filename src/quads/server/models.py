@@ -289,7 +289,7 @@ class User(Base, UserMixin):
     def encode_auth_token(user_email):
         try:
             payload = {
-                "exp": datetime.utcnow() + timedelta(days=0, seconds=6000),
+                "exp": datetime.utcnow() + timedelta(days=0, seconds=15600),
                 "iat": datetime.utcnow(),
                 "sub": user_email,
             }

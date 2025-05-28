@@ -54,7 +54,7 @@ class ScheduleDao(BaseDao):
             if hasattr(schedule, key):
                 setattr(schedule, key, value)
             else:
-                raise InvalidArgument
+                raise InvalidArgument(f"{key} is not a valid field.")
 
         result = cls.safe_commit()
 
