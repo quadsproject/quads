@@ -154,7 +154,8 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
     _assignment = quads.get_active_cloud_assignment(_target_cloud.name)
     if _assignment:
         ticket = _assignment.ticket
-        boot_order = _assignment.boot_order
+        if _assignment.boot_order:
+            boot_order = _assignment.boot_order
     ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else Config["ipmi_password"]
 
     ipmi_set_pass = [
