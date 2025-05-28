@@ -289,8 +289,8 @@ class User(Base, UserMixin):
     def encode_auth_token(user_email):
         try:
             payload = {
-                "exp": datetime.utcnow() + timedelta(days=0, seconds=6000),
-                "iat": datetime.utcnow(),
+                "exp": datetime.now(datetime.timezone.utc) + timedelta(days=0, seconds=15600),
+                "iat": datetime.now(datetime.timezone.utc),
                 "sub": user_email,
             }
             return encode(payload, current_app.config.get("SECRET_KEY"), algorithm="HS256")

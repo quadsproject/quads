@@ -6,9 +6,10 @@ from flask import Blueprint, Response, g, jsonify, make_response, request
 from quads.config import Config
 from quads.server.blueprints import check_access
 from quads.server.dao.assignment import AssignmentDao
-from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
+from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
+from quads.server.dao.notification import NotificationDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.models import Schedule, db
 
@@ -107,6 +108,7 @@ def create_schedule() -> Response:
             "message": f"Cloud not found: {cloud}",
         }
         return make_response(jsonify(response), 400)
+
     _assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
     if not _assignment:
         response = {
@@ -122,6 +124,19 @@ def create_schedule() -> Response:
             "message": f"You({g.current_user.email}) don't have permission to create a schedule on {cloud}",
         }
         return make_response(jsonify(response), 403)
+
+    if _assignment.notification.pre:
+        try:
+            result = NotificationDao.update_notification(_assignment.notification.id, {"pre": False})
+            if not result:
+                raise SQLError("Failed to update notification")
+        except (SQLError, InvalidArgument) as ex:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": str(ex),
+            }
+            return make_response(jsonify(response), 400)
 
     existing_schedules = ScheduleDao.get_current_schedule(cloud=_cloud)
     if _assignment.is_self_schedule and len(existing_schedules) >= Config.get("ssm_host_limit", 10):
