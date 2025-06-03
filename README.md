@@ -78,7 +78,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
-      * [Using the Self-Scheduling API](#using-the-self-scheduling-api)
+      * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
          * [Verify or Correct Cloud and Host Network Switch Settings](#verify-or-correct-cloud-and-host-network-switch-settings)
@@ -114,6 +114,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
                * [Finding Orphaned Assignments](#finding-orphaned-assignments)
                * [Removing Orphaned Active Assignments](#removing-orphaned-active-assignments)
                * [Finding and Inactivating All Orphaned Active Assignments](#finding-and-inactivating-all-orphaned-active-assignments)
+            * [Deleting Self Service Users](#deleting-self-service-users)
       * [Contact QUADS Developers](#contact-quads-developers)
       * [QUADS Talks and Media](#quads-talks-and-media)
 
@@ -1657,6 +1658,25 @@ The following query will find and inactivate all orphaned active assignments in 
 
 ```
 quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EXISTS (SELECT 1 FROM schedules s WHERE s.assignment_id = a.id);
+```
+
+#### Deleting Self Service Users
+WIP: It may be necessary to do some tasks as admin via CLI until proper user management is supported.
+
+To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
+```
+# echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
+ 15 | user1@example.com
+```
+Notice the `id` value of `15` for the user to delete.  First delete the `roles_users` entry:
+```
+# echo "delete from roles_users where user_id = 15;" | sudo -u postgres psql -d quads
+DELETE 1
+```
+Next, delete the `users` entry:
+```
+# echo "delete from users where email like 'user1%';" | sudo -u postgres psql -d quads
+DELETE 1
 ```
 
 ## Contact QUADS Developers
