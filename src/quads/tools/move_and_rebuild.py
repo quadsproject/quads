@@ -277,11 +277,15 @@ async def move_and_rebuild(host, new_cloud, semaphore, rebuild=False, loop=None)
                         "foreman",
                         "/opt/quads/conf/idrac_interfaces.yml",
                     )
-                    await badfish.reboot_server(graceful=False)
                 except BadfishException:
                     logger.error(f"Error setting PXE boot via Badfish on {host}.")
-                    await badfish.reboot_server(graceful=False)
                     return False
+            try:
+                await badfish.reboot_server(graceful=False)
+            except BadfishException:
+                logger.error("Error rebooting server: {host}")
+                return False
+
         else:
             try:
                 ipmi_pxe_persistent = [

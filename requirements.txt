@@ -1,5 +1,5 @@
 alembic>=1.10.3
-aiohttp>=3.9.5
+aiohttp==3.12.4
 decorator>=5.1.1
 Flask==3.1.1
 Flask[async]==3.1.1
