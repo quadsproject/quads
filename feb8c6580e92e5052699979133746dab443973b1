@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "41594d89_cbc54112",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-06-03T13:25:53Z",
+      "side": 1,
+      "message": "we don\u0027t want to change this, we\u0027re pointing to the relative path of another doc.",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 69
+      },
+      "revId": "feb8c6580e92e5052699979133746dab443973b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
