@@ -502,19 +502,6 @@ class TestJira(object):
         response = await jira.get_watchers(ticket="1")
         assert not response
 
-    # @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
-    # @pytest.mark.asyncio
-    # async def test_get_all_pending_tickets(self, mock_get):
-    #     resp = AsyncMock()
-    #     resp.json.return_value = {}
-    #     resp.status = 200
-    #     mock_get.return_value.__aenter__.return_value = resp
-    #
-    #     jira = Jira(url=self.url, username=self.username, password=self.password, semaphore=self.semaphore)
-    #     response = await jira.get_all_pending_tickets()
-    #     print(response)
-    #     assert response
-
     @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
     @pytest.mark.asyncio
     async def test_get_all_pending_tickets(self, mock_get):
