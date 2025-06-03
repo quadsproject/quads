@@ -21,6 +21,8 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Schedule a host via Python](#schedule-a-host-via-python)
     * [Wait for validation via Python](#wait-for-validation-via-python)
     * [Terminate assignment via Python](#terminate-assignment-via-python)
+  * [User Management via CLI](#user-management-via-cli)
+    * [User Deletion via CLI](#user-deletion-via-cli)
 
 
 # Self-Scheduling How-To
@@ -207,3 +209,25 @@ from quads_lib import QuadsApi
 with QuadsApi(username, password, base_url) as quads:
     quads.terminate_assignment(assignment_id)
 ```
+
+## User Deletion via CLI
+WIP: It may be necessary to do some tasks as admin via CLI until proper user management is supported.
+
+### User Deletion via CLI
+To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
+```
+# echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
+ 15 | user1@example.com
+```
+Notice the `id` value of `15` for the user to delete.  First delete the `roles_users` entry:
+```
+# echo "delete from roles_users where user_id = 15;" | sudo -u postgres psql -d quads
+DELETE 1
+```
+Next, delete the `users` entry:
+```
+# echo "delete from users where email like 'user1%';" | sudo -u postgres psql -d quads
+DELETE 1
+```
+
+
