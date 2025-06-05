@@ -14,3 +14,6 @@ ssm_enable_sched_window: true
 # Set the end date for the scheduling window
 ssm_deadline_day: sunday
 ssm_deadline_hour: 21
+
+# Prefix for the description field of the self-schedulable resources
+ssm_description_prefix: "[SSM]"
