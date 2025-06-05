@@ -303,8 +303,11 @@ def create_self_assignment() -> Response:
             }
             return make_response(jsonify(response), 400)
 
+    description_prefix = Config.get("ssm_description_prefix", "[SSM]")
+    full_description = f"{description_prefix} {description}"
+
     kwargs = {
-        "description": description,
+        "description": full_description,
         "owner": owner,
         "qinq": qinq,
         "wipe": str(wipe).lower() in ["true", "y", 1, "yes"],
@@ -332,15 +335,16 @@ def create_self_assignment() -> Response:
                 "message": f"Jira connection failed: {ex}",
             }
             return make_response(jsonify(response), 400)
-        description = ""
+
+        jira_description = ""
         for key, value in kwargs.items():
-            description += f"{key}: {value} | "
+            jira_description += f"{key}: {value} | "
 
         try:
             response = loop.run_until_complete(
                 jira.create_ticket(
-                    summary=f"[SSM] {description}",
-                    description=description,
+                    summary=f"{description_prefix} {jira_description}",
+                    description=jira_description,
                     labels=["SELF-SCHEDULED"],
                 )
             )
