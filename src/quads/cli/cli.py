@@ -616,7 +616,6 @@ class QuadsCli:
         host_name = self.cli_args.get("host")
         check = self.cli_args.get("check")
 
-        _date = None
         end_date = None
 
         if not weeks and not date_arg:
@@ -710,7 +709,7 @@ class QuadsCli:
                 )
             else:
                 self.logger.info(
-                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been extended until {str(_date)[:16]}"
+                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been extended until {str(end_date)[:16]}"
                 )
         else:
             self.logger.info(
@@ -741,7 +740,7 @@ class QuadsCli:
                 raise CliException("The value of --weeks must be an integer")
 
         elif date_arg:
-            _date = datetime.strptime(self.cli_args.get("datearg"), "%Y-%m-%d %H:%M")
+            _date = datetime.strptime(date_arg, "%Y-%m-%d %H:%M")
         elif now:
             _date = datetime.now()
 
@@ -804,11 +803,11 @@ class QuadsCli:
                 )
             elif date_arg:
                 self.logger.info(
-                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been shrunk until {str(_date)[:16]}"
+                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been shrunk until {str(end_date)[:16]}"
                 )
             else:
                 self.logger.info(
-                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been shrunk to {str(_date)[:16]}"
+                    f"{dispatch_key.capitalize()} {data_dispatch[dispatch_key]} has now been shrunk to {str(end_date)[:16]}"
                 )
         else:
             if weeks:
