@@ -149,8 +149,8 @@ class QuadsCli:
                     _id = obj.name
 
                 remove_func = dispatch_remove.get(key)
-                # remove_disk and remove_interface need hostname & id
-                if key in ["disks", "interfaces"]:
+                # remove_interface() needs hostname & interface name
+                if key == "interfaces":
                     remove_func(host.name, str(_id))
                 else:
                     remove_func(str(_id))
