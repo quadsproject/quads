@@ -11,6 +11,7 @@ In QUADS `1.1.4` and above we've implemented a metadata model in the QUADS datab
      * [Modify YAML Host Data](#modify-yaml-host-data)
      * [Add any Supporting Model Type](#add-any-supporting-model-type)
      * [Importing Host Metadata](#importing-host-metadata)
+     * [Removing Host Metadata](#removing-host-metadata)
   * [How to Export Host Metadata](#how-to-export-host-metadata)
   * [Querying Host Information](#querying-host-information)
      * [Example Filter Searches](#example-filter-searches)
@@ -85,6 +86,40 @@ quads --define-host-details --metadata /tmp/hosts_metadata.yml
 ```
 
   * Doing this again or modifying your `hosts_metadata.yml` file and re-importing will overwrite all values or remove ones that might have been removed from the QUADS database.
+
+### Removing Host Metadata
+
+  * QUADS provides the ability to selectively remove host metadata using `--rm-host-metadata` together with the `--mod-host` flag.
+  * This is useful for selectively cleaning up outdated or incorrect metadata without having to recreate the entire host record.
+
+#### Available Metadata Components
+
+The following host metadata components can be removed individually or in combination:
+
+| Component | Description |
+|-----------|-------------|
+| `disks`   | Removes all disk information from the host |
+| `memory`  | Removes all memory (RAM) information from the host |
+| `interfaces` | Removes all network interface information from the host |
+| `cpus`    | Removes all CPU processor information from the host |
+| `gpus`    | Removes all GPU processor information from the host |
+| `all`     | Removes all metadata components listed above |
+
+#### Usage Examples
+
+  * Remove disk metadata from a specific host:
+
+```
+quads --mod-host --host server01.example.com --rm-host-metadata disks
+```
+
+  * Remove multiple metadata components (gpus and interfaces):
+
+```
+quads --mod-host --host server01.example.com --rm-host-metadata gpus,interfaces
+```
+
+  * **Note:** Components should be specified as a comma-separated list without spaces. The operation is permanent and cannot be undone except by re-importing the metadata.
 
 ## How to Export Host Metadata
   * To export the same formatted YAML key/value pair metadata data source from your hosts use the `--export-host-details` command.
