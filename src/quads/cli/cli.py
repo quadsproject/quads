@@ -140,7 +140,7 @@ class QuadsCli:
         }
         field = getattr(host, key)
         if field is None:  # pragma: no cover
-            raise CliException("{key} is not a Host property")
+            raise CliException(f"{key} is not a Host property")
 
         for obj in field:  # pragma: no cover
             try:
@@ -149,7 +149,11 @@ class QuadsCli:
                     _id = obj.name
 
                 remove_func = dispatch_remove.get(key)
-                remove_func(str(_id))
+                # remove_disk and remove_interface need hostname & id
+                if key in ["disks", "interfaces"]:
+                    remove_func(host.name, str(_id))
+                else:
+                    remove_func(str(_id))
             except (APIServerException, APIBadRequest) as ex:
                 raise CliException(str(ex))
 
