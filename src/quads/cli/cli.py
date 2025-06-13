@@ -149,7 +149,11 @@ class QuadsCli:
                     _id = obj.name
 
                 remove_func = dispatch_remove.get(key)
-                remove_func(str(_id))
+                # remove_interface() needs hostname & interface name
+                if key == "interfaces":
+                    remove_func(host.name, str(_id))
+                else:
+                    remove_func(str(_id))
             except (APIServerException, APIBadRequest) as ex:
                 raise CliException(str(ex))
 

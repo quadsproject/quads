@@ -350,8 +350,8 @@ class QuadsApi(QuadsBase):
     def update_disk(self, hostname, data) -> Response:
         return self.patch(os.path.join("disks", hostname), data)
 
-    def remove_disk(self, hostname, disk_id) -> Response:
-        return self.delete(os.path.join("disks", hostname), {"id": disk_id})
+    def remove_disk(self, disk_id) -> Response:
+        return self.delete(os.path.join("disks", disk_id))
 
     # Processor
     def create_processor(self, hostname, data) -> Response:
