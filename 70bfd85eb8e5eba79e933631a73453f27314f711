@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "63350cc4_5c45ff2d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-06-16T11:32:57Z",
+      "side": 1,
+      "message": "Looks good to me, just needs some docs since this is a new command and new feature:\n\nBest place to put it is a section under here:   https://github.com/redhat-performance/quads/blob/latest/docs/quads-host-metadata-search.md#importing-host-metadata same TOC heading",
+      "revId": "70bfd85eb8e5eba79e933631a73453f27314f711",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
