@@ -808,6 +808,14 @@ parser.add_argument(
     help="Preferred boot order type for the host",
 )
 
+parser.add_argument(
+    "--rm-host-metadata",
+    dest="rm_host_metadata",
+    type=str,
+    default=None,
+    help="Remove specified host metadata components (comma-separated: disks,memory,interfaces,cpus,gpus,all)",
+)
+
 mod_notification_arg_names = [
     "fail",
     "success",

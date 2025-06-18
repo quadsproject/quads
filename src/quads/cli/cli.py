@@ -131,7 +131,7 @@ class QuadsCli:
 
         return 0
 
-    def clear_field(self, host, key):
+    def clear_field(self, host, key, processor_type=None):
         dispatch_remove = {
             "disks": self.quads.remove_disk,
             "memory": self.quads.remove_memory,
@@ -144,6 +144,10 @@ class QuadsCli:
 
         for obj in field:  # pragma: no cover
             try:
+                if key == "processors" and processor_type is not None:
+                    if hasattr(obj, 'processor_type') and obj.processor_type != processor_type:
+                        continue
+
                 _id = obj.id
                 if key == "interfaces":
                     _id = obj.name
@@ -1032,15 +1036,65 @@ class QuadsCli:
             raise CliException(str(ex))
         self.logger.info(f"{_host.name}")
 
+    def parse_metadata_components(self, component_string):
+        """Parse and validate metadata components, expanding 'all' alias."""
+        valid_components = {'disks', 'memory', 'interfaces', 'cpus', 'gpus'}
+
+        components = [c.strip().lower() for c in component_string.split(',')]
+
+        if 'all' in components:
+            return list(valid_components)
+
+        invalid = [c for c in components if c not in valid_components]
+        if invalid:
+            raise CliException(f"Invalid metadata components: {', '.join(invalid)}. Valid options: {', '.join(valid_components)}, all")
+
+        return list(set(components))
+
     def action_modhost(self):
         data = {}
         hostname = self.cli_args.get("host")
         if not hostname:
             raise CliException("Missing parameter --host")
+
         try:
-            self.quads.get_host(hostname)
+            host = self.quads.get_host(hostname)
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
             raise CliException(str(ex))
+
+        # Handle removing host metadata
+        rm_host_metadata = self.cli_args.get("rm_host_metadata")
+        if rm_host_metadata:
+            try:
+                components_to_clear = self.parse_metadata_components(rm_host_metadata)
+            except CliException as ex:
+                raise ex
+
+            # Build list of components with processor type filtering
+            clear_operations = []
+            for component in components_to_clear:
+                if component == 'cpus':
+                    clear_operations.append(('processors', 'CPU'))
+                elif component == 'gpus':
+                    clear_operations.append(('processors', 'GPU'))
+                else:
+                    clear_operations.append((component, None))
+
+            # Execute clearing operations
+            cleared_components = []
+            for field, processor_type in clear_operations:
+                try:
+                    self.clear_field(host, field, processor_type)
+                    display_name = f"{processor_type}s" if processor_type else field
+                    cleared_components.append(display_name)
+                except Exception as ex:
+                    self.logger.error(f"Failed to clear {field}: {str(ex)}")
+                    raise CliException(f"Failed to clear {field}: {str(ex)}")
+
+            if cleared_components:
+                self.logger.info(f"Successfully cleared {', '.join(cleared_components)} metadata for host {hostname}")
+
+            return 0
 
         if self.cli_args.get("cloud"):
             try:
