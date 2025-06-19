@@ -7,13 +7,13 @@ import os
 import time
 import pathlib
 from collections import defaultdict
-from distutils.util import strtobool
 from datetime import datetime
 from shutil import copyfile
 
 from quads.quads_api import QuadsApi
 from quads.tools.external.foreman import Foreman
 from quads.config import Config
+from quads.tools.helpers import strtobool
 
 quads = QuadsApi(Config)
 
