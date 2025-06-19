@@ -10,7 +10,9 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
   * [API GET Operations](#api-get-operations)
   * [API POST Operations](#api-post-operations)
   * [Working Examples](#working-examples)
+    * [Query a Specific Host and Details](#query-a-specific-host-and-details)
     * [Query Hosts on a Specific Cloud](#query-hosts-on-a-specific-cloud)
+    * [Obtain a List of all Systems in a Cloud](#obtain-a-list-of-all-systems-in-a-cloud)
     * [Query a Model Type by Cloud](#query-a-model-type-by-cloud)
     * [Query a Host Schedule](#query-a-host-schedule)
     * [Query Available OS in Foreman](#query-available-os-in-foreman)
@@ -122,7 +124,18 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
     - ```/api/v3/interfaces```   Add an interface to a QUADS-managed host
 
 ## Working Examples
+
+> [!NOTE]
+> Substitute `localhost` with your QUADS API endpoint in the below examples.
+
+### Query a Specific Host and Details
+* This dumps all known metadata on a specific host.
+```bash
+curl -s http://localhost/api/v3/hosts/f24-h22-000-r630.rdu2.scalelab.redhat.com | jq
+```
+
 ### Query Hosts on a Specific Cloud
+* This produces an extensive list of all hosts and their metadata in an environment
 ```bash
 curl http://localhost/api/v3/hosts?cloud=cloud04 | python3 -m json.tool
 ```
@@ -156,6 +169,12 @@ curl http://localhost/api/v3/hosts?cloud=cloud04 | python3 -m json.tool
     },
     ...
 ]
+```
+
+### Obtain a List of all Systems in a Cloud
+* Get a simple return of all hosts in a QUADS environment
+```bash
+curl -s http://localhost/api/v3/hosts?cloud=cloud25 | jq -r .[].name
 ```
 
 ### Query a Model Type by Cloud
