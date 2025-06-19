@@ -7,15 +7,7 @@ from quads.exceptions import CliException
 from quads.quads_api import APIServerException
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.cloud import CloudDao
-from tests.cli.config import (
-    CLOUD,
-    DEFAULT_CLOUD,
-    DEFINE_CLOUD,
-    FREE_CLOUD,
-    HOST1,
-    MOD_CLOUD,
-    REMOVE_CLOUD,
-)
+from tests.cli.config import CLOUD, DEFAULT_CLOUD, DEFINE_CLOUD, FREE_CLOUD, HOST1, MOD_CLOUD, REMOVE_CLOUD
 from tests.cli.test_base import TestBase
 
 

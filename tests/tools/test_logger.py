@@ -1,5 +1,5 @@
-import unittest
 import logging
+import unittest
 from unittest.mock import patch
 
 from quads.tools.logger import ColorFormatter

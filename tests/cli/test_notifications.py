@@ -2,10 +2,7 @@ import pytest
 
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.cloud import CloudDao
-from tests.cli.config import (
-    DEFINE_CLOUD,
-    FREE_CLOUD, MOD_CLOUD,
-)
+from tests.cli.config import DEFINE_CLOUD, FREE_CLOUD, MOD_CLOUD
 from tests.cli.test_base import TestBase
 
 
@@ -64,14 +61,14 @@ class TestNotifications(TestBase):
 
     def test_modify_notification(self):
         self.cli_args["cloud"] = MOD_CLOUD
-        self.cli_args["fail"] = 'true'
+        self.cli_args["fail"] = "true"
         self.quads_cli_call("modify_notification")
         messages = self._caplog.messages
         assert f"{MOD_CLOUD}, Notification updated successfully".strip() == messages[0].strip()
 
     def test_modify_non_exists_cloud_notification(self):
         self.cli_args["cloud"] = FREE_CLOUD
-        self.cli_args["fail"] = 'true'
+        self.cli_args["fail"] = "true"
         self.quads_cli_call("modify_notification")
         messages = self._caplog.messages
         assert f"{FREE_CLOUD}, No active cloud assignment found".strip() == messages[0].strip()

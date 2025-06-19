@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -12,7 +12,7 @@ from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
 from quads.tools.external.jira import JiraException
 from quads.tools.jira_watchers import main
-from tests.cli.config import CLOUD, HOST1, DEFAULT_CLOUD
+from tests.cli.config import CLOUD, DEFAULT_CLOUD, HOST1
 
 
 class TestJiraWatchers(object):
