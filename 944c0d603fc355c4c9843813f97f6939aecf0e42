@@ -16,6 +16,23 @@
       "message": "retrigger",
       "revId": "944c0d603fc355c4c9843813f97f6939aecf0e42",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0541d4f9_dff62c51",
+        "filename": "src/quads/tools/make_instackenv_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-06-19T10:16:44Z",
+      "side": 1,
+      "message": "from quads.tools.helpers import strtobool",
+      "revId": "944c0d603fc355c4c9843813f97f6939aecf0e42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
