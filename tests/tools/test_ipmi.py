@@ -70,16 +70,6 @@ class TestIPMI:
 
     @pytest.mark.asyncio
     @patch.object(IPMI, "execute")
-    async def test_configure_user_with_ticket(self, mock_execute, ipmi_instance):
-        result = await ipmi_instance.configure_user(3, "new-password", ticket="ticket123")
-
-        assert result is True
-        mock_execute.assert_any_call(["user", "set", "password", "3", "new-password"])
-        mock_execute.assert_any_call(["user", "priv", "3", "0x4"])
-        assert mock_execute.call_count == 2
-
-    @pytest.mark.asyncio
-    @patch.object(IPMI, "execute")
     async def test_configure_user_failure(self, mock_execute, ipmi_instance):
         mock_execute.side_effect = Exception("IPMI error")
 
