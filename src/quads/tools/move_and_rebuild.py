@@ -113,7 +113,7 @@ async def move_and_rebuild(
             boot_order = _assignment.boot_order
     ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else Config["ipmi_password"]
 
-    ipmi = await IPMI(host, Config["ipmi_username"], Config["ipmi_password"])
+    ipmi = IPMI(host, Config["ipmi_username"], Config["ipmi_password"], logger=logger)
     await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
 
     badfish = None

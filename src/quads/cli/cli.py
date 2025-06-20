@@ -146,7 +146,7 @@ class QuadsCli:
         for obj in field:  # pragma: no cover
             try:
                 if key == "processors" and processor_type is not None:
-                    if hasattr(obj, 'processor_type') and obj.processor_type != processor_type:
+                    if hasattr(obj, "processor_type") and obj.processor_type != processor_type:
                         continue
 
                 _id = obj.id
@@ -1066,16 +1066,18 @@ class QuadsCli:
 
     def parse_metadata_components(self, component_string):
         """Parse and validate metadata components, expanding 'all' alias."""
-        valid_components = {'disks', 'memory', 'interfaces', 'cpus', 'gpus'}
+        valid_components = {"disks", "memory", "interfaces", "cpus", "gpus"}
 
-        components = [c.strip().lower() for c in component_string.split(',')]
+        components = [c.strip().lower() for c in component_string.split(",")]
 
-        if 'all' in components:
+        if "all" in components:
             return list(valid_components)
 
         invalid = [c for c in components if c not in valid_components]
         if invalid:
-            raise CliException(f"Invalid metadata components: {', '.join(invalid)}. Valid options: {', '.join(valid_components)}, all")
+            raise CliException(
+                f"Invalid metadata components: {', '.join(invalid)}. Valid options: {', '.join(valid_components)}, all"
+            )
 
         return list(set(components))
 
@@ -1101,10 +1103,10 @@ class QuadsCli:
             # Build list of components with processor type filtering
             clear_operations = []
             for component in components_to_clear:
-                if component == 'cpus':
-                    clear_operations.append(('processors', 'CPU'))
-                elif component == 'gpus':
-                    clear_operations.append(('processors', 'GPU'))
+                if component == "cpus":
+                    clear_operations.append(("processors", "CPU"))
+                elif component == "gpus":
+                    clear_operations.append(("processors", "GPU"))
                 else:
                     clear_operations.append((component, None))
 
@@ -1832,7 +1834,7 @@ class QuadsCli:
                     )
 
                     try:
-                        done = loop.run_until_complete(asyncio.gather(*[task(loop) for task in tasks]))
+                        done = loop.run_until_complete(asyncio.gather(*[task() for task in tasks]))
                     except (
                         asyncio.CancelledError,
                         SystemExit,
