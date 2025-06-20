@@ -60,12 +60,10 @@ class IPMI:
         ]
         await self.execute(ipmi_on)
 
-    async def configure_user(self, user_id: int, password: str, ticket: Optional[str] = None) -> bool:
+    async def configure_user(self, user_id: int, password: str) -> bool:
         try:
-            ipmi_new_pass = f"{password}" if ticket else self.password
-
             # Set password
-            await self.execute(["user", "set", "password", str(user_id), ipmi_new_pass])
+            await self.execute(["user", "set", "password", str(user_id), password])
 
             # Set operator privileges
             await self.execute(["user", "priv", str(user_id), "0x4"])
