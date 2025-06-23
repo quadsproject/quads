@@ -76,6 +76,12 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
     ```
 
 ### Running QUADS Locally
+> [!CAUTION]
+> Never run tests on live data or a live database even in STAGE.
+>
+> In your sandbox this is fine and you'll actually want to create some dummy data after you have it all stood up.
+
+
 #### Running the DB
   - Instantiate a PostgreSQL container via podman
 
