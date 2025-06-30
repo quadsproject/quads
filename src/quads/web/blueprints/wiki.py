@@ -103,6 +103,7 @@ async def search_results(search):
 @wiki_bp.route("/available_hosts")
 async def available_hosts(search):
     models = search.data["model"]
+    has_gpu = search.data["has_gpu"]
     try:
         start, end = [datetime.strptime(date, "%Y-%m-%d").date() for date in search.data["date_range"].split(" - ")]
         start = datetime.combine(start, time(hour=22)).strftime("%Y-%m-%dT%H:%M")
@@ -111,7 +112,10 @@ async def available_hosts(search):
         return jsonify([])
 
     try:
-        hosts = quads.filter_available(data={"start": start, "end": end})
+        data = {"start": start, "end": end}
+        if has_gpu:
+            data["processors.processor_type"] = "GPU"
+        hosts = quads.filter_available(data=data)
         if models:
             models = [model.upper() for model in models]
             hosts = [host for host in hosts if host.model in models]

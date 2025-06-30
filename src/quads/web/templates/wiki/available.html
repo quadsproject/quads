@@ -25,6 +25,9 @@
             float: right;
             text-align: right;
         }
+        .checkbox-container {
+            margin-bottom: 15px;
+        }
     </style>
 {% endblock %}
 
@@ -41,6 +44,9 @@
                     {{ form.date_range.label }} <br> {{ form.date_range(class_="dtpick") }}
                     <br>
                     <br>
+                    <div class="checkbox-container">
+                        {{ form.has_gpu.label }} {{ form.has_gpu() }}
+                    </div>
                     <input type="submit" value="Search">
                 </form>
             </div>
@@ -146,13 +152,25 @@
                     style: 'multi'
                 }
             });
-            const today = new Date();
+            const dateRangeInput = document.getElementById('date_range');
+            const currentValue = dateRangeInput.value;
+            let startDate, endDate;
+            
+            if (currentValue) {
+                const [start, end] = currentValue.split(' - ');
+                startDate = new Date(start);
+                endDate = new Date(end);
+            } else {
+                startDate = new moment().day(7).toDate();
+                endDate = new moment().day(21).toDate();
+            }
+            
             const picker = new Litepicker({
-                element: document.getElementById('date_range'),
+                element: dateRangeInput,
                 singleMode: false,
                 minDate: new Date(),
-                startDate: new moment().day(7).toDate(),
-                endDate: new moment().day(21).toDate(),
+                startDate: startDate,
+                endDate: endDate,
                 dropdowns: {
                     "minYear": new moment().get('year'),
                     "maxYear": 2050,
