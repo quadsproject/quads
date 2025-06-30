@@ -2014,6 +2014,9 @@ components:
         retired:
           type: boolean
           example: true
+        can_self_schedule:
+          type: boolean
+          example: false
         last_build:
           type: string
           example: 2022-02-02
@@ -2053,6 +2056,9 @@ components:
         retired:
           type: boolean
           example: true
+        can_self_schedule:
+          type: boolean
+          example: false
         last_build:
           type: string
           example: 2022-02-02
@@ -2100,6 +2106,9 @@ components:
         validated:
           type: boolean
           example: true
+        is_self_schedule:
+          type: boolean
+          example: false
         description:
           type: string
           example: Short description here
