@@ -141,6 +141,11 @@ class HostDao(BaseDao):
             try:
                 if type(field.columns[0].type) is Boolean:
                     value = value.lower() in ["true", "y", 1, "yes"]
+                elif isinstance(value, str) and value.startswith("[") and value.endswith("]"):
+                    try:
+                        value = eval(value)
+                    except (SyntaxError, ValueError):
+                        pass
             except AttributeError:
                 if first_field in ["cloud", "default_cloud"]:
                     cloud = CloudDao.get_cloud(value.lower())
@@ -150,6 +155,11 @@ class HostDao(BaseDao):
                 if first_field.lower() in MAP_HOST_META.keys():
                     if len(fields) > 1:
                         field_name = f"{first_field.lower()}.{field_name.lower()}"
+                    if isinstance(value, str) and value.startswith("[") and value.endswith("]"):
+                        try:
+                            value = eval(value)
+                        except (SyntaxError, ValueError):
+                            pass
 
             if fields[0].lower() != "group_by":
                 filter_tuples.append(

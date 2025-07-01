@@ -17,6 +17,12 @@ def get_all_disks() -> Response:
     return jsonify([_disk.as_dict() for _disk in _disks])
 
 
+@disk_bp.route("/types")
+def get_disk_types() -> Response:
+    disk_types = DiskDao.get_distinct_disk_types()
+    return jsonify(disk_types)
+
+
 @disk_bp.route("/<disk_id>")
 def get_disk(disk_id: int) -> Response:
     _disk = DiskDao.get_disk(disk_id)
