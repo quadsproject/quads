@@ -37,6 +37,11 @@ class DiskDao(BaseDao):
         disk = db.session.query(Disk).filter(Disk.id == disk_id).first()
         return disk
 
+    @staticmethod
+    def get_distinct_disk_types() -> List[str]:
+        disk_types = db.session.query(Disk.disk_type).distinct().all()
+        return [disk_type[0] for disk_type in disk_types]
+
     @classmethod
     def delete_disk(cls, disk_id) -> None:  # pragma: no cover
         _disk_obj = cls.get_disk(disk_id)

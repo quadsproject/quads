@@ -1,104 +1,149 @@
 {% extends "base.html" %}
 {% block title %}QUADS Available Hosts{% endblock %}
 
-{% block styles %}
-    {{ super() }}
-    <style>
-        #search {
-            padding-right: 20px;
-            padding-bottom: 30px;
-        }
-        h2 {
-            padding-left: 13px;
-            margin-bottom: 1em;
-        }
-        .dt-buttons {
-            margin-bottom: 1em;
-        }
-        .dtpick {
-            width: 100%;
-        }
-        .dt-length {
-            float: left;
-        }
-        .dt-search {
-            float: right;
-            text-align: right;
-        }
-        .checkbox-container {
-            margin-bottom: 15px;
-        }
-    </style>
-{% endblock %}
-
-
 {% block page_content %}
-    <h2>QUADS Available Hosts</h2>
-    <div class="container-fluid">
+    <div class="container-fluid py-4">
+        <h2 class="mb-4">QUADS Available Hosts</h2>
         <div class="row">
             <div class="col-md-3">
-                <form method="post" id="search" autocomplete="off">
-                    {{ form.model.label }} <br> {{ form.model(class_="dtpick") }}
-                    <br>
-                    <br>
-                    {{ form.date_range.label }} <br> {{ form.date_range(class_="dtpick") }}
-                    <br>
-                    <br>
-                    <div class="checkbox-container">
-                        {{ form.has_gpu.label }} {{ form.has_gpu() }}
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" id="search" autocomplete="off">
+                            <div class="mb-3">
+                                <label for="date_range" class="form-label">{{ form.date_range.label }}</label>
+                                {{ form.date_range(class_="form-control") }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.model.label }}</label>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="modelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Select Models
+                                    </button>
+                                    <ul class="dropdown-menu w-100 dropdown-menu-scrollable" aria-labelledby="modelDropdown">
+                                        <li>
+                                            <button class="btn btn-link w-100 text-start px-3" id="unselectAllModels" type="button">
+                                                Unselect All
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% for value, label in form.model.choices %}
+                                        <li>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="model" value="{{ value }}" id="model{{ loop.index }}"
+                                                    {% if value in form.model.data %}checked{% endif %}>
+                                                <label class="form-check-label" for="model{{ loop.index }}">
+                                                    {{ label }}
+                                                </label>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.disk_types.label }}</label>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" 
+                                            type="button" 
+                                            id="diskTypesDropdown" 
+                                            data-bs-toggle="dropdown" 
+                                            data-initial-selections='{{ form.disk_types.data|tojson if form.disk_types.data else "[]" }}'
+                                            aria-expanded="false">
+                                        Select Disk Types
+                                    </button>
+                                    <ul class="dropdown-menu w-100 dropdown-menu-scrollable" id="diskTypesMenu" aria-labelledby="diskTypesDropdown">
+                                        <!-- Disk types will be loaded here -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Disk Size:</label>
+                                <div class="input-group">
+                                    {{ form.disk_size_operator(class_="form-select", style="max-width: 100px;") }}
+                                    {{ form.disk_size_value(class_="form-control", type="number", placeholder="Size in GB") }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Disk Count:</label>
+                                <div class="input-group">
+                                    {{ form.disk_count_operator(class_="form-select", style="max-width: 100px;") }}
+                                    {{ form.disk_count_value(class_="form-control", type="number", placeholder="Count") }}
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                {{ form.has_gpu(class_="form-check-input") }}
+                                <label class="form-check-label" for="has_gpu">{{ form.has_gpu.label }}</label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                                <button type="button" class="btn btn-secondary" id="clearFilters">Clear Filters</button>
+                            </div>
+                        </form>
                     </div>
-                    <input type="submit" value="Search">
-                </form>
+                </div>
             </div>
             <div class="col-md-9">
-                <table class="dataTable stripe" id="results">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Hostname</th>
-                            <th scope="col">Cloud</th>
-                            <th scope="col">Model</th>
-                            {% if show_gpu %}
-                            <th scope="col">GPU</th>
-                            {% endif %}
-                            <th scope="col">Disks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for host in available_hosts.json %}
-                        {% if host["current"] %}
-                        <tr class="warning">
-                        {% else %}
-                        <tr>
-                        {% endif %}
-                            <th scope="row" >{{ loop.index }}</th>
-                            <td>{{ host["name"] }}</td>
-                            <td>{{ host["cloud"] }}</td>
-                            <td>{{ host["model"] }}</td>
-                            {% if show_gpu %}
-                                {% if host.processors and host.processors|selectattr("processor_type", "equalto", "GPU")|list %}
-                                    <td data-bs-toggle="modal"
-                                        data-bs-target="#baseModal" onclick="updateProcessors({{ host.processors }})">&#129504;</td>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-striped table-hover" id="results">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Hostname</th>
+                                    <th scope="col">Cloud</th>
+                                    <th scope="col">Model</th>
+                                    {% if show_gpu %}
+                                    <th scope="col">GPU</th>
+                                    {% endif %}
+                                    <th scope="col">Disks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for host in available_hosts.json %}
+                                {% if host["current"] %}
+                                <tr class="table-warning">
                                 {% else %}
-                                    <td>&#10060;</td>
+                                <tr>
                                 {% endif %}
-                            {% endif %}
-                            {% if host.disks %}
-                                <td data-bs-toggle="modal"
-                                    data-bs-target="#baseModal" onclick="updateDisks({{ host.disks }})">&#128190;</td>
-                            {% else %}
-                                <td>&#10060;</td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    <th scope="row">{{ loop.index }}</th>
+                                    <td>{{ host["name"] }}</td>
+                                    <td>{{ host["cloud"]["name"] }}</td>
+                                    <td>{{ host["model"] }}</td>
+                                    {% if show_gpu %}
+                                        {% if host.processors and host.processors|selectattr("processor_type", "equalto", "GPU")|list %}
+                                            <td>
+                                                <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#baseModal"
+                                                    data-processors='{{ host.processors|default([])|tojson|safe }}'
+                                                    onclick='updateProcessors(JSON.parse(this.dataset.processors))'>
+                                                    &#129504;
+                                                </button>
+                                            </td>
+                                        {% else %}
+                                            <td>&#10060;</td>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if host.disks %}
+                                        <td>
+                                            <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#baseModal"
+                                                data-disks='{{ host.disks|default([])|tojson|safe }}'
+                                                onclick='updateDisks(JSON.parse(this.dataset.disks))'>
+                                                &#128190;
+                                            </button>
+                                        </td>
+                                    {% else %}
+                                        <td>&#10060;</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     {% include 'modal_no_footer.html' %}
-
 {% endblock %}
 
 {% block scripts %}
@@ -111,8 +156,8 @@
             disks.forEach(disk => {
                 td_data += `<tr>`
                 td_data += `<td>${disk["disk_type"]}</td>`
-                td_data += `<td>${disk["disk_size"]}</td>`
-                td_data += `<td>${disk["disk_count"]}</td>`
+                td_data += `<td>${disk["size_gb"]}</td>`
+                td_data += `<td>${disk["count"]}</td>`
                 td_data += `</tr>`
             })
             document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
@@ -132,26 +177,36 @@
             });
             document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
         };
-        $(document).ready( function () {
+        $(document).ready(function () {
+            // Initialize DataTable
             const table = $('#results').DataTable({
                 dom: 'Blfrtip',
                 lengthChange: true,
                 lengthMenu: [10, 25, 50, 75, 100],
                 pageLength: 25,
                 buttons: [
-                    'selectAll',
-                    'selectNone',
+                    {
+                        extend: 'selectAll',
+                        className: 'btn btn-secondary'
+                    },
+                    {
+                        extend: 'selectNone',
+                        className: 'btn btn-secondary'
+                    },
                     {
                         extend: 'copy',
                         title: null,
                         header: false,
-                        exportOptions: {columns: [1, ':selected']}
+                        exportOptions: {columns: [1, ':selected']},
+                        className: 'btn btn-secondary'
                     }
                 ],
                 select: {
                     style: 'multi'
                 }
             });
+
+            // Initialize date picker
             const dateRangeInput = document.getElementById('date_range');
             const currentValue = dateRangeInput.value;
             let startDate, endDate;
@@ -177,6 +232,139 @@
                     "months": true,
                     "years": true,
                 },
+            });
+
+            // Handle model dropdown selection
+            const modelDropdown = document.getElementById('modelDropdown');
+            const modelCheckboxes = document.querySelectorAll('input[name="model"]');
+            
+            function updateModelDropdownText() {
+                const selectedModels = Array.from(modelCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.nextElementSibling.textContent.trim());
+                
+                modelDropdown.textContent = selectedModels.length > 0
+                    ? selectedModels.join(', ')
+                    : 'Select Models';
+            }
+
+            modelCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateModelDropdownText);
+            });
+
+            // Initialize dropdown text
+            updateModelDropdownText();
+
+            // Add unselect all functionality for models
+            document.getElementById('unselectAllModels').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                modelCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateModelDropdownText();
+            });
+
+            // Load disk types
+            function loadDiskTypes() {
+                $.ajax({
+                    url: '/api/v3/disks/types',
+                    method: 'GET',
+                    success: function(response) {
+                        const diskTypes = new Set();
+                        response.forEach(disk => {
+                            if (disk) {
+                                diskTypes.add(disk);
+                            }
+                        });
+
+                        const diskTypesMenu = document.getElementById('diskTypesMenu');
+                        diskTypesMenu.innerHTML = '';
+                        
+                        const initialSelections = JSON.parse(document.getElementById('diskTypesDropdown').dataset.initialSelections);
+                        
+                        Array.from(diskTypes).sort().forEach((type, index) => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="disk_types" value="${type}" id="diskType${index}"
+                                        ${initialSelections.includes(type) ? 'checked' : ''}>
+                                    <label class="form-check-label" for="diskType${index}">
+                                        ${type}
+                                    </label>
+                                </div>
+                            `;
+                            diskTypesMenu.appendChild(li);
+                        });
+
+                        // Add event listeners to new checkboxes
+                        const diskTypeCheckboxes = document.querySelectorAll('input[name="disk_types"]');
+                        diskTypeCheckboxes.forEach(checkbox => {
+                            checkbox.addEventListener('change', updateDiskTypesDropdownText);
+                        });
+
+                        // Update initial text
+                        updateDiskTypesDropdownText();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading disk types:', error);
+                    }
+                });
+            }
+
+            // Handle disk types dropdown selection
+            const diskTypesDropdown = document.getElementById('diskTypesDropdown');
+            
+            function updateDiskTypesDropdownText() {
+                const diskTypeCheckboxes = document.querySelectorAll('input[name="disk_types"]');
+                const selectedTypes = Array.from(diskTypeCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.nextElementSibling.textContent.trim());
+                
+                diskTypesDropdown.textContent = selectedTypes.length > 0
+                    ? selectedTypes.join(', ')
+                    : 'Select Disk Types';
+            }
+
+            // Load disk types when page loads
+            loadDiskTypes();
+
+            // Prevent dropdowns from closing when clicking checkboxes
+            $('.dropdown-menu').on('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Clear filters functionality
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                // Reset date range
+                picker.setDateRange(new moment().day(7).toDate(), new moment().day(21).toDate());
+                
+                // Reset model selections
+                modelCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateModelDropdownText();
+
+                // Reset disk types
+                const diskTypeCheckboxes = document.querySelectorAll('input[name="disk_types"]');
+                diskTypeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateDiskTypesDropdownText();
+
+                // Reset disk size inputs
+                document.querySelector('select[name="disk_size_operator"]').value = '';
+                document.querySelector('input[name="disk_size_value"]').value = '';
+
+                // Reset disk count inputs
+                document.querySelector('select[name="disk_count_operator"]').value = '';
+                document.querySelector('input[name="disk_count_value"]').value = '';
+
+                // Reset GPU checkbox
+                document.getElementById('has_gpu').checked = false;
+
+                // Submit the form to refresh results
+                document.getElementById('search').submit();
             });
         });
     </script>

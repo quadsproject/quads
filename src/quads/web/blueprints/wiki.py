@@ -103,7 +103,12 @@ async def search_results(search):
 @wiki_bp.route("/available_hosts")
 async def available_hosts(search):
     models = search.data["model"]
+    disk_types = search.data["disk_types"]
     has_gpu = search.data["has_gpu"]
+    disk_size_operator = search.data["disk_size_operator"]
+    disk_size_value = search.data["disk_size_value"]
+    disk_count_operator = search.data["disk_count_operator"]
+    disk_count_value = search.data["disk_count_value"]
     try:
         start, end = [datetime.strptime(date, "%Y-%m-%d").date() for date in search.data["date_range"].split(" - ")]
         start = datetime.combine(start, time(hour=22)).strftime("%Y-%m-%dT%H:%M")
@@ -113,44 +118,38 @@ async def available_hosts(search):
 
     try:
         data = {"start": start, "end": end}
-        if has_gpu:
-            data["processors.processor_type"] = "GPU"
-        hosts = quads.filter_available(data=data)
         if models:
             models = [model.upper() for model in models]
-            hosts = [host for host in hosts if host.model in models]
+            data["model__in"] = models
 
+        if disk_types:
+            data["disks.disk_type__in"] = disk_types
+
+        if has_gpu:
+            data["processors.processor_type"] = "GPU"
+
+        if disk_size_operator and disk_size_value:
+            key = f"disks.size_gb__{disk_size_operator}"
+            if disk_size_operator == "eq":
+                key = "disks.size_gb"
+            data[key] = disk_size_value
+
+        if disk_count_operator and disk_count_value:
+            key = f"disks.count__{disk_count_operator}"
+            if disk_count_operator == "eq":
+                key = "disks.count"
+            data[key] = disk_count_value
+
+        hosts = quads.filter_available(data=data)
         available_hosts = []
         currently_scheduled = [schedule.host_id for schedule in quads.get_current_schedules()]
         for host in hosts:
-            current = True if host.id in currently_scheduled else False
-            host_dict = {
-                "name": host.name,
-                "cloud": host.cloud.name,
-                "model": host.model,
-                "current": current,
-                "disks": [
-                    {
-                        "disk_type": disk.disk_type,
-                        "disk_size": disk.size_gb,
-                        "disk_count": disk.count,
-                    }
-                    for disk in host.disks
-                ],
-                "processors": [
-                    {
-                        "processor_type": processor.processor_type,
-                        "vendor": processor.vendor,
-                        "product": processor.product,
-                    }
-                    for processor in host.processors
-                ],
-            }
+            host_dict = host.as_dict()
+            host_dict["current"] = host.id in currently_scheduled
             available_hosts.append(host_dict)
-    except (APIBadRequest, APIServerException):
-        return jsonify({})
-
-    return jsonify(available_hosts)
+        return jsonify(available_hosts)
+    except Exception as ex:
+        return jsonify({"error": str(ex)})
 
 
 @wiki_bp.route("/dashboard")

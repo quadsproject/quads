@@ -1,4 +1,4 @@
-from wtforms import validators, SelectMultipleField, StringField, BooleanField
+from wtforms import validators, SelectMultipleField, StringField, BooleanField, SelectField, IntegerField
 from flask_wtf import FlaskForm
 from quads.config import Config
 
@@ -11,3 +11,14 @@ class ModelSearchForm(FlaskForm):
     model = SelectMultipleField("Models:", choices=models_choices)
     date_range = StringField("Date Range:", validators=[validators.DataRequired()])
     has_gpu = BooleanField("Has GPU")
+    disk_types = SelectMultipleField("Disk Types:", choices=[])
+    disk_size_operator = SelectField(
+        "Disk Size Operator:",
+        choices=[("", ""), ("eq", "=="), ("ne", "!="), ("gt", ">"), ("lt", "<"), ("gte", ">="), ("lte", "<=")],
+    )
+    disk_size_value = IntegerField("Disk Size (GB):", validators=[validators.Optional()])
+    disk_count_operator = SelectField(
+        "Disk Count Operator:",
+        choices=[("", ""), ("eq", "=="), ("ne", "!="), ("gt", ">"), ("lt", "<"), ("gte", ">="), ("lte", "<=")],
+    )
+    disk_count_value = IntegerField("Disk Count:", validators=[validators.Optional()])

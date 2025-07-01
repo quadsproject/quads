@@ -399,3 +399,39 @@ main {
 .warning {
     background-color: #f7e5d7 !important;
 }
+
+.dt-buttons {
+    margin-bottom: 1rem;
+}
+.dt-length {
+    float: left;
+}
+.dt-search {
+    float: right;
+    text-align: right;
+}
+.dropdown-menu-scrollable {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.dropdown-menu-scrollable .form-check {
+    padding: 0.5rem 1.5rem;
+    margin: 0;
+    width: 100%;
+}
+.dropdown-menu-scrollable .form-check-input {
+    float: none;
+    margin-right: 0.5rem;
+    position: relative;
+}
+.dropdown-menu-scrollable .form-check-label {
+    display: inline-block;
+    cursor: pointer;
+}
+.dropdown-menu-scrollable .form-check:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+.dropdown-toggle::after {
+    float: right;
+    margin-top: 8px;
+}

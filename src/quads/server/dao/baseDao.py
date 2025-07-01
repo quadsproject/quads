@@ -2,7 +2,7 @@ from flask import current_app
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
-from quads.server.models import Disk, Interface, Memory, Processor, db, Host
+from quads.server.models import Disk, Interface, Memory, Processor, db
 
 FILTERING_OPERATORS = {
     "==": "eq",
