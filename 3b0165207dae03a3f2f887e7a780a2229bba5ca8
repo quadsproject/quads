@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d6ed42ef_8228a933",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-07-09T11:47:45Z",
+      "side": 1,
+      "message": "This is exactly what we want.  Before we merge this let\u0027s also see if we can hyperlink the server FQDN from results from `/available` too without breaking the select action.\n\nNoushin in particular wanted it to also be linked there.",
+      "revId": "3b0165207dae03a3f2f887e7a780a2229bba5ca8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
