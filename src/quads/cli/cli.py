@@ -1,34 +1,21 @@
 import asyncio
-import functools
-import logging
-import os
-import subprocess
 from collections import defaultdict
-from datetime import datetime, timedelta
 from json import JSONDecodeError
-from tempfile import NamedTemporaryFile
+import logging
+from datetime import datetime, timedelta
+import os
 from typing import Optional, Tuple
 
-import yaml
 from jinja2 import Template
-from requests import ConnectionError
 
 from quads.config import Config as conf
-from quads.exceptions import BaseQuadsException, CliException
-from quads.helpers.utils import first_day_month, last_day_month
+from quads.exceptions import CliException
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
-from quads.server.models import Assignment
-from quads.tools import reports
+from quads.tools import foreman_heal
 from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
 from quads.tools.external.switch import Switch
-from quads.tools.foreman_heal import rbac as foreman_heal
-from quads.tools.make_instackenv_json import main as regen_instack
-from quads.tools.move_and_rebuild import move_and_rebuild
-from quads.tools.notify import main as notify
-from quads.tools.simple_table_web import main as regen_heatmap
-from quads.tools.validate_env import main as validate_env
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -72,6 +59,8 @@ class QuadsCli:
 
         host = self.cli_args.get("host")
         if host:
+            import yaml
+
             try:
                 _host = self.quads.get_host(host)
                 _host_dict = _host.as_dict()
@@ -273,6 +262,8 @@ class QuadsCli:
             self.logger.info(host.name)
 
     def action_ls_switch_conf(self):
+        from quads.tools.external.switch import Switch
+
         _cloud = self.cli_args.get("cloud")
         _all = self.cli_args.get("all")
 
@@ -280,6 +271,8 @@ class QuadsCli:
         switch.ls_config(_cloud, _all)
 
     def action_mod_switch_conf(self):
+        from quads.tools.external.switch import Switch
+
         _host = self.cli_args.get("host")
         _change = self.cli_args.get("change")
         _nic1 = self.cli_args.get("nic1")
@@ -292,6 +285,8 @@ class QuadsCli:
         switch.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5)
 
     def action_verify_switch_conf(self):
+        from quads.tools.external.switch import Switch
+
         _host = self.cli_args.get("host")
         _cloud = self.cli_args.get("cloud")
         _change = self.cli_args.get("change")
@@ -605,6 +600,8 @@ class QuadsCli:
             self.logger.warning(host)
 
     def action_report_scheduled(self):
+        from datetime import datetime
+
         if self.cli_args.get("months") is None and self.cli_args.get("year") is None:
             raise CliException("Missing argument. --months or --year must be provided.")
 
@@ -616,9 +613,14 @@ class QuadsCli:
             months = self.cli_args.get("months")
             year = now.year
 
+        from quads.tools import reports
+
         reports.report_scheduled(self.logger, int(months), int(year))
 
     def _helper_report_start_end(self) -> Tuple[datetime, datetime]:
+        from datetime import datetime
+        from quads.helpers.utils import first_day_month, last_day_month
+
         now = datetime.now()
         if self.cli_args.get("schedstart") and self.cli_args.get("schedend") is None:
             self.cli_args["schedend"] = self.cli_args.get("schedstart")
@@ -638,14 +640,20 @@ class QuadsCli:
         return _start, _end
 
     def action_report_available(self):
+        from quads.tools import reports
+
         start, end = self._helper_report_start_end()
         reports.report_available(self.logger, start, end)
 
     def action_report_detailed(self):
+        from quads.tools import reports
+
         start, end = self._helper_report_start_end()
         reports.report_detailed(self.logger, start, end)
 
     def action_extend(self):
+        from datetime import datetime, timedelta
+
         weeks = self.cli_args.get("weeks")
         date_arg = self.cli_args.get("datearg")
         cloud_name = self.cli_args.get("cloud")
@@ -753,6 +761,8 @@ class QuadsCli:
             )
 
     def action_shrink(self):
+        from datetime import datetime, timedelta
+
         weeks = self.cli_args.get("weeks")
         now = self.cli_args.get("now")
         date_arg = self.cli_args.get("datearg")
@@ -1155,6 +1165,8 @@ class QuadsCli:
             _json = response.json()
             for key in ["interfaces", "disks", "memory", "processors"]:
                 _json.pop(key, None)
+            import yaml
+
             yaml_str = yaml.dump(_json, default_flow_style=False, sort_keys=False)
             self.logger.info("\n" + yaml_str)
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
@@ -1176,6 +1188,9 @@ class QuadsCli:
         return data
 
     def action_define_host_metadata(self):
+        import os
+        import yaml
+
         dispatch_create = {
             "disks": self.quads.create_disk,
             "interfaces": self.quads.create_interface,
@@ -1335,6 +1350,10 @@ class QuadsCli:
                 host_meta["processors"] = processors
 
             content.append(host_meta)
+
+        from tempfile import NamedTemporaryFile
+        import yaml
+        from quads.exceptions import BaseQuadsException
 
         try:
             with NamedTemporaryFile("w", delete=False) as temp:
@@ -1698,6 +1717,16 @@ class QuadsCli:
         return 0
 
     def action_movehosts(self):  # pragma: no cover
+        import asyncio
+        import functools
+        import os
+        import subprocess
+        from datetime import datetime
+
+        from quads.config import Config as conf
+        from quads.server.models import Assignment
+        from quads.tools.move_and_rebuild import move_and_rebuild
+
         if self.cli_args.get("datearg") and not self.cli_args.get("dryrun"):
             raise CliException("--move-hosts and --date are mutually exclusive unless using --dry-run.")
 
@@ -2078,6 +2107,9 @@ class QuadsCli:
                     self.logger.info(f"{cloud_name}: {cloud_count} ({cloud_description})")
 
     def action_regen_instack(self):
+        from quads.config import Config as conf
+        from quads.tools.make_instackenv_json import main as regen_instack
+
         regen_instack()
         if conf["openstack_management"]:
             self.logger.info("Regenerated 'instackenv' for OpenStack Management.")
@@ -2085,18 +2117,28 @@ class QuadsCli:
             self.logger.info("Regenerated 'ocpinventory' for OpenShift Management.")
 
     def action_regen_heatmap(self):
+        import asyncio
+        from quads.tools.simple_table_web import main as regen_heatmap
+
         asyncio.run(regen_heatmap())
         self.logger.info("Regenerated web table heatmap.")
 
     def action_foreman_rbac(self):  # pragma: no cover
+        from quads.tools.foreman_heal import rbac as foreman_heal
+
         foreman_heal(self.logger)
         self.logger.info("Foreman RBAC repaired.")
 
     def action_notify(self):
+        from quads.tools.notify import main as notify
+
         notify(self.logger)
         self.logger.info("Notifications sent out.")
 
     def action_validate_env(self):
+        import asyncio
+        from quads.tools.validate_env import main as validate_env
+
         _args = {
             "cloud": self.cli_args.get("cloud"),
             "skip_system": self.cli_args.get("skip_system"),
@@ -2211,3 +2253,114 @@ class QuadsCli:
             self.log_in_table_format(headers=headers, rows=rows)
         else:
             self.logger.error("No available OS list")
+
+    def action_ls_users(self):
+        """List all users in the system"""
+        from quads.server.dao.user import UserDao
+
+        try:
+            users = UserDao.get_users()
+            if users:
+                self.logger.info("Users:")
+                for user in users:
+                    role_names = [role.name for role in user.roles]
+                    status = "active" if user.active else "inactive"
+                    self.logger.info(f"  {user.email} ({status}) - roles: {', '.join(role_names)}")
+            else:
+                self.logger.info("No users found")
+        except Exception as ex:
+            raise CliException(f"Error listing users: {str(ex)}")
+
+    def action_rm_user(self):
+        """Remove a user from the system"""
+        from quads.server.dao.user import UserDao
+
+        user_email = self.cli_args.get("user")
+        if not user_email:
+            raise CliException("Missing option. --user option is required for --rm-user.")
+
+        try:
+            user = UserDao.get_user(user_email)
+            if not user:
+                raise CliException(f"User not found: {user_email}")
+
+            # Confirm deletion
+            if not self._confirmation_dialog(f"Are you sure you want to delete user {user_email}? [y/N]: "):
+                self.logger.info("User deletion cancelled")
+                return
+
+            if UserDao.delete_user(user_email):
+                self.logger.info(f"User deleted: {user_email}")
+            else:
+                raise CliException(f"Failed to delete user: {user_email}")
+
+        except Exception as ex:
+            raise CliException(f"Error removing user: {str(ex)}")
+
+    def action_mod_user(self):
+        """Modify a user's attributes"""
+        import getpass
+        from quads.server.dao.user import UserDao
+
+        user_email = self.cli_args.get("user")
+        if not user_email:
+            raise CliException("Missing option. --user option is required for --mod-user.")
+
+        try:
+            user = UserDao.get_user(user_email)
+            if not user:
+                raise CliException(f"User not found: {user_email}")
+
+            # Handle password changes
+            set_password = self.cli_args.get("set_password")
+            prompt_password = self.cli_args.get("prompt_password")
+
+            if set_password and prompt_password:
+                raise CliException("Cannot use both --set-password and --prompt-password together.")
+
+            if set_password:
+                if UserDao.change_user_password(user_email, set_password):
+                    self.logger.info(f"Password reset for {user_email}")
+                else:
+                    raise CliException(f"Failed to reset password for {user_email}")
+
+            if prompt_password:
+                new_password = getpass.getpass("Enter new password: ")
+                confirm_password = getpass.getpass("Re-Enter password: ")
+
+                if new_password != confirm_password:
+                    raise CliException("Passwords do not match")
+
+                if UserDao.change_user_password(user_email, new_password):
+                    self.logger.info(f"Password reset for {user_email}")
+                else:
+                    raise CliException(f"Failed to reset password for {user_email}")
+
+            # Handle email changes
+            new_email = self.cli_args.get("user_email")
+            if new_email:
+                if UserDao.change_user_email(user_email, new_email):
+                    self.logger.info(f"Email changed from {user_email} to {new_email}")
+                else:
+                    raise CliException(f"Failed to change email for {user_email}")
+
+            # Handle active status changes
+            user_active = self.cli_args.get("user_active")
+            if user_active:
+                active_status = user_active.lower() == "true"
+                if UserDao.set_user_active(user_email, active_status):
+                    status = "active" if active_status else "inactive"
+                    self.logger.info(f"User {user_email} set to {status}")
+                else:
+                    raise CliException(f"Failed to change active status for {user_email}")
+
+            # If no modifications were requested, show current user info
+            if not any([set_password, prompt_password, new_email, user_active]):
+                role_names = [role.name for role in user.roles]
+                status = "active" if user.active else "inactive"
+                self.logger.info(f"User: {user.email}")
+                self.logger.info(f"  Status: {status}")
+                self.logger.info(f"  Roles: {', '.join(role_names)}")
+
+        except Exception as ex:
+            raise CliException(f"Error modifying user: {str(ex)}")

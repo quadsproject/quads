@@ -336,6 +336,37 @@ class TokenBlackList(Base):
             return False
 
 
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token = Column(String(255), unique=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    used = Column(Boolean, default=False)
+
+    user = relationship("User", backref="password_reset_tokens")
+
+    def __init__(self, user_id, token, expires_at, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.user_id = user_id
+        self.token = token
+        self.expires_at = expires_at
+        self.created_at = datetime.utcnow()
+        self.used = False
+
+    def __repr__(self):
+        return (
+            f"<PasswordResetToken(user_id={self.user_id}, token={self.token[:10]}..., expires_at={self.expires_at})>"
+        )
+
+    def is_expired(self):
+        return datetime.utcnow() > self.expires_at
+
+    def is_valid(self):
+        return not self.used and not self.is_expired()
+
+
 class Vlan(Serialize, Base):
     __tablename__ = "vlans"
     id = Column(Integer, primary_key=True)
