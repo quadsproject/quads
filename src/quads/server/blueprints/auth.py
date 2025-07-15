@@ -138,3 +138,74 @@ def logout() -> Response:
             "message": "Provide a valid auth token.",
         }
         return make_response(jsonify(response), 403)
+
+
+@auth_bp.route("/resetpassword/", methods=["POST"])
+def reset_password() -> Response:
+    """
+    Used to initiate password reset for a user.
+        It takes in the email address as JSON input, validates it,
+        and generates a temporary password reset token.
+        In a production environment, this would send an email with the reset link.
+
+    :return: A json response with success message
+    """
+    import secrets
+    import string
+    from datetime import datetime, timedelta
+
+    data = request.get_json()
+    if not data or not data.get("email"):
+        response = {
+            "status_code": 400,
+            "status": "fail",
+            "message": "Email address is required.",
+        }
+        return Response(response=json.dumps(response), status=400)
+
+    email_address = data.get("email")
+    if not email(email_address):
+        response = {
+            "status_code": 400,
+            "status": "fail",
+            "message": "Invalid email address.",
+        }
+        return Response(response=json.dumps(response), status=400)
+
+    try:
+        user = user_datastore.find_user(email=email_address)
+        if not user:
+            # For security, we don't reveal if user exists or not
+            response = {
+                "status_code": 200,
+                "status": "success",
+                "message": "If the email address exists, a password reset link has been sent.",
+            }
+            return jsonify(response)
+
+        # Generate a temporary password reset token
+        # In production, this should be stored in database with expiration
+        reset_token = secrets.token_urlsafe(32)
+
+        # For now, we'll just log the reset token
+        # In production, this would be sent via email
+        print(f"Password reset token for {email_address}: {reset_token}")
+
+        # TODO: Implement email sending functionality
+        # TODO: Store reset token in database with expiration time
+
+        response = {
+            "status_code": 200,
+            "status": "success",
+            "message": "If the email address exists, a password reset link has been sent.",
+            "reset_token": reset_token,  # Remove this in production
+        }
+        return jsonify(response)
+
+    except Exception:
+        response = {
+            "status_code": 500,
+            "status": "fail",
+            "message": "Error processing password reset request.",
+        }
+        return Response(response=json.dumps(response), status=500)

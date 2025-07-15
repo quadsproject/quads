@@ -426,6 +426,27 @@ action_group.add_argument(
     const="verify_switch_conf",
     help="Verify switch configuration",
 )
+action_group.add_argument(
+    "--rm-user",
+    dest="action",
+    action="store_const",
+    const="rm_user",
+    help="Remove a user from the system",
+)
+action_group.add_argument(
+    "--mod-user",
+    dest="action",
+    action="store_const",
+    const="mod_user",
+    help="Modify a user's attributes",
+)
+action_group.add_argument(
+    "--ls-users",
+    dest="action",
+    action="store_const",
+    const="ls_users",
+    help="List all users",
+)
 
 parser.add_argument(
     "--cloud-only",
@@ -842,6 +863,42 @@ parser.add_argument(
     type=str,
     default=None,
     help="Remove specified host metadata components (comma-separated: disks,memory,interfaces,cpus,gpus,all)",
+)
+parser.add_argument(
+    "--user",
+    dest="user",
+    type=str,
+    default=None,
+    help="Specify user email address",
+)
+parser.add_argument(
+    "--set-password",
+    dest="set_password",
+    type=str,
+    default=None,
+    help="Set user password (plaintext)",
+)
+parser.add_argument(
+    "--prompt-password",
+    dest="prompt_password",
+    action="store_true",
+    default=False,
+    help="Prompt for new password",
+)
+parser.add_argument(
+    "--user-active",
+    dest="user_active",
+    type=str,
+    choices=["true", "false"],
+    default=None,
+    help="Set user active status (true/false)",
+)
+parser.add_argument(
+    "--user-email",
+    dest="user_email",
+    type=str,
+    default=None,
+    help="Change user email address",
 )
 
 mod_notification_arg_names = [
