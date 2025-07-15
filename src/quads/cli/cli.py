@@ -384,10 +384,10 @@ class QuadsCli:
         else:
             self.logger.error(f"No disks defined for {hostname}")
 
-    def action_processors(self):
+    def action_cpu(self):
         hostname = self.cli_args.get("host")
         if not hostname:
-            raise CliException("Missing option. --host option is required for --ls-processors.")
+            raise CliException("Missing option. --host option is required for --ls-cpu.")
 
         try:
             host = self.quads.get_host(hostname)
@@ -395,14 +395,42 @@ class QuadsCli:
             raise CliException(str(ex))
 
         if host.processors:
-            for i, processor in enumerate(host.processors):
-                self.logger.info(f"processor: {processor.handle}")
-                self.logger.info(f"  vendor: {processor.vendor}")
-                self.logger.info(f"  product: {processor.product}")
-                self.logger.info(f"  cores: {processor.cores}")
-                self.logger.info(f"  threads: {processor.threads}")
+            cpu_processors = [p for p in host.processors if p.processor_type == "CPU"]
+            if cpu_processors:
+                for i, processor in enumerate(cpu_processors):
+                    self.logger.info(f"cpu: {processor.handle}")
+                    self.logger.info(f"  vendor: {processor.vendor}")
+                    self.logger.info(f"  product: {processor.product}")
+                    self.logger.info(f"  cores: {processor.cores}")
+                    self.logger.info(f"  threads: {processor.threads}")
+            else:
+                self.logger.error(f"No CPUs defined for {hostname}")
         else:
-            self.logger.error(f"No processors defined for {hostname}")
+            self.logger.error(f"No CPUs defined for {hostname}")
+
+    def action_gpu(self):
+        hostname = self.cli_args.get("host")
+        if not hostname:
+            raise CliException("Missing option. --host option is required for --ls-gpu.")
+
+        try:
+            host = self.quads.get_host(hostname)
+        except (APIServerException, APIBadRequest) as ex:
+            raise CliException(str(ex))
+
+        if host.processors:
+            gpu_processors = [p for p in host.processors if p.processor_type == "GPU"]
+            if gpu_processors:
+                for i, processor in enumerate(gpu_processors):
+                    self.logger.info(f"gpu: {processor.handle}")
+                    self.logger.info(f"  vendor: {processor.vendor}")
+                    self.logger.info(f"  product: {processor.product}")
+                    self.logger.info(f"  cores: {processor.cores}")
+                    self.logger.info(f"  threads: {processor.threads}")
+            else:
+                self.logger.error(f"No GPUs defined for {hostname}")
+        else:
+            self.logger.error(f"No GPUs defined for {hostname}")
 
     def action_ls_vlan(self):
         try:

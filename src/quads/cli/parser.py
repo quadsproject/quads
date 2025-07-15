@@ -349,11 +349,18 @@ action_group.add_argument(
     help="List the host disk",
 )
 action_group.add_argument(
-    "--ls-processors",
+    "--ls-cpu",
     dest="action",
     action="store_const",
-    const="processors",
-    help="List the host processor",
+    const="cpu",
+    help="List the host CPUs",
+)
+action_group.add_argument(
+    "--ls-gpu",
+    dest="action",
+    action="store_const",
+    const="gpu",
+    help="List the host GPUs",
 )
 action_group.add_argument(
     "--ls-vlan",
