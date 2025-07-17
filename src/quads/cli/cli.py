@@ -451,11 +451,14 @@ class QuadsCli:
             except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                 raise CliException(str(ex))
             if _host_schedules:
+                host_schedules = []
                 for schedule in _host_schedules:
                     _cloud_name = schedule.assignment.cloud.name
                     start = ":".join(schedule.start.isoformat().split(":")[:-1])
                     end = ":".join(schedule.end.isoformat().split(":")[:-1])
-                    self.logger.info(f"{schedule.id}| start={start}, end={end}, cloud={_cloud_name}")
+                    host_schedules.append({"id":schedule.id, "start":start, "end":end, "cloud":_cloud_name})
+                for schedule in sorted(host_schedules, key=lambda x: x['id']):
+                    self.logger.info(f"{schedule['id']}| start={schedule['start']}, end={schedule['end']}, cloud={schedule['cloud']}")
         else:
             try:
                 _clouds = self.quads.get_clouds()
