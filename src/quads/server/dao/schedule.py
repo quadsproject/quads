@@ -74,7 +74,7 @@ class ScheduleDao(BaseDao):
 
     @staticmethod
     def get_schedules() -> List[Schedule]:
-        schedules = db.session.query(Schedule).all()
+        schedules = db.session.query(Schedule).order_by(Schedule.id).all()
         return schedules
 
     @staticmethod
@@ -153,7 +153,9 @@ class ScheduleDao(BaseDao):
                     )
                 )
         try:
-            _schedules = ScheduleDao.create_query_select(Schedule, filters=filter_tuples, group_by=group_by)
+            _schedules = ScheduleDao.create_query_select(
+                Schedule, filters=filter_tuples, group_by=group_by, order_by=Schedule.id.asc()
+            )
         except Exception as e:
             raise InvalidArgument(str(e))
         return _schedules
