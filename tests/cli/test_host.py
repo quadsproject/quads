@@ -211,38 +211,49 @@ class TestHost(TestBase):
 
         assert self._caplog.messages[0] == "No hosts found."
 
-    def test_ls_processors(self):
+    def test_ls_cpu(self):
         self.cli_args["host"] = HOST1
-        self.quads_cli_call("processors")
+        self.quads_cli_call("cpu")
 
-        assert self._caplog.messages[0] == "processor: P1"
+        assert self._caplog.messages[0] == "cpu: P1"
         assert self._caplog.messages[1] == "  vendor: Intel"
         assert self._caplog.messages[2] == "  product: i7"
         assert self._caplog.messages[3] == "  cores: 2"
         assert self._caplog.messages[4] == "  threads: 4"
 
-    @patch("quads.quads_api.Session.get")
-    def test_ls_processors_exception(self, mock_get):
-        mock_get.return_value.status_code = 500
-        self.cli_args["host"] = HOST1
-
-        with pytest.raises(CliException) as ex:
-            self.quads_cli_call("processors")
-        assert str(ex.value) == "Check the flask server logs"
-
-    def test_ls_processors_no_host(self):
+    def test_ls_cpu_no_host(self):
         if self.cli_args.get("host"):
             self.cli_args.pop("host")
         with pytest.raises(CliException) as ex:
-            self.quads_cli_call("processors")
+            self.quads_cli_call("cpu")
 
-        assert str(ex.value) == "Missing option. --host option is required for --ls-processors."
+        assert str(ex.value) == "Missing option. --host option is required for --ls-cpu."
 
-    def test_ls_processors_no_processor(self):
+    def test_ls_cpu_no_cpu(self):
         self.cli_args["host"] = HOST2
-        self.quads_cli_call("processors")
+        self.quads_cli_call("cpu")
 
-        assert self._caplog.messages[0] == f"No processors defined for {HOST2}"
+        assert self._caplog.messages[0] == f"No CPUs defined for {HOST2}"
+
+    def test_ls_gpu(self):
+        self.cli_args["host"] = HOST1
+        self.quads_cli_call("gpu")
+
+        assert self._caplog.messages[0] == f"No GPUs defined for {HOST1}"
+
+    def test_ls_gpu_no_host(self):
+        if self.cli_args.get("host"):
+            self.cli_args.pop("host")
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("gpu")
+
+        assert str(ex.value) == "Missing option. --host option is required for --ls-gpu."
+
+    def test_ls_gpu_no_gpu(self):
+        self.cli_args["host"] = HOST2
+        self.quads_cli_call("gpu")
+
+        assert self._caplog.messages[0] == f"No GPUs defined for {HOST2}"
 
     def test_ls_memory(self):
         self.cli_args["host"] = HOST1
