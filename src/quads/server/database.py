@@ -60,8 +60,29 @@ def populate(user_datastore):
 
 def create_user(user_datastore, email, password, roles):
     user_entry = db.session.query(User).filter(User.email == email).first()
+
     if not user_entry:
         user_datastore.create_user(email=email, password=password, roles=roles)
+        return True
+    return False
+
+
+def modify_user(user_datastore, email, new_password=None):
+    user = user_datastore.find_user(email=email)
+    if not user:
+        return False
+
+    if new_password:
+        user_datastore.set_password(user, new_password)
+        return True
+    return False
+
+
+def remove_user(user_datastore, email):
+    user = user_datastore.find_user(email=email)
+
+    if user:
+        user_datastore.delete_user(user)
         return True
     return False
 

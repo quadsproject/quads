@@ -7,7 +7,7 @@ from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
 from flask.cli import with_appcontext
 
-from quads.server.database import create_user, populate, drop_all
+from quads.server.database import create_user, modify_user, remove_user, populate, drop_all
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
@@ -81,6 +81,38 @@ def create_app(test_config=None) -> Flask:
 
         # Your command logic here
         create_user(user_datastore, args.username, args.password, [role])
+
+    @flask_app.cli.command("mod-user")
+    @with_appcontext
+    def mod_user():
+        """Modifies an existing user's password."""
+        parser = argparse.ArgumentParser(description="Modify a user password")
+        parser.add_argument("--username", help="The username/email of the user", required=True)
+        parser.add_argument("--password", help="The new password of the user", required=True)
+
+        args = parser.parse_args()
+
+        success = modify_user(user_datastore, args.username, new_password=args.password)
+        if success:
+            print("Password updated")
+            print(f"User {args.username} successfully modified")
+        else:
+            print("Error: Could not modify user")
+
+    @flask_app.cli.command("delete-user")
+    @with_appcontext
+    def delete_user():
+        """Deletes an existing user."""
+        parser = argparse.ArgumentParser(description="Delete a user")
+        parser.add_argument("--username", help="The username/email of the user to delete", required=True)
+
+        args = parser.parse_args()
+
+        success = remove_user(user_datastore, args.username)
+        if success:
+            print(f"User {args.username} successfully deleted")
+        else:
+            print("Error: Could not remove user")
 
     return flask_app
 
