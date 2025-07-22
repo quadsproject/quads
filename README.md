@@ -24,6 +24,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
       * [QUADS Switch and Host Setup](#quads-switch-and-host-setup)
       * [Installing QUADS](#installing-quads)
          * [Installing QUADS from RPM](#installing-quads-from-rpm)
+            * [User Management](#user-management)
             * [Using SSL with Flask API and QUADS](#using-ssl-with-flask-api-and-quads)
          * [QUADS Wiki](#quads-wiki)
             * [Dynamic Wiki Content](#dynamic-wiki-content)
@@ -262,6 +263,36 @@ systemctl start quads-{db,server,web}
 ```bash
 flask --app quads.server.app init-db
 ```
+
+#### User Management
+
+QUADS provides Flask CLI commands for managing user accounts:
+
+**Add a new user:**
+```bash
+flask --app quads.server.app add-user --username user@example.com --password securepassword --role admin
+flask --app quads.server.app add-user --username user@example.com --password securepassword --role user
+```
+
+Available roles:
+- `admin` - Administrative privileges with full access
+- `user` - Regular user with limited access
+
+**Change a user's password:**
+```bash
+flask --app quads.server.app mod-user --username user@example.com --password newsecurepassword
+```
+
+**Delete a user:**
+```bash
+flask --app quads.server.app delete-user --username user@example.com
+```
+
+**Important Notes:**
+- All user management operations use Flask-Security for proper password hashing and security
+- Username changes are not supported - create a new user and delete the old one if needed
+- User deletion is permanent and cannot be undone
+- These commands require database access and should be run from the QUADS server
 
    - Now you're ready to go and start configuring QUADS environments, hosts, and other components below.
    - You should be able to access `quads-web` here now: http://QUADSVM and your [QUADS API](docs/quads-api.md) will also be available.

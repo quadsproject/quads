@@ -66,6 +66,28 @@ def create_user(user_datastore, email, password, roles):
     return False
 
 
+def modify_user(user_datastore, email, new_password=None):
+    user = user_datastore.find_user(email=email)
+    if not user:
+        return False, f"User {email} not found"
+
+    if new_password:
+        user_datastore.set_password(user, new_password)
+        user_datastore.commit()
+
+    return True, "User password updated successfully"
+
+
+def remove_user(user_datastore, email):
+    user = user_datastore.find_user(email=email)
+    if not user:
+        return False, f"User {email} not found"
+
+    user_datastore.delete_user(user)
+    user_datastore.commit()
+    return True, "User deleted successfully"
+
+
 def create_role(name, description):
     role_entry = db.session.query(Role).filter(Role.name == name).first()
     if not role_entry:
