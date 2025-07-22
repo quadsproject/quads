@@ -144,7 +144,12 @@
                     data.hosts.forEach(host => {
                         $tbody.append(
                             $('<tr>').append([
-                                $('<td>').text(host.short_name || `${host.name.split('.')[0]}`),
+                                $('<td>').append(
+                                    $('<a>')
+                                        .addClass('link-secondary-hover')
+                                        .attr('href', `/host/${host.name}/`)
+                                        .text(host.short_name || `${host.name.split('.')[0]}`)
+                                ),
                                 $('<td>').append(
                                     $('<a>')
                                         .addClass('link-secondary-hover')

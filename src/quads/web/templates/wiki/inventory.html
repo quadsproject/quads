@@ -108,7 +108,14 @@
                         data.host_details.map(host => 
                             $('<tr>').append(
                                 headers.map(header => {
-                                    if (header === "IPMIURL") {
+                                    if (header === "ServerHostnamePublic") {
+                                        return $('<td>').append(
+                                            $('<a>')
+                                                .addClass('link-secondary-hover')
+                                                .attr('href', `/host/${host["IPMIURL"]}/`)
+                                                .text(host["ServerHostnamePublic"])
+                                        );
+                                    } else if (header === "IPMIURL") {
                                         return $('<td>').append(
                                             $('<a>')
                                                 .addClass('link-secondary-hover')

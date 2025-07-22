@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}QUADS Host Details{% endblock %}
+
+{% block page_content %}
+    <div class="container-fluid py-4">
+        <h2 class="mb-4">QUADS Host Details</h2>
+        
+        <!-- Basic Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Basic Information</h3>
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>Name</th>
+                                    <td>{{ host.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Model</th>
+                                    <td>{{ host.model }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Host Type</th>
+                                    <td>{{ host.host_type }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Location</th>
+                                    <td>
+                                        {% if host.rack or host.uloc or host.blade %}
+                                            Rack: {{ host.rack or 'N/A' }}<br>
+                                            U-Location: {{ host.uloc or 'N/A' }}<br>
+                                            Blade: {{ host.blade or 'N/A' }}
+                                        {% else %}
+                                            Not specified
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Status Information</h3>
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>Current Cloud</th>
+                                    <td>{{ host.cloud.name if host.cloud else 'None' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Default Cloud</th>
+                                    <td>{{ host.default_cloud.name if host.default_cloud else 'None' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status Flags</th>
+                                    <td>
+                                        <span class="badge {% if host.build %}bg-warning{% else %}bg-secondary{% endif %} me-1">Build: {{ host.build }}</span>
+                                        <span class="badge {% if host.validated %}bg-success{% else %}bg-secondary{% endif %} me-1">Validated: {{ host.validated }}</span>
+                                        <span class="badge {% if host.broken %}bg-danger{% else %}bg-secondary{% endif %} me-1">Broken: {{ host.broken }}</span>
+                                        <span class="badge {% if host.retired %}bg-dark{% else %}bg-secondary{% endif %} me-1">Retired: {{ host.retired }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Last Build</th>
+                                    <td>{{ host.last_build|default('Never', true) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Self-Schedule</th>
+                                    <td>
+                                        <span class="badge {% if host.can_self_schedule %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ 'Enabled' if host.can_self_schedule else 'Disabled' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Information -->
+        <div class="row mb-4">
+            <!-- Processors -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Processors</h3>
+                        {% if host.processors %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Vendor</th>
+                                        <th>Product</th>
+                                        <th>Cores</th>
+                                        <th>Threads</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for processor in host.processors %}
+                                    <tr>
+                                        <td>{{ processor.processor_type }}</td>
+                                        <td>{{ processor.vendor }}</td>
+                                        <td>{{ processor.product }}</td>
+                                        <td>{{ processor.cores }}</td>
+                                        <td>{{ processor.threads }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">No processor information available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Memory</h3>
+                        {% if host.memory %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Handle</th>
+                                        <th>Size (GB)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for mem in host.memory %}
+                                    <tr>
+                                        <td>{{ mem.handle }}</td>
+                                        <td>{{ mem.size_gb }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">No memory information available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Storage -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Storage</h3>
+                        {% if host.disks %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Size (GB)</th>
+                                        <th>Count</th>
+                                        <th>Total (GB)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for disk in host.disks %}
+                                    <tr>
+                                        <td>{{ disk.disk_type }}</td>
+                                        <td>{{ disk.size_gb }}</td>
+                                        <td>{{ disk.count }}</td>
+                                        <td>{{ disk.size_gb * disk.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">No storage information available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Interfaces -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Network Interfaces</h3>
+                        {% if host.interfaces %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>MAC Address</th>
+                                        <th>Speed</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for interface in host.interfaces %}
+                                    <tr>
+                                        <td>
+                                            {{ interface.name }}
+                                            {% if interface.pxe_boot %}
+                                                <span class="badge bg-info">PXE</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ interface.mac_address }}</td>
+                                        <td>{{ interface.speed }}</td>
+                                        <td>
+                                            {% if interface.maintenance %}
+                                                <span class="badge bg-warning">Maintenance</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">No network interface information available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'modal_no_footer.html' %}
+{% endblock %}

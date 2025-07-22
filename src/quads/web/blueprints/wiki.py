@@ -215,6 +215,13 @@ async def rack(rack):
     return jsonify({"host_details": host_details, "error": error_occurred})
 
 
+@wiki_bp.route("/host/<hostname>")
+async def host_details(hostname):
+    host_details = quads.get_host(hostname)
+
+    return render_template("wiki/host.html", host=host_details)
+
+
 @wiki_bp.route("/vlans")
 async def create_vlans():
     vlans = await cloud_operation.get_vlans_list()
