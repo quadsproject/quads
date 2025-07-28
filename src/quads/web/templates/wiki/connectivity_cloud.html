@@ -1,0 +1,973 @@
+{% extends "base.html" %}
+{% block title %}{{ cloud_name }} - Network Connectivity{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3><strong>{{ cloud_name }} - Network Connectivity</strong></h3>
+                    <p class="text-muted">Interactive network diagram showing hosts and switches for this cloud</p>
+                </div>
+                <a href="/connectivity/" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Overview
+                </a>
+            </div>
+            
+            <!-- Cloud Stats -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Hosts</h5>
+                            <h2 class="text-primary" id="cloud-hosts">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Switches</h5>
+                            <h2 class="text-success" id="cloud-switches">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Connections</h5>
+                            <h2 class="text-info" id="cloud-connections">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <button id="export-btn" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-1"></i>
+                                Export JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Controls -->
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="graph-controls p-3 rounded">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <label class="me-2"><strong>Layout:</strong></label>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="layout-breadthfirst">Hierarchical</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm active" id="layout-cose">Force Layout</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="layout-circle">Circle</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="layout-grid">Grid</button>
+                            </div>
+                            <div class="btn-group ms-auto" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="fit-graph">
+                                    <i class="fas fa-expand-arrows-alt me-1"></i>Fit to Screen
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-zoom">
+                                    <i class="fas fa-search-minus me-1"></i>Reset Zoom
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Graph and Interface Details -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div id="topology-diagram" class="border rounded" style="height: 600px; position: relative;">
+                        <div id="loading-spinner" class="text-center p-5">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading {{ cloud_name }} network topology...</p>
+                        </div>
+                        
+                        <!-- Graph Legend -->
+                        <div class="graph-legend">
+                            <div class="legend-title"><strong>Legend</strong></div>
+                            <div class="legend-item">
+                                <div class="legend-host"></div>
+                                <span>Host</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-switch"></div>
+                                <span>Switch</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-line"></div>
+                                <span>Connection (click for details)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interface Details Panel -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-ethernet me-2"></i>
+                                Interface Details
+                            </h5>
+                        </div>
+                        <div class="card-body" id="interface-details">
+                            <div class="text-center text-muted p-4">
+                                <i class="fas fa-mouse-pointer fa-2x mb-3"></i>
+                                <p>Click on a connection line to view interface details</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cytoscape.js Library -->
+<script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-cose-bilkent@4.1.0/cytoscape-cose-bilkent.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Register the cose-bilkent extension
+    if (typeof coseBilkent !== 'undefined') {
+        cytoscape.use(coseBilkent);
+    }
+    
+    const cloudName = '{{ cloud_name }}';
+    let cloudData = {};
+    let cy = null;
+    
+    // Load cloud-specific data
+    loadCloudData();
+    
+    async function loadCloudData() {
+        try {
+            const response = await fetch(`/connectivity/api/cloud/${encodeURIComponent(cloudName)}`);
+            cloudData = await response.json();
+            
+            updateCloudStats(cloudData);
+            initializeGraph(cloudData);
+            
+        } catch (error) {
+            console.error('Error loading cloud data:', error);
+            document.getElementById('loading-spinner').innerHTML = 
+                '<div class="alert alert-danger">Error loading cloud connectivity data</div>';
+        }
+    }
+    
+    function updateCloudStats(data) {
+        document.getElementById('cloud-hosts').textContent = data.hosts ? data.hosts.length : 0;
+        document.getElementById('cloud-switches').textContent = data.switches ? data.switches.length : 0;
+        document.getElementById('cloud-connections').textContent = data.connections ? data.connections.length : 0;
+    }
+    
+    function initializeGraph(data) {
+        const container = document.getElementById('topology-diagram');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        // Hide loading spinner
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'none';
+        }
+        
+        // Create graph elements
+        const elements = createGraphElements(data);
+        
+        // Initialize Cytoscape
+        cy = cytoscape({
+            container: container,
+            
+            elements: elements,
+            
+            style: [
+                {
+                    selector: 'node[type = "host"]',
+                    style: {
+                        'background-color': '#3498db',
+                        'label': 'data(label)',
+                        'width': 60,
+                        'height': 60,
+                        'text-valign': 'bottom',
+                        'text-margin-y': 5,
+                        'font-size': '11px',
+                        'font-weight': 'bold',
+                        'border-width': 3,
+                        'border-color': '#2980b9',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '80px',
+                        'color': '#2c3e50'
+                    }
+                },
+                {
+                    selector: 'node[type = "switch"]',
+                    style: {
+                        'background-color': '#e74c3c',
+                        'label': 'data(label)',
+                        'width': 80,
+                        'height': 80,
+                        'shape': 'diamond',
+                        'text-valign': 'bottom',
+                        'text-margin-y': 10,
+                        'font-size': '10px',
+                        'font-weight': 'bold',
+                        'border-width': 3,
+                        'border-color': '#c0392b',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '100px',
+                        'color': '#2c3e50'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 4,
+                        'line-color': '#7f8c8d',
+                        'target-arrow-color': '#7f8c8d',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'label': 'data(label)',
+                        'font-size': '10px',
+                        'text-rotation': 'autorotate',
+                        'text-margin-y': -15,
+                        'color': '#2c3e50',
+                        'text-background-color': '#ffffff',
+                        'text-background-opacity': 0.9,
+                        'text-background-padding': '3px',
+                        'text-border-color': '#bdc3c7',
+                        'text-border-width': 1,
+                        'text-border-opacity': 0.5
+                    }
+                },
+                {
+                    selector: 'edge[interfaceCount > 1]',
+                    style: {
+                        'width': 6,
+                        'line-color': '#3498db',
+                        'target-arrow-color': '#3498db'
+                    }
+                },
+                {
+                    selector: 'node:selected',
+                    style: {
+                        'border-width': 5,
+                        'border-color': '#f39c12',
+                        'overlay-color': '#f39c12',
+                        'overlay-opacity': 0.3
+                    }
+                },
+                {
+                    selector: 'edge:selected',
+                    style: {
+                        'width': 5,
+                        'line-color': '#f39c12',
+                        'target-arrow-color': '#f39c12'
+                    }
+                },
+                {
+                    selector: 'edge.highlighted',
+                    style: {
+                        'width': 6,
+                        'line-color': '#e74c3c',
+                        'target-arrow-color': '#e74c3c',
+                        'z-index': 999
+                    }
+                }
+            ],
+            
+            layout: {
+                name: 'cose',
+                nodeRepulsion: function(node) { return 400000; },
+                nodeOverlap: 20,
+                idealEdgeLength: function(edge) { return 100; },
+                edgeElasticity: function(edge) { return 100; },
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                animate: true,
+                animationDuration: 750,
+                fit: true,
+                padding: 50
+            },
+            
+            // Enable panning and zooming
+            zoomingEnabled: true,
+            userZoomingEnabled: true,
+            panningEnabled: true,
+            userPanningEnabled: true,
+            
+            // Set minimum and maximum zoom
+            minZoom: 0.2,
+            maxZoom: 3,
+            
+            // Auto-fit on initialization
+            fit: true,
+            padding: 50
+        });
+        
+        // Add node click event for details
+        cy.on('tap', 'node', function(evt) {
+            const node = evt.target;
+            const nodeData = node.data();
+            showNodeDetails(nodeData);
+        });
+        
+        // Add edge click event for interface details
+        cy.on('tap', 'edge', function(evt) {
+            const edge = evt.target;
+            const edgeData = edge.data();
+            showInterfaceDetails(edgeData);
+        });
+        
+        // Add layout controls
+        setupLayoutControls();
+        
+        // Set initial active button
+        document.getElementById('layout-cose').classList.add('active');
+    }
+    
+    function createGraphElements(data) {
+        const elements = [];
+        
+        // Add host nodes
+        (data.hosts || []).forEach(host => {
+            elements.push({
+                data: {
+                    id: `host-${host.name}`,
+                    type: 'host',
+                    label: host.name.split('.')[0], // Use short hostname
+                    fullName: host.name,
+                    model: host.model,
+                    interfaces: host.interfaces
+                }
+            });
+        });
+        
+        // Add switch nodes
+        (data.switches || []).forEach(switchIp => {
+            elements.push({
+                data: {
+                    id: `switch-${switchIp}`,
+                    type: 'switch',
+                    label: switchIp,
+                    switchIp: switchIp
+                }
+            });
+        });
+        
+        // Add consolidated connections (edges) - one per host-switch pair
+        (data.connections || []).forEach((conn, index) => {
+            const hostId = `host-${conn.host}`;
+            const switchId = `switch-${conn.switch_ip}`;
+            
+            // Create label showing interface count
+            const label = conn.interface_count > 1 
+                ? `${conn.interface_count} interfaces`
+                : conn.interfaces[0]?.name || 'interface';
+            
+            elements.push({
+                data: {
+                    id: `edge-${index}`,
+                    source: hostId,
+                    target: switchId,
+                    label: label,
+                    interfaceCount: conn.interface_count,
+                    interfaces: conn.interfaces,
+                    hostName: conn.host,
+                    switchIp: conn.switch_ip
+                }
+            });
+        });
+        
+        return elements;
+    }
+    
+    function setupLayoutControls() {
+        // Layout buttons
+        const layoutButtons = {
+            'layout-breadthfirst': 'breadthfirst',
+            'layout-cose': 'cose-bilkent', 
+            'layout-circle': 'circle',
+            'layout-grid': 'grid'
+        };
+        
+        Object.keys(layoutButtons).forEach(buttonId => {
+            document.getElementById(buttonId).addEventListener('click', function() {
+                console.log('Layout button clicked:', buttonId, layoutButtons[buttonId]);
+                
+                // Remove active class from all buttons
+                Object.keys(layoutButtons).forEach(id => {
+                    document.getElementById(id).classList.remove('active');
+                });
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                applyLayout(layoutButtons[buttonId]);
+            });
+        });
+        
+        // Control buttons
+        document.getElementById('fit-graph').addEventListener('click', () => {
+            if (cy) cy.fit(50);
+        });
+        
+        document.getElementById('reset-zoom').addEventListener('click', () => {
+            if (cy) {
+                cy.zoom(1);
+                cy.center();
+            }
+        });
+    }
+    
+    function applyLayout(layoutName) {
+        if (!cy) {
+            console.error('Cytoscape instance not available');
+            return;
+        }
+        
+        console.log('Applying layout:', layoutName);
+        
+        let layoutOptions = {
+            name: layoutName,
+            animate: true,
+            animationDuration: 750,
+            fit: true,
+            padding: 50
+        };
+        
+        // Specific configurations for different layouts
+        switch (layoutName) {
+            case 'breadthfirst':
+                layoutOptions.directed = true;
+                layoutOptions.roots = cy.nodes('[type = "switch"]');
+                layoutOptions.spacingFactor = 2.5;
+                layoutOptions.avoidOverlap = true;
+                layoutOptions.nodeDimensionsIncludeLabels = true;
+                layoutOptions.maximal = false;
+                // Custom positioning to reduce crossings
+                layoutOptions.ready = function() {
+                    optimizeHierarchicalLayout(cy);
+                };
+                break;
+            case 'cose-bilkent':
+                // Try cose-bilkent first, fallback to cose if not available
+                layoutOptions.nodeRepulsion = 8000;
+                layoutOptions.idealEdgeLength = 150;
+                layoutOptions.edgeElasticity = 0.45;
+                layoutOptions.nestingFactor = 0.1;
+                layoutOptions.gravity = 0.25;
+                layoutOptions.numIter = 2500;
+                layoutOptions.tile = true;
+                layoutOptions.tilingPaddingVertical = 10;
+                layoutOptions.tilingPaddingHorizontal = 10;
+                break;
+            case 'circle':
+                layoutOptions.radius = Math.max(200, cy.nodes().length * 20);
+                layoutOptions.spacingFactor = 1.5;
+                break;
+            case 'grid':
+                layoutOptions.rows = Math.ceil(Math.sqrt(cy.nodes().length));
+                layoutOptions.spacingFactor = 1.5;
+                break;
+        }
+        
+        try {
+            const layout = cy.layout(layoutOptions);
+            layout.run();
+            console.log('Layout applied successfully:', layoutName);
+        } catch (error) {
+            console.error('Error applying layout:', layoutName, error);
+            
+            // If cose-bilkent failed, try regular cose
+            if (layoutName === 'cose-bilkent') {
+                console.log('Falling back to cose layout');
+                const fallbackLayout = cy.layout({
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 750,
+                    fit: true,
+                    padding: 50,
+                    nodeRepulsion: function(node) { return 400000; },
+                    nodeOverlap: 20,
+                    idealEdgeLength: function(edge) { return 100; },
+                    edgeElasticity: function(edge) { return 100; },
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000
+                });
+                fallbackLayout.run();
+            } else {
+                // Fallback to breadthfirst for other failed layouts
+                const fallbackLayout = cy.layout({
+                    name: 'breadthfirst',
+                    animate: true,
+                    animationDuration: 750,
+                    fit: true,
+                    padding: 50
+                });
+                fallbackLayout.run();
+            }
+        }
+    }
+    
+    function showNodeDetails(nodeData) {
+        let details = '';
+        
+        if (nodeData.type === 'host') {
+            details = `
+                <div class="node-details">
+                    <h6><i class="fas fa-server me-2"></i>Host Details</h6>
+                    <p><strong>Name:</strong> ${nodeData.fullName}</p>
+                    <p><strong>Model:</strong> ${nodeData.model || 'N/A'}</p>
+                    <p><strong>Cloud:</strong> ${cloudName}</p>
+                    <p><strong>Interfaces:</strong> ${nodeData.interfaces ? nodeData.interfaces.length : 0}</p>
+                </div>
+            `;
+        } else if (nodeData.type === 'switch') {
+            details = `
+                <div class="node-details">
+                    <h6><i class="fas fa-network-wired me-2"></i>Switch Details</h6>
+                    <p><strong>IP Address:</strong> ${nodeData.switchIp}</p>
+                    <p><strong>Connected to Cloud:</strong> ${cloudName}</p>
+                </div>
+            `;
+        }
+        
+        // Create a temporary tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'node-tooltip position-fixed';
+        tooltip.innerHTML = `
+            ${details}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        // Remove any existing tooltips
+        document.querySelectorAll('.node-tooltip').forEach(el => el.remove());
+        
+        document.body.appendChild(tooltip);
+        
+        // Auto-remove after 6 seconds
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.remove();
+            }
+        }, 6000);
+    }
+    
+    function showInterfaceDetails(edgeData) {
+        const detailsPanel = document.getElementById('interface-details');
+        
+        let interfacesList = '';
+        if (edgeData.interfaces && edgeData.interfaces.length > 0) {
+            interfacesList = edgeData.interfaces.map((iface, index) => `
+                <div class="interface-item ${index === 0 ? 'mt-0' : 'mt-3'}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1">
+                            <i class="fas fa-ethernet me-2"></i>
+                            ${iface.name}
+                        </h6>
+                        ${iface.pxe_boot ? '<span class="badge bg-success">PXE</span>' : ''}
+                    </div>
+                    <div class="interface-details">
+                        <small class="text-muted d-block">
+                            <strong>Port:</strong> ${iface.switch_port || 'N/A'}
+                        </small>
+                        <small class="text-muted d-block">
+                            <strong>MAC:</strong> <code>${iface.mac_address || 'N/A'}</code>
+                        </small>
+                        ${iface.speed ? `<small class="text-muted d-block"><strong>Speed:</strong> ${iface.speed} Gbps</small>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        detailsPanel.innerHTML = `
+            <div class="connection-header mb-3">
+                <h6 class="text-primary">
+                    <i class="fas fa-link me-2"></i>
+                    ${edgeData.hostName} ↔ ${edgeData.switchIp}
+                </h6>
+                <small class="text-muted">
+                    ${edgeData.interfaceCount} interface${edgeData.interfaceCount > 1 ? 's' : ''} connected
+                </small>
+            </div>
+            
+            <div class="interfaces-list">
+                ${interfacesList}
+            </div>
+            
+            <div class="mt-3 pt-3 border-top">
+                <button class="btn btn-sm btn-outline-secondary w-100" id="clear-details-btn">
+                    <i class="fas fa-times me-1"></i>
+                    Clear Details
+                </button>
+            </div>
+        `;
+        
+        // Add event listener to the clear button
+        const clearBtn = document.getElementById('clear-details-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearInterfaceDetails);
+        }
+        
+        // Highlight the selected edge
+        if (cy) {
+            cy.edges().removeClass('highlighted');
+            cy.getElementById(edgeData.id).addClass('highlighted');
+        }
+    }
+    
+    function clearInterfaceDetails() {
+        const detailsPanel = document.getElementById('interface-details');
+        detailsPanel.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-mouse-pointer fa-2x mb-3"></i>
+                <p>Click on a connection line to view interface details</p>
+            </div>
+        `;
+        
+        // Remove highlighting
+        if (cy) {
+            cy.edges().removeClass('highlighted');
+        }
+    }
+    
+    function optimizeHierarchicalLayout(cy) {
+        // Get all switches and hosts
+        const switches = cy.nodes('[type = "switch"]');
+        const hosts = cy.nodes('[type = "host"]');
+        
+        if (switches.length === 0 || hosts.length === 0) return;
+        
+        // Create a mapping of switch connections to optimize positioning
+        const switchConnections = {};
+        const hostConnections = {};
+        
+        // Analyze connections to determine optimal positioning
+        switches.forEach(switchNode => {
+            const switchId = switchNode.id();
+            switchConnections[switchId] = {
+                node: switchNode,
+                connectedHosts: [],
+                position: { x: 0, y: 0 }
+            };
+            
+            // Find all hosts connected to this switch
+            switchNode.connectedEdges().forEach(edge => {
+                const otherNode = edge.otherNode(switchNode);
+                if (otherNode.data('type') === 'host') {
+                    switchConnections[switchId].connectedHosts.push(otherNode);
+                }
+            });
+        });
+        
+        hosts.forEach(hostNode => {
+            const hostId = hostNode.id();
+            hostConnections[hostId] = {
+                node: hostNode,
+                connectedSwitches: [],
+                position: { x: 0, y: 0 }
+            };
+            
+            // Find all switches connected to this host
+            hostNode.connectedEdges().forEach(edge => {
+                const otherNode = edge.otherNode(hostNode);
+                if (otherNode.data('type') === 'switch') {
+                    hostConnections[hostId].connectedSwitches.push(otherNode);
+                }
+            });
+        });
+        
+        // Sort switches by their connection patterns to minimize crossings
+        const sortedSwitches = Object.values(switchConnections).sort((a, b) => {
+            // Sort by number of connections first
+            if (a.connectedHosts.length !== b.connectedHosts.length) {
+                return b.connectedHosts.length - a.connectedHosts.length;
+            }
+            // Then by switch IP for consistency
+            return a.node.data('switchIp').localeCompare(b.node.data('switchIp'));
+        });
+        
+        // Position switches horizontally with proper spacing
+        const containerWidth = cy.width();
+        const switchSpacing = Math.max(150, containerWidth / (sortedSwitches.length + 1));
+        const switchY = 100; // Top level for switches
+        
+        sortedSwitches.forEach((switchInfo, index) => {
+            const x = switchSpacing * (index + 1);
+            switchInfo.position = { x: x, y: switchY };
+            switchInfo.node.position(switchInfo.position);
+        });
+        
+        // Group hosts by their switch connections and position them optimally
+        const hostGroups = {};
+        
+        Object.values(hostConnections).forEach(hostInfo => {
+            // Create a key based on connected switches
+            const switchKey = hostInfo.connectedSwitches
+                .map(sw => sw.data('switchIp'))
+                .sort()
+                .join(',');
+                
+            if (!hostGroups[switchKey]) {
+                hostGroups[switchKey] = {
+                    hosts: [],
+                    switches: hostInfo.connectedSwitches,
+                    centerX: 0
+                };
+            }
+            hostGroups[switchKey].hosts.push(hostInfo);
+        });
+        
+        // Calculate center positions for each host group based on their switch connections
+        Object.values(hostGroups).forEach(group => {
+            if (group.switches.length > 0) {
+                group.centerX = group.switches.reduce((sum, sw) => {
+                    const switchInfo = sortedSwitches.find(s => s.node.id() === sw.id());
+                    return sum + (switchInfo ? switchInfo.position.x : 0);
+                }, 0) / group.switches.length;
+            }
+        });
+        
+        // Position hosts in groups under their connected switches
+        const hostY = 300; // Bottom level for hosts
+        const hostSpacing = 80;
+        
+        Object.values(hostGroups).sort((a, b) => a.centerX - b.centerX).forEach(group => {
+            const groupWidth = (group.hosts.length - 1) * hostSpacing;
+            const startX = group.centerX - groupWidth / 2;
+            
+            group.hosts.forEach((hostInfo, index) => {
+                const x = startX + (index * hostSpacing);
+                hostInfo.node.position({ x: x, y: hostY });
+            });
+        });
+        
+        // Fit the view to show all nodes
+        setTimeout(() => {
+            cy.fit(50);
+        }, 100);
+    }
+    
+    // Export functionality
+    document.getElementById('export-btn').addEventListener('click', function() {
+        const dataStr = JSON.stringify(cloudData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${cloudName}-connectivity.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    });
+});
+</script>
+
+<style>
+/* Graph container */
+#topology-diagram {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+}
+
+/* Loading spinner */
+#loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+/* Graph controls */
+.graph-controls {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #dee2e6;
+}
+
+.btn-group .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-outline-primary.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+/* Graph legend */
+.graph-legend {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    z-index: 100;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.legend-title {
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.legend-host {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #3498db;
+    border: 2px solid #2980b9;
+    margin-right: 8px;
+}
+
+.legend-switch {
+    width: 16px;
+    height: 16px;
+    background-color: #e74c3c;
+    border: 2px solid #c0392b;
+    margin-right: 8px;
+    transform: rotate(45deg);
+}
+
+.legend-line {
+    width: 20px;
+    height: 2px;
+    background-color: #7f8c8d;
+    margin-right: 6px;
+    position: relative;
+}
+
+.legend-line::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -2px;
+    border-left: 6px solid #7f8c8d;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+}
+
+/* Node tooltip */
+.node-tooltip {
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 300px;
+    background: white;
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.node-details h6 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.node-details p {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+/* Cards */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.card h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Interface Details Panel */
+.connection-header h6 {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.interface-item {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #f8f9fa;
+}
+
+.interface-item h6 {
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.interface-details {
+    margin-left: 20px;
+}
+
+.interface-details small {
+    line-height: 1.4;
+}
+
+.badge.bg-success {
+    font-size: 0.7rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #topology-diagram {
+        height: 400px !important;
+    }
+    
+    .graph-legend {
+        font-size: 0.7rem;
+        padding: 8px;
+        top: 10px;
+        left: 10px;
+    }
+    
+    .btn-group {
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+    
+    .col-md-8, .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .interface-details {
+        margin-left: 10px;
+    }
+}
+</style>
+{% endblock %}
