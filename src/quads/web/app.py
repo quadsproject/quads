@@ -1,6 +1,7 @@
 from flask import Flask
 
 from quads.config import Config
+from quads.web.blueprints.connectivity import connectivity_bp
 from quads.web.blueprints.dynamic_content import dynamic_content_bp
 from quads.web.blueprints.instack import instack_bp
 from quads.web.blueprints.visual import visual_bp
@@ -27,6 +28,7 @@ def initiate_navbar(flask_app):
             View(text="Assignments", endpoint="wiki.index"),
             View(text="Vlans", endpoint="wiki.create_vlans"),
             View(text="Available", endpoint="wiki.available"),
+            View(text="Connectivity", endpoint="connectivity.index"),
             Subgroup(
                 "Visuals",
                 View(text="Current Month", endpoint="visual.visuals", **{"when": "current"}),
@@ -54,6 +56,7 @@ def create_app() -> Flask:
     flask_app.register_blueprint(visual_bp, url_prefix="/visual")
     flask_app.register_blueprint(instack_bp, url_prefix="/instack")
     flask_app.register_blueprint(wiki_bp)
+    flask_app.register_blueprint(connectivity_bp, url_prefix="/connectivity")
     initiate_navbar(flask_app)
     set_global_variables(flask_app)
 
