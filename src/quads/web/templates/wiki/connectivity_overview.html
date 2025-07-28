@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}Network Connectivity Overview{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h3><strong>Network Connectivity Overview</strong></h3>
+            <p class="text-muted">Select a cloud to view its network connectivity diagram</p>
+            
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Clouds</h5>
+                            <h2 class="text-primary" id="total-clouds">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Hosts</h5>
+                            <h2 class="text-success" id="total-hosts">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Switches</h5>
+                            <h2 class="text-info" id="total-switches">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Connections</h5>
+                            <h2 class="text-warning" id="total-connections">-</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cloud Grid -->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>Cloud Network Diagrams</h4>
+                    <div id="loading-spinner" class="text-center p-5">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading cloud information...</p>
+                    </div>
+                    <div id="clouds-grid" class="row" style="display: none;">
+                        <!-- Cloud cards will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadOverviewData();
+    
+    async function loadOverviewData() {
+        try {
+            // Load summary
+            const summaryResponse = await fetch('/connectivity/summary');
+            const summary = await summaryResponse.json();
+            updateSummary(summary);
+            
+            // Load clouds information
+            const cloudsResponse = await fetch('/connectivity/clouds');
+            const cloudsData = await cloudsResponse.json();
+            populateCloudsGrid(cloudsData.clouds);
+            
+            // Hide loading spinner and show content
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('clouds-grid').style.display = 'flex';
+            
+        } catch (error) {
+            console.error('Error loading overview data:', error);
+            document.getElementById('loading-spinner').innerHTML = 
+                '<div class="alert alert-danger">Error loading connectivity data</div>';
+        }
+    }
+    
+    function updateSummary(summary) {
+        document.getElementById('total-clouds').textContent = summary.clouds ? summary.clouds.length : 0;
+        document.getElementById('total-hosts').textContent = summary.total_hosts || 0;
+        document.getElementById('total-switches').textContent = summary.total_switches || 0;
+        document.getElementById('total-connections').textContent = summary.total_connections || 0;
+    }
+    
+    function populateCloudsGrid(clouds) {
+        const grid = document.getElementById('clouds-grid');
+        grid.innerHTML = '';
+        
+        // Sort clouds by name naturally (cloud01, cloud02, ..., cloud10, etc.)
+        const sortedClouds = clouds.sort((a, b) => {
+            return a.name.localeCompare(b.name, undefined, {
+                numeric: true,
+                sensitivity: 'base'
+            });
+        });
+        
+        // Define colors for clouds
+        const cloudColors = [
+            '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+            '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#f1c40f'
+        ];
+        
+        sortedClouds.forEach((cloud, index) => {
+            const color = cloudColors[index % cloudColors.length];
+            const card = document.createElement('div');
+            card.className = 'col-md-4 col-lg-3 mb-4';
+            
+            card.innerHTML = `
+                <div class="card cloud-card h-100" style="border-left: 4px solid ${color};">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex align-items-center">
+                            <span class="cloud-indicator" style="background-color: ${color};"></span>
+                            ${cloud.name}
+                        </h5>
+                        <div class="cloud-stats mb-3">
+                            <div class="stat-item">
+                                <i class="fas fa-server text-muted"></i>
+                                <span>${cloud.host_count} hosts</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-network-wired text-muted"></i>
+                                <span>${cloud.switch_count} switches</span>
+                            </div>
+                        </div>
+                        <a href="/connectivity/cloud/${cloud.name}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-project-diagram me-1"></i>
+                            View Network Diagram
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+        
+        // Add hover effects
+        document.querySelectorAll('.cloud-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            });
+        });
+    }
+});
+</script>
+
+<style>
+.cloud-card {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.cloud-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.cloud-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.hosts-preview {
+    max-height: 60px;
+    overflow: hidden;
+}
+
+.hosts-list {
+    margin-top: 5px;
+}
+
+.hosts-list .badge {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.card h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.fas {
+    width: 16px;
+}
+
+@media (max-width: 768px) {
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}
