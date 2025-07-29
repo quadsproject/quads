@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1a5e5d81_01e0d002",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-07-29T14:28:50Z",
+      "side": 1,
+      "message": "I think we don\u0027t want to include any GPU that are integrated, they are not of much use to anyone (i915, xe/iris).  nouveau is more a driver and not indicative of any useful metadata that wouldn\u0027t be picked up via lshw -C display.\n\nHow does this compare to stock RHEL \"lswh -C display\" so far as what\u0027s missing that this adds?",
+      "range": {
+        "startLine": 141,
+        "startChar": 45,
+        "endLine": 141,
+        "endChar": 95
+      },
+      "revId": "d9275d00a16574cf5878b436d2b27aa81bc27a23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
