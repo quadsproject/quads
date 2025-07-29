@@ -138,9 +138,17 @@ for _d, _, _files in os.walk(MD_DIR):  # pragma: no cover
                             )
                             print(f"  Created CPU processor: {data}")
                     # GPU
+                    recognized_gpu_drivers = {"nouveau"}
+                    recognized_gpu_controllers = {"3D controller", "Display controller"}
                     for child in [child for child in children if child.value["class"] == "display"]:
                         configuration = child.value.get("configuration")
-                        if configuration.get("driver") == "nouveau":
+                        description = child.value.get("description")
+                        driver = configuration.get("driver") if configuration else None
+
+                        driver_recognized = driver in recognized_gpu_drivers
+                        is_3d_controller = description in recognized_gpu_controllers
+
+                        if driver_recognized or is_3d_controller:
                             data = {
                                 "handle": child.value.get("handle"),
                                 "vendor": child.value.get("vendor"),
