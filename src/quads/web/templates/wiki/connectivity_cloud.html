@@ -183,6 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create graph elements
         const elements = createGraphElements(data);
         
+        // Get current theme
+        const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
         // Initialize Cytoscape
         cy = cytoscape({
             container: container,
@@ -239,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         'font-size': '10px',
                         'text-rotation': 'autorotate',
                         'text-margin-y': -15,
-                        'color': '#2c3e50',
-                        'text-background-color': '#ffffff',
+                        'color': document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#dee2e6' : '#2c3e50',
+                        'text-background-color': document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#343a40' : '#ffffff',
                         'text-background-opacity': 0.9,
                         'text-background-padding': '3px',
                         'text-border-color': '#bdc3c7',
@@ -769,13 +772,36 @@ document.addEventListener('DOMContentLoaded', function() {
         link.click();
         URL.revokeObjectURL(url);
     });
+
+    // Listen for theme changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+                // Update cytoscape edge label background color
+                if (cy) {
+                    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                    cy.style()
+                        .selector('edge')
+                        .style({
+                            'color': isDark ? '#dee2e6' : '#2c3e50',
+                            'text-background-color': isDark ? '#343a40' : '#ffffff'
+                        })
+                        .update();
+                }
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-bs-theme']
+    });
 });
 </script>
 
 <style>
 /* Graph container */
 #topology-diagram {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     position: relative;
 }
 
@@ -786,12 +812,6 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
-}
-
-/* Graph controls */
-.graph-controls {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #dee2e6;
 }
 
 .btn-group .btn-sm {
@@ -810,19 +830,15 @@ document.addEventListener('DOMContentLoaded', function() {
     position: absolute;
     top: 15px;
     left: 15px;
-    background: rgba(255, 255, 255, 0.95);
     padding: 12px;
     border-radius: 8px;
     font-size: 0.8rem;
     z-index: 100;
-    border: 1px solid #dee2e6;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .legend-title {
     margin-bottom: 8px;
     font-weight: bold;
-    color: #495057;
 }
 
 .legend-item {
@@ -873,15 +889,11 @@ document.addEventListener('DOMContentLoaded', function() {
     right: 20px;
     z-index: 9999;
     max-width: 300px;
-    background: white;
-    border: 1px solid #007bff;
     border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .node-details h6 {
-    color: #007bff;
     margin-bottom: 10px;
 }
 
@@ -893,7 +905,6 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Cards */
 .card {
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #e0e0e0;
 }
 
 .card:hover {
@@ -915,19 +926,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Interface Details Panel */
 .connection-header h6 {
-    color: #007bff;
     font-weight: 600;
 }
 
 .interface-item {
-    border: 1px solid #e9ecef;
     border-radius: 6px;
     padding: 12px;
-    background-color: #f8f9fa;
 }
 
 .interface-item h6 {
-    color: #495057;
     margin-bottom: 8px;
 }
 

@@ -118,8 +118,8 @@ main {
 
     /* Body background and text color */
     body {
-        background-color: #212529; /* Dark background */
-        color: #dee2e6; /* Lighter text */
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
     }
 
     /* Adjust custom box style */
@@ -310,6 +310,93 @@ main {
     .dt-button-info div {
         color: #adb5bd;
     }
+
+    /* Connectivity page dark theme styles */
+    /* Graph controls */
+    .graph-controls {
+        background: rgba(var(--bs-dark-rgb), 0.95) !important;
+        border: 1px solid var(--bs-border-color) !important;
+    }
+
+    /* Graph legend */
+    .graph-legend {
+        background: rgba(var(--bs-dark-rgb), 0.95) !important;
+        border: 1px solid var(--bs-border-color) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .legend-title {
+        color: var(--bs-body-color) !important;
+    }
+
+    .legend-item span {
+        color: #adb5bd;
+    }
+
+    /* Node tooltip */
+    .node-tooltip {
+        background: var(--bs-dark) !important;
+        border: 1px solid var(--bs-primary) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+        color: var(--bs-body-color);
+    }
+
+    .node-details h6 {
+        color: var(--bs-link-color) !important;
+    }
+
+    .node-details p {
+        color: var(--bs-body-color);
+    }
+
+    /* Interface Details Panel */
+    .connection-header h6 {
+        color: var(--bs-link-color) !important;
+    }
+
+    .interface-item {
+        border: 1px solid var(--bs-border-color) !important;
+        background-color: #2b3035 !important;
+    }
+
+    .interface-item h6 {
+        color: var(--bs-body-color) !important;
+    }
+
+    .interface-details {
+        color: #adb5bd;
+    }
+
+    /* Additional connectivity page elements */
+    .graph-controls label {
+        color: var(--bs-body-color);
+    }
+
+    /* Cytoscape graph background */
+    #topology-diagram {
+        background-color: #1a1d20;
+    }
+
+    /* Connectivity overview page */
+    .cloud-card {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .cloud-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .card-title {
+        color: var(--bs-secondary) !important;
+    }
+
+    .stat-item {
+        color: var(--bs-body-color);
+    }
+
+    .stat-item i {
+        color: var(--bs-secondary) !important;
+    }
 }
 
 /* New SVG Theme Toggle Button Styles */
@@ -398,6 +485,19 @@ main {
 /* Warning style for light theme */
 .warning {
     background-color: #f7e5d7 !important;
+}
+
+/* Connectivity overview page - light theme */
+.cloud-card {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cloud-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    color: #6c757d;
 }
 
 .dt-buttons {

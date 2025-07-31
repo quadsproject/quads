@@ -152,12 +152,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.cloud-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
             });
             
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
             });
         });
     }
@@ -168,7 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .cloud-card {
     transition: all 0.3s ease;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .cloud-indicator {
@@ -208,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .card {
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #e0e0e0;
 }
 
 .card:hover {
@@ -218,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .card-title {
     font-size: 0.9rem;
-    color: #6c757d;
     margin-bottom: 0.5rem;
 }
 
