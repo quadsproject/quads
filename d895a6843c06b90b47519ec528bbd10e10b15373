@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f95e903d_1017dcd3",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-07-31T11:15:42Z",
+      "side": 1,
+      "message": "make it not case sensitive, put the variables in lower case and use `.lower()` on the conditional below",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 88
+      },
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5cdad573_59d0495e",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-07-31T11:15:42Z",
+      "side": 1,
+      "message": "use empty string \"\" instead of None",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "064d69b7_e97e7275",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-07-31T11:15:42Z",
+      "side": 1,
+      "message": "driver.lower()",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c1ec36a_173566c9",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-07-31T11:15:42Z",
+      "side": 1,
+      "message": "description.lower()",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
