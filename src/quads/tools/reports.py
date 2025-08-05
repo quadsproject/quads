@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from quads.config import Config
+from quads.config import Config, logging_manager
 from quads.helpers.utils import (
     date_span,
     first_day_month,
@@ -12,10 +12,7 @@ from datetime import datetime, timedelta
 
 from quads.quads_api import QuadsApi
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.propagate = False
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging_manager.get_logger(__name__, level=logging.INFO)
 quads = QuadsApi(Config)
 
 

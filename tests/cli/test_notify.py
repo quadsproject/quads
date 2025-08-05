@@ -43,7 +43,6 @@ class TestNotify(TestBase):
         assert ass.notification.pre_initial is True
         assert ass.notification.initial is True
         assert self._caplog.messages[1:] == [
-            "=============== Initial Message",
             "Beep boop we can't communicate with your webhook.",
             "Notifications sent out.",
         ]

@@ -2,15 +2,18 @@
 # encoding: utf-8
 
 import argparse
-from flask import Flask, Blueprint, jsonify, Response
+import logging
+from flask import Flask, Blueprint, jsonify, Response, request, g
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
 from flask.cli import with_appcontext
+import uuid
 
 from quads.server.database import create_user, modify_user, remove_user, populate, drop_all
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
+from quads.config import logging_manager
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -25,6 +28,26 @@ def verify_password(email, password):
     return True
 
 
+def setup_logging(app):
+    """Setup centralized logging for Flask application with request correlation"""
+    # Get centralized logger for the app
+    app.logger = logging_manager.get_logger("quads.server", level=logging.INFO)
+
+    # Add request correlation middleware
+    @app.before_request
+    def before_request():
+        g.request_id = str(uuid.uuid4())[:8]  # Short request ID
+        # Get request logger with correlation ID
+        g.logger = logging_manager.get_request_logger("quads.server.request", g.request_id)
+        g.logger.info(f"{request.method} {request.path}")
+
+    @app.after_request
+    def after_request(response):
+        if hasattr(g, "logger"):
+            g.logger.info(f"{request.method} {request.path} - {response.status_code}")
+        return response
+
+
 def create_app(test_config=None) -> Flask:
     # create and configure the app
     flask_app = Flask(__name__, instance_relative_config=True)
@@ -37,6 +60,9 @@ def create_app(test_config=None) -> Flask:
     else:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
+
+    # Setup centralized logging for the Flask app
+    setup_logging(flask_app)
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
