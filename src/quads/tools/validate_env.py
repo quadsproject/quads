@@ -11,7 +11,7 @@ from jinja2 import Template
 from paramiko import SSHException
 from paramiko.ssh_exception import NoValidConnectionsError
 
-from quads.config import Config
+from quads.config import Config, logging_manager
 from quads.exceptions import CliException
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
@@ -23,7 +23,7 @@ from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from quads.tools.external.switch import Switch
 
 
-logger = logging.getLogger(__name__)
+logger = logging_manager.get_tool_logger(__name__, level=logging.INFO)
 quads = QuadsApi(Config)
 
 

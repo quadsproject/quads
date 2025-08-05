@@ -22,30 +22,20 @@ import sys
 from typing import Optional
 
 from quads.cli import parser, QuadsCli
-from quads.config import Config, DEFAULT_CONF_PATH
+from quads.config import Config, DEFAULT_CONF_PATH, logging_manager
 from quads.exceptions import CliException
 from quads.quads_api import QuadsApi
-from quads.tools.logger import ColorFormatter
-
-logger = logging.getLogger(__name__)
 
 
-def main(_logger: logging = logger) -> Optional[int]:
-    stdout_stream = logging.StreamHandler(sys.stdout)
-    _logger.addHandler(stdout_stream)
-    _logger.propagate = False
-
+def main(_logger: logging = None) -> Optional[int]:
     argcomplete.autocomplete(parser)
     cli_args: dict = vars(parser.parse_args())
 
-    if cli_args.get("debug", False):
-        _logger.setLevel(level=logging.DEBUG)
-    else:
-        _logger.setLevel(level=logging.INFO)
+    # Use centralized logging manager
+    log_level = logging.DEBUG if cli_args.get("debug", False) else logging.INFO
+    _logger = logging_manager.get_logger(__name__, level=log_level, use_color=True)
 
-    if sys.stdout.isatty():
-        stdout_stream.setFormatter(ColorFormatter())
-        _logger.debug("Attached to terminal, making logs colorful")
+    _logger.debug("Attached to terminal, making logs colorful")
 
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
@@ -66,7 +56,7 @@ def main(_logger: logging = logger) -> Optional[int]:
             cli_args=cli_args,
         )
     except CliException as exc:
-        logger.error(str(exc))
+        _logger.error(str(exc))
         _exit_code = 2
 
     return _exit_code
@@ -76,9 +66,11 @@ if __name__ == "__main__":
     exit_code: Optional[int] = None
 
     try:
-        exit_code = main(_logger=logger)
+        exit_code = main()
     except Exception as exc:
-        logger.exception(exc, exc_info=exc)
+        # Create a basic logger for unhandled exceptions
+        basic_logger = logging_manager.get_logger(__name__)
+        basic_logger.exception(exc, exc_info=exc)
         exit_code = 1
 
     exit(0 if exit_code is None else exit_code)

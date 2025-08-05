@@ -4,15 +4,14 @@ import logging
 from datetime import datetime
 from typing import Any, Optional
 
-from quads.config import Config
+from quads.config import Config, logging_manager
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi
 from quads.tools.external.badfish import BadfishException, badfish_factory
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.ipmi import IPMI
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging_manager.get_tool_logger(__name__, level=logging.INFO)
 quads = QuadsApi(Config)
 
 

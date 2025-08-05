@@ -4,6 +4,8 @@ import os
 
 import yaml
 
+from quads.helpers.logger import LoggingManager
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONF_PATH = "/opt/quads/conf/quads.yml"
@@ -136,6 +138,8 @@ class _Config(_ConfigBase):
 
 # Making sure there is exactly one instance of config used elsewhere
 Config = _Config()
+
+logging_manager = LoggingManager(Config)
 
 if __name__ == "__main__":
     if not Config.loaded:

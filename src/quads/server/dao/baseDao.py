@@ -1,8 +1,9 @@
-from flask import current_app
+from flask import g
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from quads.server.models import Disk, Interface, Memory, Processor, db
+from quads.config import logging_manager
 
 FILTERING_OPERATORS = {
     "==": "eq",
@@ -77,19 +78,23 @@ class BaseDao:
         :return: True if the commit was successful, False if a rollback occurred.
         """
         try:
+            # Use request logger if available, otherwise use centralized logger
+            logger = getattr(g, "logger", None) or logging_manager.get_logger("quads.server.dao")
+
             for obj in db.session.new:
-                current_app.logger.debug(f"New: {obj.__class__.__name__}: {obj}")
+                logger.debug(f"New: {obj.__class__.__name__}: {obj}")
             for obj in db.session.dirty:
-                current_app.logger.debug(f"Modified: {obj.__class__.__name__}: {obj}")
+                logger.debug(f"Modified: {obj.__class__.__name__}: {obj}")
             for obj in db.session.deleted:
-                current_app.logger.debug(f"Deleted: {obj.__class__.__name__}: {obj}")
+                logger.debug(f"Deleted: {obj.__class__.__name__}: {obj}")
 
             db.session.commit()
             return True
         except SQLAlchemyError as error:
+            logger = getattr(g, "logger", None) or logging_manager.get_logger("quads.server.dao")
             db.session.rollback()
-            current_app.logger.error("SQL Commit Failed!  Rolling back...")
-            current_app.logger.error(error.args)
+            logger.error("SQL Commit Failed!  Rolling back...")
+            logger.error(str(error))
             return False
 
     @staticmethod
