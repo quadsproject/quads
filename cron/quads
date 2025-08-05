@@ -14,9 +14,9 @@ SHELL=/bin/bash
 # https://linux.die.net/man/1/flock
 #
 #########################################
-#*/5 * * * * ( echo "=== Move and Rebuild == Started @ " $(date) ; flock -n /tmp/moveandrebuild.lock -c "quads --move-hosts" ; echo "=== Move and Rebuild == Finished @ " $(date)) 1>>/var/log/move-and-rebuild.log 2>&1
-#*/25 * * * * ( echo "=== Validating Started == @ " $(date) ; flock -n /tmp/validateenv.lock -c "quads --validate-env" ; echo "=== Validating Finished == @ " $(date)) 1>>/var/log/validate-env.log 2>&1
-#*/10 * * * * ( echo "=== Sending Notifications Started == @ " $(date) ; flock -n /tmp/notify.lock -c "quads --notify" ; echo "=== Sending Notifications Finished == @ " $(date)) 1>>/var/log/quads-notify.log 2>&1
+#*/5 * * * * ( echo "=== Move and Rebuild == Started @ " $(date) ; flock -n /tmp/moveandrebuild.lock -c "quads --move-hosts" ; echo "=== Move and Rebuild == Finished @ " $(date)) 1>/dev/null 2>&1
+#*/25 * * * * ( echo "=== Validating Started == @ " $(date) ; flock -n /tmp/validateenv.lock -c "quads --validate-env" ; echo "=== Validating Finished == @ " $(date)) 1>/dev/null 2>&1
+#*/10 * * * * ( echo "=== Sending Notifications Started == @ " $(date) ; flock -n /tmp/notify.lock -c "quads --notify" ; echo "=== Sending Notifications Finished == @ " $(date)) 1>/dev/null 2>&1
 #*/20 * * * * ( echo "=== Regenerate Heat Map Started == @ " $(date) ; flock -n /tmp/heatmap.lock -c "quads --regen-heatmap" ; echo "=== Regenerate Heat Map Finished == @ " $(date)) 1>/dev/null 2>&1
 #*/15 * * * * ( echo "=== Rebuild Instackenv Started == @ " $(date) ; flock -n /tmp/instackenv.lock -c "quads --regen-instack" ; echo "=== Rebuild Instackenv Finished == @ " $(date)) 1>/dev/null 2>&1
 #0 */3 * * 1-6 ( echo "=== Foreman RBAC Started == @ " $(date) ; flock -n /tmp/foremanrbac.lock -c "quads --foreman-rbac" ; echo "=== Foreman RBAC Finished == @ " $(date)) 1>/dev/null 2>&1

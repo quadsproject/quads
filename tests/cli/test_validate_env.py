@@ -52,7 +52,10 @@ class TestValidateEnv(TestBase):
         self.quads_cli_call("validate_env")
 
         assert self._caplog.messages[-5:] == [
-            "Validating cloud04",
+            "Success notification sent successfully for cloud04",
+            "Marking 0 hosts as validated",
+            "Marked assignment 2 as validated for cloud04",
+            "=== VALIDATION COMPLETED SUCCESSFULLY for cloud04 ===",
             "Quads assignments validation executed.",
         ]
         cloud = CloudDao.get_cloud(name="cloud04")
