@@ -16,6 +16,24 @@
       "message": "these strings should be all lower case, otherwise the conditional below will never find these",
       "revId": "b74aa491ddf04f5387ed761e64eb1eaa6ba1147e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "715cd710_69ce52d5",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-08-06T14:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ef3f708_4425238f",
+      "revId": "b74aa491ddf04f5387ed761e64eb1eaa6ba1147e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

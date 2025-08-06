@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c424fee5_7b0fdd70",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-08-06T14:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa86786_da490b9a",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f95e903d_1017dcd3",
@@ -100,6 +118,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "50c4cb43_396a3028",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-08-06T14:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5cdad573_59d0495e",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "064d69b7_e97e7275",
@@ -117,6 +153,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eaf8c819_4cc64aad",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-08-06T14:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "064d69b7_e97e7275",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0c1ec36a_173566c9",
@@ -130,6 +184,24 @@
       "writtenOn": "2025-07-31T11:15:42Z",
       "side": 1,
       "message": "description.lower()",
+      "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "06e2f2d9_68f87fe5",
+        "filename": "src/quads/tools/lshw2meta.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-08-06T14:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0c1ec36a_173566c9",
       "revId": "d895a6843c06b90b47519ec528bbd10e10b15373",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
