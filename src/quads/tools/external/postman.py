@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
+import markdown
 from smtplib import SMTPException, SMTP
 
 from email.message import EmailMessage
+from email.mime.text import MIMEText
 from quads.config import Config
 
 logger = logging.getLogger(__name__)
@@ -23,14 +25,13 @@ class Postman(object):
             Config["mail_display_name"],
             "@".join(["quads", Config["domain"]]),
         )
-        msg = EmailMessage()
+        msg = MIMEText(markdown.markdown(self.content, extensions=['tables']), "html")
         msg["Subject"] = self.subject
         msg["From"] = self.from_address
         msg["To"] = "@".join([self.to, Config["domain"]])
         msg["Cc"] = ",".join(self.cc)
         msg.add_header("Reply-To", self.reply_to)
         msg.add_header("User-Agent", self.user_agent)
-        msg.set_content(self.content)
 
         return msg
 

@@ -25,7 +25,11 @@ def post_message(args, ticket, description, cloud_name):
     )
     try:
         with open(os.path.join(args.message)) as _file:
-            template = Template(f"Subject: {args.subject}\n\n" + _file.read())
+            # strip out lines that start with "|-" to allow simple tables
+            # to render nicely in JIRA
+            lines = [line for line in _file.readlines() if not line.startswith('|-')]
+            content = "".join(lines)
+            template = Template(f"Subject: {args.subject}\n\n{content}")
     except Exception as e:
         logger.info(f"{e}")
         return False
