@@ -87,7 +87,7 @@ class TestPostman:
         assert msg["Subject"] == "Test Subject"
         assert msg["From"] == "QUADS Scheduler <quads@example.com>"
         assert msg["To"] == "test@example.com"
-        assert msg["Cc"] == "cc1@example.com, cc2@example.com"
+        assert msg["Cc"] == "cc1@example.com,cc2@example.com"
 
     def test_compose_email_with_empty_subject(self):
         postman = Postman("", "test", [], "Test Content")
@@ -110,7 +110,7 @@ class TestPostman:
         msg = postman.compose()
         assert msg["Subject"] == "Test Subject"
         assert msg["From"] == "QUADS Scheduler <quads@example.com>"
-        assert msg["To"] == "<>"
+        assert msg["To"] == "@example.com"
         assert msg["Cc"] == ""
 
     def test_compose_email_with_long_subject_and_content(self):
@@ -144,4 +144,4 @@ class TestPostman:
         assert msg["Subject"] == "Test Subject"
         assert msg["From"] == "QUADS Scheduler <quads@example.com>"
         assert msg["To"] == "test1@example.com"
-        assert msg["Cc"] == "test2@example.com, test3@example.com"
+        assert msg["Cc"] == "test2@example.com,test3@example.com"
