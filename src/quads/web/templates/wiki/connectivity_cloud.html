@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="connection-header mb-3">
                 <h6 class="text-primary">
                     <i class="fas fa-link me-2"></i>
-                    ${edgeData.hostName} ↔ ${edgeData.switchIp}
+                    <a href="/host/${edgeData.hostName}">${edgeData.hostName}</a> ↔ ${edgeData.switchIp}
                 </h6>
                 <small class="text-muted">
                     ${edgeData.interfaceCount} interface${edgeData.interfaceCount > 1 ? 's' : ''} connected
