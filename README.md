@@ -1095,7 +1095,6 @@ quads --mod-schedule --host host01.example.com --mod-schedule --schedule-id 31 -
 for host in $(cat /tmp/2491); do quads --mod-schedule --schedule-id $(quads --ls-schedule --host $host | grep cloud06 | grep "start=2023-03-13" | tail -1 | awk -F\| '{ print $1 }') --host $host --schedule-start "2023-03-12 22:00" ; done
 ```
 
-
 ### Modify a Host Interface
 
 To remove a host entirely from QUADS management you can use the `--rm-host` command.
@@ -1119,6 +1118,16 @@ Resource properly removed
 
 ## Self-Scheduling Hosts
 * QUADS supports full-featured self service provisioning via the API documented [here](/docs/quads-self-schedule.md).
+* You need to enable this on systems for them to be eligible for self-service scheduling via the API:
+
+```bash
+quads --mod-host --host f03-h30-000-r650.example.com --can-self-schedule true
+```
+* You can list all self-service capable systems with the `--filter` command:
+
+```bash
+quads --ls-hosts --filter "can_self_schedule==true"
+```
 
 ## Filtering Systems by Hardware Capability
 * We provide a flexible host hardware [metadata and filtering model](/docs/quads-host-metadata-search.md) via the API.
