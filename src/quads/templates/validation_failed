@@ -1,15 +1,15 @@
 A post allocation test has failed for:
 
-   cloud: {{ cloud }}
-   owner: {{ owner }}
+   cloud: {{ cloud }}  
+   owner: {{ owner }}  
    ticket: {{ ticket }}
 
-The release of the environment is contingent on the success
-of the validation scripts.  Before users are notified, make
-sure to address the environment and ensure all validation steps
+The release of the environment is contingent on the success  
+of the validation scripts.  Before users are notified, make  
+sure to address the environment and ensure all validation steps  
 succeed to ensure a timely release to the end user.
 
 DevOps Team
 
-Results:
+Results:  
 {{ report }}
