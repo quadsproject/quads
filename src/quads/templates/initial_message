@@ -5,23 +5,23 @@ You've {{ "self" if is_self_schedule else "been" }} allocated a new environment!
 
 {{ cloud_info }}
 
-(Details)
+(Details)  
 {{ quads_url }}/assignments/#{{ cloud }}
 
-You can view your machine list, duration and other
+You can view your machine list, duration and other  
 details above.
 
 You can also view/manage your hosts via Foreman:
 
 {{ foreman_url }}
 
-Username: {{ cloud }}
+Username: {{ cloud }}  
 Password: {{ password }}
 
-For additional information regarding system usage
+For additional information regarding system usage  
 please see the following documentation:
 
-{{ quads_url }}/FAQ/
+{{ quads_url }}/FAQ/  
 {{ quads_url }}/Usage/
 
 Perf/Scale DevOps Team

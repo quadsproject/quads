@@ -27,7 +27,7 @@ def post_message(args, ticket, description, cloud_name):
         with open(os.path.join(args.message)) as _file:
             # strip out lines that start with "|-" to allow simple tables
             # to render nicely in JIRA
-            lines = [line for line in _file.readlines() if not line.startswith('|-')]
+            lines = [line for line in _file.readlines() if not line.startswith("|-")]
             content = "".join(lines)
             template = Template(f"Subject: {args.subject}\n\n{content}")
     except Exception as e:
@@ -38,7 +38,11 @@ def post_message(args, ticket, description, cloud_name):
         ticket=ticket,
         cloud_name=cloud_name,
     )
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     try:
         jira = Jira(
             Config["jira_url"],
