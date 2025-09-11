@@ -6,38 +6,38 @@ start = {{ schedule_start }} UTC
 end   = {{ schedule_end }} UTC
 cloud = {{ cloud }}
 
-You will be receiving a series of automated email notifications up through the start of your assignment with more information.
+You will be receiving a series of automated email notifications up through the start of your assignment with more information.  
 When your assignment is ready (and automated network validation has occurred) you'll receive a final all clear notification with access information.
 
 In the meantime you can find more information here:
 
 {% for link in jira_docs_links %}
-{{ link }}
+{{ link }}  
 {% endfor %}
 
-Here is a list of your tentatively scheduled future hosts (subject to change).
+Here is a list of your tentatively scheduled future hosts (subject to change).  
 They will not be active until you receive a final notification sometime soon after your assigned start date.
 
-PLEASE NOTE: DO NOT start utilizing your machines right away, they need to be validated first.
-The assignment start time is when they start to be provisioned and allocated to you and could take some time longer if there are hardware issues which need to be addressed.
+PLEASE NOTE: DO NOT start utilizing your machines right away, they need to be validated first.  
+The assignment start time is when they start to be provisioned and allocated to you and could take some time longer if there are hardware issues which need to be addressed.  
 We do automated network validation as well, and all of these things must pass before they are ready for you to use.
 
 The general availability is estimated to be 2-3 hours after your start date unless intervention is required.  Either way you'll receive a final email letting you know.
 
 {% if vlan %}
-With this assignment we've granted your workload an additional, routable VLAN network that will be tagged on the last interface of all of your systems.
+With this assignment we've granted your workload an additional, routable VLAN network that will be tagged on the last interface of all of your systems.  
 You'll need to be responsible for IP'ing and adding the proper gateway/network within the range you are granted, organizing the IP assignments as you wish.
 
-VLAN ID: {{ vlan.vlan_id }}
-IP Range: {{ vlan.ip_range }}
-Netmask: {{ vlan.netmask }}
+VLAN ID: {{ vlan.vlan_id }}  
+IP Range: {{ vlan.ip_range }}  
+Netmask: {{ vlan.netmask }}  
 Gateway: {{ vlan.gateway }}
 
 You can find the list of active VLANs here and docs, your VLAN will become active and available along with your assignment once it passes automated validation and release phases.
 
 {% if jira_vlans_docs_links %}
 {% for link in jira_vlans_docs_links %}
-{{ link }}
+{{ link }}  
 {% endfor %}
 {% endif %}
 
