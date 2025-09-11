@@ -343,7 +343,7 @@ def create_self_assignment() -> Response:
         try:
             response = loop.run_until_complete(
                 jira.create_ticket(
-                    summary=f"{description_prefix} {jira_description}",
+                    summary=f"{full_description}",
                     description=jira_description,
                     labels=["SELF-SCHEDULED"],
                 )
