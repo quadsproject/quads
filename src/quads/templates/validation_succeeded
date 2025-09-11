@@ -1,11 +1,11 @@
 A post allocation check previously failed for:
 
-   cloud: {{ cloud }}
-   owner: {{ owner }}
+   cloud: {{ cloud }}  
+   owner: {{ owner }}  
    ticket: {{ ticket }}
 
-has successfully passed the verification test(s)!  The owner
-should receive a notification that the environment is ready
+has successfully passed the verification test(s)!  The owner  
+should receive a notification that the environment is ready  
 for use.
 
 DevOps Team

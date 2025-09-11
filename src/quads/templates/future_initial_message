@@ -1,29 +1,30 @@
 
 Greetings Citizen,
 
-You've {{ "self" if is_self_schedule else "been" }} allocated a new future environment!  The environment
-is not yet ready for use but you are being notified ahead of time
+You've {{ "self" if is_self_schedule else "been" }} allocated a new future environment!
+
+The environment is not yet ready for use but you are being notified ahead of time  
 that it is being prepared.
 
 {{ cloud_info }}
 
-When your environment is ready and your hardware/network has
+When your environment is ready and your hardware/network has  
 passed automated validation it will be released to you.
 
-You'll receive another email with environment-specific
-information and additional system details when it's ready.
+You'll receive another email with environment-specific  
+information and additional system details when it's ready.  
 {% if not is_self_schedule %}
-Before this happens a future schedule will be entered and
-communicated to you via your service ticket/request.
+Before this happens a future schedule will be entered and  
+communicated to you via your service ticket/request.  
 {% endif %}
-Afterwards, when the time comes a series of automated tests and
-validation phases will occur to make sure your systems/network
+Afterwards, when the time comes a series of automated tests and  
+validation phases will occur to make sure your systems/network  
 are in their final, desired state before being ready to use.
 
-For additional information regarding the Scale Lab usage
+For additional information regarding the Scale Lab usage  
 please see the following documentation:
 
-{{ quads_url }}/FAQ/
+{{ quads_url }}/FAQ/  
 {{ quads_url }}/Usage/
 
 Perf/Scale DevOps Team

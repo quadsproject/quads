@@ -1,8 +1,10 @@
 Hello,
 
-This is a message to alert you that on a request you made for an extension or an expansions, we failed to add watchers
-from the main request for Scale Lab access to this new sub-task JIRA ticket.
-To add yourself as a watcher and potentially others, try to please do so manually, the aforementioned ticket: https://issues.redhat.com/browse/SCALELAB-{{ ticket }}
+This is a message to alert you that on a request you made for an extension  
+or an expansions, we failed to add watchers from the main request for Scale  
+Lab access to this new sub-task JIRA ticket.  To add yourself as a watcher  
+and potentially others, try to please do so manually, the aforementioned  
+ticket: https://issues.redhat.com/browse/SCALELAB-{{ ticket }}
 
 Thank you for your attention.
 

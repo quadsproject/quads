@@ -1,23 +1,24 @@
 
-This is a message to alert you that in {{ days_to_report }} days
+This is a message to alert you that in {{ days_to_report }} days  
 your allocated environment:
 
 {{ cloud_info }}
 
-(Details)
+(Detail)
+
 {{ quads_url }}/assignments/#{{ cloud }}
 
-will have some or all of the hosts expire.  The following
-hosts will automatically be reprovisioned and returned to
+will have some or all of the hosts expire.  The following  
+hosts will automatically be reprovisioned and returned to  
 the pool of available hosts.
 
 {% for host in hosts %}
-{{host}}
+{{host}}  
 {% endfor %}
 
 
 {% if quads_request_url %}
-Use the link below to request an extension to your
+Use the link below to request an extension to your  
 assignment, noting your cloud number.
 
 {{ cloud }} Extension
@@ -26,21 +27,21 @@ assignment, noting your cloud number.
 {% endif %}
 
 {% if quads_request_deadline_day %}
-Please submit extensions prior to {{ quads_request_deadline_day }}
+Please submit extensions prior to {{ quads_request_deadline_day }}  
 of your expiration date.
 
 {% endif %}
 
 {% if quads_notify_until_extended %}
-If you have already submitted an extension you can disregard
-this message, our system will continue to send out expiration
+If you have already submitted an extension you can disregard  
+this message, our system will continue to send out expiration  
 notices until the actual extension is executed.
 
 {% endif %}
 
 Docs:
 
-{{ quads_url }}/FAQ/
+{{ quads_url }}/FAQ/  
 {{ quads_url }}/Usage/
 
 Thank you for your attention.
