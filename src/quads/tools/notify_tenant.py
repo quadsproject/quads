@@ -135,7 +135,11 @@ def determine_action(args):
             else:
                 host_count = len(hosts)
                 if host_count > 0:
-                    _ass = quads.filter_assignments({"active": True, "validated": True, "cloud": _cloud_obj.name})[0]
+                    _ass = quads.filter_assignments({"active": True, "validated": True, "cloud": _cloud_obj.name})
+                    try:
+                        _ass = _ass[0]
+                    except IndexError:
+                        continue
                     logger.info(
                         f"Sending notification for {_cloud_obj.name}. with {host_count} hosts.  Owner = {_ass.owner}, cc_users = {_ass.ccuser}"
                     )
