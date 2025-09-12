@@ -82,7 +82,7 @@ for h in $(quads --ls-hosts) ; do echo "- name: $h" ; echo "  model: $(echo $h |
   * To import host metadata from a file:
 
 ```
-quads --define-host-details --metadata /tmp/hosts_metadata.yml
+quads --define-host-details --host host01.example.com --metadata /tmp/host01.example.com.yml
 ```
 
   * Doing this again or modifying your `hosts_metadata.yml` file and re-importing will overwrite all values or remove ones that might have been removed from the QUADS database.
@@ -126,7 +126,8 @@ quads --mod-host --host server01.example.com --rm-host-metadata gpus,interfaces
   * The file provided should be a new file, or overwrite an existing one and the path should be somewhere on the filesystem.
 
 ```
-quads --export-host-details /tmp/my_host_data.yml
+# quads --export-host-details --host host01.example.com
+Metadata successfully exported to /tmp/tmp5edypjcy.
 ```
 
 ## Querying Host Information
