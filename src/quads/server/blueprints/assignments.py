@@ -266,6 +266,14 @@ def create_self_assignment() -> Response:
         cc_user = re.split(r"[, ]+", cc_user)
 
     if cloud_name:
+        if cloud_name == Config.get("spare_pool_name"):
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"Cloud {cloud_name} is not allowed to be used for self scheduling",
+            }
+            return make_response(jsonify(response), 400)
+
         _cloud = CloudDao.get_cloud(cloud_name)
         if not _cloud:
             response = {
