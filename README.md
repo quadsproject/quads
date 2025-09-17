@@ -469,7 +469,7 @@ You will need to do this when you introduce new system models into your fleet if
 > [!TIP]
 > The ```--host-type``` parameter is a mandatory, free-form label that can be anything that makes sense to you for organization.
 
-> ![NOTE]
+> [!NOTE]
 > You must include `--rack` and `--uloc` when defining hosts.
 > If you don't use traditional datacenter server racks and u-locations just use some description that makes sense for you.
 > The argument `--blade` is optional and only used for blade systems to identify a bladecenter member in a chassis.
