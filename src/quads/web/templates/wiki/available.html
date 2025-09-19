@@ -70,6 +70,40 @@
                                     {{ form.disk_count_value(class_="form-control", type="number", placeholder="Count") }}
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label">NIC Vendors:</label>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="nicVendorsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Select Vendors
+                                    </button>
+                                    <ul class="dropdown-menu w-100 dropdown-menu-scrollable" aria-labelledby="nicVendorsDropdown">
+                                        <li>
+                                            <button class="btn btn-link w-100 text-start px-3" id="unselectAllNicVendors" type="button">
+                                                Unselect All
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% for value, label in form.nic_vendors.choices %}
+                                        <li>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="nic_vendors" value="{{ value }}" id="nicVendor{{ loop.index }}"
+                                                    {% if value in form.nic_vendors.data %}checked{% endif %}>
+                                                <label class="form-check-label" for="nicVendor{{ loop.index }}">
+                                                    {{ label }}
+                                                </label>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">NIC Speed:</label>
+                                <div class="input-group">
+                                    {{ form.nic_speed_operator(class_="form-select", style="max-width: 100px;") }}
+                                    {{ form.nic_speed_value(class_="form-control", type="number", placeholder="Speed in Gbps") }}
+                                </div>
+                            </div>
                             <div class="mb-3 form-check">
                                 {{ form.has_gpu(class_="form-check-input") }}
                                 <label class="form-check-label" for="has_gpu">{{ form.has_gpu.label }}</label>
@@ -237,7 +271,9 @@
             // Handle model dropdown selection
             const modelDropdown = document.getElementById('modelDropdown');
             const modelCheckboxes = document.querySelectorAll('input[name="model"]');
-            
+            const nicVendorsDropdown = document.getElementById('nicVendorsDropdown');
+            const nicVendorCheckboxes = document.querySelectorAll('input[name="nic_vendors"]');
+
             function updateModelDropdownText() {
                 const selectedModels = Array.from(modelCheckboxes)
                     .filter(cb => cb.checked)
@@ -263,6 +299,34 @@
                     checkbox.checked = false;
                 });
                 updateModelDropdownText();
+            });
+
+            function updateNicVendorsDropdownText() {
+                const selectedNicVendors = Array.from(nicVendorCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.nextElementSibling.textContent.trim());
+                
+                nicVendorsDropdown.textContent = selectedNicVendors.length > 0
+                    ? selectedNicVendors.join(', ')
+                    : 'Select Vendors';
+            }
+
+            // Add event listeners to new checkboxes
+            nicVendorCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateNicVendorsDropdownText);
+            });
+
+            // Update initial text
+            updateNicVendorsDropdownText();
+
+            // Add unselect all functionality for NIC vendors
+            document.getElementById('unselectAllNicVendors').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                nicVendorCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateNicVendorsDropdownText();
             });
 
             // Load disk types
@@ -359,6 +423,11 @@
                 // Reset disk count inputs
                 document.querySelector('select[name="disk_count_operator"]').value = '';
                 document.querySelector('input[name="disk_count_value"]').value = '';
+
+                // Reset NIC vendors inputs
+                document.querySelector('select[name="nic_vendors"]').value = '';
+                document.querySelector('input[name="nic_speed_operator"]').value = '';
+                document.querySelector('input[name="nic_speed_value"]').value = '';
 
                 // Reset GPU checkbox
                 document.getElementById('has_gpu').checked = false;
