@@ -109,6 +109,9 @@ async def available_hosts(search):
     disk_size_value = search.data["disk_size_value"]
     disk_count_operator = search.data["disk_count_operator"]
     disk_count_value = search.data["disk_count_value"]
+    nic_vendors = search.data["nic_vendors"]
+    nic_speed_operator = search.data["nic_speed_operator"]
+    nic_speed_value = search.data["nic_speed_value"]
     try:
         start, end = [datetime.strptime(date, "%Y-%m-%d").date() for date in search.data["date_range"].split(" - ")]
         start = datetime.combine(start, time(hour=22)).strftime("%Y-%m-%dT%H:%M")
@@ -139,6 +142,15 @@ async def available_hosts(search):
             if disk_count_operator == "eq":
                 key = "disks.count"
             data[key] = disk_count_value
+
+        if nic_vendors:
+            data["interfaces.vendor__in"] = nic_vendors
+
+        if nic_speed_operator and nic_speed_value:
+            key = f"interfaces.speed__{nic_speed_operator}"
+            if nic_speed_operator == "eq":
+                key = "interfaces.speed"
+            data[key] = nic_speed_value
 
         hosts = quads.filter_available(data=data)
         available_hosts = []
