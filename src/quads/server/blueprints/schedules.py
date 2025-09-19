@@ -11,7 +11,7 @@ from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.dao.notification import NotificationDao
 from quads.server.dao.schedule import ScheduleDao
-from quads.server.models import Schedule, db
+from quads.server.models import db
 
 schedule_bp = Blueprint("schedules", __name__)
 
