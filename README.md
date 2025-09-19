@@ -61,15 +61,15 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
             * [Adding New Hosts to your Cloud with JIRA Integration](#adding-new-hosts-to-your-cloud-with-jira-integration)
          * [Managing Notifications](#managing-notifications)
             * [Listing Notifications](#listing-notifications)
-            * [Modifying Notifications](modifying-notifications)
+            * [Modifying Notifications](#modifying-notifications)
          * [Managing Faulty Hosts](#managing-faulty-hosts)
          * [Managing Retired Hosts](#managing-retired-hosts)
             * [Retiring Hosts](#retiring-hosts)
-         * [Extending the <strong>Schedule</strong> of an Existing Cloud](#extending-the-schedule-of-an-existing-cloud)
-         * [Extending the <strong>Schedule</strong> of a Specific Host](#extending-the-schedule-of-a-specific-host)
-         * [Shrinking the <strong>Schedule</strong> of an Existing Cloud](#shrinking-the-schedule-of-an-existing-cloud)
-         * [Shrinking the <strong>Schedule</strong> of a Specific Host](#shrinking-the-schedule-of-a-specific-host)
-         * [Terminating a <strong>Schedule</strong>](#terminating-a-schedule)
+         * [Extending the Schedule of an Existing Cloud](#extending-the-schedule-of-an-existing-cloud)
+         * [Extending the Schedule of a Specific Host](#extending-the-schedule-of-a-specific-host)
+         * [Shrinking the Schedule of an Existing Cloud](#shrinking-the-schedule-of-an-existing-cloud)
+         * [Shrinking the Schedule of a Specific Host](#shrinking-the-schedule-of-a-specific-host)
+         * [Terminating a Schedule](#terminating-a-schedule)
          * [Adding Hosts to an existing Cloud](#adding-hosts-to-an-existing-cloud)
          * [Removing a Schedule](#removing-a-schedule)
          * [Removing a Schedule across a large set of hosts](#removing-a-schedule-across-a-large-set-of-hosts)
@@ -172,7 +172,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 * Each assignment has a unique id.
 * There is no limit to the amount of past or future assignments a cloud can have but there can only be one _active_ assignment per cloud.
 
-```
+```sql
 quads=# select * from assignments where id = 57;
  id | active | provisioned | validated |     description      |  owner   | ticket | qinq | wipe |
                    ccuser                                                                     | cloud_id | vlan_id |        created_at         | is
@@ -304,7 +304,7 @@ This step is optional but may be welcoming due to recent HSTS enforcement in mos
 
 To enable TLS/SSL on QUADS (API, Web) you'll need to generate your own certificates, **if you're cool with self-signed cerificates** you can use this one-liner below, otherwise you should adapt this to signed TLS/SSL certificates from your IT department.
 
-```
+```bash
 servername=$(hostname)
 mkdir -p /etc/pki/tls/certs ; cd /etc/pki/tls/certs
 openssl req -x509 -newkey rsa:4096 -keyout $servername.key -out $servername.pem -sha256 -days 3650 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
@@ -320,20 +320,20 @@ This generates your certificate and key here:
 
 Next you'll need to copy `apiv3_ssl.conf.example` into place as `apiv3_ssl.conf`
 
-```
+```bash
 cd /etc/nginx/conf.d
 cp apiv3_ssl.conf.example apiv3_ssl.conf
 ```
 
 Lastly, in-line edit the configuration file to point to your generated cert/key pair.
 
-```
+```bash
 servername=$(hostname) ; sed -i -e "s/quads.example.com/$servername/" /etc/nginx/conf.d/apiv3_ssl.conf
 ```
 
 Lastly, restart nginx:
 
-```
+```bash
 systemctl restart nginx
 ```
 
@@ -347,7 +347,7 @@ systemctl restart nginx
    - Any files without extensions will be considered direct links with the content of it being only the hyperlink in plain text.
    - The html files should be structured for the correct jinja templating that is expected like this:
 
-```
+```jinja
     {% extends "base.html" %}
     {% block title %} INSERT TITLE HERE {% endblock %}
 
@@ -358,7 +358,7 @@ systemctl restart nginx
 
    - For static files such as images and css, all files go on the root `/static` directory and the src href has to be passed via `url_for` like this:
 
-```
+```html
         <img
           loading="lazy"
           decoding="async"
@@ -396,7 +396,7 @@ systemctl restart nginx
    - We ship an example cron file and install it for you that should work out of the box, it just has entries commented out.
    - To enable QUADS services to run you'll need to **uncomment them**.
 
-```
+```bash
 crontab -e
 ```
 
@@ -445,17 +445,17 @@ quads --define-cloud --cloud cloud03 --description "03 Cloud Environment"
 * Models are used for filtering search, availability and other useful features and it's a mandatory data element you need to provide.
 
 
-```
+```bash
 vi /opt/quads/conf/quads.yml
 ```
 
-```
+```bash
 models: R620,R630,R640,R650,R930,R730XD,FC640
 ```
 
 Now save this file and restart the QUADS server daemon.
 
-```
+```bash
 systemctl restart quads-server
 ```
 
@@ -501,7 +501,7 @@ quads --ls-hosts
 ```
 You will now see the list of full hosts.
 
-```
+```bash
 c08-h21-r630.example.com
 c08-h22-r630.example.com
 c08-h23-r630.example.com
@@ -719,7 +719,7 @@ You can change the default QUADS environment name by modifying the `lab_name` va
 
 Restart `quads-web` to take effect.
 
-```
+```bash
 systemctl restart quads-web
 ```
 
@@ -1097,7 +1097,7 @@ for host in $(cat /tmp/2491); do quads --mod-schedule --schedule-id $(quads --ls
 
 ### Modify a Host Interface
 
-To remove a host entirely from QUADS management you can use the `--rm-host` command.
+You can change any of the properties of an interface (except its name) using --mod-interface:
 
 ```bash
 quads --mod-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com --no-pxe-boot
@@ -1106,7 +1106,7 @@ Interface successfully updated
 
 ### Remove a Host Interface
 
-To remove a host entirely from QUADS management you can use the `--rm-host` command.
+To remove a host interface entirely from QUADS management you can use the `--rm-interface` command.
 
 ```bash
 quads --rm-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com
@@ -1627,16 +1627,16 @@ This mapping feeds into our [VLAN network validation code](/src/quads/tools/vali
 * Doing this is rare if at all needed but keeping this here for reference and posterity.
 
   - Connect to postgres
-```
+```bash
 sudo -u postgres psql
 ```
   - Connect to the QUADS database
-```
+```sql
 postgres=# \c quads;
 You are now connected to database "quads" as user "postgres".
 ```
   - Find the ID of your problem environment
-```
+```sql
 quads=# select * from clouds where name = 'cloud17';
  id |  name   |   last_redefined
 ----+---------+---------------------
@@ -1644,11 +1644,11 @@ quads=# select * from clouds where name = 'cloud17';
 (1 row)
 ```
   - Look at the flags set for that environment, specifically `provisioned` if it's `f` or `t` (true or false)
-```
+```sql
 quads=# select * from assignments where cloud_id = 18;
 ```
 
-```
+```sql
  id | active | provisioned | validated |   description    |  owner  | ticket | qinq | wipe |
                                                                          | cloud_id | vlan_id |        created_at
 ----+--------+-------------+-----------+------------------+---------+--------+------+------+-------------------------------------------------------
@@ -1658,12 +1658,12 @@ quads=# select * from assignments where cloud_id = 18;
 (1 row)
 ```
   - Now toggle the `provisioned` flag to True (`t`)
-```
+```sql
 quads=# update assignments set provisioned = true where id = 54;
 UPDATE 1
 ```
   - Check one more time, it should have updated.
-```
+```sql
 quads=# select * from assignments where cloud_id = 18;
  id | active | provisioned | validated |   description    |  owner  | ticket | qinq | wipe |
                                                                          | cloud_id | vlan_id |        created_at
@@ -1684,7 +1684,7 @@ Sometimes failed attempts to use the self-scheduling API and workflows may resul
 * In [RFE #605](https://github.com/redhat-performance/quads/issues/605) we'll look to address this automatically as a maintenance task or scheduling mechanic but for now this must be done in the database.
 
 ##### Finding Orphaned Assignments
-```
+```sql
 quads=# select a.id, a.description from assignments a left join schedules s on a.id = s.assignment_id where a.active = true and s.id is null;
 ```
 
@@ -1700,7 +1700,7 @@ You'll see the following output if there are any matches:
 * We can see `schedule_id` `59` is abandoned, having no host schedules yet they are still flagged as active.
 
 ##### Removing Orphaned Active Assignments
-```
+```sql
 quads=# update assignments set active = false where id = 59;
 UPDATE 1
 ```
@@ -1708,7 +1708,7 @@ UPDATE 1
 ##### Finding and Inactivating All Orphaned Active Assignments
 The following query will find and inactivate all orphaned active assignments in one swoop.
 
-```
+```sql
 quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EXISTS (SELECT 1 FROM schedules s WHERE s.assignment_id = a.id);
 ```
 
