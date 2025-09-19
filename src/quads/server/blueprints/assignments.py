@@ -243,7 +243,7 @@ def create_self_assignment() -> Response:
     description = data.get("description")
     owner = data.get("owner")
     ticket = data.get("ticket")
-    qinq = data.get("qinq")
+    qinq = data.get("qinq", 0)
     wipe = data.get("wipe")
     cc_user = data.get("cc_user")
     ostype = data.get("ostype")
