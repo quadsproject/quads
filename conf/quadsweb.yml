@@ -16,3 +16,9 @@ lab_name: "Lab"
 
 # Flag to show GPU information in the web interface
 show_gpu: true
+
+# Define the name of the NIC vendors to show in the web interface
+nic_vendors: 
+  - Mellanox Technologies
+  - Broadcom Inc. and subsidiaries
+  - Intel Corporation

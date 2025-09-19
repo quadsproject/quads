@@ -515,7 +515,6 @@ main {
     overflow-y: auto;
 }
 .dropdown-menu-scrollable .form-check {
-    padding: 0.5rem 1.5rem;
     margin: 0;
     width: 100%;
 }
@@ -534,4 +533,13 @@ main {
 .dropdown-toggle::after {
     float: right;
     margin-top: 8px;
+}
+.dropdown-menu .form-check-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+.dropdown-menu {
+    max-width: 300px;
 }
