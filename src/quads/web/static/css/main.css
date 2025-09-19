@@ -535,3 +535,15 @@ main {
     float: right;
     margin-top: 8px;
 }
+
+
+.dropdown-menu .form-check-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+}
+.dropdown-menu {
+    max-width: 300px;
+}
