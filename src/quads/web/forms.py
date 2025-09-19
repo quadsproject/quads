@@ -22,3 +22,11 @@ class ModelSearchForm(FlaskForm):
         choices=[("", ""), ("eq", "=="), ("ne", "!="), ("gt", ">"), ("lt", "<"), ("gte", ">="), ("lte", "<=")],
     )
     disk_count_value = IntegerField("Disk Count:", validators=[validators.Optional()])
+    nic_vendors = getattr(Config, "nic_vendors", [])
+    nic_vendors_choices = [(vendor, vendor) for vendor in nic_vendors]
+    nic_vendors = SelectMultipleField("NIC Vendors:", choices=nic_vendors_choices)
+    nic_speed_operator = SelectField(
+        "NIC Speed Operator:",
+        choices=[("", ""), ("eq", "=="), ("ne", "!="), ("gt", ">"), ("lt", "<"), ("gte", ">="), ("lte", "<=")],
+    )
+    nic_speed_value = IntegerField("NIC Speed (Gbps):", validators=[validators.Optional()])
