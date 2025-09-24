@@ -16,7 +16,7 @@
                             <div class="mb-3">
                                 <label class="form-label">{{ form.model.label }}</label>
                                 <div class="dropdown w-100">
-                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="modelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="modelDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Select Models" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                         Select Models
                                     </button>
                                     <ul class="dropdown-menu w-100 dropdown-menu-scrollable" aria-labelledby="modelDropdown">
@@ -31,7 +31,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" name="model" value="{{ value }}" id="model{{ loop.index }}"
                                                     {% if value in form.model.data %}checked{% endif %}>
-                                                <label class="form-check-label" for="model{{ loop.index }}">
+                                                <label class="form-check-label" for="model{{ loop.index }}" title="{{ label }}">
                                                     {{ label }}
                                                 </label>
                                             </div>
@@ -68,6 +68,40 @@
                                 <div class="input-group">
                                     {{ form.disk_count_operator(class_="form-select", style="max-width: 100px;") }}
                                     {{ form.disk_count_value(class_="form-control", type="number", placeholder="Count") }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">NIC Vendors:</label>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="nicVendorsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Select Vendors" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        Select Vendors
+                                    </button>
+                                    <ul class="dropdown-menu w-100 dropdown-menu-scrollable" aria-labelledby="nicVendorsDropdown">
+                                        <li>
+                                            <button class="btn btn-link w-100 text-start px-3" id="unselectAllNicVendors" type="button">
+                                                Unselect All
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% for value, label in form.nic_vendors.choices %}
+                                        <li>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="nic_vendors" value="{{ value }}" id="nicVendor{{ loop.index }}"
+                                                    {% if value in form.nic_vendors.data %}checked{% endif %}>
+                                                <label class="form-check-label" for="nicVendor{{ loop.index }}" title="{{ label }}">
+                                                    {{ label }}
+                                                </label>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">NIC Speed:</label>
+                                <div class="input-group">
+                                    {{ form.nic_speed_operator(class_="form-select", style="max-width: 100px;") }}
+                                    {{ form.nic_speed_value(class_="form-control", type="number", placeholder="Speed in Gbps") }}
                                 </div>
                             </div>
                             <div class="mb-3 form-check">
@@ -149,33 +183,23 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        const updateModal = (title, headers, data, fieldMapping, filter = null) => {
+            document.getElementsByClassName('modal-title')[0].innerHTML = title;
+            const th_data = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            const filteredData = filter ? data.filter(filter) : data;
+            const td_data = filteredData.map(item =>
+                `<tr>${headers.map((_, i) => `<td>${item[fieldMapping[i]]}</td>`).join('')}</tr>`
+            ).join('');
+            document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
+        };
+
         const updateDisks = (disks) => {
-            document.getElementsByClassName('modal-title')[0].innerHTML = 'Disks'
-            let th_data = "<tr><th>Type</th><th>Size</th><th>Count</th></tr>"
-            let td_data = ""
-            disks.forEach(disk => {
-                td_data += `<tr>`
-                td_data += `<td>${disk["disk_type"]}</td>`
-                td_data += `<td>${disk["size_gb"]}</td>`
-                td_data += `<td>${disk["count"]}</td>`
-                td_data += `</tr>`
-            })
-            document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
-            };
+            updateModal('Disks', ['Type', 'Size', 'Count'], disks, ['disk_type', 'size_gb', 'count']);
+        };
+
         const updateProcessors = (processors) => {
-            document.getElementsByClassName('modal-title')[0].innerHTML = 'GPUs';
-            let th_data = "<tr><th>Type</th><th>Vendor</th><th>Product</th></tr>";
-            let td_data = "";
-            processors.forEach(processor => {
-                if (processor["processor_type"] === "GPU") {
-                    td_data += `<tr>`
-                    td_data += `<td>${processor["processor_type"]}</td>`
-                    td_data += `<td>${processor["vendor"]}</td>`
-                    td_data += `<td>${processor["product"]}</td>`
-                    td_data += `</tr>`
-                }
-            });
-            document.getElementsByClassName('modal-body')[0].innerHTML = `<table class="table">${th_data}${td_data}</table>`;
+            updateModal('GPUs', ['Type', 'Vendor', 'Product'], processors, ['processor_type', 'vendor', 'product'],
+                item => item.processor_type === 'GPU');
         };
         $(document).ready(function () {
             // Initialize DataTable
@@ -237,16 +261,20 @@
             // Handle model dropdown selection
             const modelDropdown = document.getElementById('modelDropdown');
             const modelCheckboxes = document.querySelectorAll('input[name="model"]');
-            
-            function updateModelDropdownText() {
-                const selectedModels = Array.from(modelCheckboxes)
+            const nicVendorsDropdown = document.getElementById('nicVendorsDropdown');
+            const nicVendorCheckboxes = document.querySelectorAll('input[name="nic_vendors"]');
+
+            const createDropdownUpdater = (dropdown, checkboxes, defaultText) => () => {
+                const selectedItems = Array.from(checkboxes)
                     .filter(cb => cb.checked)
                     .map(cb => cb.nextElementSibling.textContent.trim());
-                
-                modelDropdown.textContent = selectedModels.length > 0
-                    ? selectedModels.join(', ')
-                    : 'Select Models';
-            }
+
+                const text = selectedItems.length > 0 ? selectedItems.join(', ') : defaultText;
+                dropdown.textContent = text;
+                dropdown.title = text;
+            };
+
+            const updateModelDropdownText = createDropdownUpdater(modelDropdown, modelCheckboxes, 'Select Models');
 
             modelCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', updateModelDropdownText);
@@ -263,6 +291,26 @@
                     checkbox.checked = false;
                 });
                 updateModelDropdownText();
+            });
+
+            const updateNicVendorsDropdownText = createDropdownUpdater(nicVendorsDropdown, nicVendorCheckboxes, 'Select Vendors');
+
+            // Add event listeners to new checkboxes
+            nicVendorCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateNicVendorsDropdownText);
+            });
+
+            // Update initial text
+            updateNicVendorsDropdownText();
+
+            // Add unselect all functionality for NIC vendors
+            document.getElementById('unselectAllNicVendors').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                nicVendorCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateNicVendorsDropdownText();
             });
 
             // Load disk types
@@ -289,7 +337,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="disk_types" value="${type}" id="diskType${index}"
                                         ${initialSelections.includes(type) ? 'checked' : ''}>
-                                    <label class="form-check-label" for="diskType${index}">
+                                    <label class="form-check-label" for="diskType${index}" title="${type}">
                                         ${type}
                                     </label>
                                 </div>
@@ -315,16 +363,10 @@
             // Handle disk types dropdown selection
             const diskTypesDropdown = document.getElementById('diskTypesDropdown');
             
-            function updateDiskTypesDropdownText() {
+            const updateDiskTypesDropdownText = () => {
                 const diskTypeCheckboxes = document.querySelectorAll('input[name="disk_types"]');
-                const selectedTypes = Array.from(diskTypeCheckboxes)
-                    .filter(cb => cb.checked)
-                    .map(cb => cb.nextElementSibling.textContent.trim());
-                
-                diskTypesDropdown.textContent = selectedTypes.length > 0
-                    ? selectedTypes.join(', ')
-                    : 'Select Disk Types';
-            }
+                createDropdownUpdater(diskTypesDropdown, diskTypeCheckboxes, 'Select Disk Types')();
+            };
 
             // Load disk types when page loads
             loadDiskTypes();
@@ -359,6 +401,12 @@
                 // Reset disk count inputs
                 document.querySelector('select[name="disk_count_operator"]').value = '';
                 document.querySelector('input[name="disk_count_value"]').value = '';
+
+                // Reset NIC vendors inputs
+                document.querySelectorAll('input[name="nic_vendors"]').forEach(cb => cb.checked = false);
+                updateNicVendorsDropdownText(); // This function is already defined in the patch
+                document.querySelector('select[name="nic_speed_operator"]').value = '';
+                document.querySelector('input[name="nic_speed_value"]').value = '';
 
                 // Reset GPU checkbox
                 document.getElementById('has_gpu').checked = false;
