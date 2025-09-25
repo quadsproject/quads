@@ -1,7 +1,7 @@
-from datetime import datetime
-from typing import List, Type
+from datetime import datetime, timedelta
+from typing import List, Type, Dict, Any, Optional
 
-from sqlalchemy import Boolean, and_, func
+from sqlalchemy import Boolean, and_, func, text, case, distinct
 from sqlalchemy.dialects.postgresql import array_agg
 
 from quads.server.dao.assignment import AssignmentDao
@@ -280,3 +280,258 @@ class ScheduleDao(BaseDao):
                 return False
 
         return True
+
+    @staticmethod
+    def get_daily_allocation_data(
+        start: datetime, end: datetime, host_names: Optional[List[str]] = None, offset: int = 0, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Get daily allocation data optimized for calendar visualization.
+
+        Uses PostgreSQL generate_series to create all days in range and joins
+        with schedules to get allocation status for each day.
+
+        Args:
+            start: Start date of the range
+            end: End date of the range
+            host_names: Optional list of specific hosts to query
+            offset: Starting offset for pagination
+            limit: Maximum number of hosts to return
+
+        Returns:
+            List of dictionaries with daily allocation data per host
+        """
+        # Build host filter subquery
+        host_filter = ""
+        if host_names:
+            host_list = "','".join(host_names)
+            host_filter = f"AND h.name IN ('{host_list}')"
+
+        # PostgreSQL query using generate_series for date range
+        query = text(
+            f"""
+            WITH date_series AS (
+                SELECT generate_series(
+                    :start_date::date,
+                    :end_date::date,
+                    '1 day'::interval
+                )::date as day
+            ),
+            host_batch AS (
+                SELECT h.id, h.name
+                FROM hosts h
+                WHERE h.retired = false AND h.broken = false
+                {host_filter}
+                ORDER BY h.name
+                LIMIT :limit OFFSET :offset
+            ),
+            daily_allocations AS (
+                SELECT
+                    hb.name as hostname,
+                    ds.day,
+                    s.id as schedule_id,
+                    s.assignment_id,
+                    c.name as cloud,
+                    a.description,
+                    a.owner,
+                    a.ticket,
+                    EXTRACT(day FROM ds.day) as day_num
+                FROM host_batch hb
+                CROSS JOIN date_series ds
+                LEFT JOIN schedules s ON hb.id = s.host_id
+                    AND ds.day BETWEEN s.start::date AND s.end::date
+                LEFT JOIN assignments a ON s.assignment_id = a.id
+                LEFT JOIN clouds c ON a.cloud_id = c.id
+            )
+            SELECT
+                hostname,
+                json_agg(
+                    json_build_object(
+                        'day', day_num,
+                        'allocated', CASE WHEN schedule_id IS NOT NULL THEN true ELSE false END,
+                        'assignment_id', assignment_id,
+                        'cloud', COALESCE(cloud, 'cloud01'),
+                        'description', description,
+                        'owner', owner,
+                        'ticket', ticket
+                    ) ORDER BY day_num
+                ) as days
+            FROM daily_allocations
+            GROUP BY hostname
+            ORDER BY hostname
+        """
+        )
+
+        result = db.session.execute(
+            query, {"start_date": start.date(), "end_date": end.date(), "limit": limit, "offset": offset}
+        )
+
+        return [{"hostname": row[0], "days": row[1]} for row in result]
+
+    @staticmethod
+    def get_allocation_metrics(start: datetime, end: datetime) -> Dict[str, Any]:
+        """
+        Get aggregated allocation metrics for fast metadata queries.
+
+        Args:
+            start: Start date of the range
+            end: End date of the range
+
+        Returns:
+            Dictionary with allocation metrics
+        """
+        # Count total active hosts
+        total_hosts_query = db.session.query(func.count(Host.id)).filter(Host.retired == False, Host.broken == False)
+        total_hosts = total_hosts_query.scalar()
+
+        # Get current allocations (for daily utilization)
+        now = datetime.now()
+        current_allocations_query = db.session.query(func.count(distinct(Schedule.host_id))).filter(
+            Schedule.start <= now, Schedule.end >= now
+        )
+        current_allocations = current_allocations_query.scalar() or 0
+
+        # Get monthly allocation statistics
+        monthly_stats_query = db.session.query(
+            func.count(distinct(Schedule.host_id)).label("allocated_hosts"),
+            func.count(Schedule.id).label("total_schedules"),
+            func.avg(func.extract("epoch", Schedule.end - Schedule.start) / 86400).label("avg_allocation_days"),
+        ).filter(Schedule.start <= end, Schedule.end >= start)
+
+        monthly_stats = monthly_stats_query.first()
+        allocated_hosts = monthly_stats.allocated_hosts or 0
+        total_schedules = monthly_stats.total_schedules or 0
+
+        # Calculate utilization percentages
+        daily_utilization = (current_allocations * 100) // total_hosts if total_hosts > 0 else 0
+        monthly_utilization = (allocated_hosts * 100) // total_hosts if total_hosts > 0 else 0
+
+        return {
+            "total_hosts": total_hosts,
+            "allocated_hosts": allocated_hosts,
+            "current_allocations": current_allocations,
+            "total_schedules": total_schedules,
+            "daily_utilization": daily_utilization,
+            "monthly_utilization": monthly_utilization,
+            "avg_allocation_days": float(monthly_stats.avg_allocation_days or 0),
+        }
+
+    @staticmethod
+    def get_hosts_with_allocation_priority(
+        start: datetime, end: datetime, priority: str = "mixed", offset: int = 0, limit: int = 100
+    ) -> Dict[str, Any]:
+        """
+        Get hosts ordered by allocation priority for progressive loading.
+
+        Args:
+            start: Start date of the range
+            end: End date of the range
+            priority: 'allocated' (hosts with schedules first),
+                     'available' (unallocated first), or 'mixed' (alphabetical)
+            offset: Starting offset for pagination
+            limit: Maximum number of hosts to return
+
+        Returns:
+            Dictionary with host batch info and allocation counts
+        """
+        # Base query for active hosts with schedule counts
+        base_query = (
+            db.session.query(
+                Host.name,
+                func.count(Schedule.id).label("schedule_count"),
+                func.coalesce(func.bool_or(and_(Schedule.start <= end, Schedule.end >= start)), False).label(
+                    "has_allocations"
+                ),
+            )
+            .outerjoin(Schedule, and_(Host.id == Schedule.host_id, Schedule.start <= end, Schedule.end >= start))
+            .filter(Host.retired == False, Host.broken == False)
+            .group_by(Host.id, Host.name)
+        )
+
+        # Apply ordering based on priority
+        if priority == "allocated":
+            base_query = base_query.order_by(func.count(Schedule.id).desc(), Host.name)
+        elif priority == "available":
+            base_query = base_query.order_by(func.count(Schedule.id).asc(), Host.name)
+        else:  # mixed - alphabetical
+            base_query = base_query.order_by(Host.name)
+
+        # Get total count for pagination info
+        total_count_query = db.session.query(func.count(Host.id)).filter(Host.retired == False, Host.broken == False)
+        total_count = total_count_query.scalar()
+
+        # Apply pagination
+        hosts_batch = base_query.offset(offset).limit(limit).all()
+
+        return {
+            "hosts": [
+                {"hostname": host.name, "schedule_count": host.schedule_count, "has_allocations": host.has_allocations}
+                for host in hosts_batch
+            ],
+            "batch_info": {
+                "offset": offset,
+                "limit": limit,
+                "returned": len(hosts_batch),
+                "total_hosts": total_count,
+                "has_more": (offset + limit) < total_count,
+                "next_offset": offset + limit if (offset + limit) < total_count else None,
+                "priority": priority,
+            },
+        }
+
+    @staticmethod
+    def get_hosts_schedule_summary(
+        start: datetime, end: datetime, host_names: Optional[List[str]] = None
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get lightweight schedule summary for hosts without daily breakdown.
+
+        Optimized for initial table structure creation.
+
+        Args:
+            start: Start date of the range
+            end: End date of the range
+            host_names: Optional list of specific hosts to query
+
+        Returns:
+            Dictionary mapping hostnames to schedule summaries
+        """
+        query = (
+            db.session.query(
+                Host.name,
+                func.coalesce(
+                    array_agg(
+                        func.json_build_object(
+                            "assignment_id",
+                            Schedule.assignment_id,
+                            "start",
+                            Schedule.start,
+                            "end",
+                            Schedule.end,
+                            "cloud",
+                            Cloud.name,
+                            "description",
+                            Assignment.description,
+                            "owner",
+                            Assignment.owner,
+                            "ticket",
+                            Assignment.ticket,
+                        )
+                    ),
+                    text("ARRAY[]::json[]"),
+                ).label("schedules"),
+            )
+            .outerjoin(Schedule, and_(Host.id == Schedule.host_id, Schedule.start <= end, Schedule.end >= start))
+            .outerjoin(Assignment, Schedule.assignment_id == Assignment.id)
+            .outerjoin(Cloud, Assignment.cloud_id == Cloud.id)
+            .filter(Host.retired == False, Host.broken == False)
+        )
+
+        # Apply host name filter if provided
+        if host_names:
+            query = query.filter(Host.name.in_(host_names))
+
+        query = query.group_by(Host.name).order_by(Host.name)
+
+        result = query.all()
+        return {row.name: row.schedules for row in result}

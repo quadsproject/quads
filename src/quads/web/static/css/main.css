@@ -543,3 +543,316 @@ main {
 .dropdown-menu {
     max-width: 300px;
 }
+
+/* Allocation grid styles */
+.allocation-cell {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    border: 1px solid #dee2e6;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 3px;
+    margin: 1px;
+    text-align: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.allocation-cell:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    border: 2px solid #333;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Emoji styling for perfect centering */
+.allocation-emoji {
+    font-size: 14px;
+    line-height: 20px;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Noto Emoji', sans-serif;
+    display: block;
+    text-align: center;
+    user-select: none;
+    pointer-events: none;
+    font-variant-emoji: emoji;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: all 0.2s ease;
+}
+
+/* Ensure emoji stays centered during hover */
+.allocation-cell:hover .allocation-emoji {
+    /* Emoji will scale naturally with parent */
+}
+
+.allocation-table {
+    border-collapse: separate;
+    border-spacing: 2px;
+}
+
+.allocation-table th {
+    padding: 8px 4px !important;
+    text-align: center;
+    font-weight: bold;
+    background-color: var(--bs-secondary-bg);
+    border-radius: 3px;
+}
+
+.allocation-table td {
+    padding: 4px !important;
+    vertical-align: middle;
+}
+
+.server-name {
+    font-family: monospace;
+    font-size: 0.85em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    padding-right: 8px !important;
+}
+
+.allocation-row:nth-child(even) {
+    background-color: var(--bs-light);
+}
+
+/* Legend styles */
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.legend-container {
+    background-color: var(--bs-light);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Metrics cards */
+.metrics-card {
+    text-align: center;
+    height: 100%;
+}
+
+.metrics-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.metrics-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Skeleton Loading Animations */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-metrics-card {
+    height: 120px;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.skeleton-metrics-number {
+    height: 40px;
+    width: 80px;
+    margin: 0 auto 10px;
+    border-radius: 4px;
+}
+
+.skeleton-metrics-label {
+    height: 16px;
+    width: 120px;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.skeleton-table-header {
+    height: 40px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+.skeleton-server-name {
+    height: 24px;
+    width: 180px;
+    border-radius: 4px;
+}
+
+.skeleton-allocation-cell {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin: 1px;
+    display: inline-block;
+}
+
+/* Loading Progress Bar */
+.loading-progress {
+    width: 100%;
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3, #007bff);
+    background-size: 200% 100%;
+    animation: progress-bar-animation 2s infinite;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+@keyframes progress-bar-animation {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Fade-in animations for loaded content */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.fade-in.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered loading animation */
+.metrics-card.fade-in:nth-child(1) { transition-delay: 0.1s; }
+.metrics-card.fade-in:nth-child(2) { transition-delay: 0.2s; }
+.metrics-card.fade-in:nth-child(3) { transition-delay: 0.3s; }
+.metrics-card.fade-in:nth-child(4) { transition-delay: 0.4s; }
+
+/* Loading status indicators */
+.loading-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e9ecef;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Enhanced error states */
+.error-state-enhanced {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.error-icon {
+    font-size: 3rem;
+    color: #e53e3e;
+    margin-bottom: 15px;
+}
+
+.error-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .allocation-cell {
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        min-height: 16px;
+    }
+
+    .allocation-emoji {
+        font-size: 11px;
+        line-height: 16px;
+    }
+    
+    .server-name {
+        max-width: 150px;
+        font-size: 0.75em;
+    }
+    
+    .metrics-number {
+        font-size: 2rem;
+    }
+    
+    .skeleton-server-name {
+        width: 140px;
+    }
+    
+    .loading-status {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}

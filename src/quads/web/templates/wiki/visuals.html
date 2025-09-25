@@ -1,24 +1,652 @@
 {% extends "base.html" %}
 {% block title %}Monthly Usage{% endblock %}
 
-{% block styles %}
-    {{ super() }}
-    <style>
-        th, td {
-            padding: 0px !important;
-        }
-
-    </style>
-{% endblock %}
-
 {% block page_content %}
-    <h2><b>Monthly Usage</b></h2>
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                {{ html_content|safe }}
+        <!-- Loading Progress Bar -->
+        <div id="loading-progress-container" class="d-none">
+            <div class="loading-progress">
+                <div id="loading-progress-bar" class="loading-progress-bar" style="width: 0%;"></div>
+            </div>
+            <div id="loading-status" class="loading-status">
+                <div class="loading-spinner"></div>
+                <div id="loading-text" class="loading-text">Initializing...</div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Error State -->
+        <div id="error-state" class="error-state-enhanced d-none" role="alert">
+            <div class="error-icon">⚠️</div>
+            <h4>Unable to Load Data</h4>
+            <p id="error-message">We encountered an issue loading the visuals data. This might be due to a network problem or server issue.</p>
+            <div class="error-actions">
+                <button class="btn btn-primary" onclick="loadVisualsData()">Try Again</button>
+                <button class="btn btn-outline-secondary" onclick="window.location.reload()">Refresh Page</button>
+            </div>
+        </div>
+        
+        <!-- Page Header (Always Visible) -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><strong id="page-title">Monthly Usage</strong></h2>
+            <small class="text-muted">Hover over squares for allocation details</small>
+        </div>
+        
+        <!-- Metrics Dashboard with Skeleton Loading -->
+        <div class="row mb-4" id="metrics-container">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-primary">
+                    <div class="card-body metrics-card text-center">
+                        <div id="metric-monthly-skeleton" class="skeleton skeleton-metrics-number d-none"></div>
+                        <div id="metric-monthly-value" class="metrics-number text-primary d-none">-</div>
+                        <div class="skeleton skeleton-metrics-label d-none" id="metric-monthly-label-skeleton"></div>
+                        <div class="metrics-label" id="metric-monthly-label" style="display: none;">Monthly Utilization</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-success">
+                    <div class="card-body metrics-card text-center">
+                        <div id="metric-daily-skeleton" class="skeleton skeleton-metrics-number d-none"></div>
+                        <div id="metric-daily-value" class="metrics-number text-success d-none">-</div>
+                        <div class="skeleton skeleton-metrics-label d-none" id="metric-daily-label-skeleton"></div>
+                        <div class="metrics-label" id="metric-daily-label" style="display: none;">Today's Utilization</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-info">
+                    <div class="card-body metrics-card text-center">
+                        <div id="metric-systems-skeleton" class="skeleton skeleton-metrics-number d-none"></div>
+                        <div id="metric-systems-value" class="metrics-number text-info d-none">-</div>
+                        <div class="skeleton skeleton-metrics-label d-none" id="metric-systems-label-skeleton"></div>
+                        <div class="metrics-label" id="metric-systems-label" style="display: none;">Systems in Use</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-secondary">
+                    <div class="card-body metrics-card text-center">
+                        <div id="metric-total-skeleton" class="skeleton skeleton-metrics-number d-none"></div>
+                        <div id="metric-total-value" class="metrics-number text-secondary d-none">-</div>
+                        <div class="skeleton skeleton-metrics-label d-none" id="metric-total-label-skeleton"></div>
+                        <div class="metrics-label" id="metric-total-label" style="display: none;">Total Usable Systems</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Allocation Table with Skeleton Loading -->
+        <div class="card" id="allocation-table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Server Allocation Calendar</h5>
+                <small class="text-muted">Each square represents one day</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <div id="allocation-table-container">
+                        <!-- Skeleton table will be populated here initially -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <!-- JavaScript to load and render JSON data -->
+    <script>
+        // Configuration from Flask template
+        const WHEN_PARAM = '{{ when }}';
+        
+        // Loading state management
+        let loadingState = {
+            progress: 0,
+            currentStep: 'initializing',
+            steps: {
+                'initializing': { label: 'Initializing...', progress: 10 },
+                'fetching-data': { label: 'Fetching server data...', progress: 30 },
+                'processing-metrics': { label: 'Calculating metrics...', progress: 60 },
+                'rendering-table': { label: 'Building allocation table...', progress: 80 },
+                'finalizing': { label: 'Finalizing display...', progress: 100 }
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSkeletonLoading();
+            loadVisualsData();
+        });
+        
+        function initializeSkeletonLoading() {
+            // Show skeleton loading for metrics cards
+            showMetricsSkeleton();
+            
+            // Show skeleton loading for table
+            showTableSkeleton();
+            
+            // Show progress bar
+            document.getElementById('loading-progress-container').classList.remove('d-none');
+        }
+        
+        function showMetricsSkeleton() {
+            const skeletonElements = [
+                'metric-monthly-skeleton', 'metric-monthly-label-skeleton',
+                'metric-daily-skeleton', 'metric-daily-label-skeleton',
+                'metric-systems-skeleton', 'metric-systems-label-skeleton',
+                'metric-total-skeleton', 'metric-total-label-skeleton'
+            ];
+            
+            skeletonElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.remove('d-none');
+            });
+        }
+        
+        function showTableSkeleton() {
+            const tableContainer = document.getElementById('allocation-table-container');
+            
+            let skeletonHTML = '<div class="skeleton-table-container">';
+            
+            // Skeleton header
+            skeletonHTML += '<div class="skeleton skeleton-table-header mb-2"></div>';
+            
+            // Skeleton rows (show 8 rows initially)
+            for (let i = 0; i < 8; i++) {
+                skeletonHTML += '<div class="d-flex align-items-center mb-2">';
+                skeletonHTML += '<div class="skeleton skeleton-server-name me-3"></div>';
+                
+                // Skeleton allocation cells (show 31 days)
+                for (let j = 0; j < 31; j++) {
+                    skeletonHTML += '<div class="skeleton skeleton-allocation-cell me-1"></div>';
+                }
+                
+                skeletonHTML += '</div>';
+            }
+            
+            skeletonHTML += '</div>';
+            tableContainer.innerHTML = skeletonHTML;
+        }
+        
+        function updateLoadingProgress(step) {
+            if (!loadingState.steps[step]) return;
+            
+            loadingState.currentStep = step;
+            loadingState.progress = loadingState.steps[step].progress;
+            
+            const progressBar = document.getElementById('loading-progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar) {
+                progressBar.style.width = `${loadingState.progress}%`;
+            }
+            
+            if (loadingText) {
+                loadingText.textContent = loadingState.steps[step].label;
+            }
+        }
+        
+        async function loadVisualsData() {
+            const errorDiv = document.getElementById('error-state');
+            
+            // Hide error state if visible
+            errorDiv.classList.add('d-none');
+            
+            try {
+                // Step 1: Load metadata first for immediate feedback
+                updateLoadingProgress('fetching-data');
+                const metadataResponse = await fetch(`/visual/data/${WHEN_PARAM}/metadata`);
+                
+                if (!metadataResponse.ok) {
+                    throw new Error(`Server returned ${metadataResponse.status}: ${metadataResponse.statusText}`);
+                }
+                
+                const metadata = await metadataResponse.json();
+                
+                // Immediately show page title and quick metrics
+                updatePageTitle(metadata.title);
+                await renderMetricsProgressively(metadata.quick_metrics);
+                
+                // Step 2: Load host summary for table structure
+                updateLoadingProgress('processing-metrics');
+                const hostsResponse = await fetch(`/visual/data/${WHEN_PARAM}/hosts`);
+                
+                if (!hostsResponse.ok) {
+                    throw new Error(`Server returned ${hostsResponse.status}: ${hostsResponse.statusText}`);
+                }
+                
+                const hostsData = await hostsResponse.json();
+                
+                // Update monthly utilization metric now that we have it
+                const monthlyMetricElement = document.getElementById('metric-monthly-value');
+                if (monthlyMetricElement) {
+                    monthlyMetricElement.textContent = `${hostsData.summary.estimated_monthly_utilization || 0}%`;
+                }
+                
+                // Step 3: Progressive batch loading of host data
+                updateLoadingProgress('rendering-table');
+                await renderTableStructure(hostsData.hosts);
+                
+                // Step 4: Load host allocation data in batches
+                await loadHostBatches(metadata.loading_config);
+                
+                updateLoadingProgress('finalizing');
+                await delay(200);
+                
+                // Hide progress bar
+                document.getElementById('loading-progress-container').classList.add('d-none');
+                
+            } catch (error) {
+                console.error('Error loading visuals data:', error);
+                
+                // Hide progress and show error
+                document.getElementById('loading-progress-container').classList.add('d-none');
+                errorDiv.classList.remove('d-none');
+                
+                // Update error message with more helpful text
+                const errorMessage = document.getElementById('error-message');
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage.textContent = 'Network connection failed. Please check your internet connection and try again.';
+                } else if (error.message.includes('500')) {
+                    errorMessage.textContent = 'Server error occurred. The system may be temporarily unavailable.';
+                } else {
+                    errorMessage.textContent = `Unable to load data: ${error.message}`;
+                }
+            }
+        }
+        
+        async function renderProgressively(data) {
+            // Step 1: Update page title
+            updatePageTitle(data.title);
+            
+            // Step 2: Render metrics with staggered animation
+            updateLoadingProgress('processing-metrics');
+            await renderMetricsProgressively(data.metrics);
+            await delay(300);
+            
+            // Step 3: Render table structure
+            updateLoadingProgress('rendering-table');
+            await renderTableProgressively(data);
+            await delay(300);
+            
+            // Step 4: Finalize
+            updateLoadingProgress('finalizing');
+            await delay(200);
+            
+            // Hide progress bar
+            document.getElementById('loading-progress-container').classList.add('d-none');
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function updatePageTitle(title) {
+            const titleElement = document.getElementById('page-title');
+            if (titleElement && title) {
+                titleElement.textContent = title;
+            }
+        }
+        
+        async function renderMetricsProgressively(metrics) {
+            const metricsData = [
+                { id: 'monthly', value: `${metrics.monthly_utilization || 0}%`, label: 'Monthly Utilization' },
+                { id: 'daily', value: `${metrics.daily_utilization || 0}%`, label: "Today's Utilization" },
+                { id: 'systems', value: metrics.systems_in_use || 0, label: 'Systems in Use' },
+                { id: 'total', value: metrics.total_systems || 0, label: 'Total Usable Systems' }
+            ];
+            
+            for (let i = 0; i < metricsData.length; i++) {
+                const metric = metricsData[i];
+                
+                // Hide skeleton
+                document.getElementById(`metric-${metric.id}-skeleton`).classList.add('d-none');
+                document.getElementById(`metric-${metric.id}-label-skeleton`).classList.add('d-none');
+                
+                // Show real data with fade-in effect
+                const valueElement = document.getElementById(`metric-${metric.id}-value`);
+                const labelElement = document.getElementById(`metric-${metric.id}-label`);
+                
+                valueElement.textContent = metric.value;
+                labelElement.textContent = metric.label;
+                
+                valueElement.classList.remove('d-none');
+                labelElement.style.display = 'block';
+                
+                // Add fade-in class
+                valueElement.classList.add('fade-in');
+                labelElement.classList.add('fade-in');
+                
+                // Trigger animation
+                await delay(50);
+                valueElement.classList.add('loaded');
+                labelElement.classList.add('loaded');
+                
+                // Stagger the animations
+                await delay(100);
+            }
+        }
+        
+        async function renderTableProgressively(data) {
+            // Clear skeleton
+            const tableContainer = document.getElementById('allocation-table-container');
+            
+            // Render actual table structure
+            enhanceAllocationTableFromJSON(data);
+            
+            // Add fade-in effect to table
+            const table = tableContainer.querySelector('table');
+            if (table) {
+                table.classList.add('fade-in');
+                await delay(100);
+                table.classList.add('loaded');
+            }
+        }
+        
+        async function renderTableStructure(hosts) {
+            const tableContainer = document.getElementById('allocation-table-container');
+            
+            if (hosts.length === 0) {
+                tableContainer.innerHTML = '<p class="text-muted text-center">No hosts available.</p>';
+                return;
+            }
+            
+            // Create table structure with empty cells
+            let tableHTML = '<table class="allocation-table table table-sm">';
+            
+            // Create header row (assuming 31 days max for now)
+            tableHTML += '<thead><tr class="table-dark">';
+            tableHTML += '<th style="width: 200px;">Server</th>';
+            for (let day = 1; day <= 31; day++) {
+                tableHTML += `<th class="text-center" style="width: 24px; padding: 4px;">${day}</th>`;
+            }
+            tableHTML += '</tr></thead>';
+            
+            // Create body rows with skeleton cells
+            tableHTML += '<tbody>';
+            hosts.forEach(host => {
+                const hostname = host.hostname || 'Unknown';
+                const shortName = shortenServerName(hostname);
+                
+                tableHTML += '<tr class="allocation-row">';
+                tableHTML += `<td class="server-name"><span title="${escapeHtml(hostname)}">${escapeHtml(shortName)}</span></td>`;
+                
+                // Add skeleton cells that will be filled progressively
+                for (let day = 1; day <= 31; day++) {
+                    tableHTML += '<td style="padding: 2px; text-align: center;">';
+                    tableHTML += `<div class="skeleton skeleton-allocation-cell" data-hostname="${escapeHtml(hostname)}" data-day="${day}"></div>`;
+                    tableHTML += '</td>';
+                }
+                
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</tbody></table>';
+            
+            tableContainer.innerHTML = tableHTML;
+            
+            // Add fade-in effect
+            const table = tableContainer.querySelector('table');
+            if (table) {
+                table.classList.add('fade-in');
+                await delay(100);
+                table.classList.add('loaded');
+            }
+        }
+        
+        async function loadHostBatches(loadingConfig) {
+            const chunkSize = loadingConfig.recommended_chunk_size || 50;
+            const totalHosts = loadingConfig.total_hosts || 0;
+            let offset = 0;
+            let batchNumber = 1;
+            
+            while (offset < totalHosts) {
+                try {
+                    updateLoadingProgress('rendering-table');
+                    
+                    // Update loading text to show batch progress
+                    const loadingText = document.getElementById('loading-text');
+                    if (loadingText) {
+                        const progress = Math.min(100, (offset / totalHosts) * 100);
+                        loadingText.textContent = `Loading host data... ${Math.round(progress)}% (batch ${batchNumber})`;
+                    }
+                    
+                    // Load batch with priority for allocated hosts first
+                    const batchResponse = await fetch(`/visual/data/${WHEN_PARAM}/batch?offset=${offset}&limit=${chunkSize}&priority=allocated`);
+                    
+                    if (!batchResponse.ok) {
+                        console.warn(`Failed to load batch ${batchNumber}:`, batchResponse.statusText);
+                        break;
+                    }
+                    
+                    const batchData = await batchResponse.json();
+                    
+                    // Render this batch of hosts
+                    await renderHostBatch(batchData.hosts);
+                    
+                    // Update progress
+                    offset += batchData.batch_info.returned;
+                    batchNumber++;
+                    
+                    // Small delay for smooth UX
+                    await delay(100);
+                    
+                    // Check if we have more data
+                    if (!batchData.batch_info.has_more) {
+                        break;
+                    }
+                    
+                } catch (error) {
+                    console.error(`Error loading batch ${batchNumber}:`, error);
+                    // Continue with next batch rather than failing completely
+                    offset += chunkSize;
+                    batchNumber++;
+                }
+            }
+        }
+        
+        async function renderHostBatch(hosts) {
+            // Batch DOM updates for better performance
+            const updates = [];
 
+            for (const host of hosts) {
+                const hostname = host.hostname;
+                const days = host.days || [];
+
+                days.forEach(dayData => {
+                    const targetCell = document.querySelector(`[data-hostname="${hostname}"][data-day="${dayData.day}"]`);
+                    if (targetCell) {
+                        // Prepare update operation
+                        const bgColor = dayData.color || '#A9A9A9';
+                        const emoji = dayData.emoji || '';
+
+                        // Create tooltip text more efficiently
+                        const tooltipParts = [
+                            dayData.cloud && `Cloud: ${dayData.cloud}`,
+                            dayData.description && `Description: ${dayData.description}`,
+                            dayData.owner && `Owner: ${dayData.owner}`,
+                            dayData.ticket && `Ticket: ${dayData.ticket}`
+                        ].filter(Boolean);
+                        const tooltip = tooltipParts.length > 0 ? tooltipParts.join(' | ') : 'No details available';
+
+                        updates.push({
+                            cell: targetCell,
+                            bgColor,
+                            emoji,
+                            tooltip
+                        });
+                    }
+                });
+            }
+
+            // Apply all updates in batch to minimize reflows
+            updates.forEach(update => {
+                const { cell, bgColor, emoji, tooltip } = update;
+
+                // Update cell properties
+                cell.className = 'allocation-cell';
+                cell.style.backgroundColor = bgColor;
+                cell.setAttribute('data-bs-toggle', 'tooltip');
+                cell.setAttribute('data-bs-placement', 'top');
+                cell.setAttribute('title', tooltip);
+                cell.removeAttribute('data-hostname');
+                cell.removeAttribute('data-day');
+
+                if (emoji) {
+                    // Handle HTML entities in emoji more efficiently
+                    let displayEmoji = emoji;
+                    if (emoji.startsWith('&#') && emoji.endsWith(';')) {
+                        const codePointMatch = emoji.match(/&#(\d+);/);
+                        if (codePointMatch) {
+                            const codePoint = parseInt(codePointMatch[1]);
+                            if (codePoint > 0 && codePoint <= 0x10FFFF) {
+                                displayEmoji = String.fromCodePoint(codePoint);
+                            } else {
+                                displayEmoji = '●';
+                            }
+                        }
+                    }
+                    cell.innerHTML = `<span class="allocation-emoji">${displayEmoji}</span>`;
+                }
+            });
+
+            // Initialize tooltips for new elements
+            initializeTooltips();
+        }
+        
+        // Removed renderVisualsData and createEnhancedLayoutFromJSON as they're replaced by progressive rendering
+        
+        function enhanceAllocationTableFromJSON(data) {
+            const hosts = data.hosts || [];
+            const tableContainer = document.getElementById('allocation-table-container');
+            
+            if (hosts.length === 0) {
+                tableContainer.innerHTML = '<p class="text-muted text-center">No allocation data available.</p>';
+                return;
+            }
+            
+            // Calculate the maximum number of days across all hosts
+            const maxDays = Math.max(...hosts.map(host => (host.days || []).length));
+            
+            // Create table structure
+            let tableHTML = '<table class="allocation-table table table-sm">';
+            
+            // Create header row
+            tableHTML += '<thead><tr class="table-dark">';
+            tableHTML += '<th style="width: 200px;">Server</th>';
+            for (let day = 1; day <= maxDays; day++) {
+                tableHTML += `<th class="text-center" style="width: 24px; padding: 4px;">${day}</th>`;
+            }
+            tableHTML += '</tr></thead>';
+            
+            // Create body rows
+            tableHTML += '<tbody>';
+            hosts.forEach((host, hostIndex) => {
+                const hostname = host.hostname || 'Unknown';
+                const days = host.days || [];
+                
+                tableHTML += `<tr class="allocation-row">`;
+                
+                // Server name cell
+                const shortName = shortenServerName(hostname);
+                tableHTML += `<td class="server-name">`;
+                tableHTML += `<span title="${escapeHtml(hostname)}">${escapeHtml(shortName)}</span>`;
+                tableHTML += `</td>`;
+                
+                // Day cells
+                for (let dayNum = 1; dayNum <= maxDays; dayNum++) {
+                    const dayData = days.find(d => d.day === dayNum);
+                    tableHTML += '<td style="padding: 2px; text-align: center;">';
+                    
+                    if (dayData) {
+                        // Create tooltip text
+                        const tooltipParts = [];
+                        if (dayData.cloud) tooltipParts.push(`Cloud: ${dayData.cloud}`);
+                        if (dayData.description) tooltipParts.push(`Description: ${dayData.description}`);
+                        if (dayData.owner) tooltipParts.push(`Owner: ${dayData.owner}`);
+                        if (dayData.ticket) tooltipParts.push(`Ticket: ${dayData.ticket}`);
+                        const tooltip = tooltipParts.join(' | ') || 'No details available';
+                        
+                        const bgColor = dayData.color || '#A9A9A9';
+                        const emoji = dayData.emoji || '';
+                        
+                        tableHTML += `<div class="allocation-cell" 
+                                         style="background-color: ${bgColor};" 
+                                         data-bs-toggle="tooltip" 
+                                         data-bs-placement="top" 
+                                         title="${escapeHtml(tooltip)}">`;
+                        
+                        if (emoji) {
+                            // Handle HTML entities in emoji and ensure proper rendering
+                            let displayEmoji = emoji;
+                            if (emoji.includes('&#') && emoji.includes(';')) {
+                                const match = emoji.match(/&#(\d+);/);
+                                if (match) {
+                                    const codePoint = parseInt(match[1]);
+                                    // Ensure it's a valid Unicode code point
+                                    if (codePoint > 0 && codePoint <= 0x10FFFF) {
+                                        displayEmoji = String.fromCodePoint(codePoint);
+                                    } else {
+                                        displayEmoji = '●'; // Fallback to a simple dot
+                                    }
+                                }
+                            }
+                            // Use the new emoji class for perfect centering
+                            tableHTML += `<span class="allocation-emoji">${displayEmoji}</span>`;
+                        }
+                        
+                        tableHTML += '</div>';
+                    } else {
+                        // Empty day
+                        tableHTML += `<div class="allocation-cell" 
+                                         style="background-color: #A9A9A9;" 
+                                         data-bs-toggle="tooltip" 
+                                         data-bs-placement="top" 
+                                         title="Available">
+                                     </div>`;
+                    }
+                    
+                    tableHTML += '</td>';
+                }
+                
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</tbody></table>';
+            
+            // Insert the table
+            tableContainer.innerHTML = tableHTML;
+            
+            // Initialize Bootstrap tooltips
+            initializeTooltips();
+        }
+        
+        function initializeTooltips() {
+            // Initialize Bootstrap tooltips
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                // Dispose of existing tooltips to avoid memory leaks
+                tooltipTriggerList.forEach(tooltipTriggerEl => {
+                    const existingTooltip = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                    if (existingTooltip) {
+                        existingTooltip.dispose();
+                    }
+                });
+                // Create new tooltips
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function shortenServerName(fullName) {
+            // Extract meaningful parts from server names like "d16-h01-000-r650.rdu2.scalelab.redhat.com"
+            const parts = fullName.split('.');
+            if (parts.length > 0) {
+                const hostPart = parts[0];  // "d16-h01-000-r650"
+                return hostPart;
+            }
+            return fullName;
+        }
+    </script>
 {% endblock %}
