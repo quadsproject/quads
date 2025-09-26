@@ -805,7 +805,7 @@ quads --define-cloud --cloud cloud03 --description "Messaging AMQ" --cloud-owner
 
 #### Adding New Hosts to your Cloud
 ```bash
-quads --cloud-only --cloud cloud01 | grep r620 | head -20 > /tmp/RT423624
+quads --ls-available --filter "model==R620" | head -20 > /tmp/RT423624
 ```
    - Now we'll allocate all of these hosts with a schedule, by default our system times use UTC.
 
