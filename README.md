@@ -1713,22 +1713,21 @@ quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EX
 ```
 
 #### Deleting Self Service Users
-WIP: It may be necessary to do some tasks as admin via CLI until proper user management is supported.
+* Ideally you should be using `flask` to [remove users](#user-management) but this can be done in the database too.
 
 To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
+```bash
+echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
 ```
-# echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
  15 | user1@example.com
 ```
 Notice the `id` value of `15` for the user to delete.  First delete the `roles_users` entry:
-```
-# echo "delete from roles_users where user_id = 15;" | sudo -u postgres psql -d quads
-DELETE 1
+```bash
+echo "delete from roles_users where user_id = 15;" | sudo -u postgres psql -d quads
 ```
 Next, delete the `users` entry:
-```
-# echo "delete from users where email like 'user1%';" | sudo -u postgres psql -d quads
-DELETE 1
+```bash
+echo "delete from users where email like 'user1%';" | sudo -u postgres psql -d quads
 ```
 
 ## Contact QUADS Developers
