@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import argparse
+import click
 from flask import Flask, Blueprint, jsonify, Response
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
@@ -65,52 +65,46 @@ def create_app(test_config=None) -> Flask:
         drop_all(flask_app.config)
 
     @flask_app.cli.command("add-user")
+    @click.option("--username", required=True, help="The username/email of the user")
+    @click.option(
+        "--password", prompt=True, hide_input=True, confirmation_prompt=True, help="The password of the user"
+    )
+    @click.option("--role", required=True, help="The role of the user")
     @with_appcontext
-    def add_user():
+    def add_user(username: str, password: str, role: str):
         """Adds a user."""
-        parser = argparse.ArgumentParser(description="Add a user")
-        parser.add_argument("--username", help="The username of the user", required=True)
-        parser.add_argument("--password", help="The password of the user", required=True)
-        parser.add_argument("--role", help="The role of the user", required=True)
-
-        args = parser.parse_args()
-        role = db.session.query(Role).filter(Role.name == args.role).first()
-        if not role:
-            print(f"Role {args.role} not found")
+        role_obj = db.session.query(Role).filter(Role.name == role).first()
+        if not role_obj:
+            print(f"Role {role} not found")
             return
 
         # Your command logic here
-        create_user(user_datastore, args.username, args.password, [role])
+        create_user(user_datastore, username, password, [role_obj])
 
     @flask_app.cli.command("mod-user")
+    @click.option("--username", required=True, help="The username/email of the user")
+    @click.option(
+        "--password", prompt=True, hide_input=True, confirmation_prompt=True, help="The password of the user"
+    )
     @with_appcontext
-    def mod_user():
+    def mod_user(username: str, password: str):
         """Modifies an existing user's password."""
-        parser = argparse.ArgumentParser(description="Modify a user password")
-        parser.add_argument("--username", help="The username/email of the user", required=True)
-        parser.add_argument("--password", help="The new password of the user", required=True)
 
-        args = parser.parse_args()
-
-        success = modify_user(user_datastore, args.username, new_password=args.password)
+        success = modify_user(user_datastore, username, new_password=password)
         if success:
             print("Password updated")
-            print(f"User {args.username} successfully modified")
+            print(f"User {username} successfully modified")
         else:
             print("Error: Could not modify user")
 
     @flask_app.cli.command("delete-user")
+    @click.option("--username", required=True, help="The username/email of the user to delete")
     @with_appcontext
-    def delete_user():
+    def delete_user(username: str):
         """Deletes an existing user."""
-        parser = argparse.ArgumentParser(description="Delete a user")
-        parser.add_argument("--username", help="The username/email of the user to delete", required=True)
-
-        args = parser.parse_args()
-
-        success = remove_user(user_datastore, args.username)
+        success = remove_user(user_datastore, username)
         if success:
-            print(f"User {args.username} successfully deleted")
+            print(f"User {username} successfully deleted")
         else:
             print("Error: Could not remove user")
 
