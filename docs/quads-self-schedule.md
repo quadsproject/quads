@@ -21,7 +21,7 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Schedule a host via Python](#schedule-a-host-via-python)
     * [Wait for validation via Python](#wait-for-validation-via-python)
     * [Terminate assignment via Python](#terminate-assignment-via-python)
-
+  * [Via Ansible](#via-ansible)
 
 # Self-Scheduling How-To
 
@@ -207,3 +207,8 @@ from quads_lib import QuadsApi
 with QuadsApi(username, password, base_url) as quads:
     quads.terminate_assignment(assignment_id)
 ```
+
+## Via Ansible
+
+* You can use our QUADS self-scheduling [Ansible playbook here](https://github.com/quadsproject/ansible-quads-ssm)
+* Refer to the usage documentation there.
