@@ -1,72 +1,238 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<style>
-.gradient {
-  box-shadow: 4px 4px 4px 1px rgba(0, 0, 0, 0.5) inset;
-  -webkit-box-shadow: 4px 4px 4px 1px rgba(0, 0, 0, 0.5) inset;
-  -moz-box-shadow: 4px 4px 4px 1px rgba(0, 0, 0, 0.5) inset;
-  border-radius: 6px 6px 6px 6px;
-}
-.degradient {
-  box-shadow: -4px -4px 4px 1px rgba(255, 255, 255, 0.5) inset;
-  -webkit-box-shadow: -4px -4px 4px 1px rgba(255, 255, 255, 0.5) inset;
-  -moz-box-shadow: -4px -4px 4px 1px rgba(255, 255, 255, 0.5) inset;
-}
-</style>
-{% if gentime %}
-    <title>{{ gentime }}</title>
-{% else %}
-    <title> Monthly Allocation </title>
-{% endif %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if gentime %}{{ gentime }}{% else %}Monthly Allocation{% endif %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Allocation grid styles */
+        .allocation-cell {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            border: 1px solid #dee2e6;
+            display: inline-block;
+            vertical-align: top;
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 1px;
+            text-align: center;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .allocation-cell:hover {
+            transform: scale(1.5);
+            z-index: 10;
+            border: 2px solid #333;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Emoji styling for perfect centering */
+        .allocation-emoji {
+            font-size: 14px;
+            line-height: 20px;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Noto Emoji', sans-serif;
+            display: block;
+            text-align: center;
+            user-select: none;
+            pointer-events: none;
+            font-variant-emoji: emoji;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .allocation-table {
+            border-collapse: separate;
+            border-spacing: 2px;
+        }
+
+        .allocation-table th {
+            padding: 8px 4px !important;
+            text-align: center;
+            font-weight: bold;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 3px;
+        }
+
+        .allocation-table td {
+            padding: 4px !important;
+            vertical-align: middle;
+        }
+
+        .server-name {
+            font-family: monospace;
+            font-size: 0.85em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            padding-right: 8px !important;
+        }
+
+        .allocation-row:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* Metrics cards */
+        .metrics-card {
+            text-align: center;
+            height: 100%;
+        }
+
+        .metrics-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .metrics-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .allocation-cell {
+                width: 16px;
+                height: 16px;
+                min-width: 16px;
+                min-height: 16px;
+            }
+
+            .allocation-emoji {
+                font-size: 11px;
+                line-height: 16px;
+            }
+            
+            .server-name {
+                max-width: 150px;
+                font-size: 0.75em;
+            }
+            
+            .metrics-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-{% if gentime %}
-    <b>{{ gentime }}<br>(Hover cursor over squares for details on allocation)</b><br>
-{% endif %}
-    <br>
-    <b>Percentage Utilized (Monthly): {{ utilization }}%</b>
-    <br>
-    <b>Percentage Utilized (Today): {{ utilization_daily }}%</b>
-    <br>
-    <b>Total Systems in Use: {{ total_use }}</b>
-    <br>
-    <b>Total Usable Systems: {{ total_hosts }}</b>
-    <br>
-    <br>
-<table>
-<tr>
-<th>Name</th>
-{% for _day in range(1, _days + 1) %}
-    <th width=20>{{ "%.2d" % _day }}</th>
-{% endfor %}
-</tr>
-{% for line in lines %}
-    <tr>
-    <td>{{ line["hostname"] }}</td>
-    {% for day in line["days"] %}
-        <td
-        {% if day["cloud"] == "cloud01" :  %}
-        class="degradient"
-        {% else %}
-        class="gradient"
-        {% endif %}
-        bgcolor="{{ day["color"] }}"
-        data-toggle="tooltip"
-        style="font-size:20px;text-align:center;"
-        title=
-        "Description: {{ day["display_description"] }}
-Env: {{ day["cloud"] }}
-Owner: {{ day["display_owner"] }}
-Ticket: {{ day["display_ticket"] }}
-Day: {{ day["day"] }}">
-        {% if day["cloud"] != "cloud01" :  %}
-            {{ day["emoji"] }}
-        {% endif %}
-        </td>
-    {% endfor %}
-    </tr>
-{% endfor %}
-</table>
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">
+                <strong>{% if gentime %}{{ gentime }}{% else %}Monthly Allocation{% endif %}</strong>
+            </h2>
+            <small class="text-muted">Hover over squares for allocation details</small>
+        </div>
+        
+        <!-- Metrics Dashboard -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-primary">
+                    <div class="card-body metrics-card text-center">
+                        <div class="metrics-number text-primary">{{ utilization }}%</div>
+                        <div class="metrics-label">Monthly Utilization</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-success">
+                    <div class="card-body metrics-card text-center">
+                        <div class="metrics-number text-success">{{ utilization_daily }}%</div>
+                        <div class="metrics-label">Today's Utilization</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-info">
+                    <div class="card-body metrics-card text-center">
+                        <div class="metrics-number text-info">{{ total_use }}</div>
+                        <div class="metrics-label">Systems in Use</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card border-secondary">
+                    <div class="card-body metrics-card text-center">
+                        <div class="metrics-number text-secondary">{{ total_hosts }}</div>
+                        <div class="metrics-label">Total Usable Systems</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Allocation Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Server Allocation Calendar</h5>
+                <small class="text-muted">Each square represents one day</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="allocation-table table table-sm">
+                        <thead>
+                            <tr class="table-dark">
+                                <th style="width: 200px;">Server</th>
+                                {% for _day in range(1, _days + 1) %}
+                                    <th class="text-center" style="width: 24px; padding: 4px;">{{ "%.2d" % _day }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in lines %}
+                                <tr class="allocation-row">
+                                    <td class="server-name">
+                                        <span title="{{ line['hostname'] }}">{{ line['hostname'] }}</span>
+                                    </td>
+                                    {% for day in line["days"] %}
+                                        <td style="padding: 2px; text-align: center;">
+                                            <div class="allocation-cell" 
+                                                 style="background-color: {{ day['color'] }};" 
+                                                 data-bs-toggle="tooltip" 
+                                                 data-bs-placement="top" 
+                                                 title="Description: {{ day['display_description'] }} | Env: {{ day['cloud'] }} | Owner: {{ day['display_owner'] }} | Ticket: {{ day['display_ticket'] }} | Day: {{ day['day'] }}">
+                                                {% if day["cloud"] != "cloud01" and day["emoji"] %}
+                                                    <span class="allocation-emoji">{{ day["emoji"] }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Initialize Bootstrap tooltips -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        });
+    </script>
 </body>
 </html>
