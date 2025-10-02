@@ -130,6 +130,8 @@ class HostDao(BaseDao):
                 if first_field == field_name:
                     first_field = field_name[: field_name.index(op)]
                 field_name = field_name[: field_name.index(op)]
+                if operator == "in":
+                    value = value.split(",")
 
             if fields[0].lower() == "group_by":
                 first_field = value

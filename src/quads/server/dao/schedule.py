@@ -115,6 +115,8 @@ class ScheduleDao(BaseDao):
                 if first_field == field_name:
                     first_field = field_name[: field_name.index(op)]
                 field_name = field_name[: field_name.index(op)]
+                if operator == "in":
+                    value = value.split(",")
 
             if value and isinstance(value, str) and value.lower() == "none":
                 value = None

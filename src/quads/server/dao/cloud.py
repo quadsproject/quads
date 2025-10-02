@@ -100,6 +100,8 @@ class CloudDao(BaseDao):
                 if first_field == field_name:
                     first_field = field_name[: field_name.index(op)]
                 field_name = field_name[: field_name.index(op)]
+                if operator == "in":
+                    value = value.split(",")
 
             field = Cloud.__mapper__.attrs.get(first_field)
             if not field:
