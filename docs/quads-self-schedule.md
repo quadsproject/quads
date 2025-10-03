@@ -164,6 +164,9 @@ with QuadsApi(username, password, base_url) as quads:
 ```
 
 ### Create an assignment via Python
+> [!NOTE]
+> The `owner` field is the username minus the `@example.com` part of the email string, e.g. `joe`
+>
 ```python
 from quads_lib import QuadsApi
 
