@@ -85,7 +85,7 @@ class _Config(_ConfigBase):
 
     FPING_TIMEOUT = 10000
 
-    QUADSVERSION = "2.2.2"
+    QUADSVERSION = "2.2.4"
     QUADSCODENAME = "maximilian"
 
     SUPPORTED = [
@@ -121,6 +121,7 @@ class _Config(_ConfigBase):
         "r7525",
         "r7625",
         "7625",
+        "r6625",
     ]
 
     OFFSETS = {"em1": 0, "em2": 1, "em3": 2, "em4": 3, "em5": 4}
