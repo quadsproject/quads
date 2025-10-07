@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4101ae4e_ee6d0bc2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2025-10-07T12:47:29Z",
+      "side": 1,
+      "message": "Very nice! I like that the update host on failure allows you to specify what aspects of the host are failed.",
+      "revId": "1bffb4ee9723980fd71c67bb566694c4580b06e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
