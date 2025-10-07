@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from quads.config import Config
 from quads.helpers.utils import is_supported
@@ -14,6 +14,11 @@ from quads.tools.external.ipmi import IPMI
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 quads = QuadsApi(Config)
+
+DEFAULT_HOST_UPDATE_DATA = {
+    "build": False,
+    "validated": False,
+}
 
 
 async def setup_and_initialize_badfish(host: str, rack: str, uloc: str, blade: str) -> Optional[Any]:
@@ -28,8 +33,8 @@ async def setup_and_initialize_badfish(host: str, rack: str, uloc: str, blade: s
             Config["ipmi_password"],
             propagate=True,
         )
-    except BadfishException:
-        logger.error(f"Could not initialize Badfish. Verify ipmi credentials for mgmt-{host}.")
+    except BadfishException as e:
+        logger.error(f"Could not initialize Badfish for mgmt-{host}: {e}")
         return None
 
 
@@ -46,11 +51,7 @@ async def prepare_foreman_rebuild(host: str, new_cloud: str, os_type: str, semap
 
     try:
         available_os = await foreman.get_available_os()
-        os_id = None
-        for os in available_os:
-            if os["title"] == os_type:
-                os_id = os["id"]
-                break
+        os_id = next((os["id"] for os in available_os if os["title"] == os_type), None)
 
         if not os_id:
             logger.error(f"OS type {os_type} not found in Foreman")
@@ -89,24 +90,30 @@ async def prepare_foreman_rebuild(host: str, new_cloud: str, os_type: str, semap
         return False
 
 
+def _update_host_on_failure(host_obj, data: Dict[str, Any] = None) -> None:
+    """Helper function to update host with failure data."""
+    update_data = data or DEFAULT_HOST_UPDATE_DATA.copy()
+    quads.update_host(host_obj.name, update_data)
+
+
 async def move_and_rebuild(
     host: str, new_cloud: str, semaphore: asyncio.Semaphore, rebuild: bool = False
 ) -> bool:  # pragma: no cover
     build_start = datetime.now()
-    logger.debug("Moving and rebuilding host: %s" % host)
+    logger.debug(f"Moving and rebuilding host: {host}")
 
     untouchable_hosts = Config["untouchable_hosts"]
-    logger.debug("Untouchable hosts: %s" % untouchable_hosts)
-    _host_obj = quads.get_host(host)
+    logger.debug(f"Untouchable hosts: {untouchable_hosts}")
 
+    host_obj = quads.get_host(host)
     if host in untouchable_hosts:
-        logger.error("No way...")
+        logger.error(f"Host {host} is in untouchable hosts list")
         return False
 
-    _target_cloud = quads.get_cloud(new_cloud)
+    target_cloud = quads.get_cloud(new_cloud)
     ticket = ""
     boot_order = Config.get("foreman_default_boot_order")
-    _assignment = quads.get_active_cloud_assignment(_target_cloud.name)
+    _assignment = quads.get_active_cloud_assignment(target_cloud.name)
     if _assignment:
         ticket = _assignment.ticket
         if _assignment.boot_order:
@@ -117,14 +124,16 @@ async def move_and_rebuild(
     await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
 
     badfish = None
-    if rebuild and _target_cloud.name != _host_obj.default_cloud.name:
+    if rebuild and target_cloud.name != host_obj.default_cloud.name:
         if Config.pdu_management:
             # TODO: pdu management
             pass
 
         # Initialize Badfish
-        badfish = await setup_and_initialize_badfish(host, _host_obj.rack, _host_obj.uloc, _host_obj.blade)
+        badfish = await setup_and_initialize_badfish(host, host_obj.rack, host_obj.uloc, host_obj.blade)
         if not badfish:
+            logger.debug(f"Updating host: {host}")
+            _update_host_on_failure(host_obj)
             return False
 
         if is_supported(host) and boot_order != Config.get("foreman_default_boot_order"):
@@ -135,21 +144,23 @@ async def move_and_rebuild(
                     await asyncio.sleep(600)
             except BadfishException:
                 logger.error(f"Could not set boot order via Badfish for mgmt-{host}.")
+                _update_host_on_failure(host_obj)
                 return False
 
         try:
             await badfish.set_power_state("on")
         except BadfishException:
             logger.error(f"Failed to power on {host}")
+            _update_host_on_failure(host_obj)
             return False
 
         os_type = Config["foreman_default_os"]
-        if _assignment:
-            if _assignment.ostype:
-                os_type = _assignment.ostype
+        if _assignment and _assignment.ostype:
+            os_type = _assignment.ostype
 
         # Prepare Foreman for rebuild
         if not await prepare_foreman_rebuild(host, new_cloud, os_type, semaphore):
+            _update_host_on_failure(host_obj)
             return False
 
         try:
@@ -171,42 +182,50 @@ async def move_and_rebuild(
                     )
                 except BadfishException:
                     logger.error(f"Error setting PXE boot via Badfish on {host}.")
+                    _update_host_on_failure(host_obj)
                     return False
             try:
                 await badfish.reboot_server(graceful=False)
             except BadfishException:
                 logger.error("Error rebooting server: {host}")
+                _update_host_on_failure(host_obj)
                 return False
-
         else:
             try:
                 await ipmi.pxe_persistent()
             except Exception as ex:
-                logger.debug(ex)
+                logger.debug(f"IPMI PXE error for {host}: {ex}")
                 logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
 
-    if _target_cloud.name == _host_obj.default_cloud.name:
+    if target_cloud.name == host_obj.default_cloud.name:
         if not badfish:
-            # Initialize Badfish
-            badfish = await setup_and_initialize_badfish(host, _host_obj.rack, _host_obj.uloc, _host_obj.blade)
+            badfish = await setup_and_initialize_badfish(host, host_obj.rack, host_obj.uloc, host_obj.blade)
             if not badfish:
+                _update_host_on_failure(host_obj)
                 return False
-        await badfish.set_power_state("off")
 
-    data = {"host": _host_obj.name, "cloud": _target_cloud.name}
+        try:
+            await badfish.set_power_state("off")
+        except BadfishException as e:
+            logger.error(f"Failed to power off {host}: {e}")
+            _update_host_on_failure(host_obj)
+            return False
+
+    data = {"host": host_obj.name, "cloud": target_cloud.name}
     schedule = quads.get_current_schedules(data)
     if schedule:
-        data = {
+        schedule_update_data = {
             "build_start": build_start.strftime("%Y-%m-%dT%H:%M"),
             "build_end": datetime.now().strftime("%Y-%m-%dT%H:%M"),
         }
-        quads.update_schedule(schedule[0].id, data)
-    logger.debug("Updating host: %s")
-    data = {
-        "cloud": _target_cloud.name,
+        quads.update_schedule(schedule[0].id, schedule_update_data)
+
+    logger.debug(f"Updating host: {host}")
+    success_data = {
+        "cloud": target_cloud.name,
         "build": True,
         "last_build": datetime.now().strftime("%Y-%m-%dT%H:%M"),
         "validated": False,
     }
-    quads.update_host(_host_obj.name, data)
+    quads.update_host(host_obj.name, success_data)
     return True
