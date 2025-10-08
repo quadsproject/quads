@@ -1,0 +1,37 @@
+---
+name: Close Pull Requests
+
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Acknowledge PR
+        run: echo "Received a new PR. Proceeding to close."
+
+  close:
+    runs-on: ubuntu-latest
+    needs: validate
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Close Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'Thanks for your contribution, however QUADS utilizes Gerrit code review and does not utilize pull requests. See the CONTRIBUTING.md file for more information.'
+            });
+            github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              state: 'closed'
+            });
