@@ -234,6 +234,8 @@ class QuadsApi(QuadsBase):
         response = self.get(url)
         schedules = []
         for schedule in response.json():
+            if schedule.get("host").get("retired") or schedule.get("host").get("broken"):
+                continue
             schedules.append(Schedule().from_dict(schedule))
         return schedules
 
