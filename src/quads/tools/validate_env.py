@@ -15,7 +15,7 @@ from quads.config import Config
 from quads.exceptions import CliException
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
-from quads.tools.external.badfish import BadfishException, badfish_factory
+from quads.tools.external.badfish import BadfishException, badfish_factory, get_session_manager
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
@@ -25,6 +25,17 @@ from quads.tools.external.switch import Switch
 
 logger = logging.getLogger(__name__)
 quads = QuadsApi(Config)
+
+# Module-level session manager for sharing across badfish instances
+_session_manager = None
+
+
+async def init_session_manager():
+    """Initialize or get the module-level session manager"""
+    global _session_manager
+    if _session_manager is None:
+        _session_manager = await get_session_manager(max_concurrent=20)
+    return _session_manager
 
 
 class Validator(object):  # pragma: no cover
@@ -130,6 +141,7 @@ class Validator(object):  # pragma: no cover
                     continue
                 badfish = None
                 try:
+                    session_manager = await init_session_manager()
                     badfish = await badfish_factory(
                         "mgmt-" + host.name,
                         host.rack,
@@ -137,6 +149,7 @@ class Validator(object):  # pragma: no cover
                         host.blade,
                         str(Config["ipmi_username"]),
                         str(Config["ipmi_password"]),
+                        session_manager=session_manager,
                     )
                     if is_supported(host.name):
                         await badfish.boot_to_type(
@@ -168,6 +181,7 @@ class Validator(object):  # pragma: no cover
     async def verify_badfish_creds(host, password):
         logger.debug(f"Verifying badfish credentials for: {host.name}")
         try:
+            session_manager = await init_session_manager()
             await badfish_factory(
                 "mgmt-" + host.name,
                 host.rack,
@@ -175,6 +189,7 @@ class Validator(object):  # pragma: no cover
                 host.blade,
                 str(Config["ipmi_cloud_username"]),
                 password,
+                session_manager=session_manager,
             )
         except BadfishException:
             logger.info(f"Could not verify badfish credentials for: {host.name}")

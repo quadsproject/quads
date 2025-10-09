@@ -7,13 +7,25 @@ from typing import Any, Dict, Optional
 from quads.config import Config
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi
-from quads.tools.external.badfish import BadfishException, badfish_factory
+from quads.tools.external.badfish import BadfishException, badfish_factory, get_session_manager
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.ipmi import IPMI
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 quads = QuadsApi(Config)
+
+# Module-level session manager for sharing across badfish instances
+_session_manager = None
+
+
+async def init_session_manager():
+    """Initialize or get the module-level session manager"""
+    global _session_manager
+    if _session_manager is None:
+        _session_manager = await get_session_manager(max_concurrent=20)
+    return _session_manager
+
 
 DEFAULT_HOST_UPDATE_DATA = {
     "build": False,
@@ -22,9 +34,14 @@ DEFAULT_HOST_UPDATE_DATA = {
 }
 
 
-async def setup_and_initialize_badfish(host: str, rack: str, uloc: str, blade: str) -> Optional[Any]:
+async def setup_and_initialize_badfish(
+    host: str, rack: str, uloc: str, blade: str, session_manager=None
+) -> Optional[Any]:
     """Initialize Badfish instance for a host."""
     try:
+        # Use provided session_manager or get the module-level one
+        if session_manager is None:
+            session_manager = await init_session_manager()
         return await badfish_factory(
             f"mgmt-{host}",
             rack,
@@ -33,6 +50,7 @@ async def setup_and_initialize_badfish(host: str, rack: str, uloc: str, blade: s
             Config["ipmi_username"],
             Config["ipmi_password"],
             propagate=True,
+            session_manager=session_manager,
         )
     except BadfishException as e:
         logger.error(f"Could not initialize Badfish for mgmt-{host}: {e}")
