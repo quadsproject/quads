@@ -3,7 +3,8 @@ import asyncio
 from urllib.parse import urlparse
 
 import aiohttp
-from aiohttp import BasicAuth
+from aiohttp import BasicAuth, TCPConnector
+from aiohttp.resolver import DefaultResolver
 
 import json
 import logging
@@ -16,6 +17,8 @@ import yaml
 warnings.filterwarnings("ignore")
 
 RETRIES = 15
+SHARED_SESSION = None
+ASYNC_LOCK = asyncio.Lock()
 
 logger = logging.getLogger(__name__)
 
@@ -50,18 +53,28 @@ class Badfish:
             self.loop = asyncio.get_event_loop()
         else:
             self.loop = loop
-
         self.system_resource = None
         self.manager_resource = None
         self.bios_uri = None
         self.boot_devices = None
         self.vendor = None
+        self.session = None
 
     async def init(self):
+        self.session = await self._get_shared_session()
         await self.validate_credentials()
         self.system_resource = await self.find_systems_resource()
         self.manager_resource = await self.find_managers_resource()
         self.bios_uri = "%s/Bios/Settings" % self.system_resource[len(self.redfish_uri) :]
+
+    async def _get_shared_session(self):
+        global SHARED_SESSION
+        if SHARED_SESSION is None or SHARED_SESSION.closed:
+            async with ASYNC_LOCK:
+                if SHARED_SESSION is None or SHARED_SESSION.closed:
+                    connector = TCPConnector(resolver=DefaultResolver())
+                    SHARED_SESSION = aiohttp.ClientSession(connector=connector)
+        return SHARED_SESSION
 
     @staticmethod
     def progress_bar(value, end_value, state, bar_length=20):
@@ -96,15 +109,15 @@ class Badfish:
 
     async def get_request(self, uri, _continue=False):
         try:
+            self.session = await self._get_shared_session()
             async with self.semaphore:
-                async with aiohttp.ClientSession(loop=self.loop) as session:
-                    async with session.get(
-                        uri,
-                        auth=BasicAuth(self.username, self.password),
-                        verify_ssl=False,
-                        timeout=120,
-                    ) as _response:
-                        await _response.text("utf-8", "ignore")
+                async with self.session.get(
+                    uri,
+                    auth=BasicAuth(self.username, self.password),
+                    verify_ssl=False,
+                    timeout=120,
+                ) as _response:
+                    await _response.text("utf-8", "ignore")
         except Exception as ex:
             if _continue:
                 return
@@ -115,20 +128,20 @@ class Badfish:
 
     async def post_request(self, uri, payload, headers):
         try:
+            self.session = await self._get_shared_session()
             async with self.semaphore:
-                async with aiohttp.ClientSession(loop=self.loop) as session:
-                    async with session.post(
-                        uri,
-                        data=json.dumps(payload),
-                        headers=headers,
-                        auth=BasicAuth(self.username, self.password),
-                        verify_ssl=False,
-                        timeout=120,
-                    ) as _response:
-                        if _response.status != 204:
-                            await _response.text("utf-8", "ignore")
-                        else:
-                            return _response
+                async with self.session.post(
+                    uri,
+                    data=json.dumps(payload),
+                    headers=headers,
+                    auth=BasicAuth(self.username, self.password),
+                    verify_ssl=False,
+                    timeout=120,
+                ) as _response:
+                    if _response.status != 204:
+                        await _response.text("utf-8", "ignore")
+                    else:
+                        return _response
         except (Exception, TimeoutError):
             logger.exception("Failed to communicate with server.")
             raise BadfishException
@@ -136,17 +149,17 @@ class Badfish:
 
     async def patch_request(self, uri, payload, headers, _continue=False):
         try:
+            self.session = await self._get_shared_session()
             async with self.semaphore:
-                async with aiohttp.ClientSession(loop=self.loop) as session:
-                    async with session.patch(
-                        uri,
-                        data=json.dumps(payload),
-                        headers=headers,
-                        auth=BasicAuth(self.username, self.password),
-                        verify_ssl=False,
-                        timeout=120,
-                    ) as _response:
-                        await _response.text("utf-8", "ignore")
+                async with self.session.patch(
+                    uri,
+                    data=json.dumps(payload),
+                    headers=headers,
+                    auth=BasicAuth(self.username, self.password),
+                    verify_ssl=False,
+                    timeout=120,
+                ) as _response:
+                    await _response.text("utf-8", "ignore")
         except Exception as ex:
             if _continue:
                 return
@@ -158,15 +171,15 @@ class Badfish:
 
     async def delete_request(self, uri, headers):
         try:
+            self.session = await self._get_shared_session()
             async with self.semaphore:
-                async with aiohttp.ClientSession(loop=self.loop) as session:
-                    async with session.delete(
-                        uri,
-                        headers=headers,
-                        auth=BasicAuth(self.username, self.password),
-                        ssl=False,
-                    ) as _response:
-                        await _response.read()
+                async with self.session.delete(
+                    uri,
+                    headers=headers,
+                    auth=BasicAuth(self.username, self.password),
+                    ssl=False,
+                ) as _response:
+                    await _response.read()
         except (Exception, TimeoutError):
             logger.exception("Failed to communicate with server.")
             raise BadfishException
