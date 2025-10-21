@@ -64,6 +64,7 @@ Requires: python3-flask-security-too >= 4.1.5
 Requires: python3-flask-migrate >= 3.1.0
 Requires: python3-flask-httpauth >= 4.8.0
 Requires: python3-flask-cors >= 3.0.10
+Requires: python3-oauthlib >= 3.2.2
 Requires: python3-jwt >= 1.6.4
 Requires: python3-dotenv >= 0.19.2
 Requires: python3-sqlalchemy >= 1.4.50

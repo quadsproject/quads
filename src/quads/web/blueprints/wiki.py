@@ -6,10 +6,9 @@ from flask import Blueprint, flash, redirect, url_for, render_template, request,
 
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
-from quads.quads_api import QuadsApi, APIBadRequest, APIServerException
-from quads.tools.external.foreman import Foreman
+from quads.quads_api import APIBadRequest, APIServerException
 from quads.config import Config
-from quads.web.controller.CloudOperations import CloudOperations
+from quads.web.controller.quads_api_wrapper import QuadsApiWrapper
 
 wiki_bp = Blueprint(
     "wiki",
@@ -17,13 +16,7 @@ wiki_bp = Blueprint(
     template_folder=WEB_CONTENT_PATH,
 )
 
-quads = QuadsApi(Config)
-foreman = Foreman(
-    Config["foreman_api_url"],
-    Config["foreman_username"],
-    Config["foreman_password"],
-)
-cloud_operation = CloudOperations(quads_api=quads, foreman=foreman)
+quads_api_wrapper = QuadsApiWrapper()
 
 
 @wiki_bp.route("/", methods=["GET", "POST"])
@@ -55,31 +48,31 @@ async def assignments():
 
 @wiki_bp.route("/summary")
 async def summary():
-    clouds_summary = await cloud_operation.get_cloud_summary_report()
+    clouds_summary = await quads_api_wrapper.get_cloud_summary_report()
     return jsonify(clouds_summary)
 
 
 @wiki_bp.route("/utilization")
 async def utilization():
-    daily_utilization = await cloud_operation.get_daily_utilization()
+    daily_utilization = await quads_api_wrapper.get_daily_utilization()
     return jsonify(daily_utilization)
 
 
 @wiki_bp.route("/managed/<cloud>")
 async def managed(cloud):
-    managed_nodes = await cloud_operation.get_managed_nodes(cloud)
+    managed_nodes = await quads_api_wrapper.get_managed_nodes(cloud)
     return jsonify(managed_nodes)
 
 
 @wiki_bp.route("/unmanaged")
 async def unmanaged():
-    unmanaged_hosts = await cloud_operation.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
+    unmanaged_hosts = await quads_api_wrapper.get_unmanaged_hosts(exclude_hosts=Config["exclude_hosts"])
     return jsonify(unmanaged_hosts)
 
 
 @wiki_bp.route("/broken")
 async def broken():
-    domain_broken_hosts = await cloud_operation.get_domain_broken_hosts(domain=Config["domain"])
+    domain_broken_hosts = await quads_api_wrapper.get_domain_broken_hosts(domain=Config["domain"])
     return jsonify(domain_broken_hosts)
 
 
@@ -152,9 +145,9 @@ async def available_hosts(search):
                 key = "interfaces.speed"
             data[key] = nic_speed_value
 
-        hosts = quads.filter_available(data=data)
+        hosts = quads_api_wrapper.filter_available(data=data)
         available_hosts = []
-        currently_scheduled = [schedule.host_id for schedule in quads.get_current_schedules()]
+        currently_scheduled = [schedule.host_id for schedule in quads_api_wrapper.get_current_schedules()]
         for host in hosts:
             host_dict = host.as_dict()
             host_dict["current"] = host.id in currently_scheduled
@@ -178,7 +171,7 @@ async def create_inventory():
         "Owner",
     ]
     try:
-        racks = quads.get_host_racks()
+        racks = quads_api_wrapper.get_host_racks()
         if not racks:
             flash("No racks found in the database.", "error")
             return redirect(url_for("wiki.index"))
@@ -190,7 +183,7 @@ async def create_inventory():
 
 @wiki_bp.route("/rack/<rack>")
 async def rack(rack):
-    hosts = quads.filter_hosts(data={"rack": rack})
+    hosts = quads_api_wrapper.filter_hosts(data={"rack": rack})
     blacklist = re.compile("|".join([re.escape(word) for word in Config["exclude_hosts"].split("|")]))
     host_details = []
     assignments_cache = {}
@@ -198,7 +191,7 @@ async def rack(rack):
 
     for host in hosts:
         foreman_host = {}
-        response = await foreman.get_host(host.name)
+        response = await quads_api_wrapper.get_foreman_host(host.name)
         if not response:
             error_occurred = True
         foreman_host = response.get(host.name, foreman_host)
@@ -207,7 +200,7 @@ async def rack(rack):
                 if assignments_cache.get(host.cloud.name, False):
                     assignment = assignments_cache[host.cloud.name]
                 else:
-                    assignment = quads.get_active_cloud_assignment(host.cloud.name)
+                    assignment = quads_api_wrapper.get_active_cloud_assignment(host.cloud.name)
                     assignments_cache[host.cloud.name] = assignment
                 owner = assignment.owner if assignment else "QUADS"
                 host_details.append(
@@ -229,12 +222,12 @@ async def rack(rack):
 
 @wiki_bp.route("/host/<hostname>")
 async def host_details(hostname):
-    host_details = quads.get_host(hostname)
+    host_details = quads_api_wrapper.get_host(hostname)
 
     return render_template("wiki/host.html", host=host_details)
 
 
 @wiki_bp.route("/vlans")
 async def create_vlans():
-    vlans = await cloud_operation.get_vlans_list()
+    vlans = await quads_api_wrapper.get_vlans_list()
     return render_template("wiki/vlans.html", vlans=vlans)

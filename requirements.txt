@@ -30,3 +30,4 @@ requests>=2.31.0
 validators>=0.20.0
 markdown>=3.0.0
 distlib>=0.2
+oauthlib>=3.2.2

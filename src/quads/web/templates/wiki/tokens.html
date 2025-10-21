@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}API Tokens{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10">
+            <form method="post">
+                <input name="name" placeholder="Token name" required />
+                <input name="expires_in_days" type="number" min="0" value="0" />
+                <!-- optional scopes checkboxes -->
+                <button type="submit">Create Token</button>
+            </form>
+            <table>
+                <tr><th>Name</th><th>Scopes</th><th>Created</th><th>Expires</th><th></th></tr>
+                {% for t in tokens %}
+                <tr>
+                    <td>{{ t.name }}</td>
+                    <td>{{ ','.join(t.scopes) }}</td>
+                    <td>{{ t.created_at }}</td>
+                    <td>{{ t.expires_at or '-' }}</td>
+                    <td>
+                    <form method="post" action="{{ url_for('api_tokens.tokens_revoke', token_id=t.id) }}">
+                        <button type="submit">Revoke</button>
+                    </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

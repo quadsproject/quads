@@ -258,6 +258,11 @@ class Role(Base, RoleMixin):
 class User(Base, UserMixin):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    google_id = Column(String(80))
+    first_name = Column(String(80))
+    last_name = Column(String(80))
+    picture = Column(String(80))
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     fs_uniquifier = Column(String(256), unique=True, nullable=False)
     email = Column(String(256), unique=True, nullable=False)
     _password = Column("password", String(256), nullable=False)
@@ -310,6 +315,22 @@ class User(Base, UserMixin):
             return "Signature expired. Please log in again."
         except InvalidTokenError:
             return "Invalid token. Please log in again."
+
+
+class PersonalAccessToken(Base):
+    __tablename__ = "personal_access_tokens"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    name = Column(String(120), nullable=False)
+    digest = Column(String(64), unique=True, nullable=False)  # HMAC-SHA256 hex digest
+    scopes = Column(String(512), default="")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
+    last_used_at = Column(DateTime, nullable=True)
+    revoked_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", backref=backref("personal_tokens", lazy="dynamic"))
 
 
 class TokenBlackList(Base):

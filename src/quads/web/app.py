@@ -1,14 +1,19 @@
 from flask import Flask
+from flask_login import LoginManager
+from oauthlib.oauth2 import WebApplicationClient
 
 from quads.config import Config
+from quads.web.blueprints.auth import auth_bp
 from quads.web.blueprints.connectivity import connectivity_bp
 from quads.web.blueprints.dynamic_content import dynamic_content_bp
 from quads.web.blueprints.instack import instack_bp
 from quads.web.blueprints.visual import visual_bp
 from quads.web.blueprints.wiki import wiki_bp
+from quads.web.blueprints.api_tokens import api_tokens_bp
 from quads.web.controller.dynamic_nav.dynamic_menus import DynamicMenus
 from quads.web.controller.dynamic_nav.dynamic_nav import DynamicNav
 from quads.web.controller.dynamic_nav.markup_elements import Subgroup, View, Navbar
+
 
 WEB_CONTENT_PATH = Config.get("web_content_path")
 EXCLUDE_DIRS = Config.get("web_exclude_dirs")
@@ -48,15 +53,23 @@ def set_global_variables(flask_app):
 
 def create_app() -> Flask:
     flask_app = Flask(__name__)
+
+    login_manager = LoginManager()
+    login_manager.init_app(flask_app)
+    login_manager.login_view = "auth.login"
+
     flask_app.url_map.strict_slashes = False
     flask_app.secret_key = "flask rocks!"
     flask_app.port = 5001
     flask_app.host = "0.0.0.0"
+    flask_app.register_blueprint(auth_bp)
     flask_app.register_blueprint(dynamic_content_bp)
     flask_app.register_blueprint(visual_bp, url_prefix="/visual")
     flask_app.register_blueprint(instack_bp, url_prefix="/instack")
     flask_app.register_blueprint(wiki_bp)
     flask_app.register_blueprint(connectivity_bp, url_prefix="/connectivity")
+    flask_app.register_blueprint(api_tokens_bp, url_prefix="/api_tokens")
+    flask_app.client = WebApplicationClient(Config.GOOGLE_CLIENT_ID)
     initiate_navbar(flask_app)
     set_global_variables(flask_app)
 
