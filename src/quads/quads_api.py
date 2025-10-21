@@ -8,7 +8,7 @@ from requests import Response, Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.auth import HTTPBasicAuth
 
-from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
+from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan, User, PersonalAccessToken
 
 
 class APIServerException(Exception):
@@ -95,6 +95,38 @@ class QuadsApi(QuadsBase):
     """
     A python interface into the Quads API
     """
+
+    # Users
+    def get_user(self, email: str) -> Optional[User]:
+        user_obj = None
+        response = self.get(os.path.join("users", email))
+        obj_json = response.json()
+        if obj_json:
+            user_obj = User().from_dict(data=obj_json)
+        return user_obj
+
+    def create_user(self, data: dict) -> User:
+        response = self.post(os.path.join("users"), data)
+        data = response.json()
+        user_obj = User().from_dict(data)
+        return user_obj
+
+    # Tokens
+    def list_tokens(self, email: str) -> List[PersonalAccessToken]:
+        response = self.get(os.path.join("tokens", email))
+        tokens = []
+        for token in response.json():
+            tokens.append(PersonalAccessToken().from_dict(data=token))
+        return tokens
+
+    def create_token(self, email: str, data: dict) -> PersonalAccessToken:
+        response = self.post(os.path.join("tokens", email), data)
+        data = response.json()
+        token_obj = PersonalAccessToken().from_dict(data)
+        return token_obj
+
+    def revoke_token(self, email: str, token_id: int) -> Response:
+        return self.delete(os.path.join("tokens", email, str(token_id)))
 
     # Hosts
     def get_hosts(self) -> List[Host]:

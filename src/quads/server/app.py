@@ -124,6 +124,7 @@ def register_blueprints(app):
     from quads.server.blueprints.assignments import assignment_bp
     from quads.server.blueprints.notifications import notification_bp
     from quads.server.blueprints.auth import auth_bp
+    from quads.server.blueprints.tokens import tokens_bp
     from quads.server.blueprints.available import available_bp
     from quads.server.blueprints.clouds import cloud_bp
     from quads.server.blueprints.disks import disk_bp
@@ -139,6 +140,7 @@ def register_blueprints(app):
     api_prefix = f"/api/{app.config.get('API_VERSION')}"
     api_bp = Blueprint("api", __name__, url_prefix=api_prefix)
     api_bp.register_blueprint(auth_bp)
+    api_bp.register_blueprint(tokens_bp, url_prefix="/tokens")
     api_bp.register_blueprint(version_bp, url_prefix="/version")
     api_bp.register_blueprint(available_bp, url_prefix="/available")
     api_bp.register_blueprint(assignment_bp, url_prefix="/assignments")

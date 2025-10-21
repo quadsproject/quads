@@ -2,21 +2,26 @@ import re
 from datetime import datetime
 
 from quads.config import Config
-from quads.quads_api import APIBadRequest, APIServerException
+from quads.quads_api import APIBadRequest, APIServerException, QuadsApi
+from quads.tools.external.foreman import Foreman
 
 
-class CloudOperations:
+class QuadsApiWrapper:
 
-    def __init__(self, quads_api, foreman):
-        self.__quads_api = quads_api
-        self.__foreman = foreman
+    def __init__(self):
+        self.quads_api = QuadsApi(Config)
+        self.foreman = Foreman(
+            Config["foreman_api_url"],
+            Config["foreman_username"],
+            Config["foreman_password"],
+        )
 
     async def __get_cloud_summary(self) -> list:
         """
         This method returns the cloud summary
         """
         clouds_summary = []
-        summary_response = self.__quads_api.get_summary(data={})
+        summary_response = self.quads_api.get_summary(data={})
         if summary_response.status_code == 200:
             clouds_summary = summary_response.json()
         return clouds_summary
@@ -25,7 +30,14 @@ class CloudOperations:
         """
         This method returns all hosts
         """
-        all_hosts = await self.__foreman.get_all_hosts()
+        all_hosts = await self.foreman.get_all_hosts()
+        return all_hosts
+
+    async def get_foreman_host(self, hostname):
+        """
+        This method returns the foreman host definition
+        """
+        all_hosts = await self.foreman.get_host(hostname)
         return all_hosts
 
     async def get_managed_nodes(self, cloud):
@@ -33,8 +45,8 @@ class CloudOperations:
         This method returns the scheduled nodes
         """
         managed_hosts = {}
-        _ass_obj = self.__quads_api.get_active_cloud_assignment(cloud)
-        _hosts = self.__quads_api.filter_hosts({"cloud": cloud, "retired": False, "broken": False})
+        _ass_obj = self.quads_api.get_active_cloud_assignment(cloud)
+        _hosts = self.quads_api.filter_hosts({"cloud": cloud, "retired": False, "broken": False})
 
         hosts = []
         for host in _hosts:
@@ -63,8 +75,8 @@ class CloudOperations:
         """
         This method returns the daily utilization
         """
-        _host_count = len(self.__quads_api.filter_hosts({"broken": False, "retired": False}))
-        _schedules = len(self.__quads_api.get_current_schedules())
+        _host_count = len(self.quads_api.filter_hosts({"broken": False, "retired": False}))
+        _schedules = len(self.quads_api.get_current_schedules())
         if int(_host_count) == 0:
             _daily_utilization = "0"
         else:
@@ -85,8 +97,8 @@ class CloudOperations:
                 is_valid = cloud["validated"] or cloud_name == "cloud01"
                 percent = 100
                 if not is_valid:
-                    scheduled_hosts = len(self.__quads_api.get_current_schedules({"cloud": cloud_name}))
-                    moved_hosts = len(self.__quads_api.filter_hosts({"cloud": cloud_name}))
+                    scheduled_hosts = len(self.quads_api.get_current_schedules({"cloud": cloud_name}))
+                    moved_hosts = len(self.quads_api.filter_hosts({"cloud": cloud_name}))
                     percent = (moved_hosts / scheduled_hosts) * 100
                 cloud["is_valid"] = is_valid
                 cloud["percent"] = int(percent)
@@ -111,7 +123,7 @@ class CloudOperations:
         """
         short_host = host.split(".")[0]
         _schedule_obj = None
-        _schedules = self.__quads_api.get_current_schedules({"host": host})
+        _schedules = self.quads_api.get_current_schedules({"host": host})
         if _schedules:
             _schedule_obj = _schedules[0]
         if not _schedule_obj:
@@ -147,7 +159,7 @@ class CloudOperations:
         """
         This method returns the broken hosts
         """
-        broken_hosts = self.__quads_api.filter_hosts({"broken": True})
+        broken_hosts = self.quads_api.filter_hosts({"broken": True})
         return [host.as_dict() for host in broken_hosts if domain in host.name]
 
     async def get_unmanaged_hosts(self, exclude_hosts: str):
@@ -165,7 +177,7 @@ class CloudOperations:
         for host in mgmt_hosts:
             real_host = host[5:]
             try:
-                host_obj = self.__quads_api.get_host(real_host)
+                host_obj = self.quads_api.get_host(real_host)
             except (APIBadRequest, APIServerException):
                 host_obj = None
 
@@ -184,17 +196,17 @@ class CloudOperations:
         This method returns the vlans list
         """
         vlans_list = []
-        vlans = self.__quads_api.get_vlans()
+        vlans = self.quads_api.get_vlans()
         for vlan in vlans:
-            assignment_obj = self.__quads_api.filter_assignments({"active": True, "vlan.vlan_id": vlan.vlan_id})
+            assignment_obj = self.quads_api.filter_assignments({"active": True, "vlan.vlan_id": vlan.vlan_id})
             assignment_obj = assignment_obj[0] if assignment_obj else None
             cloud_current_count = 0
             cloud_obj = None
             if assignment_obj:
-                cloud_obj = self.__quads_api.filter_clouds({"name": assignment_obj.cloud.name})
+                cloud_obj = self.quads_api.filter_clouds({"name": assignment_obj.cloud.name})
                 if cloud_obj:
                     cloud_obj = cloud_obj[0]
-                    cloud_current_count = len(self.__quads_api.get_current_schedules({"cloud": cloud_obj.name}))
+                    cloud_current_count = len(self.quads_api.get_current_schedules({"cloud": cloud_obj.name}))
             if assignment_obj and cloud_current_count > 0 and cloud_obj:
                 owner = assignment_obj.owner
                 ticket = assignment_obj.ticket
@@ -216,3 +228,12 @@ class CloudOperations:
 
             vlans_list.append(columns)
         return vlans_list
+
+    async def upsert_user(self, google_profile: dict):
+        """
+        This method upserts a user
+        """
+        user = self.quads_api.get_user(google_profile["email"])
+        if not user:
+            user = self.quads_api.create_user(google_profile)
+        return user
