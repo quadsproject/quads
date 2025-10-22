@@ -31,13 +31,13 @@ In QUADS `1.1.4` and above we've implemented a metadata model in the QUADS datab
 
 First, install `lshw` on your target QUADS-managed host(s)
 
-```
+```bash
 dnf install lshw
 ```
 
 Next run `lshw` to capture all the hardware details of each remote host in JSON.
 
-```
+```bash
 lshw -json > $(hostname).json
 ```
 
@@ -45,7 +45,7 @@ Next, copy the JSON file(s) over to your QUADS host here: `quads:/opt/quads/lshw
 
 Now, back on your QUADS host use the `lshw2meta.py` tool to convert this data and import it directly into the QUADS database for each host.
 
-```
+```bash
 python3 /usr/lib/python3.12/site-packages/quads/tools/lshw2meta.py
 ```
 
@@ -56,12 +56,12 @@ python3 /usr/lib/python3.12/site-packages/quads/tools/lshw2meta.py
   * This assumes you have `lshw` installed as well on every remote host
 
 First, gather all of the JSON metadata from your remote QUADS-managed host(s):
-```
+```bash
 python3 /usr/lib/python3.12/site-packages/quads/tools/lshw.py
 ```
 
 Now import them all via `lshw2meta.py`
-```
+```bash
 python3 /usr/lib/python3.12/site-packages/quads/tools/lshw2meta.py
 ```
 
@@ -73,7 +73,7 @@ python3 /usr/lib/python3.12/site-packages/quads/tools/lshw2meta.py
   * We list some example model types of baremetal systems we use, you will also want to edit the `models:` value so it has any additional system models you might use in the [QUADS Conf](../conf/hosts_metadata.yml#L238)
   * To generate a YAML metadata file for importing QUADS-managed hosts you can use this command:
 
-```
+```bash
 for h in $(quads --ls-hosts) ; do echo "- name: $h" ; echo "  model: $(echo $h | awk -F. '{ print $1 }' | awk -F- '{ print $NF }' | tr a-z A-Z)" ; done > /tmp/hosts_metadata.yml
 ```
 
@@ -81,7 +81,7 @@ for h in $(quads --ls-hosts) ; do echo "- name: $h" ; echo "  model: $(echo $h |
 
   * To import host metadata from a file:
 
-```
+```bash
 quads --define-host-details --metadata /tmp/hosts_metadata.yml
 ```
 
@@ -109,13 +109,13 @@ The following host metadata components can be removed individually or in combina
 
   * Remove disk metadata from a specific host:
 
-```
+```bash
 quads --mod-host --host server01.example.com --rm-host-metadata disks
 ```
 
   * Remove multiple metadata components (gpus and interfaces):
 
-```
+```bash
 quads --mod-host --host server01.example.com --rm-host-metadata gpus,interfaces
 ```
 
@@ -125,7 +125,7 @@ quads --mod-host --host server01.example.com --rm-host-metadata gpus,interfaces
   * To export the same formatted YAML key/value pair metadata data source from your hosts use the `--export-host-details` command.
   * The file provided should be a new file, or overwrite an existing one and the path should be somewhere on the filesystem.
 
-```
+```bash
 quads --export-host-details /tmp/my_host_data.yml
 ```
 
@@ -184,106 +184,106 @@ quads --export-host-details /tmp/my_host_data.yml
 
   * Search for systems with disk type NVMe, with a size of 2TB or more and available between `2020-07-20 17:00` and `2020-07-22 13:00`
 
-```
+```bash
 quads --ls-available --schedule-start "2020-07-20 17:00" --schedule-end "2020-07-22 13:00" --filter "disks.disk_type==nvme,disks.size_gb>=2000"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/available?start=2020-07-20T17:00&end=2020-07-22T13:00&disks.disk_type=nvme&disks.size_gb__gte=2000
 ```
 
   * Search for systems with SATA disks available from `2020-07-20 17:00` until `2020-07-22 13:00`
 
-```
+```bash
 quads --ls-available --schedule-start "2020-07-20 17:00" --schedule-end "2020-07-22 13:00" --filter "disks.disk_type==sata"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/available?start=2020-07-20T17:00&end=2020-07-22T13:00&disks.disk_type=sata
 ```
 
   * Search for systems of model type `1029U-TRTP` available from `2020-07-20 17:00` until `2020-07-22 13:00`
 
-```
+```bash
 quads --ls-available --schedule-start "2020-07-20 17:00" --schedule-end "2020-07-22 13:00" --filter "model==1029U-TRTP"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/available?start=2020-07-20T17:00&end=2020-07-22T13:00&model=1029U-TRTP
 ```
 
   * Search for systems with **two NVMe** disks **and** disk size of **more than** 2TB, available from `2020-07-20 17:00` until `2020-07-22 13:00`
 
-```
+```bash
 quads --ls-available --schedule-start "2020-07-20 17:00" --schedule-end "2020-07-22 13:00" --filter "disks.disk_type==nvme,disks.count>2, disks.size_gb<2000"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/available?start=2020-07-20T17:00&end=2020-07-22T13:00&disks.disk_type=nvme&disks.count__gt=2&disks.size_gb__lt=2000
 ```
 
   * Search all systems by model and number of interfaces.
 
-```
+```bash
 quads --ls-hosts --filter "model==FC640,interfaces__size==5"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?model=FC640&interfaces__size=5
 ```
 
 #### Example GPU Filter Searches
   * List all systems with an Nvidia GPU
 
-```
+```bash
 quads --ls-hosts --filter "processors.vendor==NVIDIA Corporation"
 ```
 
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?processors.vendor=NVIDIA%20Corporation | jq
 ```
 
   * List all systems with an Nvidia Tesla T4 GPU
 
-```
+```bash
 quads --ls-hosts --filter "processors.product==TU104GL [Tesla T4]"
 ```
 
   * Via the API
 
-```
+```bash
 curl 'https://quads.example.com/api/v3/hosts?processors.product=TU104GL%20\[Tesla%20T4\]' | jq
 ```
 #### Example Self Service Searches
 
   * Query the self-service / self-scheduling capability of hosts
 
-```
+```bash
 quads --ls-hosts --filter "can_self_schedule==true"
 ```
 
   * Via the API
 
-```
+```bash
 curl -s http://quads.example.com/api/v3/hosts?can_self_schedule\=true | jq .[].name
 ```
 
   * Query self-service / self-scheduling hosts that are **available now.**
 
-```
+```bash
 quads --ls-available --filter "can_self_schedule==true"
 ```
 
   * Via the API
 
-```
+```bash
 curl -s http://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ```
 
@@ -292,36 +292,36 @@ curl -s http://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
   * Find a host by MAC Address.
   * This is useful for finding what host has what MAC Address.
 
-```
+```bash
 quads --ls-hosts --filter "interfaces.mac_address==ac:1f:6b:2d:19:48"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?interfaces.mac_address=ac:1f:6b:2d:19:48
 ```
 
   * Find hosts by switch IP address.
   * Shows all hosts connected to a particular switch
 
-```
+```bash
 quads --ls-host --filter "interfaces.switch_ip==10.1.34.216"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216
 ```
 
   * Find hosts by physical switchport
   * Shows all hosts that have a specific physical switchport name
 
-```
+```bash
 quads --ls-host --filter "interfaces.switch_port==et-0/0/7:1"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?interfaces.switch_port=et-0/0/7:1
 ```
 
@@ -330,12 +330,12 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_port=et-0/0/7:1
   * Like other filter strings you can combine elements together.
   * Example: Search for a host by physical switchport **and** switch IP address.
 
-```
+```bash
 quads --ls-hosts --filter "interfaces.switch_ip==10.1.34.216,interfaces.switch_port==et-0/0/7:1"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216&interfaces.switch_port=et-0/0/7:1
 ```
 
@@ -347,22 +347,35 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216&int
 
   * List all systems by retirement (decomission) status.
 
-```
+```bash
 quads --ls-hosts --filter "retired==True"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?retired=True
 ```
 
   * List retired hosts and filter by model
 
-```
+```bash
 quads --ls-hosts --filter "retired==True,model==1029P"
 ```
   * Via the API
 
-```
+```bash
 curl https://quads.example.com/api/v3/hosts?retired=True&model=1029P
 ```
+
+  * Find an available model type by partial match
+
+```bash
+curl https://quads.example.com/api/v3/available\?model__ilike\=r750xd% | jq
+```
+
+  * Get a list of available systems grouped by model
+
+```bash
+curl https://quads.example.com/api/v3/hosts\?group_by\=model | jq
+```
+
