@@ -2,7 +2,7 @@ import base64
 
 import pytest
 
-from quads.database import init_db
+from quads.server.database import init_db
 from quads.server.app import create_app, drop_all, populate, user_datastore
 from tests.config import *
 from tests.helpers import unwrap_json
