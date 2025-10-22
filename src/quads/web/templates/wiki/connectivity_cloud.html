@@ -11,8 +11,11 @@
                     <h3><strong>{{ cloud_name }} - Network Connectivity</strong></h3>
                     <p class="text-muted">Interactive network diagram showing hosts and switches for this cloud</p>
                 </div>
-                <a href="/connectivity/" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>
+                <a href="/connectivity/" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                        <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <polyline points="12,8 8,12 12,16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                     Back to Overview
                 </a>
             </div>
@@ -46,8 +49,11 @@
                 <div class="col-md-3">
                     <div class="card">
                         <div class="card-body text-center">
-                            <button id="export-btn" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-download me-1"></i>
+                            <button id="export-btn" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                                    <path d="M12 4 L12 16 M8 12 L12 16 L16 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 17 L5 20 L19 20 L19 17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                                 Export JSON
                             </button>
                         </div>
@@ -68,11 +74,19 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="layout-grid">Grid</button>
                             </div>
                             <div class="btn-group ms-auto" role="group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="fit-graph">
-                                    <i class="fas fa-expand-arrows-alt me-1"></i>Fit to Screen
+                                <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" id="fit-graph">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                                        <path d="M4 8 L4 4 L8 4 M16 4 L20 4 L20 8 M20 16 L20 20 L16 20 M8 20 L4 20 L4 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Fit to Screen
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-zoom">
-                                    <i class="fas fa-search-minus me-1"></i>Reset Zoom
+                                <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" id="reset-zoom">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+                                        <line x1="8" y1="11" x2="14" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <line x1="16" y1="16" x2="20" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Reset Zoom
                                 </button>
                             </div>
                         </div>
@@ -114,14 +128,23 @@
                 <div class="col-md-4">
                     <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-ethernet me-2"></i>
+                            <h5 class="mb-0 d-inline-flex align-items-center gap-2">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                                    <rect x="3" y="10" width="8" height="4" stroke="currentColor" stroke-width="2" fill="none"/>
+                                    <rect x="13" y="10" width="8" height="4" stroke="currentColor" stroke-width="2" fill="none"/>
+                                    <line x1="11" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="7" cy="12" r="1"/>
+                                    <circle cx="17" cy="12" r="1"/>
+                                </svg>
                                 Interface Details
                             </h5>
                         </div>
                         <div class="card-body" id="interface-details">
                             <div class="text-center text-muted p-4">
-                                <i class="fas fa-mouse-pointer fa-2x mb-3"></i>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="mb-3" style="display: block; margin: 0 auto;">
+                                    <path d="M3 3 L3 9 L9 3 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                    <path d="M12 8 L12 20 M8 16 L12 20 L16 16" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                                 <p>Click on a connection line to view interface details</p>
                             </div>
                         </div>
@@ -524,11 +547,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showNodeDetails(nodeData) {
         let details = '';
-        
+
         if (nodeData.type === 'host') {
             details = `
                 <div class="node-details">
-                    <h6><i class="fas fa-server me-2"></i>Host Details</h6>
+                    <h6 class="d-inline-flex align-items-center gap-2 mb-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                            <rect x="4" y="4" width="16" height="12" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+                            <circle cx="8" cy="8" r="1"/>
+                            <circle cx="12" cy="8" r="1"/>
+                            <rect x="4" y="16" width="16" height="4" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+                        </svg>
+                        Host Details
+                    </h6>
                     <p><strong>Name:</strong> ${nodeData.fullName}</p>
                     <p><strong>Model:</strong> ${nodeData.model || 'N/A'}</p>
                     <p><strong>Cloud:</strong> ${cloudName}</p>
@@ -538,32 +569,45 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (nodeData.type === 'switch') {
             details = `
                 <div class="node-details">
-                    <h6><i class="fas fa-network-wired me-2"></i>Switch Details</h6>
+                    <h6 class="d-inline-flex align-items-center gap-2 mb-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                            <rect x="2" y="8" width="20" height="8" stroke="currentColor" stroke-width="2" fill="none" rx="1"/>
+                            <circle cx="5" cy="12" r="1"/>
+                            <circle cx="9" cy="12" r="1"/>
+                            <circle cx="13" cy="12" r="1"/>
+                            <circle cx="17" cy="12" r="1"/>
+                            <line x1="5" y1="8" x2="5" y2="5" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="9" y1="16" x2="9" y2="19" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="13" y1="8" x2="13" y2="5" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="17" y1="16" x2="17" y2="19" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        Switch Details
+                    </h6>
                     <p><strong>IP Address:</strong> ${nodeData.switchIp}</p>
                     <p><strong>Connected to Cloud:</strong> ${cloudName}</p>
                 </div>
             `;
         }
-        
+
         // Create a temporary tooltip
         const tooltip = document.createElement('div');
         tooltip.className = 'node-tooltip position-fixed';
         tooltip.innerHTML = `
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="this.parentElement.remove()"></button>
             ${details}
-            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
         `;
-        
+
         // Remove any existing tooltips
         document.querySelectorAll('.node-tooltip').forEach(el => el.remove());
-        
+
         document.body.appendChild(tooltip);
-        
-        // Auto-remove after 6 seconds
+
+        // Auto-remove after 10 seconds
         setTimeout(() => {
             if (tooltip.parentNode) {
                 tooltip.remove();
             }
-        }, 6000);
+        }, 10000);
     }
     
     function showInterfaceDetails(edgeData) {
@@ -574,8 +618,14 @@ document.addEventListener('DOMContentLoaded', function() {
             interfacesList = edgeData.interfaces.map((iface, index) => `
                 <div class="interface-item ${index === 0 ? 'mt-0' : 'mt-3'}">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-1">
-                            <i class="fas fa-ethernet me-2"></i>
+                        <h6 class="mb-1 d-inline-flex align-items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                                <rect x="3" y="10" width="8" height="4" stroke="currentColor" stroke-width="2" fill="none"/>
+                                <rect x="13" y="10" width="8" height="4" stroke="currentColor" stroke-width="2" fill="none"/>
+                                <line x1="11" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="7" cy="12" r="1"/>
+                                <circle cx="17" cy="12" r="1"/>
+                            </svg>
                             ${iface.name}
                         </h6>
                         ${iface.pxe_boot ? '<span class="badge bg-success">PXE</span>' : ''}
@@ -595,22 +645,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         detailsPanel.innerHTML = `
             <div class="connection-header mb-3">
-                <h6 class="text-primary">
-                    <i class="fas fa-link me-2"></i>
-                    <a href="/host/${edgeData.hostName}">${edgeData.hostName}</a> ↔ ${edgeData.switchIp}
+                <h6 class="text-primary d-flex align-items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                        <circle cx="7" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="17" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <line x1="10" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span class="text-break" style="min-width: 0;">
+                        <a href="/host/${edgeData.hostName}" class="text-break">${edgeData.hostName}</a> ↔ ${edgeData.switchIp}
+                    </span>
                 </h6>
                 <small class="text-muted">
                     ${edgeData.interfaceCount} interface${edgeData.interfaceCount > 1 ? 's' : ''} connected
                 </small>
             </div>
-            
+
             <div class="interfaces-list">
                 ${interfacesList}
             </div>
-            
+
             <div class="mt-3 pt-3 border-top">
-                <button class="btn btn-sm btn-outline-secondary w-100" id="clear-details-btn">
-                    <i class="fas fa-times me-1"></i>
+                <button class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2" id="clear-details-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="flex-shrink-0">
+                        <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="6" y1="18" x2="18" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
                     Clear Details
                 </button>
             </div>
@@ -633,11 +692,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const detailsPanel = document.getElementById('interface-details');
         detailsPanel.innerHTML = `
             <div class="text-center text-muted p-4">
-                <i class="fas fa-mouse-pointer fa-2x mb-3"></i>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="mb-3" style="display: block; margin: 0 auto;">
+                    <path d="M3 3 L3 9 L9 3 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M12 8 L12 20 M8 16 L12 20 L16 16" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 <p>Click on a connection line to view interface details</p>
             </div>
         `;
-        
+
         // Remove highlighting
         if (cy) {
             cy.edges().removeClass('highlighted');
@@ -885,16 +947,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Node tooltip */
 .node-tooltip {
-    top: 20px;
+    top: 180px;  /* Aligned with Graph Controls row */
     right: 20px;
     z-index: 9999;
     max-width: 300px;
     border-radius: 8px;
     padding: 15px;
+    position: relative;  /* For positioning close button */
+    background-color: var(--bs-body-bg);
+    border: 2px solid var(--bs-primary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .node-details h6 {
     margin-bottom: 10px;
+    color: var(--bs-primary);
 }
 
 .node-details p {
