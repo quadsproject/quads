@@ -11,6 +11,11 @@ from quads.server.database import create_user, modify_user, remove_user, populat
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
+from quads.plugins.manager import PluginManager
+from quads.plugins.notifier_dispatcher import get_notification_dispatcher
+from quads.plugins.provisioner_dispatcher import get_provisioner_dispatcher
+from quads.plugins.switch_dispatcher import get_switch_dispatcher
+from quads.plugins.ticketing_dispatcher import get_ticketing_dispatcher
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -37,6 +42,18 @@ def create_app(test_config=None) -> Flask:
     else:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
+
+    # Initialize plugin system
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    flask_app.extensions["plugins"] = plugin_manager
+
+    # Initialize all dispatchers - they automatically pick up enabled plugins
+    # Core code calls these generic dispatchers without knowing which plugins are enabled
+    flask_app.extensions["notifications"] = get_notification_dispatcher(plugin_manager)
+    flask_app.extensions["provisioner"] = get_provisioner_dispatcher(plugin_manager)
+    flask_app.extensions["switch"] = get_switch_dispatcher(plugin_manager)
+    flask_app.extensions["ticketing"] = get_ticketing_dispatcher(plugin_manager)
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
