@@ -15,7 +15,9 @@ from quads.config import Config
 from quads.exceptions import CliException
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
-from quads.tools.external.badfish import BadfishException, badfish_factory
+from quads.plugins.dispatchers.hardware import HardwareDispatcher
+from quads.plugins.manager import PluginManager
+from quads.plugins_builtin.hardware.badfish import BadfishHardwarePlugin
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.postman import Postman
@@ -25,6 +27,10 @@ from quads.tools.external.switch import Switch
 
 logger = logging.getLogger(__name__)
 quads = QuadsApi(Config)
+
+# Initialize plugin manager and hardware dispatcher
+plugin_manager = PluginManager()
+hardware_dispatcher = HardwareDispatcher(plugin_manager)
 
 
 class Validator(object):  # pragma: no cover
@@ -128,56 +134,61 @@ class Validator(object):  # pragma: no cover
                         "Potential provisioning in process. SKIPPING." % host.name
                     )
                     continue
-                badfish = None
+
+                # Setup hardware for this specific host
                 try:
-                    badfish = await badfish_factory(
-                        "mgmt-" + host.name,
+                    hw_plugin = BadfishHardwarePlugin(
+                        host.name,
                         host.rack,
                         host.uloc,
                         host.blade,
-                        str(Config["ipmi_username"]),
-                        str(Config["ipmi_password"]),
                     )
+                    await hw_plugin.init()
+                    hardware_dispatcher._default_plugin = hw_plugin
+
                     if is_supported(host.name):
-                        await badfish.boot_to_type(
+                        await hardware_dispatcher.boot_to_type(
                             "foreman",
                             "/opt/quads/conf/idrac_interfaces.yml",
                         )
                     else:
-                        await badfish.set_next_boot_pxe()
-                    await badfish.reboot_server()
-                except BadfishException as ಥ﹏ಥ:
+                        await hardware_dispatcher.set_next_boot_pxe()
+                    await hardware_dispatcher.reboot_server()
+                except Exception as ಥ﹏ಥ:
                     logger.debug(ಥ﹏ಥ)
-                    if badfish:
+                    if hardware_dispatcher.has_plugins():
                         logger.warning(
                             f"There was something wrong trying to boot from Foreman interface for: {host.name}"
                         )
-                        await badfish.reboot_server()
+                        await hardware_dispatcher.reboot_server()
                     else:
-                        logger.error(f"Could not initiate Badfish instance for: {host.name}")
+                        logger.error(f"Could not initiate hardware for: {host.name}")
 
                 self.report += f"{host.name}\n"
             return False
 
-        tasks = [self.verify_badfish_creds(host, password) for host in self.hosts]
+        tasks = [self.verify_hardware_creds(host, password) for host in self.hosts]
         results = await asyncio.gather(*tasks)
 
         return not any(results)
 
     @staticmethod
-    async def verify_badfish_creds(host, password):
-        logger.debug(f"Verifying badfish credentials for: {host.name}")
+    async def verify_hardware_creds(host, password):
+        logger.debug(f"Verifying hardware credentials for: {host.name}")
         try:
-            await badfish_factory(
-                "mgmt-" + host.name,
+            # Create plugin with cloud credentials for verification
+            hardware = BadfishHardwarePlugin(
+                host.name,
                 host.rack,
                 host.uloc,
                 host.blade,
-                str(Config["ipmi_cloud_username"]),
-                password,
             )
-        except BadfishException:
-            logger.info(f"Could not verify badfish credentials for: {host.name}")
+            # Override with cloud username/password for verification
+            hardware.username = str(Config["ipmi_cloud_username"])
+            hardware.password = password
+            await hardware.init()
+        except Exception:
+            logger.info(f"Could not verify hardware credentials for: {host.name}")
             return True
         return False
 
