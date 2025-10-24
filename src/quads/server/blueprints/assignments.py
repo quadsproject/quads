@@ -2,8 +2,7 @@ import asyncio
 import re
 from datetime import datetime
 
-from flask import Blueprint, Response, jsonify, make_response, request, g
-from quads.tools.external.jira import Jira, JiraException
+from flask import Blueprint, Response, jsonify, make_response, request, g, current_app
 from sqlalchemy import inspect
 
 from quads.config import Config
@@ -330,17 +329,12 @@ def create_self_assignment() -> Response:
 
     create_jira_ticket = Config.get("ssm_jira_create_ticket", False)
     if create_jira_ticket:
-        loop = asyncio.new_event_loop()
-        try:
-            jira = Jira(
-                Config["jira_url"],
-                loop=loop,
-            )
-        except JiraException as ex:  # pragma: no cover
+        ticketing_dispatcher = current_app.extensions.get("ticketing")
+        if not ticketing_dispatcher:
             response = {
                 "status_code": 400,
                 "error": "Bad Request",
-                "message": f"Jira connection failed: {ex}",
+                "message": "Ticketing system not configured",
             }
             return make_response(jsonify(response), 400)
 
@@ -348,31 +342,34 @@ def create_self_assignment() -> Response:
         for key, value in kwargs.items():
             jira_description += f"{key}: {value} | "
 
+        loop = asyncio.new_event_loop()
         try:
-            response = loop.run_until_complete(
-                jira.create_ticket(
+            ticket_key = loop.run_until_complete(
+                ticketing_dispatcher.create_ticket(
                     summary=f"{full_description}",
                     description=jira_description,
                     labels=["SELF-SCHEDULED"],
                 )
             )
-        except JiraException as ex:
+        except Exception as ex:
             response = {
                 "status_code": 400,
                 "error": "Bad Request",
-                "message": f"Jira ticket creation failed: {ex}",
+                "message": f"Ticket creation failed: {ex}",
             }
             return make_response(jsonify(response), 400)
+        finally:
+            loop.close()
 
-        if not response:
+        if not ticket_key:
             response = {
                 "status_code": 400,
                 "error": "Bad Request",
-                "message": "Jira ticket creation failed",
+                "message": "Ticket creation failed",
             }
             return make_response(jsonify(response), 400)
 
-        ticket = response.get("key").split("-")[1]
+        ticket = ticket_key.split("-")[1]
         kwargs["ticket"] = ticket
     else:
         if not ticket:
