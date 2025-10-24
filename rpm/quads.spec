@@ -4,7 +4,7 @@
 #### spectool -g -R rpm/quads.spec
 ####
 #### At this point you can use rpmbuild -ba quads.spec
-#### (this is because our Source0 is a remote Github location
+#### this is because our Source0 is a remote Github location
 ####
 #### Our upstream repository is located here:
 #### https://copr.fedorainfracloud.org/coprs/quadsdev/QUADS
@@ -114,6 +114,7 @@ mkdir %{buildroot}/etc/nginx/conf.d/ -p
 mkdir %{buildroot}/etc/postfix/postfix-files.d/ -p
 mkdir %{buildroot}%{python3_sitelib}/quads/ -p
 mkdir %{buildroot}%{prefix}/migrations -p
+mkdir %{buildroot}%{prefix}/plugins -p
 tar cf - conf | ( cd %{buildroot}%{prefix} ; tar xvpBf - )
 cp -rf systemd/quads-server.service %{buildroot}/etc/systemd/system/
 cp -rf systemd/quads-web.service %{buildroot}/etc/systemd/system/
@@ -124,8 +125,10 @@ cp -rf container/etc/nginx/conf.d/apiv3.conf %{buildroot}/etc/nginx/conf.d/
 cp -rf container/etc/nginx/conf.d/apiv3_ssl.conf.example %{buildroot}/etc/nginx/conf.d/
 cp -rf container/etc/postfix/postfix-files.d/quads.cf %{buildroot}/etc/postfix/postfix-files.d/
 cp -rf migrations/* %{buildroot}%{prefix}/migrations/
+cp -rf conf/plugins.yml %{buildroot}%{prefix}/conf/
 echo 'export SQLALCHEMY_DATABASE_URI="postgresql://postgres:postgres@localhost:5432/quads"' > %{buildroot}/etc/profile.d/quads.sh
 echo 'eval "$(register-python-argcomplete quads)"' >> %{buildroot}/etc/profile.d/quads.sh
+
 %py3_install
 
 %clean
@@ -142,11 +145,13 @@ rm -rf %{buildroot}
 /opt/quads/conf/logrotate_quads.conf
 /opt/quads/conf/quads.cron.example
 /opt/quads/migrations/*
+%dir /opt/quads/plugins
 /usr/bin/quads
 %config(noreplace) /opt/quads/conf/quads.yml
 %config(noreplace) /opt/quads/conf/quadsweb.yml
 %config(noreplace) /opt/quads/conf/selfservice.yml
 %config(noreplace) /opt/quads/conf/vlans.yml
+%config(noreplace) /opt/quads/conf/plugins.yml
 %config(noreplace) /opt/quads/conf/hosts_metadata.yml
 %config(noreplace) /opt/quads/conf/idrac_interfaces.yml
 %config(noreplace) /etc/logrotate.d/logrotate_quads.conf
@@ -156,6 +161,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{python3_sitelib}/quads/templates/future_initial_message
 %config(noreplace) %{python3_sitelib}/quads/templates/future_message
 
+%exclude %{python3_sitelib}/quads/templates/*
 %{python3_sitelib}/quads/
 %{python3_sitelib}/quads-*.egg-info/
 
@@ -163,7 +169,8 @@ rm -rf %{buildroot}
 /usr/bin/mkdir -p /opt/quads/db/data/
 /usr/bin/mkdir -p /opt/quads/web/visual/
 /usr/bin/mkdir -p /opt/quads/web/instack/
-/usr/bin/mkdir -p /opt/quads/lshw
+/usr/bin/mkdir -p /opt/quads/lshw/
+/usr/bin/mkdir -p /opt/quads/plugins/
 /usr/bin/chown -R postgres:postgres /opt/quads/db/
 /usr/bin/chcon -Rt postgresql_db_t /opt/quads/db/data
 /usr/sbin/semanage port -a -t http_port_t -p tcp 5000 2>/dev/null
