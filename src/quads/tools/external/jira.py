@@ -5,8 +5,6 @@ import logging
 import urllib3
 from aiohttp import BasicAuth
 
-from quads.config import Config
-
 urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
@@ -17,12 +15,23 @@ class JiraException(Exception):
 
 
 class Jira(object):
-    def __init__(self, url, username=None, password=None, semaphore=None, loop=None):
-        logger.debug(":Initializing Jira object:")
+    def __init__(
+        self,
+        url,
+        username=None,
+        password=None,
+        token=None,
+        ticket_queue=None,
+        auth_type="basic",
+        semaphore=None,
+        loop=None,
+    ):
+        logger.debug(f"Initializing Jira object: {url}, {username}, {password}, {token}")
         self.url = url
         self.username = username
         self.password = password
-        self.ticket_queue = Config["ticket_queue"]
+        self.ticket_queue = ticket_queue
+        self.auth_type = auth_type
         if not loop:
             self.loop = asyncio.new_event_loop()
             self.new_loop = True
@@ -34,10 +43,8 @@ class Jira(object):
         else:
             self.semaphore = semaphore
 
-        jira_auth = Config.jira_auth
-        if jira_auth and jira_auth == "token":
-            token = Config.jira_token
-            if not token:
+        if self.auth_type == "token":
+            if not self.token:
                 raise JiraException(
                     "Jira authentication is set to BearerAuth but no "
                     "token has been defined on the configuration file"
@@ -141,7 +148,7 @@ class Jira(object):
         if labels:
             data["fields"].update({"labels": labels})
 
-        result, response = await self.post_request(endpoint, data)
+        _, response = await self.post_request(endpoint, data)
         return response
 
     async def create_subtask(self, parent_ticket, cloud, description, type_of_subtask):
@@ -160,7 +167,7 @@ class Jira(object):
                 "description": description,
             }
         }
-        result, response = await self.post_request(endpoint, data)
+        _, response = await self.post_request(endpoint, data)
         return response
 
     async def add_watcher(self, ticket, watcher):
@@ -168,7 +175,7 @@ class Jira(object):
         endpoint = "/issue/%s/watchers" % issue_id
         logger.debug("POST transition: {%s:%s}" % (issue_id, watcher))
         data = watcher
-        result, response = await self.post_request(endpoint, data)
+        result, _ = await self.post_request(endpoint, data)
         return result
 
     async def add_label(self, ticket, label):
@@ -182,14 +189,14 @@ class Jira(object):
         issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/comment" % issue_id
         payload = {"body": comment}
-        result, response = await self.post_request(endpoint, payload)
+        result, _ = await self.post_request(endpoint, payload)
         return result
 
     async def post_transition(self, ticket, transition):
         issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/transitions" % issue_id
         payload = {"transition": {"id": transition}}
-        result, response = await self.post_request(endpoint, payload)
+        result, _ = await self.post_request(endpoint, payload)
         return result
 
     async def get_transitions(self, ticket):
