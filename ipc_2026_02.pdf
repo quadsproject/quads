@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="El Instituto Nacional de Estadística y Censos de la República Argentina INDEC es el organismo que unifica y ejerce todas las actividades estadísticas oficiales">
+    <meta name="keywords" content="Indices,Indicadores Económicos,Producción estadística,Población,Condiciones de Vida,Trabajo e Ingresos,Educación,Salud, Turismo y Cultura,índices de Precios,Sector Agropecuario,Minería y Energía,Industria y Construcción, Comercio y Servicios, Empresas,Cuentas Nacionales,Cuentas Internacionales,Comercio Exterior,Pobreza,Nuevas Tecnologías de la Información y Comunicación">
+    <meta name="Author" content="INDEC, Instituto Nacional de Estadistica y Censos de la REPUBLICA ARGENTINA">
+    <meta name="google-site-verification" content="6DoD4D913F2dLFuodfWaUtxJVRX4ELNFKFMDrPxfiX8" />
+    <link rel="shortcut icon" type="image/svg" href="/Images_WEBINDEC/favicon-2026.svg" />
+
+    <title>INDEC: Instituto Nacional de Estadística y Censos de la República Argentina</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HRW645ZPYT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-HRW645ZPYT');
+    </script>
+
+    <link href="/Content/css?v=7e3gOmNLOXCsUDGNlKK4gj1KTL4dOtZWh2Yl3-B89tI1" rel="stylesheet"/>
+
+    <script src="/bundles/modernizr?v=inCVuEFe6J4Q07A0AcRsbJic_UE5MwpRMNGcOtk94TE1"></script>
+
+    <link rel="stylesheet" type="text/css" href="/Content/custom.css">
+
+    <link rel="stylesheet" type="text/css" href="/slick/slick.css">
+    <link rel="stylesheet" type="text/css" href="/slick/slick-theme.css">
+    <link rel="stylesheet" type="text/css" href="/Content/bootstrap-select.css">
+
+    <style>
+        input.buscador:focus {
+            border-color: #eef5fb !important;
+            box-shadow: 0 0 0 .2rem rgba(238,245,251,.6) !important; /* opcional (Bootstrap) */
+            outline: none !important; /* opcional */
+        }
+    </style>
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container" style="position:relative;">
+
+            <a class="navbar-brand pointer-on" onclick="navpage(this);" data-view="Portada"><img class="logo-indec" src="/Images_WEBINDEC_2026/Logo/home_header_logo.png" /></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="float-eng card-texto3"><a class="ahover pointer-on font-a" onclick="navpage(this);" data-view="Institucional/Indec/Transparencia">TRANSPARENCIA</a><span class="font-a" style="font-size:16px;"> | </span><a class="ahover pointer-on font-a" onclick="navpage(this);" data-view="Institucional/Indec/QuienesSomosEng">ENGLISH</a></div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent2">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <div class="contenedor-Redes-Nav">
+                            <a href="https://twitter.com/INDECargentina" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navT"></div></a>
+                            <a href="https://www.facebook.com/INDECArgentina" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navF"></div></a>
+                            <a href="https://www.youtube.com/c/INDECArgentina" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navY"></div></a>
+                            <a href="https://www.instagram.com/indecargentina/" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navI"></div></a>
+                            <a href="https://www.linkedin.com/company/indecargentina" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navL"></div></a>
+                            <a href="https://open.spotify.com/show/2OgsFaJvyneuCmCjptyJdk" class="mr-10px" target="_blank" rel="noopener noreferrer"><div class="redes-navS"></div></a>
+                        </div>
+                    </li>
+                    <li>
+
+                        <div class="input-group">
+                            <input type="text" class="form-control border-right-0 buscador" placeholder="Buscar" aria-label="Buscar" aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <div class="input-group-text bg-f1 pointer-on buscarDato" id="basic-addon2" onclick="navpageb(this);" data-view="Buscador/Buscador/1">
+                                    <img class="lupa" src="/Images_WEBINDEC_2026/home_searchbar_icon_magnifier.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container body-content">
+        <div class="row">
+            <div class="col-12">
+                <div style="position:relative;">
+                    <nav class="nav2 navbar-expand-lg container2 bg-menu navbar-dark">
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav w-100">
+
+                                <li class="nav-item dropdown position-static li-menu banner" id="estadisticas">
+                                    <div class="separatorTop-Res"></div>
+                                    <a class="nav-link noselect bold color-menu">ESTADÍSTICAS</a>
+                                    <div class="dropdown-menu dropdown-content w-100 border-0 mt-0 mb-0 mr-0 ml-0" aria-labelledby="download">
+
+                                        <div class="row">
+                                            <div class="col-lg-2">
+                                                <div class="row menu-borde">
+                                                    <div class="col-lg-12">
+                                                        <a class="titulo-menu menu-resp noselect">Población <span class="dropdown-toggle text-success"></span></a>
+                                                        <div class="separatorMin"></div>
+                                                    </div>
+                                                    <div class="col-lg-12 drop-hide drop-first" id="drop-poblacion">
+                                                        <div class="row">
+                                                            <div class="col-lg-12 drop-pad-left">
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/2/41">Censos</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/2/18">Estructura de la poblaci&#243;n</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/2/21">Grupos poblacionales</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/2/24">Proyecciones y estimaciones</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/2/42">Tablas de mortalidad</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <div class="row menu-borde">
+                                                    <div class="col-lg-12">
+                                                        <a class="titulo-menu menu-resp noselect">Sociedad <span class="dropdown-toggle text-success"></span></a>
+                                                        <div class="separatorMin"></div>
+                                                    </div>
+                                                    <div class="col-lg-12 drop-hide drop-first" id="drop-sociedad">
+                                                        <div class="row">
+                                                            <div class="col-lg-6 drop-pad-left">
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/43">Canastas</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/27">Condiciones de vida</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/28">Cultura</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/33">Educaci&#243;n</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/45">Gastos de los hogares</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/44">G&#233;nero</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/48">Indicadores sociales</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on" noselect onclick="navpage(this);" data-view="Nivel3/Tema/4/47">Necesidades b&#225;sicas insatisfechas</a>
+
+                                                            </div>
+                                                            <div class='col-lg-6 drop-pad-left'>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/4/46">Pobreza</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/4/32">Salud</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/4/34">Seguridad p&#250;blica</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/4/26">Tecnolog&#237;a</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/4/31">Trabajo e ingresos</a>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <div class="row menu-borde">
+                                                    <div class="col-lg-12">
+                                                        <a class="titulo-menu menu-resp noselect">Economía <span class="dropdown-toggle text-success"></span></a>
+                                                        <div class="separatorMin"></div>
+                                                    </div>
+                                                    <div class="col-lg-12 drop-hide drop-first" id="drop-economia">
+                                                        <div class="row">
+                                                            <div class="col-lg-6 drop-pad-left">
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/49">Censo econ&#243;mico</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/1">Comercio</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/2">Comercio exterior</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/3">Construcci&#243;n</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/35">Cuentas internacionales</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/9">Cuentas nacionales</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/4">Empresas</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/36">Energ&#237;a</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/6">Industria manufacturera</a>
+
+                                                            </div>
+                                                            <div class='col-lg-6 drop-pad-left'>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/7">Miner&#237;a </a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/50">Pesca</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/5">Precios</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/8">Sector agropecuario</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/10">Sector p&#250;blico</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/11">Servicios</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/12">Sistema financiero</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/52">Tendencia de negocios</a>
+                                                                            <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/3/13">Turismo</a>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <div class="row">
+                                                    <div class="col-lg-12">
+                                                        <a class="titulo-menu menu-resp noselect">Geoestadística <span class="dropdown-toggle text-success"></span></a>
+                                                        <div class="separatorMin "></div>
+                                                    </div>
+                                                    <div class="col-lg-12 drop-hide drop-first" id="drop-geografia">
+                                                        <div class="row">
+                                                            <div class="col-lg-12 drop-pad-left">
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/1/51">Ambiente</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/1/15">An&#225;lisis geoestad&#237;stico</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/1/16">Geoportal</a>
+                                                                    <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Nivel3/Tema/1/17">Unidades geoestad&#237;sticas</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="nav-item dropdown position-static li-menu banner" id="servicios">
+                                    <a class="nav-link noselect bold color-menu">SERVICIOS Y HERRAMIENTAS</a>
+                                    <div class="dropdown-menu dropdown-content dropdown-full border-0 mt-0 mb-0 mr-0 ml-0" aria-labelledby="download">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="row">
+                                                    <div class="col-lg-12">
+                                                        <div class="row">
+                                                            <div class="col-lg-12">
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/BasesDeDatos">Bases de datos</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Clasificadores">Clasificadores</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Metodologias">Metodologías</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Publicaciones">Publicaciones</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Alfabetizacion">Alfabetización estadística</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/VisualizacionesInteractivas">Visualizaciones interactivas</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Glosario">Glosario</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Indeccionario">INDECcionario</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/PreguntasFrecuentes">Preguntas frecuentes</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/BibliotecaEnLinea">Biblioteca en línea</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/InformacionDeArchivo">Estadísticas históricas</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item dropdown position-static li-menu banner" id="indec">
+                                    <a class="nav-link noselect bold color-menu">EL INDEC</a>
+                                    <div class="dropdown-menu dropdown-content dropdown-full2 border-0 mt-0 mb-0 mr-0 ml-0" aria-labelledby="download">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="row">
+                                                    <div class="col-lg-12">
+                                                        <div class="row">
+                                                            <div class="col-lg-12">
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/QuienesSomos">Quiénes somos</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Historia">Historia</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Organigrama">Organigrama</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Transparencia">Transparencia</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/OperacionesEstadisticas">Operaciones estadísticas</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/SistemaEstadistico">Sistema Estadístico</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Cooperacion">Cooperación</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Encuestadores">Verificación de encuestadores</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item dropdown position-static li-menu banner" id="comunicacion">
+                                    <a class="nav-link noselect bold color-menu">COMUNICACIÓN</a>
+                                    <div class="dropdown-menu dropdown-content dropdown-full3 border-0 mt-0 mb-0 mr-0 ml-0" aria-labelledby="download">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="row">
+                                                    <div class="col-lg-12">
+                                                        <div class="row">
+                                                            <div class="col-lg-12">
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Calendario/Fecha/0">Calendario de difusión</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Gacetillas">Gacetillas de prensa</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/InformesTecnicos">Informes técnicos</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Politicas">Política en redes sociales</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Multimedia">Multimedia</a>
+                                                                <a class="nav-drop padding-tb5 pointer-on noselect" onclick="navpage(this);" data-view="Institucional/Indec/Podcasts">Podcasts</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="nav-item li-menu">
+                                    
+                                    <a class="nav-link noselect bold color-menu" onclick="navpage(this);" data-view="Institucional/Indec/Contacto">CONTACTO</a>
+                                </li>
+                            </ul>
+                            <div id="hide-nav" class="mb-4">
+                                <div class="input-group mt-2 pb-3">
+                                    <input type="text" class="form-control border-right-0 buscadorIn2 h-30px" placeholder="Buscar" aria-label="Buscar" aria-describedby="basic-addon2">
+                                    <div class="input-group-append h-30px">
+                                        <div class="input-group-text bg-f1 pointer-on buscarDato" id="basic-addon2" onclick="navpageb(this);" data-view="Buscador/Buscador/1">
+                                            <img class="lupa" src="/Images_WEBINDEC/lupa.png" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+        
+<div id="ExtContent">
+    <div id="loadingDiv">
+        <div  id="ResultadosBusquedaCargando" class="hidden">Buscando resultados para <b>"<span></span>"</b></div>
+        <br /><br />
+        <div>
+            <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+        
+    </div>
+    <div id="content">
+
+    </div>
+</div>
+<div class="hidden">
+    <input type="text" id="VistaCarga" value="Error/Default" />
+</div>
+
+
+    </div>
+    <div class="scrollTop" onclick="scrollTopPage();"><img src="/Images_WEBINDEC/flechaarriba.png" class="flechaarriba" /></div>
+    <footer class="footer font-12">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-lg-3 mb-5">
+                    <h6>EL INDEC</h6>
+                    <div class="separatorDiv"></div>
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/QuienesSomos">Quiénes somos</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/Organigrama">Organigrama</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/OfertaLaboral">Oportunidades de trabajo</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/Contacto">Nos interesa tu opinión</a><br />
+                    <a class="item-footer" href="https://sdds.indec.gob.ar/nsdp.htm" target="_blank" rel="noopener noreferrer">Normas Especiales para la difusión de datos (SDDS)</a><br />
+                    <a class="item-footer" href="https://www.mercosur.int/" target="_blank" rel="noopener noreferrer">Reunión Especializada de Estadísticas del Mercosur</a><br />
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <h6>SERVICIOS Y HERRAMIENTAS</h6>
+                    <div class="separatorDiv"></div>
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/BasesDeDatos">Bases de datos</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/Metodologias">Metodologías</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/Publicaciones">Publicaciones</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/BibliotecaEnLinea">Biblioteca en línea</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/Indeccionario">INDECcionario</a><br />
+                    <a class="item-footer" href="javascript:void(0)" onclick="navpage(this);" data-view="Institucional/Indec/PreguntasFrecuentes">Preguntas frecuentes</a><br />
+                    <a class="item-footer" href="https://cna2018.indec.gob.ar/" target="_blank" rel="noopener noreferrer">Censo Nacional Agropecuario 2018</a><br />
+                </div>
+                <div class="col-md-6 col-lg-3 mb-5">
+                    <div class="lh-footer">
+                        <h6>&nbsp;</h6>
+                        <div class="separatorDiv-trans"></div>
+                        INDEC - Argentina<br />
+                        Av. Presidente Julio A. Roca 609. P.B. C1067ABB<br />
+                        Ciudad Autónoma de Buenos Aires, Argentina.<br />
+                        Consultas: (54-11) 5031-4632<br />
+                        &copy; 2026
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="redes-footer-contenedor">
+                        <a href="https://twitter.com/INDECargentina" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_X.png" /></a>
+                        <a href="https://www.facebook.com/INDECArgentina" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_FB.png" /></a>
+                        <a href="https://www.youtube.com/c/INDECArgentina" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_YT.png" /></a>
+                        <a href="https://www.instagram.com/indecargentina/" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_IG.png" /></a>
+                        <a href="https://www.linkedin.com/company/indecargentina" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_LI.png" /></a>
+                        <a href="https://open.spotify.com/show/2OgsFaJvyneuCmCjptyJdk" target="_blank" rel="noopener noreferrer"><img class="redes-footer" src="/Images_WEBINDEC_2026/Redes/home_rrss_icon_pos_SP.png" /></a>
+                    </div>
+                    <div class="separatorDiv-trans"></div>
+                    <button class="btn btn-sm btn-secondary footer-btn" onclick="navpage(this);" data-view="Institucional/Indec/Contacto">CONTACTO</button>
+                    <button class="btn btn-sm btn-secondary footer-btn" onclick="navpage(this);" data-view="Institucional/Indec/QuienesSomosEng">ENGLISH</button>
+                    <button class="btn btn-sm btn-secondary footer-btn" onclick="navpage(this);" data-view="Institucional/Indec/MapaSitio">MAPA DEL SITIO</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <link rel="stylesheet" type="text/css" href="/Content/sliderstyle.css">
+    <link rel="stylesheet" type="text/css" href="/Content/zabuto_calendar.css">
+    <script src="/Scripts/popper.min.js"></script>
+    <script src="/bundles/jquery?v=2u0aRenDpYxArEyILB59ETSCA2cfQkSMlxb6jbMBqf81"></script>
+
+    <script src="/bundles/bootstrap?v=ESck_wvaWCiF5JsitLMh765lhMnw7BVBtZE-YUTa4Ns1"></script>
+
+    <script src="/Scripts/CalendarioFull.js"></script>
+    <script src="/Scripts/single-page.js"></script>
+    <script src="/Scripts/slider.jquery.js"></script>
+    <script src="/Scripts/estaticas.js"></script>
+    <script src="/Scripts/calendario.js"></script>
+    <script src="/Scripts/zabuto_calendar.js"></script>
+    <script src="/Scripts/nivel4.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+
+
+
+
+    
+
+    <img src="https://tracker.metricool.com/c3po.jpg?hash=7fe380a3e6c0eac04bc0c4b06e3e67bc" />
+
+</body>
+</html>

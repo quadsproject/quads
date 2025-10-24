@@ -1,0 +1,93 @@
+plugins:
+  slack:
+    enabled: true
+    webhook_url: https://hooks.slack.com/...
+
+  gchat:
+    enabled: false
+    webhook_url: https://chat.example.com/v1/spaces/AAABBBCCC
+
+  irc:
+    enabled: false
+    server: irc.example.com
+    port: 6667
+    ssl: false
+    default_channel: "#quads"
+
+  # Cloud Providers - Provision from cloud when local bare metal is exhausted
+  aws_cloud:
+    enabled: false  # Enable when you want cloud overflow capacity
+    region: us-east-1
+    access_key: ${AWS_ACCESS_KEY_ID}
+    secret_key: ${AWS_SECRET_ACCESS_KEY}
+    default_ami: ami-0c55b159cbfafe1f0  # RHEL/CentOS AMI
+    subnet_id: subnet-xxxxx
+    security_group_ids:
+      - sg-xxxxx
+    key_name: quads-cloud-key
+    max_instances: 50  # Maximum cloud instances to allow
+
+  ibm_cloud:
+    enabled: false  # Enable when you want cloud overflow capacity
+    api_key: ${IBM_CLOUD_API_KEY}
+    region: us-south
+    vpc_id: r006-xxxxx
+    subnet_id: 0717-xxxxx
+    resource_group_id: xxxxx
+    ssh_key_id: r006-xxxxx
+    default_image_id: r006-xxxxx  # RHEL/CentOS image
+    default_profile: cx2-2x4
+    max_instances: 50
+
+  email:
+    enabled: true
+    smtp_host: mail.example.com
+    smtp_port: 25
+    from_address: quads@redhat.com
+    reply_to: dev-null@redhat.com
+    user_agent: Rufus Postman 2.2.6
+    report_cc: someuser@example.com, someuser@example.com, someuser@example.com, someuser@example.com
+
+  badfish:
+    enabled: true
+    ipmi_username: root
+    ipmi_password: password
+
+  foreman:
+    enabled: true
+    url: http://foreman.example.com/hosts/
+    api_url: https://foreman.example.com/api/v2
+    username: admin
+    password: ${FOREMAN_PASSWORD}
+    token: ${FOREMAN_TOKEN}
+    # more foreman settings for your OS, medium, partition table
+    default_os: "RHEL 7"
+    default_ptable: "generic-rhel7"
+    default_medium: "RHEL Local"
+    default_boot_order: "foreman"
+    # Foreman RBAC fix ignore
+    # variable to pass cloud names to be excluded from foreman_heal
+    # with values separated by pipes 'cloud32|cloud04' or singularly 'cloud02'
+    rbac_exclude:
+
+  standard:
+    enabled: true
+
+  juniper:
+    enabled: true  
+    username: scaleadmin
+
+  jira:
+    enabled: true
+    # takes 2 values only, basic or token, defaults to basic
+    # basic will make use of jira_username and jira_password
+    # token will make use of jira_token
+    auth_type: basic
+    url: https://issues.example.com/rest/api/2
+    username: ${JIRA_USERNAME}
+    password: ${JIRA_PASSWORD}
+    token: ${JIRA_TOKEN}
+    ticket_queue: SCALELAB
+
+  environment:
+    enabled: true
