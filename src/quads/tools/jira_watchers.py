@@ -10,7 +10,8 @@ from quads.config import Config
 from quads.quads_api import QuadsApi
 
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.postman import Postman
+from quads.plugins.dispatchers.email import get_email_dispatcher
+from quads.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
@@ -84,8 +85,17 @@ async def main(_loop):
                     }
                     content = template.render(**parameters)
                     subject = "Failed to add watchers from parent ticket ticket to the sub-task."
-                    postman = Postman(subject, submitter, "", content)
-                    postman.send_email()
+
+                    plugin_manager = PluginManager()
+                    plugin_manager.initialize()
+                    email_dispatcher = get_email_dispatcher(plugin_manager)
+                    recipient = "%s@%s" % (submitter, Config["domain"])
+                    await email_dispatcher.send_mail(
+                        subject=subject,
+                        content=content,
+                        recipients=[recipient],
+                        cc=[submitter],
+                    )
 
     return 0
 
