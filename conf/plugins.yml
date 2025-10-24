@@ -1,0 +1,49 @@
+plugins:
+  email_notifier:
+    enabled: true
+    smtp_host: mail.example.com
+    from_address: quads@example.com
+
+  slack_notifier:
+    enabled: true
+    webhook_url: https://hooks.slack.com/...
+
+  gchat_notifier:
+    enabled: false
+
+  jira_ticketing:
+    enabled: true
+    url: https://jira.example.com
+    auth_type: token
+    token: ${JIRA_TOKEN}
+
+  foreman_provisioner:
+    enabled: true
+    url: https://foreman.example.com
+    username: admin
+    password: ${FOREMAN_PASSWORD}
+
+  # Cloud Providers - Provision from cloud when local bare metal is exhausted
+  aws_cloud:
+    enabled: false  # Enable when you want cloud overflow capacity
+    region: us-east-1
+    access_key: ${AWS_ACCESS_KEY_ID}
+    secret_key: ${AWS_SECRET_ACCESS_KEY}
+    default_ami: ami-0c55b159cbfafe1f0  # RHEL/CentOS AMI
+    subnet_id: subnet-xxxxx
+    security_group_ids:
+      - sg-xxxxx
+    key_name: quads-cloud-key
+    max_instances: 50  # Maximum cloud instances to allow
+
+  ibm_cloud:
+    enabled: false  # Enable when you want cloud overflow capacity
+    api_key: ${IBM_CLOUD_API_KEY}
+    region: us-south
+    vpc_id: r006-xxxxx
+    subnet_id: 0717-xxxxx
+    resource_group_id: xxxxx
+    ssh_key_id: r006-xxxxx
+    default_image_id: r006-xxxxx  # RHEL/CentOS image
+    default_profile: cx2-2x4
+    max_instances: 50
