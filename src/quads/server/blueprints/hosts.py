@@ -4,12 +4,12 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from sqlalchemy import inspect
 
 from quads.config import Config
+from quads.plugins.dispatchers.provisioner import get_images
 from quads.server.blueprints import check_access
 from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
 from quads.server.models import Host, db
-from quads.tools.external.foreman import Foreman
 
 host_bp = Blueprint("hosts", __name__)
 
@@ -160,6 +160,7 @@ def create_host() -> Response:
     default_cloud = data.get("default_cloud")
     host_type = data.get("host_type")
     can_self_schedule = data.get("can_self_schedule")
+    overcloud = data.get("overcloud")
     rack = data.get("rack")
     uloc = data.get("uloc")
     blade = data.get("blade")
@@ -248,12 +249,13 @@ def create_host() -> Response:
         model=model.upper(),
         host_type=host_type,
         can_self_schedule=can_self_schedule,
-        default_cloud=_default_cloud,
-        cloud=_default_cloud,
+        overcloud=overcloud,
         rack=rack,
         uloc=uloc,
         blade=blade,
         bootmode=bootmode,
+        cloud=_default_cloud,
+        default_cloud=_default_cloud,
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()
@@ -282,10 +284,7 @@ def delete_host(hostname: str) -> Response:
 
 @host_bp.route("/os_list", methods=["GET"])
 def get_list_os() -> Response:
-    foreman = Foreman(
-        url=Config["foreman_api_url"], username=Config["foreman_username"], password=Config["foreman_password"]
-    )
-    available_os_list = asyncio.run(foreman.get_available_os())
+    available_os_list = asyncio.run(get_images())
     headers = ["Id", "Title", "Release Name", "Family"]
     formatted_output = [
         {header: available_os[header.lower().replace(" ", "_")] for header in headers}
