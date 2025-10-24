@@ -10,7 +10,8 @@ from jinja2 import Template
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.postman import Postman
+from src.quads.plugins.dispatchers.email import get_email_dispatcher
+from src.quads.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -82,14 +83,17 @@ def send_message(args, owner, ccuser, ticket, description, cloud_name):
         ticket=ticket,
         cloud_name=cloud_name,
     )
-    postman = Postman(
-        "INFO: [%s] %s" % (cloud_name, args.subject),
-        owner,
-        cc_users,
-        content,
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    email_dispatcher = get_email_dispatcher(plugin_manager)
+    recipient = "%s@%s" % (owner, Config["domain"])
+    email_dispatcher.send_mail_sync(
+        subject="INFO: [%s] %s" % (cloud_name, args.subject),
+        content=content,
+        recipients=[recipient],
+        cc=cc_users,
     )
-    result = postman.send_email()
-    return result
+    return True
 
 
 def determine_action(args):
