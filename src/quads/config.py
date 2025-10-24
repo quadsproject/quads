@@ -11,6 +11,7 @@ _QUADS_CONF_DIR = os.environ.get("QUADS_CONF_DIR", "/opt/quads/conf")
 DEFAULT_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quads.yml")
 WEB_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quadsweb.yml")
 SS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "selfservice.yml")
+PLUGINS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "plugins.yml")
 
 
 class _ConfigBase:
@@ -19,6 +20,7 @@ class _ConfigBase:
         self.load_from_yaml(DEFAULT_CONF_PATH)
         self.load_from_yaml(WEB_CONF_PATH)
         self.load_from_yaml(SS_CONF_PATH)
+        self.load_from_yaml(PLUGINS_CONF_PATH)
 
     def load_from_yaml(self, filepath: str = DEFAULT_CONF_PATH):
         """
@@ -137,7 +139,14 @@ class _Config(_ConfigBase):
     ]
 
     OFFSETS = {"em1": 0, "em2": 1, "em3": 2, "em4": 3, "em5": 4}
-    TEMPLATES_PATH = os.path.join(os.path.dirname(__file__), "templates")
+    TEMPLATES_PATH = os.environ.get(
+        "QUADS_TEMPLATES_PATH",
+        (
+            "/opt/quads/templates"
+            if os.path.isdir("/opt/quads/templates")
+            else os.path.join(os.path.dirname(__file__), "templates")
+        ),
+    )
     INTERFACES = {
         "em1": ["172.16", "172.21"],
         "em2": ["172.17", "172.22"],
@@ -155,3 +164,4 @@ if __name__ == "__main__":
         Config.load_from_yaml(DEFAULT_CONF_PATH)
         Config.load_from_yaml(WEB_CONF_PATH)
         Config.load_from_yaml(SS_CONF_PATH)
+        Config.load_from_yaml(PLUGINS_CONF_PATH)

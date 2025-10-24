@@ -61,7 +61,9 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   - Relocate configuration files to the correct location
     ```bash
     mkdir -p /opt/quads/conf
+    mkdir -p /opt/quads/templates
     cp -r conf/* /opt/quads/conf/
+    cp -r src/quads/templates/* /opt/quads/templates/
     ```
 
 ### Pre-commit Hooks
@@ -121,11 +123,15 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   - After all steps on the [Running QUADS Locally](#Running-QUADS-Locally) section have been completed, you can run the tests.
   - To run the full suite of tests, you can use the `tox` command
     ```bash
-    SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/quads tox
+    tox
     ```
   - To run a specific test environment, you can use the `-e` flag
     ```bash
-    SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/quads tox -e py312
+    tox -e py313
+    ```
+  - If you made changes that you want to see applied on the tox environment use `-r` to recreate the environment with the code amendments
+    ```bash
+    tox -r
     ```
 
 ## Create a Tracking Issue

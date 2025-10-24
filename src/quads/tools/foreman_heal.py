@@ -25,14 +25,14 @@ def rbac(_logger=None):
     loop = get_or_create_event_loop()
 
     foreman_admin = Foreman(
-        Config["foreman_api_url"],
-        Config["foreman_username"],
-        Config["foreman_password"],
+        Config.plugins["foreman"]["api_url"],
+        Config.plugins["foreman"]["username"],
+        Config.plugins["foreman"]["password"],
     )
 
     ignore = [Config["spare_pool_name"]]
-    if Config.foreman_rbac_exclude:  # pragma: no cover
-        ignore.extend(Config.foreman_rbac_exclude.split("|"))
+    if Config.plugins["foreman"]["rbac_exclude"]:  # pragma: no cover
+        ignore.extend(Config.plugins["foreman"]["rbac_exclude"].split("|"))
     clouds = quads.get_clouds()
     for cloud in clouds:
         ass = quads.get_active_cloud_assignment(cloud.name)
@@ -41,7 +41,7 @@ def rbac(_logger=None):
             loop.run_until_complete(foreman_admin.update_user_password(cloud.name, infra_pass))
 
             foreman_cloud_user = Foreman(
-                Config["foreman_api_url"],
+                Config.plugins["foreman"]["api_url"],
                 cloud.name,
                 infra_pass,
             )
@@ -52,7 +52,7 @@ def rbac(_logger=None):
                 cloud_hosts = loop.run_until_complete(foreman_cloud_user.get_all_hosts())
 
                 user_id = loop.run_until_complete(foreman_admin.get_user_id(cloud.name))
-                admin_id = loop.run_until_complete(foreman_admin.get_user_id(Config["foreman_username"]))
+                admin_id = loop.run_until_complete(foreman_admin.get_user_id(Config.plugins["foreman"]["username"]))
 
                 current_schedule = quads.get_current_schedules({"cloud": cloud.name})
                 if current_schedule:
