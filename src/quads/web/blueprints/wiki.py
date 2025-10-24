@@ -210,6 +210,7 @@ async def rack(rack):
                     assignment = quads.get_active_cloud_assignment(host.cloud.name)
                     assignments_cache[host.cloud.name] = assignment
                 owner = assignment.owner if assignment else "QUADS"
+                # TODO: Get the host details from the QUADS API
                 host_details.append(
                     {
                         "U": host.uloc,
