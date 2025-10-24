@@ -29,6 +29,8 @@ from quads.tools.move_and_rebuild import move_and_rebuild
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
 from quads.tools.validate_env import main as validate_env
+from src.quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher
+from src.quads.plugins.manager import PluginManager
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -1800,36 +1802,19 @@ class QuadsCli:
                             ) as ex:  # pragma: no cover
                                 raise CliException(str(ex))
                         try:
-                            if self.cli_args.get("movecommand") == default_move_command:
-                                fn = functools.partial(move_and_rebuild, host, new, semaphore, wipe)
-                                tasks.append(fn)
-                                omits = conf.get("omit_network_move")
-                                omit = False
-                                if omits:
-                                    omits = omits.split(",")
-                                    omit = [omit for omit in omits if omit in host or omit == new]
-                                if not omit:
-                                    switch_tasks.append(functools.partial(Switch().configure, host, current, new))
-                            else:
-                                if wipe:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                        ]
-                                    )
-                                else:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                            "nowipe",
-                                        ]
-                                    )
+                            plugin_manager = PluginManager()
+                            release_dispatcher = get_release_dispatcher(plugin_manager)
+                            switch_dispatcher = get_switch_dispatcher(plugin_manager)
+                            fn = functools.partial(release_dispatcher.move_and_rebuild, host, new, semaphore, wipe)
+                            tasks.append(fn)
+                            omits = conf.get("omit_network_move")
+                            omit = False
+                            if omits:
+                                omits = omits.split(",")
+                                omit = [omit for omit in omits if omit in host or omit == new]
+                            if not omit:
+                                switch_tasks.append(functools.partial(switch_dispatcher.configure, host, current, new))
+
                         except Exception as ex:
                             self.logger.debug(ex)
                             self.logger.exception("Move command failed for host: %s" % host)
