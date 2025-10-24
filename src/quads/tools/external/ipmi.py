@@ -11,8 +11,8 @@ class IPMI:
     def __init__(
         self,
         host: str,
-        username: str = Config["ipmi_username"],
-        password: str = Config["ipmi_password"],
+        username: str,
+        password: str,
         logger: Optional[logging.Logger] = None,
     ) -> None:
         self.host: str = host
@@ -42,7 +42,7 @@ class IPMI:
         cmd = ipmi_cmd + arguments
         async with self.semaphore:
             process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
-            stdout, stderr = await process.communicate()
+            stdout, _ = await process.communicate()
             self.logger.debug(f"{stdout.decode().strip()}")
 
     async def reset(self) -> None:  # pragma: no cover
