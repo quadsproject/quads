@@ -4,6 +4,8 @@ QUADS
 
 QUADS automates the future scheduling, end-to-end provisioning and delivery of bare-metal servers and networks.
 
+QUADS also provides a robust, RESTful API that enables end-to-end self service delivery and a [Python client library](https://github.com/quadsproject/python-quads-lib)
+
 * Visit the [QUADS development blog](https://quads.dev)
 * Please read our [contributing guide](/CONTRIBUTING.md) and use [Gerrit Review](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) to submit patches.
 * Find us on `#quads` on `irc.libera.chat` [IRC web chat](https://web.libera.chat/?channels=#quads)
@@ -111,6 +113,9 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
          * [Validate Only a Specific Cloud](#validate-only-a-specific-cloud)
          * [Mapping Internal VLAN Interfaces to Problem Hosts](#mapping-internal-vlan-interfaces-to-problem-hosts)
          * [Dealing with the Postgres Database](#dealing-with-the-postgres-database)
+            * [Connecting to the Postgres Database](#connecting-to-the-postgres-database)
+            * [Basic Investigation for Validation](#basic-investigation-for-validation)
+            * [Forcing Hosts to Move Clouds](#forcing-hosts-to-move-clouds)
             * [Cleaning up Orphaned Active Assignments](#cleaning-up-orphaned-active-assignments)
                * [Finding Orphaned Assignments](#finding-orphaned-assignments)
                * [Removing Orphaned Active Assignments](#removing-orphaned-active-assignments)
@@ -1626,6 +1631,10 @@ This mapping feeds into our [VLAN network validation code](/src/quads/tools/vali
 * Below is a working example of manually setting the `validated` flag at the cloud level to force `--validate-env` to process it.
 * Doing this is rare if at all needed but keeping this here for reference and posterity.
 
+> [!WARNING]
+> Before making changes to your database make sure you [have a backup](#backing-up-quads)
+
+#### Connecting to the Postgres Database
   - Connect to postgres
 ```bash
 sudo -u postgres psql
@@ -1635,6 +1644,7 @@ sudo -u postgres psql
 postgres=# \c quads;
 You are now connected to database "quads" as user "postgres".
 ```
+#### Basic Investigation for Validation
   - Find the ID of your problem environment
 ```sql
 quads=# select * from clouds where name = 'cloud17';
@@ -1674,6 +1684,30 @@ quads=# select * from assignments where cloud_id = 18;
 (1 row)
 ```
   - Now your new assignment should get proper attention from `quads --validate-env`
+
+#### Forcing Hosts to Move Clouds
+* Scenario:  You have two hosts that have recently been retired and removed but they never got a chance to move back to the default cloud or spare pool according to QUADS e.g. `cloud01` or `cloud_id: 1`.  Their out-of-band interfaces are unreachable so QUADS will never complete their move so it will continue to try over and over again.
+* Solution: Enter the database and manually set the `cloud_id` for each host to `cloud_id: 1`
+
+  - First determine the destination `cloud_id` is correct:
+
+```sql
+quads=# select * from clouds where name = 'cloud01';
+```
+```
+ id |  name   |       last_redefined
+----+---------+----------------------------
+  1 | cloud01 | 2024-08-14 14:14:26.940415
+(1 row)
+```
+
+  - Next, set the `cloud_id: 1` for each problem host.
+
+```sql
+quads=# update hosts set cloud_id=1 where name = 'e22-h24-b04-fc640.rdu2.example.com';
+quads=# update hosts set cloud_id=1 where name = 'e22-h24-b02-fc640.rdu2.example.com';
+```
+  - Now you should see that `quads --move-hosts --dry-run` has nothing to do!
 
 #### Cleaning up Orphaned Active Assignments
 Sometimes failed attempts to use the self-scheduling API and workflows may result in orphaned, active assignments with no host schedules associated with it.
@@ -1718,8 +1752,9 @@ quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EX
 To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
 ```bash
 echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
-```
- 15 | user1@example.com
+
+Above, we get the return here of `15 | user1@example.com`
+
 ```
 Notice the `id` value of `15` for the user to delete.  First delete the `roles_users` entry:
 ```bash
@@ -1735,7 +1770,15 @@ echo "delete from users where email like 'user1%';" | sudo -u postgres psql -d q
 Besides Github we're also on IRC via `irc.libera.chat`.  You can [click here](https://web.libera.chat/?channels=#quads) to join in your browser.
 
 ## QUADS Talks and Media
-[![Skynet your Infrastructure with QUADS @ EuroPython 2017](http://img.youtube.com/vi/9e1ZhtBliHc/0.jpg)](https://www.youtube.com/watch?v=9e1ZhtBliHc "Skynet your Infrastructure with QUADS")
+> [!NOTE]
+> Any media or talks prior to 2021 are quite outdated and do not reflect the move to Postgres/Flask/Jinja and QUADS 2.x
+>
+> Any media or talks prior to 2025 do not reflect our excellent [self-scheduling API](/docs/quads-self-schedule.md)
+
+   - [What's this QUADS Thing? 2024-12](https://quads.dev/wp-content/uploads/2024/12/whats_this_quads_thing_-2024-12.pdf)
+
+   - [Skynet your Infrastructure with QUADS @ DevOps Pro Moscow 2018 Slides](https://hobosource.files.wordpress.com/2017/11/quads_devopspro_moscow_wfoster_2017-11-16.pdf)
 
    - [Skynet your Infrastructure with QUADS @ Europython 2017 Slides](https://hobosource.files.wordpress.com/2016/11/skynet_quads_europython_2017_wfoster.pdf)
-   - [Skynet your Infrastructure with QUADS @ DevOps Pro Moscow 2018 Slides](https://hobosource.files.wordpress.com/2017/11/quads_devopspro_moscow_wfoster_2017-11-16.pdf)
+
+[![Skynet your Infrastructure with QUADS @ EuroPython 2017](http://img.youtube.com/vi/9e1ZhtBliHc/0.jpg)](https://www.youtube.com/watch?v=9e1ZhtBliHc "Skynet your Infrastructure with QUADS")
