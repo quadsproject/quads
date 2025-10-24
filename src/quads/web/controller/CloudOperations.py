@@ -3,13 +3,13 @@ from datetime import datetime
 
 from quads.config import Config
 from quads.quads_api import APIBadRequest, APIServerException
+from quads.plugins.dispatchers.provisioner import get_all_hosts
 
 
 class CloudOperations:
 
-    def __init__(self, quads_api, foreman):
+    def __init__(self, quads_api):
         self.__quads_api = quads_api
-        self.__foreman = foreman
 
     async def __get_cloud_summary(self) -> list:
         """
@@ -25,7 +25,7 @@ class CloudOperations:
         """
         This method returns all hosts
         """
-        all_hosts = await self.__foreman.get_all_hosts()
+        all_hosts = await get_all_hosts()
         return all_hosts
 
     async def get_managed_nodes(self, cloud):

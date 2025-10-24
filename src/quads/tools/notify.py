@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import os
-import requests
 
 from datetime import datetime, timedelta
 from enum import Enum
@@ -10,8 +9,9 @@ from enum import Enum
 from jinja2 import Template
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
-from quads.tools.external.netcat import Netcat
-from quads.tools.external.postman import Postman
+from quads.plugins.manager import PluginManager
+from quads.plugins.dispatchers.email import get_email_dispatcher
+from quads.plugins.dispatchers.chat import get_chat_dispatcher
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -31,10 +31,6 @@ class Days(Enum):
 
 async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_self_schedule=False):
     template_file = "initial_message"
-    irc_bot_ip = Config["ircbot_ipaddr"]
-    irc_bot_port = Config["ircbot_port"]
-    irc_bot_channel = Config["ircbot_channel"]
-    webhook_url = Config["webhook_url"]
     infra_location = Config["infra_location"]
     cc_users = [_cc_user.strip() for _cc_user in Config["report_cc"].split(",")]
     for user in cc:
@@ -53,47 +49,31 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_s
             is_self_schedule=is_self_schedule,
         )
 
-        postman = Postman(
-            "New QUADS Assignment Allocated - %s %s" % (cloud, ticket),
-            real_owner,
-            cc_users,
-            content,
+        plugin_manager = PluginManager()
+        plugin_manager.initialize()
+        email_dispatcher = get_email_dispatcher(plugin_manager)
+        recipient = "%s@%s" % (real_owner, Config["domain"])
+        await email_dispatcher.send_mail(
+            subject="New QUADS Assignment Allocated - %s %s" % (cloud, ticket),
+            content=content,
+            recipients=[recipient],
+            cc=cc_users,
         )
-        postman.send_email()
 
-    if Config["irc_notify"]:
-        try:
-            async with Netcat(irc_bot_ip, irc_bot_port) as nc:
-                message = "%s QUADS: %s is now active, choo choo! - %s/assignments/#%s -  %s %s" % (
-                    irc_bot_channel,
-                    cloud_info,
-                    Config["quads_url"],
-                    cloud,
-                    real_owner,
-                    Config["report_cc"],
-                )
-                await nc.write(bytes(message.encode("utf-8")))
-        except (TypeError, BrokenPipeError) as ex:  # pragma: no cover
-            logger.debug(ex)
-            logger.error("Beep boop netcat can't communicate with your IRC.")
+    message = "QUADS: %s is now active, choo choo! - %s/assignments/#%s -  %s %s" % (
+        cloud_info,
+        Config["quads_url"],
+        cloud,
+        real_owner,
+        Config["report_cc"],
+    )
 
-    if Config["webhook_notify"]:
-        try:
-            message = "QUADS: %s is now active, choo choo! - %s/assignments/#%s -  %s %s" % (
-                cloud_info,
-                Config["quads_url"],
-                cloud,
-                real_owner,
-                Config["report_cc"],
-            )
-            requests.post(
-                webhook_url,
-                json={"text": message},
-                headers={"Content-Type": "application/json"},
-            )
-        except Exception as ex:  # pragma: no cover
-            logger.debug(ex)
-            logger.error("Beep boop we can't communicate with your webhook.")
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    chat_dispatcher = get_chat_dispatcher(plugin_manager)
+    await chat_dispatcher.send_message(
+        message=message,
+    )
 
 
 def create_message(
@@ -124,13 +104,17 @@ def create_message(
         cloud=cloud,
         hosts=host_list_expire,
     )
-    postman = Postman(
-        "QUADS upcoming expiration for %s - %s" % (cloud, ticket),
-        real_owner,
-        cc_users,
-        content,
+
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    email_dispatcher = get_email_dispatcher(plugin_manager)
+    recipient = "%s@%s" % (real_owner, Config["domain"])
+    email_dispatcher.send_mail_sync(
+        subject="QUADS upcoming expiration for %s - %s" % (cloud, ticket),
+        content=content,
+        recipients=[recipient],
+        cc=cc_users,
     )
-    postman.send_email()
 
 
 def create_future_initial_message(cloud, assignment_obj, cloud_info):
@@ -146,13 +130,17 @@ def create_future_initial_message(cloud, assignment_obj, cloud_info):
         quads_url=Config["quads_url"],
         is_self_schedule=assignment_obj.is_self_schedule,
     )
-    postman = Postman(
-        "New QUADS Assignment Defined for the Future: %s - %s" % (cloud, ticket),
-        assignment_obj.owner,
-        cc_users,
-        content,
+
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    email_dispatcher = get_email_dispatcher(plugin_manager)
+    recipient = "%s@%s" % (assignment_obj.owner, Config["domain"])
+    email_dispatcher.send_mail_sync(
+        subject="New QUADS Assignment Defined for the Future: %s - %s" % (cloud, ticket),
+        content=content,
+        recipients=[recipient],
+        cc=cc_users,
     )
-    postman.send_email()
 
 
 def create_future_message(
@@ -176,13 +164,17 @@ def create_future_message(
         cloud=cloud,
         hosts=host_list_expire,
     )
-    postman = Postman(
-        "QUADS upcoming assignment notification - %s - %s" % (cloud, ticket),
-        assignment_obj.owner,
-        cc_users,
-        content,
+
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    email_dispatcher = get_email_dispatcher(plugin_manager)
+    recipient = "%s@%s" % (assignment_obj.owner, Config["domain"])
+    email_dispatcher.send_mail_sync(
+        subject="QUADS upcoming assignment notification - %s - %s" % (cloud, ticket),
+        content=content,
+        recipients=[recipient],
+        cc=cc_users,
     )
-    postman.send_email()
 
 
 def main(_logger=None):

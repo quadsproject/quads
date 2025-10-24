@@ -141,7 +141,7 @@ class Jira(object):
         if labels:
             data["fields"].update({"labels": labels})
 
-        result, response = await self.post_request(endpoint, data)
+        _, response = await self.post_request(endpoint, data)
         return response
 
     async def create_subtask(self, parent_ticket, cloud, description, type_of_subtask):
@@ -160,7 +160,7 @@ class Jira(object):
                 "description": description,
             }
         }
-        result, response = await self.post_request(endpoint, data)
+        _, response = await self.post_request(endpoint, data)
         return response
 
     async def add_watcher(self, ticket, watcher):
@@ -168,7 +168,7 @@ class Jira(object):
         endpoint = "/issue/%s/watchers" % issue_id
         logger.debug("POST transition: {%s:%s}" % (issue_id, watcher))
         data = watcher
-        result, response = await self.post_request(endpoint, data)
+        result, _ = await self.post_request(endpoint, data)
         return result
 
     async def add_label(self, ticket, label):
@@ -182,14 +182,14 @@ class Jira(object):
         issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/comment" % issue_id
         payload = {"body": comment}
-        result, response = await self.post_request(endpoint, payload)
+        result, _ = await self.post_request(endpoint, payload)
         return result
 
     async def post_transition(self, ticket, transition):
         issue_id = "%s-%s" % (self.ticket_queue, ticket)
         endpoint = "/issue/%s/transitions" % issue_id
         payload = {"transition": {"id": transition}}
-        result, response = await self.post_request(endpoint, payload)
+        result, _ = await self.post_request(endpoint, payload)
         return result
 
     async def get_transitions(self, ticket):

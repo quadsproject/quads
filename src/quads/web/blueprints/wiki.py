@@ -7,9 +7,9 @@ from flask import Blueprint, flash, redirect, url_for, render_template, request,
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
 from quads.quads_api import QuadsApi, APIBadRequest, APIServerException
-from quads.tools.external.foreman import Foreman
 from quads.config import Config
 from quads.web.controller.CloudOperations import CloudOperations
+from quads.plugins.dispatchers.provisioner import get_host
 
 wiki_bp = Blueprint(
     "wiki",
@@ -18,12 +18,7 @@ wiki_bp = Blueprint(
 )
 
 quads = QuadsApi(Config)
-foreman = Foreman(
-    Config["foreman_api_url"],
-    Config["foreman_username"],
-    Config["foreman_password"],
-)
-cloud_operation = CloudOperations(quads_api=quads, foreman=foreman)
+cloud_operation = CloudOperations(quads_api=quads)
 
 
 @wiki_bp.route("/", methods=["GET", "POST"])
@@ -198,7 +193,7 @@ async def rack(rack):
 
     for host in hosts:
         foreman_host = {}
-        response = await foreman.get_host(host.name)
+        response = await get_host(host.name)
         if not response:
             error_occurred = True
         foreman_host = response.get(host.name, foreman_host)
@@ -210,6 +205,7 @@ async def rack(rack):
                     assignment = quads.get_active_cloud_assignment(host.cloud.name)
                     assignments_cache[host.cloud.name] = assignment
                 owner = assignment.owner if assignment else "QUADS"
+                # TODO: Get the host details from the QUADS API
                 host_details.append(
                     {
                         "U": host.uloc,

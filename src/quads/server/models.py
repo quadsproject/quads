@@ -538,6 +538,7 @@ class Host(Serialize, TimestampMixin, Base):
     retired = Column(Boolean, default=False)
     last_build = Column(DateTime)
     can_self_schedule = Column(Boolean, default=True)
+    overcloud = Column(Boolean, default=False)
     rack = Column(String)
     uloc = Column(String)
     blade = Column(String)
