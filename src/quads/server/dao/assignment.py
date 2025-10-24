@@ -42,9 +42,9 @@ class AssignmentDao(BaseDao):
             "boot_order": boot_order,
         }
         if not ostype:
-            kwargs["ostype"] = Config.get("foreman_default_os")
+            kwargs["ostype"] = Config.plugins["foreman"]["default_os"]
         if not boot_order:
-            kwargs["boot_order"] = Config.get("foreman_default_boot_order")
+            kwargs["boot_order"] = Config.plugins["foreman"]["default_boot_order"]
         if vlan_id:
             vlan = VlanDao.get_vlan(vlan_id)
             if vlan:
