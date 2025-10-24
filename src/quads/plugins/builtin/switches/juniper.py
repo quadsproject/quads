@@ -1,13 +1,12 @@
 import logging
 import sys
 
-from quads.config import DEFAULT_CONF_PATH, Config
-from quads.helpers.utils import get_vlan
-from quads.quads_api import QuadsApi
-from quads.tools.external.juniper import Juniper
-from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
-
-quads = QuadsApi(Config)
+from src.quads.helpers.utils import get_vlan
+from src.quads.plugins.interfaces.switch import SwitchPlugin
+from src.quads.config import DEFAULT_CONF_PATH, Config
+from src.quads.quads_api import QuadsApi
+from src.quads.tools.external.juniper import Juniper
+from src.quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -15,14 +14,16 @@ logger.propagate = False
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-class Switch:
-    def __init__(self):
-        self.logger = logger
+class JuniperSwitchPlugin(SwitchPlugin):
+    """Juniper switch plugin"""
 
-    def configure(self, host: str, old_cloud: str, new_cloud: str):  # pragma: no cover
-        _host_obj = quads.get_host(host)
-        _old_ass_cloud_obj = quads.get_active_cloud_assignment(old_cloud)
-        _new_ass_cloud_obj = quads.get_active_cloud_assignment(new_cloud)
+    def __init__(self):
+        self.quads = QuadsApi(Config)
+
+    def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
+        _host_obj = self.quads.get_host(host)
+        _old_ass_cloud_obj = self.quads.get_active_cloud_assignment(old_cloud)
+        _new_ass_cloud_obj = self.quads.get_active_cloud_assignment(new_cloud)
         if not _host_obj.interfaces:
             self.logger.error("Host has no interfaces defined.")
             return False
@@ -107,7 +108,7 @@ class Switch:
 
     def modify(self, host, change=False, nic1=None, nic2=None, nic3=None, nic4=None, nic5=None):  # pragma: no cover
         _nics = {"em1": nic1, "em2": nic2, "em3": nic3, "em4": nic4, "em5": nic5}
-        _host_obj = quads.get_host(host)
+        _host_obj = self.quads.get_host(host)
         if not _host_obj:
             self.logger.error("Hostname not found.")
             return
@@ -115,7 +116,7 @@ class Switch:
         self.logger.info(f"Host: {_host_obj.name}")
         if _host_obj.interfaces:
             interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
-            for i, interface in enumerate(interfaces):
+            for _, interface in enumerate(interfaces):
                 vlan = _nics.get(interface.name)
                 if vlan:
                     ssh_helper = SSHHelper(interface.switch_ip, Config["junos_username"])
@@ -182,25 +183,24 @@ class Switch:
     def verify(self, host=None, cloud=None, change=False):  # pragma: no cover
         Config.load_from_yaml(DEFAULT_CONF_PATH)
 
-        quads = QuadsApi(config=Config)
         if not cloud and not host:
             self.logger.warning("At least one of --cloud or --host should be specified.")
             return
 
         _cloud_obj = None
         if cloud:
-            _cloud = quads.get_cloud(cloud)
+            _cloud = self.quads.get_cloud(cloud)
             if not _cloud:
                 self.logger.error("Cloud not found.")
                 return
 
         if host:
-            hosts = quads.filter_hosts({"name": host, "retired": False})
+            hosts = self.quads.filter_hosts({"name": host, "retired": False})
             if not hosts:
                 self.logger.error("Host not found.")
                 return
         else:
-            hosts = quads.filter_hosts({"cloud": cloud, "retired": False})
+            hosts = self.quads.filter_hosts({"cloud": cloud, "retired": False})
             if not hosts:
                 self.logger.error("No hosts found on cloud.")
                 return
@@ -216,7 +216,7 @@ class Switch:
             self.logger.warning(f"However, {first_host.name} is a member of {first_host.cloud.name}")
             self.logger.warning("!!!!! Be certain this is what you want to do. !!!!!")
 
-        _assignment = quads.get_active_cloud_assignment(_cloud_obj.name)
+        _assignment = self.quads.get_active_cloud_assignment(_cloud_obj.name)
 
         for _host_obj in hosts:
             self.logger.info(f"Host: {_host_obj.name}")
@@ -303,14 +303,14 @@ class Switch:
                                 self.logger.error(f"There was something wrong updating switch for {interface.name}")
 
     def ls_config(self, cloud, all=False):
-        _assignment = quads.get_active_cloud_assignment(cloud)
+        _assignment = self.quads.get_active_cloud_assignment(cloud)
 
         if not _assignment:
             self.logger.error("Cloud not found.")
             return
         self.logger.info(f"Cloud qinq: {_assignment.qinq}")
 
-        hosts = quads.filter_hosts({"cloud": cloud})
+        hosts = self.quads.filter_hosts({"cloud": cloud})
         if not all:
             hosts = [hosts[0]]
 
