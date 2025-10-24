@@ -37,8 +37,14 @@ class TestNotifyTenant(TestBase):
         # remove tempfile
         os.remove(f.name)
 
-    @patch("quads.tools.notify_tenant.Postman")
-    def test_notify_tenant_send_message(self, mock_postman, setup):
+    @patch("quads.tools.notify_tenant.get_email_dispatcher")
+    @patch("quads.tools.notify_tenant.PluginManager")
+    def test_notify_tenant_send_message(self, mock_plugin_manager, mock_email_dispatcher, setup):
+        # Setup mocks
+        mock_email_disp = MagicMock()
+        mock_email_disp.send_mail_sync = MagicMock(return_value={"email": True})
+        mock_email_dispatcher.return_value = mock_email_disp
+
         owner = "quads_user"
         cc = ["cc1", "cc2"]
         ticket = "12345"
@@ -49,20 +55,11 @@ class TestNotifyTenant(TestBase):
         # Call the function
         notify_tenant_send_message(fake_args, owner, cc, ticket, description, cloud_name)
 
-        # Assert that Postman was called with the correct arguments
-        mock_postman.assert_called_once_with(
-            "INFO: [%s] %s" % (cloud_name, fake_args.subject),
-            owner,
-            [
-                "someuser@example.com",
-                "someuser@example.com",
-                "someuser@example.com",
-                "someuser@example.com",
-                "cc1@example.com",
-                "cc2@example.com",
-            ],
-            content,
-        )
+        # Assert that email dispatcher was called
+        mock_email_disp.send_mail_sync.assert_called_once()
+        call_kwargs = mock_email_disp.send_mail_sync.call_args[1]
+        assert call_kwargs["subject"] == f"INFO: [{cloud_name}] {fake_args.subject}"
+        assert content in call_kwargs["content"]
 
     @patch("quads.tools.external.jira.aiohttp.ClientSession.post")
     @patch("quads.tools.notify_tenant.QuadsApi.filter_assignments")

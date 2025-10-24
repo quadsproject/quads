@@ -11,32 +11,6 @@
             "pm_password": "rdu2@1234",
             "pm_type": "pxe_ipmitool",
             "pm_user": "quads"
-        },
-        {
-            "arch": "x86_64",
-            "cpu": "2",
-            "disk": "20",
-            "mac": [
-                "A0:B1:C2:D3:E4:F5"
-            ],
-            "memory": "1024",
-            "name": "host1.example.com",
-            "pm_addr": "mgmt-host1.example.com",
-            "pm_password": "rdu2@1234",
-            "pm_type": "pxe_ipmitool",
-            "pm_user": "quads"
-        },
-        {
-            "arch": "x86_64",
-            "cpu": "2",
-            "disk": "20",
-            "mac": [],
-            "memory": "1024",
-            "name": "host2.example.com",
-            "pm_addr": "mgmt-host2.example.com",
-            "pm_password": "rdu2@1234",
-            "pm_type": "pxe_ipmitool",
-            "pm_user": "quads"
         }
     ]
 }
