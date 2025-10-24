@@ -1,28 +1,34 @@
-import logging
-import sys
-
-from quads.config import DEFAULT_CONF_PATH, Config
+from typing import Optional
 from quads.helpers.utils import get_vlan
+from quads.plugins.interfaces.switch import SwitchPlugin
+from quads.config import DEFAULT_CONF_PATH, Config
 from quads.quads_api import QuadsApi
 from quads.tools.external.juniper import Juniper
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
-
-quads = QuadsApi(Config)
-
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.propagate = False
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+from quads.plugins.manager import PluginManager
 
 
-class Switch:
-    def __init__(self):
-        self.logger = logger
+class JuniperSwitchPlugin(SwitchPlugin):
+    """
+    Juniper switch plugin implementing SwitchPlugin interface.
 
-    def configure(self, host: str, old_cloud: str, new_cloud: str):  # pragma: no cover
-        _host_obj = quads.get_host(host)
-        _old_ass_cloud_obj = quads.get_active_cloud_assignment(old_cloud)
-        _new_ass_cloud_obj = quads.get_active_cloud_assignment(new_cloud)
+    Manages switch configuration and management.
+    """
+
+    name = "juniper"
+    version = "1.0.0"
+    description = "Juniper switch plugin"
+    author = "QUADS Team"
+
+    def initialize(self, plugin_manager: Optional[PluginManager] = None):
+        self.quads = QuadsApi(Config)
+        self.username = self.config.get("username")
+        return True
+
+    def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
+        _host_obj = self.quads.get_host(host)
+        _old_ass_cloud_obj = self.quads.get_active_cloud_assignment(old_cloud)
+        _new_ass_cloud_obj = self.quads.get_active_cloud_assignment(new_cloud)
         if not _host_obj.interfaces:
             self.logger.error("Host has no interfaces defined.")
             return False
@@ -35,7 +41,7 @@ class Switch:
             if not switch_ip:
                 switch_ip = interface.switch_ip
                 try:
-                    ssh_helper = SSHHelper(switch_ip, Config["junos_username"])
+                    ssh_helper = SSHHelper(switch_ip, self.username)
                 except SSHHelperException:
                     self.logger.error(f"Failed to connect to switch: {switch_ip}")
                     return False
@@ -43,7 +49,7 @@ class Switch:
                 if switch_ip != interface.switch_ip:
                     ssh_helper.disconnect()
                     switch_ip = interface.switch_ip
-                    ssh_helper = SSHHelper(switch_ip, Config["junos_username"])
+                    ssh_helper = SSHHelper(switch_ip, self.username)
             result, old_vlan_out = ssh_helper.run_cmd("show configuration interfaces %s" % interface.switch_port)
             old_vlan = None
             if result and old_vlan_out:
@@ -107,7 +113,7 @@ class Switch:
 
     def modify(self, host, change=False, nic1=None, nic2=None, nic3=None, nic4=None, nic5=None):  # pragma: no cover
         _nics = {"em1": nic1, "em2": nic2, "em3": nic3, "em4": nic4, "em5": nic5}
-        _host_obj = quads.get_host(host)
+        _host_obj = self.quads.get_host(host)
         if not _host_obj:
             self.logger.error("Hostname not found.")
             return
@@ -115,10 +121,10 @@ class Switch:
         self.logger.info(f"Host: {_host_obj.name}")
         if _host_obj.interfaces:
             interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
-            for i, interface in enumerate(interfaces):
+            for _, interface in enumerate(interfaces):
                 vlan = _nics.get(interface.name)
                 if vlan:
-                    ssh_helper = SSHHelper(interface.switch_ip, Config["junos_username"])
+                    ssh_helper = SSHHelper(interface.switch_ip, self.username)
 
                     try:
                         _, old_vlan_out = ssh_helper.run_cmd(
@@ -182,25 +188,24 @@ class Switch:
     def verify(self, host=None, cloud=None, change=False):  # pragma: no cover
         Config.load_from_yaml(DEFAULT_CONF_PATH)
 
-        quads = QuadsApi(config=Config)
         if not cloud and not host:
             self.logger.warning("At least one of --cloud or --host should be specified.")
             return
 
         _cloud_obj = None
         if cloud:
-            _cloud = quads.get_cloud(cloud)
+            _cloud = self.quads.get_cloud(cloud)
             if not _cloud:
                 self.logger.error("Cloud not found.")
                 return
 
         if host:
-            hosts = quads.filter_hosts({"name": host, "retired": False})
+            hosts = self.quads.filter_hosts({"name": host, "retired": False})
             if not hosts:
                 self.logger.error("Host not found.")
                 return
         else:
-            hosts = quads.filter_hosts({"cloud": cloud, "retired": False})
+            hosts = self.quads.filter_hosts({"cloud": cloud, "retired": False})
             if not hosts:
                 self.logger.error("No hosts found on cloud.")
                 return
@@ -216,14 +221,14 @@ class Switch:
             self.logger.warning(f"However, {first_host.name} is a member of {first_host.cloud.name}")
             self.logger.warning("!!!!! Be certain this is what you want to do. !!!!!")
 
-        _assignment = quads.get_active_cloud_assignment(_cloud_obj.name)
+        _assignment = self.quads.get_active_cloud_assignment(_cloud_obj.name)
 
         for _host_obj in hosts:
             self.logger.info(f"Host: {_host_obj.name}")
             if _host_obj.interfaces:
                 interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
                 for i, interface in enumerate(interfaces):
-                    ssh_helper = SSHHelper(interface.switch_ip, Config["junos_username"])
+                    ssh_helper = SSHHelper(interface.switch_ip, self.username)
                     last_nic = i == len(_host_obj.interfaces) - 1
                     vlan = get_vlan(_assignment, i, last_nic)
 
@@ -303,14 +308,14 @@ class Switch:
                                 self.logger.error(f"There was something wrong updating switch for {interface.name}")
 
     def ls_config(self, cloud, all=False):
-        _assignment = quads.get_active_cloud_assignment(cloud)
+        _assignment = self.quads.get_active_cloud_assignment(cloud)
 
         if not _assignment:
             self.logger.error("Cloud not found.")
             return
         self.logger.info(f"Cloud qinq: {_assignment.qinq}")
 
-        hosts = quads.filter_hosts({"cloud": cloud})
+        hosts = self.quads.filter_hosts({"cloud": cloud})
         if not all:
             hosts = [hosts[0]]
 
@@ -321,7 +326,7 @@ class Switch:
                 interfaces = sorted(host.interfaces, key=lambda k: k.name)
 
                 for i, interface in enumerate(interfaces):
-                    ssh_helper = SSHHelper(interface.switch_ip, Config["junos_username"])
+                    ssh_helper = SSHHelper(interface.switch_ip, self.username)
                     try:
                         if interface == interfaces[-1]:
                             _, vlan_member_out = ssh_helper.run_cmd(
