@@ -7,7 +7,9 @@ from typing import Any, Dict, Optional
 from quads.config import Config
 from quads.helpers.utils import is_supported
 from quads.quads_api import QuadsApi
-from quads.tools.external.badfish import BadfishException, badfish_factory
+from quads.plugins.dispatchers.hardware import HardwareDispatcher
+from quads.plugins.manager import PluginManager
+from quads.plugins_builtin.hardware.badfish import BadfishHardwarePlugin
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.ipmi import IPMI
 
@@ -21,22 +23,27 @@ DEFAULT_HOST_UPDATE_DATA = {
     "switch_config_applied": False,
 }
 
+# Initialize plugin manager and hardware dispatcher
+plugin_manager = PluginManager()
+hardware_dispatcher = HardwareDispatcher(plugin_manager)
 
-async def setup_and_initialize_badfish(host: str, rack: str, uloc: str, blade: str) -> Optional[Any]:
-    """Initialize Badfish instance for a host."""
+
+async def setup_hardware_for_host(host: str, rack: str, uloc: str, blade: str) -> bool:
+    """
+    Setup hardware management for a specific host.
+    This initializes the hardware plugin with host-specific parameters.
+    """
     try:
-        return await badfish_factory(
-            f"mgmt-{host}",
-            rack,
-            uloc,
-            blade,
-            Config["ipmi_username"],
-            Config["ipmi_password"],
-            propagate=True,
-        )
-    except BadfishException as e:
-        logger.error(f"Could not initialize Badfish for mgmt-{host}: {e}")
-        return None
+        # For now, we need to create a host-specific plugin instance
+        # since hardware operations are per-host
+        hardware_plugin = BadfishHardwarePlugin(host, rack, uloc, blade)
+        await hardware_plugin.init()
+        # Store in dispatcher for this host context
+        hardware_dispatcher._default_plugin = hardware_plugin
+        return True
+    except Exception as e:
+        logger.error(f"Could not initialize hardware for {host}: {e}")
+        return False
 
 
 async def prepare_foreman_rebuild(host: str, new_cloud: str, os_type: str, semaphore: asyncio.Semaphore) -> bool:
@@ -124,33 +131,28 @@ async def move_and_rebuild(
     ipmi = IPMI(host, Config["ipmi_username"], Config["ipmi_password"], logger=logger)
     await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
 
-    badfish = None
+    hardware_initialized = False
     if rebuild and target_cloud.name != host_obj.default_cloud.name:
         if Config.pdu_management:
             # TODO: pdu management
             pass
 
-        # Initialize Badfish
-        badfish = await setup_and_initialize_badfish(host, host_obj.rack, host_obj.uloc, host_obj.blade)
-        if not badfish:
+        # Initialize hardware via dispatcher
+        if not await setup_hardware_for_host(host, host_obj.rack, host_obj.uloc, host_obj.blade):
             logger.debug(f"Updating host: {host}")
             _update_host_on_failure(host_obj)
             return False
+        hardware_initialized = True
 
         if is_supported(host) and boot_order != Config.get("foreman_default_boot_order"):
-            try:
-                result = await badfish.change_boot(boot_order, Config.get("badfish_interfaces_path"))
-                if result:
-                    # wait 10 minutes for the boot order job to complete
-                    await asyncio.sleep(600)
-            except BadfishException:
-                logger.error(f"Could not set boot order via Badfish for mgmt-{host}.")
+            if not await hardware_dispatcher.change_boot(boot_order, Config.get("badfish_interfaces_path")):
+                logger.error(f"Could not set boot order for {host}.")
                 _update_host_on_failure(host_obj)
                 return False
+            # wait 10 minutes for the boot order job to complete
+            await asyncio.sleep(600)
 
-        try:
-            await badfish.set_power_state("on")
-        except BadfishException:
+        if not await hardware_dispatcher.set_power_state("on"):
             logger.error(f"Failed to power on {host}")
             _update_host_on_failure(host_obj)
             return False
@@ -164,31 +166,23 @@ async def move_and_rebuild(
             _update_host_on_failure(host_obj)
             return False
 
-        try:
-            await badfish.unmount_virtual_media()
-        except BadfishException:
-            logger.warning(f"Could not unmount virtual media for mgmt-{host}.")
+        if not await hardware_dispatcher.unmount_virtual_media():
+            logger.warning(f"Could not unmount virtual media for {host}.")
 
-        try:
-            await badfish.detach_remote_image()
-        except BadfishException:
-            logger.warning(f"Could not detach remote image for mgmt-{host}.")
+        if not await hardware_dispatcher.detach_remote_image():
+            logger.warning(f"Could not detach remote image for {host}.")
 
         if is_supported(host):
             if boot_order != Config.get("foreman_default_boot_order"):
-                try:
-                    await badfish.boot_to_type(
-                        Config.get("foreman_default_boot_order"),
-                        Config.get("badfish_interfaces_path"),
-                    )
-                except BadfishException:
-                    logger.error(f"Error setting PXE boot via Badfish on {host}.")
+                if not await hardware_dispatcher.boot_to_type(
+                    Config.get("foreman_default_boot_order"),
+                    Config.get("badfish_interfaces_path"),
+                ):
+                    logger.error(f"Error setting PXE boot on {host}.")
                     _update_host_on_failure(host_obj)
                     return False
-            try:
-                await badfish.reboot_server(graceful=False)
-            except BadfishException:
-                logger.error("Error rebooting server: {host}")
+            if not await hardware_dispatcher.reboot_server(graceful=False):
+                logger.error(f"Error rebooting server: {host}")
                 _update_host_on_failure(host_obj)
                 return False
         else:
@@ -199,16 +193,13 @@ async def move_and_rebuild(
                 logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
 
     if target_cloud.name == host_obj.default_cloud.name:
-        if not badfish:
-            badfish = await setup_and_initialize_badfish(host, host_obj.rack, host_obj.uloc, host_obj.blade)
-            if not badfish:
+        if not hardware_initialized:
+            if not await setup_hardware_for_host(host, host_obj.rack, host_obj.uloc, host_obj.blade):
                 _update_host_on_failure(host_obj)
                 return False
 
-        try:
-            await badfish.set_power_state("off")
-        except BadfishException as e:
-            logger.error(f"Failed to power off {host}: {e}")
+        if not await hardware_dispatcher.set_power_state("off"):
+            logger.error(f"Failed to power off {host}")
             _update_host_on_failure(host_obj)
             return False
 
