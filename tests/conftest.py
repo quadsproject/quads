@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from quads.server.database import init_db
-from quads.server.app import create_app, drop_all, populate, user_datastore
-from tests.config import *
-from tests.helpers import unwrap_json
-
 # Use repo conf for tests (must set before any quads imports)
 os.environ.setdefault("QUADS_CONF_DIR", str(Path(__file__).resolve().parent.parent / "conf"))
+
+from quads.server.database import init_db  # noqa: E402
+from quads.server.app import create_app, drop_all, populate, user_datastore  # noqa: E402
+from tests.config import *  # noqa: E402
+from tests.helpers import unwrap_json  # noqa: E402
 
 
 @pytest.fixture(scope="module")

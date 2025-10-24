@@ -2,7 +2,6 @@ import asyncio
 import functools
 import logging
 import os
-import subprocess
 from collections import defaultdict
 from datetime import datetime, timedelta
 from json import JSONDecodeError
@@ -23,16 +22,14 @@ from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
-from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.switch import Switch
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
-from quads.tools.move_and_rebuild import move_and_rebuild
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
-from quads.tools.validate_env import main as validate_env
-from quads.tools.helpers import get_or_create_event_loop
+from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher
+from quads.plugins.manager import PluginManager
+from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -280,8 +277,9 @@ class QuadsCli:
         _cloud = self.cli_args.get("cloud")
         _all = self.cli_args.get("all")
 
-        switch = Switch()
-        switch.ls_config(_cloud, _all)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.ls_config(_cloud, _all))
 
     def action_mod_switch_conf(self):
         _host = self.cli_args.get("host")
@@ -292,16 +290,18 @@ class QuadsCli:
         _nic4 = self.cli_args.get("nic4")
         _nic5 = self.cli_args.get("nic5")
 
-        switch = Switch()
-        switch.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5))
 
     def action_verify_switch_conf(self):
         _host = self.cli_args.get("host")
         _cloud = self.cli_args.get("cloud")
         _change = self.cli_args.get("change")
 
-        switch = Switch()
-        switch.verify(_host, _cloud, _change)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
 
     def _call_api_action(self, action: str):
         try:
@@ -918,20 +918,19 @@ class QuadsCli:
                 raise CliException(f"Could not parse os {os_type}, please check available os --os-list.")
 
         if not data.get("ostype"):
-            data["ostype"] = conf["foreman_default_os"]
+            data["ostype"] = conf.plugins["foreman"]["default_os"]
 
         if self.cli_args.get("boot_order"):
             boot_order = self.cli_args.get("boot_order")
             interfaces_path = conf.get("badfish_interfaces_path")
-            loop = get_or_create_event_loop()
-            host_types = loop.run_until_complete(Badfish.get_host_types_from_yaml(interfaces_path))
+            host_types = get_host_types_from_yaml(interfaces_path)
             if boot_order in host_types:
                 data["boot_order"] = boot_order
             else:
                 raise CliException(f"Could not parse boot order {boot_order}, available boot orders: {host_types}")
 
         if not data.get("boot_order"):
-            data["boot_order"] = conf["foreman_default_boot_order"]
+            data["boot_order"] = conf.plugins["foreman"]["default_boot_order"]
 
         cloud_reservation_lock = int(conf["cloud_reservation_lock"])
         try:
@@ -1835,36 +1834,20 @@ class QuadsCli:
                             ) as ex:  # pragma: no cover
                                 raise CliException(str(ex))
                         try:
-                            if self.cli_args.get("movecommand") == default_move_command:
-                                fn = functools.partial(move_and_rebuild, host, new, semaphore, wipe)
-                                tasks.append(fn)
-                                omits = conf.get("omit_network_move")
-                                omit = False
-                                if omits:
-                                    omits = omits.split(",")
-                                    omit = [omit for omit in omits if omit in host or omit == new]
-                                if not omit:
-                                    switch_tasks.append(functools.partial(Switch().configure, host, current, new))
-                            else:
-                                if wipe:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                        ]
-                                    )
-                                else:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                            "nowipe",
-                                        ]
-                                    )
+                            plugin_manager = PluginManager()
+                            plugin_manager.initialize()
+                            release_dispatcher = get_release_dispatcher(plugin_manager)
+                            switch_dispatcher = get_switch_dispatcher(plugin_manager)
+                            fn = functools.partial(release_dispatcher.move_and_rebuild, host, new, semaphore, wipe)
+                            tasks.append(fn)
+                            omits = conf.get("omit_network_move")
+                            omit = False
+                            if omits:
+                                omits = omits.split(",")
+                                omit = [omit for omit in omits if omit in host or omit == new]
+                            if not omit:
+                                switch_tasks.append(functools.partial(switch_dispatcher.configure, host, current, new))
+
                         except Exception as ex:
                             self.logger.debug(ex)
                             self.logger.exception("Move command failed for host: %s" % host)
@@ -2160,16 +2143,65 @@ class QuadsCli:
         self.logger.info("Notifications sent out.")
 
     def action_validate_env(self):
-        _args = {
-            "cloud": self.cli_args.get("cloud"),
-            "skip_system": self.cli_args.get("skip_system"),
-            "skip_network": self.cli_args.get("skip_network"),
-            "skip_hosts": self.cli_args.get("skip_hosts"),
-        }
         _loop = get_or_create_event_loop()
 
-        _loop.run_until_complete(validate_env(_args, self.logger))
+        _loop.run_until_complete(self._run_validation())
         self.logger.info("Quads assignments validation executed.")
+
+    async def _run_validation(self):
+        plugin_manager = PluginManager()
+        plugin_manager.initialize()
+        validator_dispatcher = get_validator_dispatcher(plugin_manager)
+
+        # Update provisioned flags for assignments where all hosts are validated
+        _filter = {"active": True, "validated": False, "provisioned": False, "cloud__ne": "cloud01"}
+        assignments = self.quads.filter_assignments(_filter)
+        for _ass in assignments:
+            provisioned = True
+            _schedules = self.quads.get_current_schedules(data={"cloud": _ass.cloud.name})
+            for _schedule in _schedules:
+                if not _schedule.host.validated:
+                    provisioned = False
+                    break
+            if provisioned:
+                self.quads.update_assignment(_ass.id, {"provisioned": True})
+
+        # Get assignments to validate
+        _filter = {"active": True, "validated": False, "provisioned": True, "cloud__ne": "cloud01"}
+        assignments = self.quads.filter_assignments(_filter)
+
+        cloud_name = self.cli_args.get("cloud")
+        if cloud_name:
+            try:
+                self.quads.get_cloud(cloud_name)
+            except (APIServerException, APIBadRequest) as ex:
+                raise CliException(str(ex))
+            assignments = [assignment for assignment in assignments if assignment.cloud.name == cloud_name]
+
+        for ass in assignments:
+            _schedules = self.quads.get_current_schedules(data={"cloud": ass.cloud.name})
+            _schedule_count = len(_schedules)
+            _assignment = self.quads.get_active_cloud_assignment(ass.cloud.name)
+
+            if _schedule_count and _assignment.wipe:
+                # Get hosts to validate
+                hosts = self.quads.filter_hosts({"cloud": ass.cloud.name, "validated": False})
+                hosts = [host for host in hosts if self.quads.get_current_schedules({"host": host.name})]
+                skip_hosts_arg = self.cli_args.get("skip_hosts")
+                skip_hosts = skip_hosts_arg[0] if skip_hosts_arg else None
+                if skip_hosts:
+                    hosts = [host for host in hosts if host.name not in skip_hosts]
+
+                try:
+                    skip_system = self.cli_args.get("skip_system")
+                    skip_network = self.cli_args.get("skip_network")
+                    await validator_dispatcher.validate(ass.cloud.name, _assignment, hosts, skip_system, skip_network)
+                except Exception as ex:
+                    self.logger.debug(ex)
+                    self.logger.info(f"Failed validation for {ass.cloud.name}")
+            elif _schedule_count and not _assignment.wipe:
+                self.logger.info(f"Auto-Validating {ass.cloud.name} as marked for no wipe")
+                self.quads.update_assignment(ass.id, {"validated": True})
 
     def action_list_notifications(self):
         cloud_name = self.cli_args.get("cloud")
