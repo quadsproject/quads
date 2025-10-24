@@ -22,13 +22,13 @@ from quads.server.models import Assignment
 from quads.tools import reports
 from quads.tools.external.badfish import Badfish
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.switch import Switch
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
-from quads.tools.move_and_rebuild import move_and_rebuild
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
 from quads.tools.validate_env import main as validate_env
+from src.quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher
+from src.quads.plugins.manager import PluginManager
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -276,8 +276,9 @@ class QuadsCli:
         _cloud = self.cli_args.get("cloud")
         _all = self.cli_args.get("all")
 
-        switch = Switch()
-        switch.ls_config(_cloud, _all)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.ls_config(_cloud, _all))
 
     def action_mod_switch_conf(self):
         _host = self.cli_args.get("host")
@@ -288,16 +289,18 @@ class QuadsCli:
         _nic4 = self.cli_args.get("nic4")
         _nic5 = self.cli_args.get("nic5")
 
-        switch = Switch()
-        switch.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5))
 
     def action_verify_switch_conf(self):
         _host = self.cli_args.get("host")
         _cloud = self.cli_args.get("cloud")
         _change = self.cli_args.get("change")
 
-        switch = Switch()
-        switch.verify(_host, _cloud, _change)
+        plugin_manager = PluginManager()
+        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
 
     def _call_api_action(self, action: str):
         try:
@@ -1800,36 +1803,19 @@ class QuadsCli:
                             ) as ex:  # pragma: no cover
                                 raise CliException(str(ex))
                         try:
-                            if self.cli_args.get("movecommand") == default_move_command:
-                                fn = functools.partial(move_and_rebuild, host, new, semaphore, wipe)
-                                tasks.append(fn)
-                                omits = conf.get("omit_network_move")
-                                omit = False
-                                if omits:
-                                    omits = omits.split(",")
-                                    omit = [omit for omit in omits if omit in host or omit == new]
-                                if not omit:
-                                    switch_tasks.append(functools.partial(Switch().configure, host, current, new))
-                            else:
-                                if wipe:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                        ]
-                                    )
-                                else:
-                                    subprocess.check_call(
-                                        [
-                                            self.cli_args.get("movecommand"),
-                                            host,
-                                            current,
-                                            new,
-                                            "nowipe",
-                                        ]
-                                    )
+                            plugin_manager = PluginManager()
+                            release_dispatcher = get_release_dispatcher(plugin_manager)
+                            switch_dispatcher = get_switch_dispatcher(plugin_manager)
+                            fn = functools.partial(release_dispatcher.move_and_rebuild, host, new, semaphore, wipe)
+                            tasks.append(fn)
+                            omits = conf.get("omit_network_move")
+                            omit = False
+                            if omits:
+                                omits = omits.split(",")
+                                omit = [omit for omit in omits if omit in host or omit == new]
+                            if not omit:
+                                switch_tasks.append(functools.partial(switch_dispatcher.configure, host, current, new))
+
                         except Exception as ex:
                             self.logger.debug(ex)
                             self.logger.exception("Move command failed for host: %s" % host)
