@@ -1,7 +1,6 @@
-from datetime import datetime
 from typing import List, Optional, Type
 
-from sqlalchemy import Boolean, or_, select
+from sqlalchemy import Boolean, select
 
 from quads.config import Config
 from quads.server.dao.baseDao import (
@@ -11,7 +10,7 @@ from quads.server.dao.baseDao import (
     EntryNotFound,
     InvalidArgument,
 )
-from quads.server.models import Assignment, Cloud, Schedule, db
+from quads.server.models import Assignment, Cloud, db
 
 
 class CloudDao(BaseDao):

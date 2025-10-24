@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import asyncio
 import logging
 import os
 import sys
@@ -10,7 +9,8 @@ from quads.config import Config
 from quads.quads_api import QuadsApi
 
 from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.postman import Postman
+from quads.plugins.dispatchers.email import get_email_dispatcher
+from quads.plugins.manager import PluginManager
 from quads.tools.helpers import get_or_create_event_loop
 
 logger = logging.getLogger(__name__)
@@ -24,8 +24,14 @@ async def main(_loop):
     extend_label = "CAN_EXTEND"
 
     try:
+        auth_type = Config.get("jira_auth", "basic")
         jira = Jira(
             Config["jira_url"],
+            username=Config.get("jira_username") if auth_type == "basic" else None,
+            password=Config.get("jira_password") if auth_type == "basic" else None,
+            token=Config.get("jira_token") if auth_type == "token" else None,
+            ticket_queue=Config.get("ticket_queue"),
+            auth_type=auth_type,
             loop=_loop,
         )
     except JiraException as ex:
@@ -85,8 +91,17 @@ async def main(_loop):
                     }
                     content = template.render(**parameters)
                     subject = "Failed to add watchers from parent ticket ticket to the sub-task."
-                    postman = Postman(subject, submitter, "", content)
-                    postman.send_email()
+
+                    plugin_manager = PluginManager()
+                    plugin_manager.initialize()
+                    email_dispatcher = get_email_dispatcher(plugin_manager)
+                    recipient = "%s@%s" % (submitter, Config["domain"])
+                    await email_dispatcher.send_mail(
+                        subject=subject,
+                        content=content,
+                        recipients=[recipient],
+                        cc=[submitter],
+                    )
 
     return 0
 
