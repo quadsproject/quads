@@ -240,7 +240,7 @@ class Foreman(object):
         _host_id = await self.get_host_id(host_name)
         endpoint = "/hosts/%s/interfaces/" % _host_id
         result = await self.get_obj_dict(endpoint)
-        for interface, details in result.items():
+        for interface, _ in result.items():
             if "mgmt" in interface:
                 return interface
         return None
@@ -400,3 +400,51 @@ class Foreman(object):
         endpoint = f"/operatingsystems/{os_id}/ptables"
         result = await self.get(endpoint)
         return result.get("results", {})
+
+    async def mark_for_build(self, host_name):
+        put_result = await self.put_parameter(host_name, "build", 1)
+        return put_result
+
+    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
+
+        results = []
+
+        try:
+            available_os = await self.get_available_os()
+            os_id = next((os["id"] for os in available_os if os["title"] == os_type), None)
+
+            if not os_id:
+                logger.error(f"OS type {os_type} not found in Foreman")
+                return False
+
+            params = [{"name": "operatingsystems", "value": os_type, "identifier": "title"}]
+
+            available_mediums = await self.get_mediums(os_id)
+            params.append({"name": "media", "value": available_mediums[0]["name"]})
+
+            available_ptables = await self.get_ptables(os_id)
+            params.append({"name": "ptables", "value": available_ptables[0]["name"]})
+
+            set_result = await self.set_host_parameter(host_name, "overcloud", "true")
+            results.append(set_result)
+
+            mark_for_build_result = await self.mark_for_build(host_name)
+            results.append(mark_for_build_result)
+
+            put_param_result = await self.put_parameters_by_name(host_name, params)
+            results.append(put_param_result)
+
+            owner_id = await self.get_user_id(cloud)
+            host_id = await self.get_host_id(host_name)
+            put_result = await self.put_element("hosts", host_id, "owner_id", owner_id)
+            results.append(put_result)
+
+            for result in results:
+                if isinstance(result, Exception) or not result:
+                    logger.error("There was something wrong setting Foreman host parameters.")
+                    return False
+
+            return True
+        except Exception as ex:
+            self.logger.error(f"Error setting up Foreman for {host_name}: {ex}")
+            return False

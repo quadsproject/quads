@@ -48,6 +48,7 @@ async def make_env_json(filename):
             if Config["foreman_unavailable"]:
                 overcloud = {"result": "true"}
             else:
+                # TODO: Store overcloud value on the host object
                 overcloud = await foreman.get_host_param(host.name, "overcloud")
 
             if not overcloud:
