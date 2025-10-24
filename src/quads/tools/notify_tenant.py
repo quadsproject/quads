@@ -9,8 +9,9 @@ from jinja2 import Template
 
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
-from quads.tools.external.jira import Jira, JiraException
-from quads.tools.external.postman import Postman
+from quads.plugins.dispatchers.email import get_email_dispatcher
+from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
+from quads.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -43,22 +44,14 @@ def post_message(args, ticket, description, cloud_name):
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    try:
-        jira = Jira(
-            Config["jira_url"],
-            Config["jira_username"],
-            Config["jira_password"],
-            loop=loop,
-        )
-    except JiraException as ex:  # pragma: no cover
-        logger.error(ex)
-        return False
 
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    ticketing_dispatcher = get_ticketing_dispatcher(plugin_manager)
     _ass = quads.filter_assignments({"active": True, "validated": True, "cloud": cloud_name})[0]
-    result = loop.run_until_complete(jira.post_comment(_ass.ticket, content))
+    result = loop.run_until_complete(ticketing_dispatcher.post_comment(_ass.ticket, content))
     if not result:
-        logger.warning("Failed to update Jira ticket")
-
+        logger.warning("Failed to update ticketing system")
     return result
 
 
@@ -82,14 +75,17 @@ def send_message(args, owner, ccuser, ticket, description, cloud_name):
         ticket=ticket,
         cloud_name=cloud_name,
     )
-    postman = Postman(
-        "INFO: [%s] %s" % (cloud_name, args.subject),
-        owner,
-        cc_users,
-        content,
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    email_dispatcher = get_email_dispatcher(plugin_manager)
+    recipient = "%s@%s" % (owner, Config["domain"])
+    email_dispatcher.send_mail_sync(
+        subject="INFO: [%s] %s" % (cloud_name, args.subject),
+        content=content,
+        recipients=[recipient],
+        cc=cc_users,
     )
-    result = postman.send_email()
-    return result
+    return True
 
 
 def determine_action(args):
