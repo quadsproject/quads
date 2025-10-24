@@ -82,6 +82,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
+      * [QUADS Plugin Architecture](/docs/quads-plugins.md)
       * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
@@ -248,7 +249,6 @@ You can read about QUADS architecture, provisioning, visuals and workflow [in ou
 
 ## Installing QUADS
    - We support modern Fedora OS distributions using RPM packages.
-   - While we will provide Docker/container files this is more for CI testing and isn't recommended or properly maintained for production deployments.
 
 ### Installing QUADS from RPM
    - We build RPM packages for the Fedora distribution.
@@ -396,7 +396,7 @@ systemctl restart nginx
 ### Installing other QUADS Components
 
 #### QUADS Move Command
-   - QUADS relies on calling an external script, trigger or workflow to enact the actual provisioning of machines. You can look at and modify our [move-and-rebuild-hosts](/src/quads/tools/move_and_rebuild.py) tool to suit your environment for this purpose.  Read more about this in the [move-host-command](#quads-move-host-command) section below.
+   - QUADS relies on the plugin architecture to provision and manage machines. The release workflow is handled by the `standard` release plugin (configured in `/opt/quads/conf/plugins.yml`) which coordinates with provisioner, hardware, and switch plugins. Read more about this in the [move-host-command](#quads-move-host-command) section below and the [Plugin Architecture Documentation](/docs/quads-plugins.md).
 
 ### Making QUADS Run
    - QUADS is a passive service and does not do anything you do not tell it to do.  We control QUADS with [cron commands](/cron/quads).
@@ -413,15 +413,17 @@ crontab -e
 
 | Service Command       | Category | Purpose |
 |-----------------------|----------|---------|
-| quads --move-hosts    | provisioning | checks for hosts to move/reclaim as scheduled |
-| quads --validate-env  | validation | checks clouds pending to be released for all enabled validation checks |
+| quads --move-hosts    | provisioning | checks for hosts to move/reclaim as scheduled (uses release plugins) |
+| quads --validate-env  | validation | checks clouds pending to be released for all enabled validation checks (uses validator plugins) |
 | quads --regen-heatmap | visualization | keeps your systems availability and usage visualization up to date |
 | quads --regen-instack | openshift/openstack | keeps optional openstack triple-o installation files up-to-date |
-| quads --notify        | notifications | check and send email or webhook/IRC notifications on events and releases |
+| quads --notify        | notifications | check and send email or webhook/IRC notifications on events and releases (uses chat/email plugins) |
 
 #### External Services
 
-   - Really just the Foreman RBAC tool is needed for bare functionality, though there are a number of tools for JIRA automation that we ship in the repository as well that might be useful.
+   - QUADS integrates with external services via the plugin architecture (configured in `/opt/quads/conf/plugins.yml`)
+   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper switches (network automation)
+   - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for configuration details
 
 | Service Command       | Category | Purpose |
 |-----------------------|----------|---------|
@@ -479,7 +481,7 @@ You will need to do this when you introduce new system models into your fleet if
 > [!IMPORTANT]
 > The `--bootmode` parameter is optional and must correspond to Bios, Uefi. If not set, it defaults to None.
 >
-> In move and rebuild, Badfish is used to check the current bootmode for a host and compared against the host bootmode setting.
+> During the release workflow, the Badfish hardware plugin is used to check the current bootmode for a host and compared against the host bootmode setting.
 >
 > When a host's current bootmode does not match the defined bootmode for the host, badfish is used to ensure correct setting.
 >
@@ -624,8 +626,10 @@ In the above example the default move command called ```/bin/echo``` for illustr
 * Runs against all hosts according to the QUADS schedule.
 
 ```bash
-quads --move-hosts --move-command quads/tools/move_and_rebuild_hosts.py
+quads --move-hosts
 ```
+* The move workflow now uses the plugin architecture (release, provisioner, hardware, and switch plugins)
+* Plugins are configured in `/opt/quads/conf/plugins.yml`
 
 ##### Query a Host Cloud Membership
 * You can use `quads --ls-host-cloud --host hostname` to show it's current cloud environment membership.
@@ -648,9 +652,16 @@ Moving d16-h07-000-r650.example.com cloud60 to cloud01, wipe = False
 
 ```
 
-* You can also modify the default `move_command` in [quads](/src/quads/cli/cli.py#L31).
-
-* You can look at the [move-and-rebuild-hosts](/src/quads/tools/move_and_rebuild.py) tool as an example.  It's useful to note that with `move_and_rebuild.py` passing a fourth argument will result in only the network automation running and the actual host provisioning will be skipped.  You should review this script and adapt it to your needs, we try to make variables for everything but some assumptions are made to fit our running environments.
+* The move workflow is now managed through the plugin architecture
+* To customize the release workflow:
+  - Create a custom release plugin implementing the `ReleasePlugin` interface
+  - Configure it in `/opt/quads/conf/plugins.yml`
+  - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for details on creating custom plugins
+* The standard release plugin coordinates with:
+  - **Provisioner plugins** (e.g., Foreman) for OS deployment
+  - **Hardware plugins** (e.g., Badfish) for power/boot management
+  - **Switch plugins** (e.g., Juniper) for network automation
+  - **Validator plugins** for pre-release checks
 
 ## QUADS Reporting
 
@@ -1149,6 +1160,28 @@ Resource properly removed
 ## Using the QUADS JSON API
 * All QUADS actions under the covers uses the [JSON API v3](/docs/quads-api.md)
 
+## QUADS Plugin Architecture
+* QUADS features a flexible, extensible plugin system for integrating with external services and extending functionality
+* Plugins are configured via `/opt/quads/conf/plugins.yml` and automatically discovered at startup
+* **Plugin Types Available:**
+  - **Chat** - Slack, Google Chat, IRC notifications
+  - **Email** - SMTP email notifications
+  - **Hardware** - Badfish IPMI/Redfish management
+  - **Provisioners** - Foreman/Satellite integration
+  - **Release** - Environment release workflows
+  - **Switches** - Juniper network automation
+  - **Ticketing** - JIRA integration
+  - **Validators** - Environment health validation
+* **Creating Custom Plugins:**
+  - Implement the appropriate plugin interface
+  - Place in `/opt/quads/plugins/` for automatic discovery
+  - Configure in `plugins.yml` to enable
+* See the comprehensive [Plugin Architecture Documentation](/docs/quads-plugins.md) for:
+  - Configuration examples for all plugin types
+  - How to create custom plugins
+  - Plugin interfaces and APIs
+  - Migration from legacy tools
+
 ## Self-Scheduling Hosts
 * QUADS supports full-featured self service provisioning via the API documented [here](/docs/quads-self-schedule.md).
 * You need to enable this on systems for them to be eligible for self-service scheduling via the API:
@@ -1612,7 +1645,7 @@ quads --validate-env --skip-network
 * You can skip past systems and host validation (Foreman) via:
 
 ```
-python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-system
+quads --validate-env --skip-system
 ```
 
 ### Skipping Past Network and Systems Validation per Host
@@ -1620,7 +1653,7 @@ python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-system
 * You can skip past both systems and network checks per host via:
 
 ```
-python3 $PYTHONDIR/site-packages/quads/tools/validate_env.py --skip-hosts host01.example.com host02.example.com
+quads --validate-env --skip-hosts host01.example.com host02.example.com
 ```
 
 * Effectively, any host listed with `--skip-hosts` will pass it completely through validation.
@@ -1636,7 +1669,7 @@ quads --validate-env --cloud cloud01
 ### Mapping Internal VLAN Interfaces to Problem Hosts
 You might have noticed that we configure our [Foreman](/templates/foreman) templates to drop `172.{16,17,18,19}.x` internal VLAN interfaces which correspond to the internal, QUADS-managed multi-tenant interfaces across a set of hosts in a cloud assignment.
 
-The _first two octets_ here can be substituted by the _first two octets of your systems public network_ in order to determine from `validate_env.py --debug` which host internal interfaces have issues or are unreachable.
+The _first two octets_ here can be substituted by the _first two octets of your systems public network_ in order to determine from `quads --validate-env --debug` which host internal interfaces have issues or are unreachable.
 
 ![validation_1](/image/troubleshoot_validation1.png?raw=true)
 
@@ -1652,7 +1685,7 @@ The _first two octets_ here can be substituted by the _first two octets of your 
 
 ![validation_2](/image/troubleshoot_validation2.png?raw=true)
 
-This mapping feeds into our [VLAN network validation code](/src/quads/tools/validate_env.py#L276)
+This mapping feeds into the environment validator plugin's VLAN network validation code
 
 ### Dealing with the Postgres Database
 * Everything QUADS does is done inside the PostgreSQL database, occasionally you may want to adjust settings here.
@@ -1738,7 +1771,7 @@ quads=# update hosts set cloud_id=1 where name = 'e22-h24-b02-fc640.rdu2.example
   - Now you should see that `quads --move-hosts --dry-run` has nothing to do!
 
 #### Forcing Switch Config Applied
-Occasionally `python3-paramiko` or some switch/connectivity issue may keep the QUADS `move_and_rebuild.py` process from properly setting the `switch_config_applied` value for some of your hosts.  This typically elicits the following error during `--validate-env`
+Occasionally `python3-paramiko` or some switch/connectivity issue may keep the switch plugin from properly setting the `switch_config_applied` value for some of your hosts.  This typically elicits the following error during `--validate-env`
 
 ```
 Validating cloud18

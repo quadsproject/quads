@@ -15,8 +15,14 @@ quads = QuadsApi(Config)
 
 async def main(_loop):
     try:
+        auth_type = Config.get("jira_auth", "basic")
         jira = Jira(
             Config["jira_url"],
+            username=Config.get("jira_username") if auth_type == "basic" else None,
+            password=Config.get("jira_password") if auth_type == "basic" else None,
+            token=Config.get("jira_token") if auth_type == "token" else None,
+            ticket_queue=Config.get("ticket_queue"),
+            auth_type=auth_type,
             loop=_loop,
         )
     except JiraException as ex:
