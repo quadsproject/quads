@@ -43,7 +43,7 @@ class TestValidateEnv(TestBase):
     @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     def test_validate_env(self, mocked_smtp, validate_fixture):
         Config.__setattr__("foreman_unavailable", True)
         mocked_smtp()
@@ -65,7 +65,7 @@ class TestValidateEnv(TestBase):
     @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     def test_validate_env_skip_unprovisioned(self, mocked_smtp, validate_fixture):
         Config.__setattr__("foreman_unavailable", True)
         mocked_smtp()
@@ -91,7 +91,7 @@ class TestValidateEnv(TestBase):
     @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     def test_validate_env_no_cloud(self, mocked_smtp):
         Config.__setattr__("foreman_unavailable", True)
         mocked_smtp()

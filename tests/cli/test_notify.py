@@ -10,7 +10,7 @@ from tests.cli.test_base import TestBase
 
 
 class TestNotify(TestBase):
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     def test_notify_not_validated(self, mocked_smtp):
         Config.__setattr__("foreman_unavailable", True)
         mocked_smtp()
@@ -28,7 +28,7 @@ class TestNotify(TestBase):
         ]
 
     @patch("quads.tools.notify.Netcat", NetcatStub)
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     def test_notify_validated(self, mocked_smtp):
         Config.__setattr__("foreman_unavailable", True)
         Config.__setattr__("webhook_notify", True)
