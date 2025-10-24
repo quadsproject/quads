@@ -1,0 +1,24 @@
+plugins:
+  email_notifier:
+    enabled: true
+    smtp_host: mail.example.com
+    from_address: quads@example.com
+
+  slack_notifier:
+    enabled: true
+    webhook_url: https://hooks.slack.com/...
+
+  gchat_notifier:
+    enabled: false
+
+  jira_ticketing:
+    enabled: true
+    url: https://jira.example.com
+    auth_type: token
+    token: ${JIRA_TOKEN}
+
+  foreman_provisioner:
+    enabled: true
+    url: https://foreman.example.com
+    username: admin
+    password: ${FOREMAN_PASSWORD}
