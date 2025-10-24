@@ -11,6 +11,7 @@ _QUADS_CONF_DIR = os.environ.get("QUADS_CONF_DIR", "/opt/quads/conf")
 DEFAULT_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quads.yml")
 WEB_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quadsweb.yml")
 SS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "selfservice.yml")
+PLUGINS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "plugins.yml")
 
 
 class _ConfigBase:
@@ -19,6 +20,7 @@ class _ConfigBase:
         self.load_from_yaml(DEFAULT_CONF_PATH)
         self.load_from_yaml(WEB_CONF_PATH)
         self.load_from_yaml(SS_CONF_PATH)
+        self.load_from_yaml(PLUGINS_CONF_PATH)
 
     def load_from_yaml(self, filepath: str = DEFAULT_CONF_PATH):
         """
@@ -149,3 +151,4 @@ if __name__ == "__main__":
         Config.load_from_yaml(DEFAULT_CONF_PATH)
         Config.load_from_yaml(WEB_CONF_PATH)
         Config.load_from_yaml(SS_CONF_PATH)
+        Config.load_from_yaml(PLUGINS_CONF_PATH)

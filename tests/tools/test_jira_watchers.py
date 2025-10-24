@@ -16,7 +16,7 @@ from tests.cli.config import CLOUD, DEFAULT_CLOUD, HOST1
 
 
 class TestJiraWatchers(object):
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.put")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.post")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
@@ -91,7 +91,7 @@ class TestJiraWatchers(object):
         response = await main(_loop=loop)
         assert response == 0
 
-    @patch("quads.tools.external.postman.SMTP")
+    @patch("smtplib.SMTP")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.put")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.post")
     @patch("quads.tools.external.jira.aiohttp.ClientSession.get")

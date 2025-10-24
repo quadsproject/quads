@@ -11,20 +11,12 @@ from datetime import datetime
 from shutil import copyfile
 
 from quads.quads_api import QuadsApi
-from quads.tools.external.foreman import Foreman
 from quads.config import Config
-from quads.tools.helpers import strtobool
 
 quads = QuadsApi(Config)
 
 
 async def make_env_json(filename):
-    foreman = Foreman(
-        Config["foreman_api_url"],
-        Config["foreman_username"],
-        Config["foreman_password"],
-    )
-
     cloud_list = quads.get_clouds()
 
     if not os.path.exists(Config["json_web_path"]):  # pragma: no cover
@@ -39,30 +31,13 @@ async def make_env_json(filename):
     for cloud in cloud_list:
         host_list = quads.filter_hosts({"cloud": cloud.name})
         assignment = quads.get_active_cloud_assignment(cloud.name)
-        foreman_password = Config["ipmi_password"]
+        foreman_password = Config.plugins["badfish"]["ipmi_password"]
         if assignment and assignment.ticket:
             foreman_password = f"{Config['infra_location']}@{assignment.ticket}"
 
         data = defaultdict(list)
         for host in host_list:
-            if Config["foreman_unavailable"]:
-                overcloud = {"result": "true"}
-            else:
-                overcloud = await foreman.get_host_param(host.name, "overcloud")
-
-            if not overcloud:
-                overcloud = {"result": "true"}
-
-            if not isinstance(overcloud["result"], bool):
-                try:
-                    _overcloud_result = strtobool(overcloud["result"])
-                except ValueError:
-                    print(f"WARN: {host.name} overcloud value is not set correctly.")
-                    _overcloud_result = 1
-            else:
-                _overcloud_result = overcloud["result"]
-
-            if "result" in overcloud and _overcloud_result:
+            if host.overcloud:
                 mac = []
                 if filename == "instackenv":
                     for interface in sorted(host.interfaces, key=lambda k: k.name):
