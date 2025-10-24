@@ -32,9 +32,9 @@ async def main():
 
     _current = os.path.join(Config["visual_web_dir"], "current.html")
     _next = os.path.join(Config["visual_web_dir"], "next.html")
-    if os.path.exists(_current):
+    if os.path.lexists(_current):
         os.remove(_current)
-    if os.path.exists(_next):
+    if os.path.lexists(_next):
         os.remove(_next)
 
     current_path = os.path.join(Config["visual_web_dir"], "%s-%.2d.html" % (dates[0].year, dates[0].month))

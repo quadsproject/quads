@@ -22,7 +22,9 @@ class Juniper(object):
     def connect(self):
         logger.debug("Connecting to switch: %s" % self.ip_address)
         try:
-            self.child = pexpect.spawn(f'ssh -o StrictHostKeyChecking=no {Config["junos_username"]}@{self.ip_address}')
+            self.child = pexpect.spawn(
+                f'ssh -o StrictHostKeyChecking=no {Config.plugins["juniper"]["username"]}@{self.ip_address}'
+            )
             self.child.expect(">")
         except pexpect.exceptions.TIMEOUT:
             raise JuniperException("Timeout trying to connect via SSH")

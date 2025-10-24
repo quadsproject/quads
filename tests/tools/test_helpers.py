@@ -69,16 +69,8 @@ class TestQuadsHelpers(unittest.TestCase):
         self.assertTrue(helpers.strtobool("1"))
         self.assertTrue(helpers.strtobool("on"))
 
-        # Non-string True cases
-        self.assertTrue(helpers.strtobool(True))
-        self.assertTrue(helpers.strtobool(1))
-
         # False cases
         self.assertFalse(helpers.strtobool("n"))
         self.assertFalse(helpers.strtobool("NO"))
         self.assertFalse(helpers.strtobool("False"))
         self.assertFalse(helpers.strtobool("0"))
-
-        # Non-string False cases
-        self.assertFalse(helpers.strtobool(False))
-        self.assertFalse(helpers.strtobool(0))

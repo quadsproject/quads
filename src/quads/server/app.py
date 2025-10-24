@@ -11,6 +11,14 @@ from quads.server.database import create_user, modify_user, remove_user, populat
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
+from quads.plugins.manager import PluginManager
+from quads.plugins.dispatchers.chat import get_chat_dispatcher
+from quads.plugins.dispatchers.email import get_email_dispatcher
+from quads.plugins.dispatchers.hardware import get_hardware_dispatcher
+from quads.plugins.dispatchers.provisioner import get_provisioner_dispatcher
+from quads.plugins.dispatchers.switch import get_switch_dispatcher
+from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
+from quads.plugins.dispatchers.validator import get_validator_dispatcher
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -37,6 +45,11 @@ def create_app(test_config=None) -> Flask:
     else:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
+
+    # Initialize plugin system
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+    flask_app.extensions["plugins"] = plugin_manager
 
     register_extensions(flask_app)
     register_blueprints(flask_app)

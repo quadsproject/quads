@@ -20,6 +20,8 @@ class TestRegen(TestBase):
         for f in files:
             assert os.path.exists(os.path.join(os.path.dirname(__file__), f"artifacts/{f}"))
         assert self._caplog.messages == ["Regenerated web table heatmap."]
+        for f in files:
+            os.remove(os.path.join(os.path.dirname(__file__), f"artifacts/{f}"))
 
     def test_regen_instack(self):
         Config.__setattr__("foreman_unavailable", True)
@@ -35,3 +37,5 @@ class TestRegen(TestBase):
             "Regenerated 'instackenv' for OpenStack Management.",
             "Regenerated 'ocpinventory' for OpenShift Management.",
         ]
+        for f in files:
+            os.remove(os.path.join(os.path.dirname(__file__), f"artifacts/{f}"))
