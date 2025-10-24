@@ -10,50 +10,9 @@ spare_pool_owner: quads
 # display name for QUADS email notifications
 mail_display_name: "QUADS Scheduler"
 # set header for User-Agent:
-mail_user_agent: "Rufus Postman 2.2.6"
 domain: example.com
 log: /opt/quads/log/quads.log
 quads_base_url: http://127.0.0.1:5000/
-
-# used for reporting
-# add your email here to receive copies of notification emails
-report_cc: someuser@example.com, someuser@example.com, someuser@example.com, someuser@example.com
-
-# set to true to receive notifications when:
-# 1) upon cloud definition for a future workload
-# 2) upon passing of validated tests
-# 3) 1,3,5,7 days out from when assignment ends
-email_notify: true
-
-## email server settings
-# this is for your mail relay host
-# in containers we use the podman container host itself, you should
-# change this to localhost if you want to use the mail relay on the localhost
-# and you're not running quads in containers
-email_host: 172.16.0.1
-
-# * Note* you'll need Supybot with the notify plugin
-# these setting use netcat to send messages to Supybot
-irc_notify: false
-ircbot_ipaddr: 192.168.0.100
-ircbot_port: 5050
-ircbot_channel: #yourchannel
-
-# support for sending webhook notifications on assignment release
-webhook_notify: false
-webhook_url: https://chat.example.com/v1/spaces/AAABBBCCC
-
-# Jira Specific Variables
-jira_url: https://issues.example.com/rest/api/2
-
-# takes 2 values only, basic or token, defaults to basic
-# basic will make use of jira_username and jira_password
-# token will make use of jira_token
-jira_auth: basic
-
-jira_username: admin
-jira_password: password
-jira_token: YourJiraTokenHereKeepItSafe
 
 # this is used in some of the wiki generate for the links
 quads_url: https://quads.scalelab.example.com
@@ -68,24 +27,6 @@ quads_request_deadline_day:
 # Quads API authentication
 quads_api_username: grafuls@redhat.com
 quads_api_password: password
-
-# Foreman Specific Variables
-# foreman URL
-# set to true of foreman unavailable (useful for testing)
-foreman_unavailable: true
-foreman_url: http://foreman.example.com/hosts/
-foreman_api_url: https://foreman.example.com/api/v2
-foreman_username: admin
-foreman_password: password
-# more foreman settings for your OS, medium, partition table
-foreman_default_os: "RHEL 7"
-foreman_default_ptable: "generic-rhel7"
-foreman_default_medium: "RHEL Local"
-foreman_default_boot_order: "foreman"
-# Foreman RBAC fix ignore
-# variable to pass cloud names to be excluded from foreman_heal
-# with values separated by pipes 'cloud32|cloud04' or singularly 'cloud02'
-foreman_rbac_exclude:
 
 badfish_interfaces_path: /opt/quads/conf/idrac_interfaces.yml
 
@@ -107,10 +48,6 @@ untouchable_hosts: foreman.example.com c08-h30-r630.example.com
 # Lab location for use with pass complexity as `{infra_location}@{ticket}`
 infra_location: rdu2
 
-# ipmi QUADS admin user/pass
-# this is the IPMI account QUADS uses
-ipmi_username: root
-ipmi_password: password
 # ipmi user account
 # this is the account you create for users
 # to interact with the ipmi
@@ -118,9 +55,6 @@ ipmi_cloud_username: quads
 ipmi_cloud_password: password
 ipmi_cloud_username_id: 4
 ipmi_reset_sleep: 10
-
-# This stores the username for connecting to junos switches
-junos_username: scaleadmin
 
 # Do you have managed PDUs?
 pdu_management: false

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from quads.config import Config
 from quads.server.dao.assignment import AssignmentDao
@@ -10,10 +10,26 @@ from tests.cli.test_base import TestBase
 
 
 class TestNotify(TestBase):
-    @patch("quads.tools.external.postman.SMTP")
-    def test_notify_not_validated(self, mocked_smtp):
+    @patch("quads.tools.notify.get_chat_dispatcher")
+    @patch("quads.tools.notify.get_email_dispatcher")
+    @patch("quads.tools.notify.PluginManager")
+    def test_notify_not_validated(self, mock_plugin_manager, mock_email_dispatcher, mock_chat_dispatcher):
         Config.__setattr__("foreman_unavailable", True)
-        mocked_smtp()
+
+        # Mock PluginManager
+        pm_instance = MagicMock()
+        pm_instance.initialize = MagicMock()
+        mock_plugin_manager.return_value = pm_instance
+
+        # Mock email dispatcher
+        email_disp = AsyncMock()
+        email_disp.send_mail = AsyncMock()
+        mock_email_dispatcher.return_value = email_disp
+
+        # Mock chat dispatcher
+        chat_disp = AsyncMock()
+        chat_disp.send_message = AsyncMock()
+        mock_chat_dispatcher.return_value = chat_disp
 
         self.quads_cli_call("notify")
 
@@ -27,12 +43,28 @@ class TestNotify(TestBase):
             "Notifications sent out.",
         ]
 
-    @patch("quads.tools.notify.Netcat", NetcatStub)
-    @patch("quads.tools.external.postman.SMTP")
-    def test_notify_validated(self, mocked_smtp):
+    @patch("quads.tools.notify.get_chat_dispatcher")
+    @patch("quads.tools.notify.get_email_dispatcher")
+    @patch("quads.tools.notify.PluginManager")
+    def test_notify_validated(self, mock_plugin_manager, mock_email_dispatcher, mock_chat_dispatcher):
         Config.__setattr__("foreman_unavailable", True)
         Config.__setattr__("webhook_notify", True)
-        mocked_smtp()
+
+        # Mock PluginManager
+        pm_instance = MagicMock()
+        pm_instance.initialize = MagicMock()
+        mock_plugin_manager.return_value = pm_instance
+
+        # Mock email dispatcher
+        email_disp = AsyncMock()
+        email_disp.send_mail = AsyncMock()
+        mock_email_dispatcher.return_value = email_disp
+
+        # Mock chat dispatcher
+        chat_disp = AsyncMock()
+        chat_disp.send_message = AsyncMock()
+        mock_chat_dispatcher.return_value = chat_disp
+
         cloud = CloudDao.get_cloud(name="cloud99")
         ass = AssignmentDao.get_active_cloud_assignment(cloud=cloud)
         setattr(ass, "validated", True)
@@ -44,6 +76,5 @@ class TestNotify(TestBase):
         assert ass.notification.initial is True
         assert self._caplog.messages[1:] == [
             "=============== Initial Message",
-            "Beep boop we can't communicate with your webhook.",
             "Notifications sent out.",
         ]

@@ -52,10 +52,10 @@ jira_token: 7h1515@v3ryl0n6@ndcr1p71c70k3n
   * Library: `/opt/quads/quads/tools/jira.py`
   * The `jira.py` library in QUADS helps with auto-updating JIRA tickets using the API user.
   * If you are using `--host-list` for en-masse scheduling this will be called to update the
-    ticket template found in `/opt/quads/quads/templates/jira_ticket_assignment`
+    ticket template found in `/opt/quads/templates/jira_ticket_assignment`
 
 ## Applying labels and adding watchers
-  * Tool: `/opt/quads/quads/tools/jira_watchers.py`
+  * Tool: `${site-packages}$/tools/jira_watchers.py`
   * The `jira_watchers.py` tool will assist you with ad-hoc (perhaps run out of cron or systemd timer)
     batch processing to do the following:
     * Ensure the person submitting the request is added as a _watcher_ in JIRA
