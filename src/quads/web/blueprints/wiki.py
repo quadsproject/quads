@@ -123,10 +123,10 @@ async def available_hosts(search):
         data = {"start": start, "end": end}
         if models:
             models = [model.upper() for model in models]
-            data["model__in"] = models
+            data["model__in"] = ",".join(models)
 
         if disk_types:
-            data["disks.disk_type__in"] = disk_types
+            data["disks.disk_type__in"] = ",".join(disk_types)
 
         if has_gpu:
             data["processors.processor_type"] = "GPU"
@@ -144,7 +144,7 @@ async def available_hosts(search):
             data[key] = disk_count_value
 
         if nic_vendors:
-            data["interfaces.vendor__in"] = nic_vendors
+            data["interfaces.vendor__in"] = ",".join(nic_vendors)
 
         if nic_speed_operator and nic_speed_value:
             key = f"interfaces.speed__{nic_speed_operator}"
