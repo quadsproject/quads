@@ -123,7 +123,7 @@ async def available_hosts(search):
         data = {"start": start, "end": end}
         if models:
             models = [model.upper() for model in models]
-            data["model__in"] = models
+            data["model__in"] = ",".join(models)
 
         if disk_types:
             data["disks.disk_type__in"] = disk_types
