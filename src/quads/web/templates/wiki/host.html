@@ -51,6 +51,16 @@
                             <tbody>
                                 <tr>
                                     <th>Current Cloud</th>
+                                    <td>
+                                        {% if host.cloud %}
+                                            <a href="/connectivity/cloud/{{ host.cloud.name }}">{{ host.cloud.name }}</a>
+                                        {% else %}
+                                            None
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Current Cloud</th>
                                     <td>{{ host.cloud.name if host.cloud else 'None' }}</td>
                                 </tr>
                                 <tr>
