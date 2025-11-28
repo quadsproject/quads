@@ -43,3 +43,9 @@
   model: R640
   name: imported.example.com
   retired: false
+- broken: false,
+  default_cloud: cloud99,
+  host_type: scalelab,
+  model: B420,
+  name: mod.example.com,
+  retired: false,

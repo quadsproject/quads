@@ -14,6 +14,7 @@ from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
 from quads.server.database import drop_all, init_db, populate
 from tests.cli.config import (
+    BOOTMODE,
     CLOUD,
     DEFAULT_CLOUD,
     DEFINE_CLOUD,
@@ -62,6 +63,7 @@ def populate_db():
     mod_cloud = CloudDao.create_cloud(MOD_CLOUD)
     host1 = HostDao.create_host(HOST1, MODEL1, HOST_TYPE, CLOUD)
     host2 = HostDao.create_host(HOST2, MODEL2, HOST_TYPE, CLOUD)
+
     InterfaceDao.create_interface(
         HOST1,
         IFNAME1,

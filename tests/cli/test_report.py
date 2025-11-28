@@ -62,8 +62,8 @@ class TestReport(TestBase):
         else:
             past_date = f"{today.year}-{today.month - 1:02d}"
         assert self._caplog.messages[0] == "Month   | Scheduled|  Systems|  % Utilized| "
-        assert self._caplog.messages[1].startswith(f"{today.year}-{today.month:02d} |         0|        2|")
-        assert self._caplog.messages[2].startswith(f"{past_date} |         0|        2|")
+        assert self._caplog.messages[1].startswith(f"{today.year}-{today.month:02d} |         0|        3|")
+        assert self._caplog.messages[2].startswith(f"{past_date} |         0|        3|")
 
     def test_report_scheduled_no_args(self, remove_fixture):
         self.cli_args["months"] = None
@@ -84,8 +84,8 @@ class TestReport(TestBase):
         else:
             past_date = f"{today.year}-{today.month - 1:02d}"
         assert self._caplog.messages[0] == "Month   | Scheduled|  Systems|  % Utilized| "
-        assert self._caplog.messages[1].startswith(f"{today.year}-{today.month:02d} |         0|        2|")
-        assert self._caplog.messages[2].startswith(f"{past_date} |         0|        2|")
+        assert self._caplog.messages[1].startswith(f"{today.year}-{today.month:02d} |         0|        3|")
+        assert self._caplog.messages[2].startswith(f"{past_date} |         0|        3|")
 
     def test_report_detailed(self, remove_fixture):
         today = datetime.now()
