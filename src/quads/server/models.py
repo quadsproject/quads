@@ -541,6 +541,7 @@ class Host(Serialize, TimestampMixin, Base):
     rack = Column(String)
     uloc = Column(String)
     blade = Column(String)
+    sysmode = Column(Enum("BIOS", "EFI", "None", name="sysmode_enum"), default="None")
 
     # many-to-one
     cloud_id = Column(Integer, ForeignKey("clouds.id"))
