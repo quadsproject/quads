@@ -6,7 +6,22 @@ from quads.exceptions import CliException
 from quads.quads_api import APIServerException
 from quads.server.dao.baseDao import EntryExisting
 from quads.server.dao.host import HostDao
-from tests.cli.config import CLOUD, DEFAULT_CLOUD, DEFINE_HOST, HOST1, HOST2, HOST_TYPE, IFIP1, MODEL1, RACK, ULOC1
+from tests.cli.config import (
+    BOOTMODE,
+    CLOUD,
+    DEFAULT_CLOUD,
+    DEFINE_HOST,
+    HOST1,
+    HOST2,
+    HOST_TYPE,
+    IFIP1,
+    MOD_HOST,
+    MODEL1,
+    MODEL2,
+    MODEL3,
+    RACK,
+    ULOC1,
+)
 from tests.cli.test_base import TestBase
 
 
@@ -164,13 +179,15 @@ class TestHost(TestBase):
         self.quads_cli_call("ls_hosts")
 
         assert self._caplog.messages[0] == HOST2
-        assert len(self._caplog.messages) == 1
+        assert self._caplog.messages[1] == MOD_HOST
+        assert len(self._caplog.messages) == 2
 
     def test_ls_host_filter_retired(self, mark_host_retired):
         self.quads_cli_call("ls_hosts")
 
         assert self._caplog.messages[0] == HOST1
-        assert len(self._caplog.messages) == 1
+        assert self._caplog.messages[1] == MOD_HOST
+        assert len(self._caplog.messages) == 2
 
     def test_ls_host_filter_bad_model(self, mark_host_broken):
         self.cli_args["filter"] = "model==BADMODEL"
@@ -263,3 +280,22 @@ class TestHost(TestBase):
         assert self._caplog.messages[1] == "  size: 2048"
         assert self._caplog.messages[2] == "memory: DIMM2"
         assert self._caplog.messages[3] == "  size: 2048"
+
+    def test_mod_host(self):
+        new_model = "nob666"
+        new_bootmode = "Uefi"
+        self.cli_args["name"] = MOD_HOST
+        self.cli_args["model"] = new_model
+        self.cli_args["host_type"] = None
+        self.cli_args["build"] = None
+        self.cli_args["validated"] = None
+        self.cli_args["switch_config_applied"] = None
+        self.cli_args["can_self_schedule"] = None
+        self.cli_args["bootmode"] = new_bootmode
+
+        self.quads_cli_call("modhost")
+
+        host = HostDao.get_host(MOD_HOST)
+        assert host
+        assert host.model == new_model.upper()
+        assert host.bootmode == new_bootmode
