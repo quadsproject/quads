@@ -134,6 +134,11 @@ class _Config(_ConfigBase):
         "em5": ["172.20", "172.25"],
     }
 
+    UEFI = [
+        "660",
+        "r660",
+    ]
+
 
 # Making sure there is exactly one instance of config used elsewhere
 Config = _Config()
