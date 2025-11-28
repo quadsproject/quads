@@ -819,6 +819,27 @@ parser.add_argument(
     help="U-location name of the host",
 )
 
+
+def ci_choice(choices):
+    mapping = {str(c).lower(): c for c in choices}
+
+    def _type(value: str):
+        try:
+            return mapping[value.lower()]
+        except KeyError:
+            raise argparse.ArgumentTypeError(f"invalid choice: {value} (choose from {', '.join(choices)})")
+
+    return _type
+
+
+parser.add_argument(
+    "--bootmode",
+    dest="bootmode",
+    type=ci_choice(["Bios", "Uefi", "None"]),
+    default=None,
+    help="Boot mode of the host (Bios, Uefi, None)",
+)
+
 # --os-list allows to list the operating systems
 action_group.add_argument(
     "--os-list",
