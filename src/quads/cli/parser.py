@@ -819,6 +819,15 @@ parser.add_argument(
     help="U-location name of the host",
 )
 
+parser.add_argument(
+    "--bootmode",
+    dest="bootmode",
+    type=str,
+    choices=["Bios", "Uefi"],
+    default=None,
+    help="Boot mode of the host (Bios, Uefi)",
+)
+
 # --os-list allows to list the operating systems
 action_group.add_argument(
     "--os-list",

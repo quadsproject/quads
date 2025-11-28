@@ -27,6 +27,7 @@ class HostDao(BaseDao):
         rack: str = None,
         uloc: str = None,
         blade: str = None,
+        bootmode: str = None,
     ) -> Host:
         _host_obj = cls.get_host(name)
         if _host_obj:
@@ -46,6 +47,7 @@ class HostDao(BaseDao):
             rack=rack,
             uloc=uloc,
             blade=blade,
+            bootmode=bootmode,
         )
         db.session.add(_host)
         cls.safe_commit()
