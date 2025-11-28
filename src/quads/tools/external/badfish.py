@@ -226,6 +226,95 @@ class Badfish:
             logger.warning("Could not retrieve Bios Attributes. Assuming Bios.")
             return "Bios"
 
+    async def get_bios_attributes_registry(self):
+        logger.debug("Getting BIOS attribute registry.")
+        _uri = "%s%s/Bios/BiosRegistry" % (self.host_uri, self.system_resource)
+        data = await self.http_client.get_json(_uri)
+
+        if not data:
+            logger.error("Operation not supported by vendor.")
+            return False
+
+        return data
+
+    async def get_bios_attribute_registry(self, attribute):
+        data = await self.get_bios_attributes_registry()
+        attribute_value = await self.get_bios_attribute(attribute)
+        for entry in data["RegistryEntries"]["Attributes"]:
+            entries = [low_entry.lower() for low_entry in entry.values() if isinstance(low_entry, str)]
+            if attribute.lower() in entries:
+                for values in entry.items():
+                    if values[0] == "CurrentValue":
+                        logger.info(f"{values[0]}: {attribute_value}")
+                    else:
+                        logger.info(f"{values[0]}: {values[1]}")
+                return True
+        raise BadfishException(f"Unable to locate the Bios attribute: {attribute}")
+
+    async def get_bios_attributes(self):
+        logger.debug("Getting BIOS attributes.")
+        _uri = "%s%s/Bios" % (self.host_uri, self.system_resource)
+        data = await self.http_client.get_json(_uri)
+
+        if not data:
+            logger.error("Operation not supported by vendor.")
+            return False
+
+        return data
+
+    async def get_bios_attribute(self, attribute):
+        data = await self.get_bios_attributes()
+        try:
+            bios_attribute = data["Attributes"][attribute]
+            return bios_attribute
+        except (KeyError, TypeError):
+            logger.warning("Could not retrieve Bios Attributes.")
+            return None
+
+    async def set_bios_attribute(self, attributes):
+        data = await self.get_bios_attributes_registry()
+        accepted = False
+        for entry in data["RegistryEntries"]["Attributes"]:
+            entries = [low_entry.lower() for low_entry in entry.values() if isinstance(low_entry, str)]
+            _warnings = []
+            _not_found = []
+            _remove = []
+            for attribute, value in attributes.items():
+                if attribute.lower() in entries:
+                    for values in entry.items():
+                        if values[0] == "Value":
+                            accepted_values = [value["ValueName"] for value in values[1]]
+                            for accepted_value in accepted_values:
+                                if value.lower() == accepted_value.lower():
+                                    value = accepted_value
+                                    accepted = True
+                            if not accepted:
+                                _warnings.append(f"List of accepted values for '{attribute}': {accepted_values}")
+
+                attribute_value = await self.get_bios_attribute(attribute)
+                if attribute_value:
+                    if value.lower() == attribute_value.lower():
+                        logger.warning(f"Attribute value for {attribute} is already in that state. IGNORING.")
+                        _remove.append(attribute)
+                else:
+                    _not_found.append(f"{attribute} not found. Please check attribute name.")
+            if _warnings:
+                for warning in _warnings:
+                    logger.warning(warning)
+                raise BadfishException("Value not accepted")
+            if _not_found:
+                for warning in _not_found:
+                    logger.error(warning)
+                raise BadfishException("Attribute not found")
+            if _remove:
+                for attribute in _remove:
+                    attributes.pop(attribute)
+
+        _payload = {"Attributes": attributes}
+
+        await self.patch_bios(_payload, insist=False)
+        await self.reboot_server()
+
     async def get_boot_devices(self):
         if not self.boot_devices:
             _boot_seq = await self.get_boot_seq()
@@ -854,19 +943,24 @@ class Badfish:
 
     async def send_one_time_boot(self, device):
         boot_seq = await self.get_boot_seq()
-        _url = "%s%s" % (self.root_uri, self.bios_uri)
         _payload = {
             "Attributes": {
                 "OneTimeBootMode": f"OneTime{boot_seq}",
                 f"OneTime{boot_seq}Dev": device,
             }
         }
+        await self.patch_bios(_payload)
+
+    async def patch_bios(self, payload, insist=True):
+        _url = "%s%s" % (self.root_uri, self.bios_uri)
         _headers = {"content-type": "application/json"}
         _first_reset = False
+        payload_patch = {"@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
+        payload_patch.update(payload)
         for i in range(self.retries):
-            _response = await self.patch_request(_url, _payload, _headers)
+            _response = await self.patch_request(_url, payload_patch, _headers)
             status_code = _response.status
-            if status_code == 200:
+            if status_code in [200, 202]:
                 logger.info("Command passed to set BIOS attribute pending values.")
                 break
             else:
@@ -874,10 +968,11 @@ class Badfish:
                 if status_code == 503 and i - 1 != self.retries:
                     logger.info("Retrying to send one time boot.")
                     continue
-                elif status_code == 400:
+                elif status_code == 400 and insist:
                     await self.clear_job_queue()
                     if not _first_reset:
                         await self.reset_idrac()
+                        await asyncio.sleep(10)
                         _first_reset = True
                         await self.polling_host_state("On")
                     continue
