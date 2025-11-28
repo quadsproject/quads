@@ -6,8 +6,8 @@ from datetime import timedelta, datetime
 from quads.config import Config
 
 
-def is_supported(_host_name):
-    for host_type in Config.SUPPORTED:
+def is_supported(_host_name, attribute="SUPPORTED"):
+    for host_type in getattr(Config, attribute):
         if host_type in _host_name:
             return True
     return False
