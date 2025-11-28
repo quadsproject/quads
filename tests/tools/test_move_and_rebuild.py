@@ -1,5 +1,6 @@
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
+import logging
 import pytest
 
 from quads.server.dao.host import HostDao
@@ -7,7 +8,7 @@ from quads.server.dao.cloud import CloudDao
 from quads.server.dao.baseDao import BaseDao
 from quads.tools.move_and_rebuild import move_and_rebuild
 
-prefill_settings = ["clouds", "vlans", "hosts", "assignments", "schedules"]
+prefill_settings = ["clouds, hosts, vlans, assignments, schedules"]
 
 
 @pytest.fixture
@@ -54,6 +55,7 @@ def mock_dependencies():
     ):
 
         bf_instance = AsyncMock()
+        bf_instance.get_bios_attribute = AsyncMock(return_value="Uefi")
         mock_bf.return_value = bf_instance
 
         foreman_instance = MagicMock()
@@ -74,6 +76,7 @@ def mock_dependencies():
         ipmi_instance.pxe_persistent = AsyncMock()
 
         yield {
+            "badfish": bf_instance,
             "foreman_heal": mock_foreman_heal,
             "safe_commit": mock_safe_commit,
             "update_assignment": mock_update_assignment,
@@ -100,6 +103,25 @@ async def test_move_and_rebuild_updates_assignment_if_ready(test_client, auth, p
 
     # Check that safe_commit was called (it is called by side_effect AND hopefully by utils)
     assert mock_dependencies["safe_commit"].called
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+async def test_move_and_rebuild_updates_bootmode(test_client, auth, prefill, mock_dependencies, caplog):
+    host_name = "host2.example.com"
+    target_cloud = "cloud02"
+    semaphore = asyncio.Semaphore(1)
+
+    caplog.set_level(logging.INFO)
+    # Run the function
+    result = await move_and_rebuild(host_name, target_cloud, semaphore, rebuild=True)
+
+    assert result is True
+    assert mock_dependencies["badfish"].get_bios_attribute.called
+    assert mock_dependencies["badfish"].get_bios_attribute.call_args.args[0] == "BootMode"
+
+    assert mock_dependencies["badfish"].set_bios_attribute.called
+    assert mock_dependencies["badfish"].set_bios_attribute.call_args.args[0] == {"BootMode": "Bios"}
 
 
 @pytest.mark.asyncio

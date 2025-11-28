@@ -138,8 +138,9 @@ def update_host(hostname: str) -> Response:
             if attr.key.lower() == "model":
                 _host.model = value.upper()
             if type(value) is str:
-                if value.lower() in ["true", "false"]:
-                    value = eval(value.lower().capitalize())
+                mapping = {"true": True, "false": False, "none": None}
+                if value.lower() in mapping:
+                    value = mapping[value.lower()]
             update_fields[attr.key] = value
 
     for key, value in update_fields.items():
@@ -162,6 +163,7 @@ def create_host() -> Response:
     rack = data.get("rack")
     uloc = data.get("uloc")
     blade = data.get("blade")
+    bootmode = data.get("bootmode")
 
     if not model:
         response = {
@@ -251,6 +253,7 @@ def create_host() -> Response:
         rack=rack,
         uloc=uloc,
         blade=blade,
+        bootmode=bootmode,
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()

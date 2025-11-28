@@ -6,7 +6,18 @@ from quads.exceptions import CliException
 from quads.quads_api import APIServerException
 from quads.server.dao.baseDao import EntryExisting
 from quads.server.dao.host import HostDao
-from tests.cli.config import CLOUD, DEFAULT_CLOUD, DEFINE_HOST, HOST1, HOST2, HOST_TYPE, IFIP1, MODEL1, RACK, ULOC1
+from tests.cli.config import (
+    CLOUD,
+    DEFAULT_CLOUD,
+    DEFINE_HOST,
+    HOST1,
+    HOST2,
+    HOST_TYPE,
+    IFIP1,
+    MODEL1,
+    RACK,
+    ULOC1,
+)
 from tests.cli.test_base import TestBase
 
 
@@ -263,3 +274,54 @@ class TestHost(TestBase):
         assert self._caplog.messages[1] == "  size: 2048"
         assert self._caplog.messages[2] == "memory: DIMM2"
         assert self._caplog.messages[3] == "  size: 2048"
+
+    def test_mod_host(self, add_host):
+        new_model = "nob666"
+        new_bootmode = "Uefi"
+        self.cli_args["host"] = DEFINE_HOST
+        self.cli_args["model"] = new_model
+        self.cli_args["host_type"] = None
+        self.cli_args["build"] = None
+        self.cli_args["validated"] = None
+        self.cli_args["switch_config_applied"] = None
+        self.cli_args["can_self_schedule"] = None
+        self.cli_args["bootmode"] = new_bootmode
+
+        self.quads_cli_call("modhost")
+
+        host = HostDao.get_host(DEFINE_HOST)
+        assert host
+        assert host.model == new_model
+        assert host.bootmode == new_bootmode
+
+    @patch("quads.quads_api.QuadsApi.get_host")
+    def test_mod_host_exception(self, mock_create, remove_host):
+        mock_create.side_effect = APIServerException("Connection Error")
+        self.cli_args["host"] = DEFINE_HOST
+        self.cli_args["model"] = None
+        self.cli_args["host_type"] = None
+        self.cli_args["build"] = None
+        self.cli_args["validated"] = None
+        self.cli_args["switch_config_applied"] = None
+        self.cli_args["can_self_schedule"] = None
+        self.cli_args["bootmode"] = None
+
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("modhost")
+
+        assert str(ex.value) == "Connection Error"
+
+    def test_mod_host_missing_host(self, remove_host):
+        self.cli_args["host"] = None
+        self.cli_args["model"] = None
+        self.cli_args["host_type"] = None
+        self.cli_args["build"] = None
+        self.cli_args["validated"] = None
+        self.cli_args["switch_config_applied"] = None
+        self.cli_args["can_self_schedule"] = None
+        self.cli_args["bootmode"] = None
+
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("modhost")
+
+        assert str(ex.value) == "Missing parameter --host"
