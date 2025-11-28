@@ -78,6 +78,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Removing a Host from QUADS](#removing-a-host-from-quads)
          * [Modifying a Host Schedule](#modifying-a-host-schedule)
             * [Modifying a Host Schedule across a large set of hosts](#modifying-a-host-schedule-across-a-large-set-of-hosts)
+         * [Modify Host Bootmode](#modify-host-bootmode)
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
@@ -474,6 +475,11 @@ You will need to do this when you introduce new system models into your fleet if
 > [!TIP]
 > The ```--host-type``` parameter is a mandatory, free-form label that can be anything that makes sense to you for organization.
 
+> [!IMPORTANT]
+> The `--bootmode` parameter is optional and must correspond to Bios, Uefi. If not set, it defaults to None.
+>
+> In move and rebuild, it leverages Badfish to check the current bootmode and default to this value if needed.
+
 > [!NOTE]
 > You must include `--rack` and `--uloc` when defining hosts.
 > If you don't use traditional datacenter server racks and u-locations just use some description that makes sense for you.
@@ -483,7 +489,7 @@ You will need to do this when you introduce new system models into your fleet if
    - Define your QUADS hosts:
 
 ```bash
-quads --define-host --host <hostname> --default-cloud cloud01 --host-type general --model R630 --rack f01 --uloc h01
+quads --define-host --host <hostname> --default-cloud cloud01 --host-type general --model R630 --rack f01 --uloc h01 --bootmode Bios
 ```
 
 #### Define Host Interfaces in QUADS
@@ -1061,7 +1067,6 @@ quads --rm-schedule --schedule-id 4
 ### Removing a Schedule across a large set of hosts
 
 You should search for either the start or end dates to select the right schedule ID to remove when performing schedule removals across a large set of hosts.
-
    - If you are using QUADS in any serious capacity **always pick this option**.
    - Example: removing schedule by searching for start date.
    - Often machine schedule ID's are different for the same schedule across a set of machines, this ensures you remove the right one.
@@ -1098,6 +1103,15 @@ quads --mod-schedule --host host01.example.com --mod-schedule --schedule-id 31 -
 
 ```bash
 for host in $(cat /tmp/2491); do quads --mod-schedule --schedule-id $(quads --ls-schedule --host $host | grep cloud06 | grep "start=2023-03-13" | tail -1 | awk -F\| '{ print $1 }') --host $host --schedule-start "2023-03-12 22:00" ; done
+```
+
+### Modify Host Bootmode
+
+* This parameter defines the value which bootmode should default to during move and rebuild.
+* If not set when a [host is defined](#define-your-quads-hosts) it defaults to None. It can be modified later with the following command:
+
+```bash
+quads --mod-host <hostname> --bootmode Uefi
 ```
 
 ### Modify a Host Interface
