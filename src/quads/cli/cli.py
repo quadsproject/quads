@@ -1089,6 +1089,7 @@ class QuadsCli:
             "rack": self.cli_args.get("rack"),
             "uloc": self.cli_args.get("uloc"),
             "blade": self.cli_args.get("blade"),
+            "bootmode": self.cli_args.get("bootmode"),
         }
         try:
             _host = self.quads.create_host(data)
@@ -1179,6 +1180,7 @@ class QuadsCli:
             "validated": self.cli_args.get("validated"),
             "switch_config_applied": self.cli_args.get("switchconfigapplied"),
             "can_self_schedule": self.cli_args.get("canselfschedule"),
+            "bootmode": self.cli_args.get("bootmode"),
         }
 
         try:
