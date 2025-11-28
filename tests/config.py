@@ -636,6 +636,7 @@ SELF_SCHEDULE_1_RESPONSE = {
     "end": "Tue, 06 Jun 2023 22:00:00 GMT",
     "host": {
         "blade": None,
+        "bootmode": None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -717,6 +718,7 @@ SELF_SCHEDULE_2_RESPONSE = {
     "end": "Tue, 06 Jun 2023 22:00:00 GMT",
     "host": {
         "blade": None,
+        "bootmode": None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -798,6 +800,7 @@ SELF_SCHEDULE_3_RESPONSE = {
     "host": {
         "broken": False,
         "build": False,
+        "bootmode": None,
         "can_self_schedule": True,
         "cloud": {
             "id": 1,
@@ -884,6 +887,7 @@ SCHEDULE_1_RESPONSE = {
     "end": "Tue, 18 Mar 2042 22:00:00 GMT",
     "host": {
         "blade": None,
+        "bootmode": None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
@@ -973,6 +977,7 @@ SCHEDULE_2_RESPONSE = {
     "end": "Fri, 18 Mar 2044 22:00:00 GMT",
     "host": {
         "blade": None,
+        "bootmode": None,
         "broken": False,
         "build": False,
         "can_self_schedule": True,
