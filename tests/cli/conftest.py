@@ -14,6 +14,7 @@ from quads.server.dao.schedule import ScheduleDao
 from quads.server.dao.vlan import VlanDao
 from quads.server.database import drop_all, init_db, populate
 from tests.cli.config import (
+    BOOTMODE,
     CLOUD,
     DEFAULT_CLOUD,
     DEFINE_CLOUD,
@@ -28,6 +29,7 @@ from tests.cli.config import (
     IFSPEED,
     IFVENDOR1,
     MOD_CLOUD,
+    MOD_HOST,
     MODEL1,
     MODEL2,
     REMOVE_CLOUD,
@@ -62,6 +64,7 @@ def populate_db():
     mod_cloud = CloudDao.create_cloud(MOD_CLOUD)
     host1 = HostDao.create_host(HOST1, MODEL1, HOST_TYPE, CLOUD)
     host2 = HostDao.create_host(HOST2, MODEL2, HOST_TYPE, CLOUD)
+    mod_host = HostDao.create_host(MOD_HOST, MODEL1, HOST_TYPE, CLOUD, bootmode=BOOTMODE)
     InterfaceDao.create_interface(
         HOST1,
         IFNAME1,
@@ -94,6 +97,7 @@ def populate_db():
 
     host1 = HostDao.get_host(HOST1)
     host2 = HostDao.get_host(HOST2)
+    mod_host = HostDao.get_host(MOD_HOST)
     cloud = CloudDao.get_cloud(CLOUD)
     default_cloud = CloudDao.get_cloud(DEFAULT_CLOUD)
     define_cloud = CloudDao.get_cloud(DEFINE_CLOUD)
@@ -114,6 +118,9 @@ def populate_db():
 
     if host2:
         HostDao.remove_host(name=HOST2)
+
+    if mod_host:
+        HostDao.remove_host(name=MOD_HOST)
 
     if cloud:
         CloudDao.remove_cloud(CLOUD)
