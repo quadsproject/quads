@@ -23,6 +23,7 @@ class HostDao(BaseDao):
         model: str,
         host_type: str,
         default_cloud: str,
+        bootmode: str = None,
         can_self_schedule: bool = False,
         rack: str = None,
         uloc: str = None,
@@ -46,6 +47,7 @@ class HostDao(BaseDao):
             rack=rack,
             uloc=uloc,
             blade=blade,
+            bootmode=bootmode,
         )
         db.session.add(_host)
         cls.safe_commit()
