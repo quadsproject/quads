@@ -162,6 +162,7 @@ def create_host() -> Response:
     rack = data.get("rack")
     uloc = data.get("uloc")
     blade = data.get("blade")
+    bootmode = data.get("bootmode")
 
     if not model:
         response = {
@@ -251,6 +252,7 @@ def create_host() -> Response:
         rack=rack,
         uloc=uloc,
         blade=blade,
+        bootmode=bootmode,
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()
