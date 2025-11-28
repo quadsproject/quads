@@ -124,6 +124,8 @@ async def move_and_rebuild(
     ipmi = IPMI(host, Config["ipmi_username"], Config["ipmi_password"], logger=logger)
     await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
 
+    bootmode = host_obj.bootmode
+
     badfish = None
     if rebuild and target_cloud.name != host_obj.default_cloud.name:
         if Config.pdu_management:
@@ -185,6 +187,19 @@ async def move_and_rebuild(
                     logger.error(f"Error setting PXE boot via Badfish on {host}.")
                     _update_host_on_failure(host_obj)
                     return False
+
+            if bootmode:
+                if bootmode == "UEFI" and not is_supported(host, attribute="UEFI"):
+                    logger.warning(f"Host {host} does not support UEFI boot mode. Changing to BIOS.")
+                    bootmode = "BIOS"
+                    quads.update_host(host, {"bootmode": bootmode})
+                try:
+                    await badfish.set_bios_attribute({"BootMode": bootmode})
+                except BadfishException:
+                    logger.error(f"Error setting boot mode via Badfish on {host}.")
+                    _update_host_on_failure(host_obj)
+                    return False
+
             try:
                 await badfish.reboot_server(graceful=False)
             except BadfishException:
