@@ -1,26 +1,37 @@
 name: issue-announce
+
 on:
   issues:
     types: [opened]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+permissions: {}
 
+jobs:
+  notify:
+    runs-on: ubuntu-latest
     steps:
       - name: Git Issue Details
         env:
-          event_issue_title: "${{ github.event.issue.title }}"
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_CREATOR: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-          export issue_title=$(echo $event_issue_title | sed -e "s/'//g" -e 's/"//g')
-          echo "Issue creator: ${{ github.event.issue.user.login }}"
-          echo "Issue title: $event_issue_title"
-          echo "Issue number: ${{ github.event.issue.number }}"
-          echo "Issue url: ${{ github.event.issue.html_url }}"
-          echo "Using issue_title: $issue_title"
+          echo "Issue creator: $ISSUE_CREATOR"
+          echo "Issue title: $ISSUE_TITLE"
+          echo "Issue number: $ISSUE_NUMBER"
+          echo "Issue url: $ISSUE_URL"
+
       - name: Google Chat Notification
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_CREATOR: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-            export issue_title=$(echo "${{ github.event.issue.title }}" | sed -e "s/'//g" -e 's/"//g')
-            curl --location --request POST '${{ secrets.WEBHOOK }}' \
+          MESSAGE="[$ISSUE_NUMBER] $ISSUE_URL $ISSUE_TITLE ($ISSUE_CREATOR)"
+          JSON_PAYLOAD=$(jq -n --arg txt "$MESSAGE" '{text: $txt}')
+          curl --fail --location --request POST "$WEBHOOK_URL" \
             --header 'Content-Type: application/json; charset=UTF-8' \
-            --data "{'text': '[${{ github.event.issue.number }}] ${{ github.event.issue.html_url }} $issue_title (${{ github.event.issue.user.login }})'}"
+            --data "$JSON_PAYLOAD"
