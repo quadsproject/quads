@@ -9,10 +9,12 @@ jobs:
 
     steps:
       - name: Git Issue Details
+        env:
+          event_issue_title: "${{ github.event.issue.title }}"
         run: |
-          export issue_title=$(echo "${{ github.event.issue.title }}" | sed -e "s/'//g" -e 's/"//g')
+          export issue_title=$(echo $event_issue_title | sed -e "s/'//g" -e 's/"//g')
           echo "Issue creator: ${{ github.event.issue.user.login }}"
-          echo "Issue title: ${{ github.event.issue.title }}"
+          echo "Issue title: $event_issue_title"
           echo "Issue number: ${{ github.event.issue.number }}"
           echo "Issue url: ${{ github.event.issue.html_url }}"
           echo "Using issue_title: $issue_title"
