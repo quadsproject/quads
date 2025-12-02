@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf3f0bdd_3c7cdabc",
+        "filename": "src/quads/server/models.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2025-12-02T08:29:56Z",
+      "side": 1,
+      "message": "don\u0027t make None an option but make the column nullable instead\nsysmode \u003d Column(Enum(\"BIOS\", \"EFI\", name\u003d\"sysmode_enum\"), default\u003dNone, nullable\u003dTrue)",
+      "revId": "6371def023b35f52192d479a4a78eb4884bff56e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
