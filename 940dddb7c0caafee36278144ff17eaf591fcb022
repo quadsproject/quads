@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "87e9838e_d2ed252d",
+        "filename": "src/quads/config.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2025-12-14T17:40:57Z",
+      "side": 1,
+      "message": "I think we want to store bootmode preference in the database.",
+      "revId": "940dddb7c0caafee36278144ff17eaf591fcb022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
