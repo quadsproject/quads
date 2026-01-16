@@ -116,6 +116,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
             * [Connecting to the Postgres Database](#connecting-to-the-postgres-database)
             * [Basic Investigation for Validation](#basic-investigation-for-validation)
             * [Forcing Hosts to Move Clouds](#forcing-hosts-to-move-clouds)
+            * [Forcing Switch Config Applied](#forcing-switch-config-applied)
             * [Cleaning up Orphaned Active Assignments](#cleaning-up-orphaned-active-assignments)
                * [Finding Orphaned Assignments](#finding-orphaned-assignments)
                * [Removing Orphaned Active Assignments](#removing-orphaned-active-assignments)
@@ -1708,6 +1709,48 @@ quads=# update hosts set cloud_id=1 where name = 'e22-h24-b04-fc640.rdu2.example
 quads=# update hosts set cloud_id=1 where name = 'e22-h24-b02-fc640.rdu2.example.com';
 ```
   - Now you should see that `quads --move-hosts --dry-run` has nothing to do!
+
+#### Forcing Switch Config Applied
+Occasionally `python3-paramiko` or some switch/connectivity issue may keep the QUADS `move_and_rebuild.py` process from properly setting the `switch_config_applied` value for some of your hosts.  This typically elicits the following error during `--validate-env`
+
+```
+Validating cloud18
+Host: f30-h15-000-r640.example.com
+The following hosts are missing switch configuration:
+f30-h15-000-r640.example.com
+```
+
+* To fix this you'll need to get into the database:
+
+```bash
+sudo -u postgres psql
+```
+```sql
+postgres=# \c quads;
+You are now connected to database "quads" as user "postgres".
+```
+
+* Now find the host(s) `id` you want to adjust for `switch_config_applied`
+
+```sql
+quads=# select id from hosts where name = 'f30-h15-000-r640.example.com';
+  id
+------
+ 1926
+(1 row)
+```
+
+* Finally, set the value to true:
+
+```sql
+quads=*# update hosts set switch_config_applied=true where id=1926;
+UPDATE 1
+```
+
+> [!NOTE]
+> First physically verify/fix your configurations with `quads --verify-switch-conf --cloud cloud0X`
+>
+> All your hosts should validate now assuming this value is set properly.
 
 #### Cleaning up Orphaned Active Assignments
 Sometimes failed attempts to use the self-scheduling API and workflows may result in orphaned, active assignments with no host schedules associated with it.
