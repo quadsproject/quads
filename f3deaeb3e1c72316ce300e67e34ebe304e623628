@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b98711ce_a64ffec4",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-01-20T15:10:59Z",
+      "side": 1,
+      "message": "use logger. insead of self.logger",
+      "revId": "f3deaeb3e1c72316ce300e67e34ebe304e623628",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
