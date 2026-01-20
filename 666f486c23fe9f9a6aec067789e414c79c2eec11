@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6938f485_087949e2",
+        "filename": "src/quads/cli/parser.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 827,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-01-20T14:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3716f58_fc81bda9",
+      "revId": "666f486c23fe9f9a6aec067789e414c79c2eec11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0e7cb063_eeedbe89",
@@ -35,6 +53,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "515d1a18_164b1a8a",
+        "filename": "src/quads/server/dao/host.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-01-20T14:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e7cb063_eeedbe89",
+      "revId": "666f486c23fe9f9a6aec067789e414c79c2eec11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fa6204d5_a46ae038",
@@ -48,6 +84,24 @@
       "writtenOn": "2026-01-20T14:12:20Z",
       "side": 1,
       "message": "I would maybe make this case insensitive with:\nif bootmode.lower() !\u003d current_bootmode.lower():",
+      "revId": "666f486c23fe9f9a6aec067789e414c79c2eec11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "278be2da_81533666",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-01-20T14:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa6204d5_a46ae038",
       "revId": "666f486c23fe9f9a6aec067789e414c79c2eec11",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
