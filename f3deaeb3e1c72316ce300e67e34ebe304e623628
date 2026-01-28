@@ -16,6 +16,24 @@
       "message": "use logger. insead of self.logger",
       "revId": "f3deaeb3e1c72316ce300e67e34ebe304e623628",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a75f57ab_55e68c89",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-01-28T10:52:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b98711ce_a64ffec4",
+      "revId": "f3deaeb3e1c72316ce300e67e34ebe304e623628",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
