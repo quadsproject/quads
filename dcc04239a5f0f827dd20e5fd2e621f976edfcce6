@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c9b8b1a8_eab45737",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-01-28T14:00:12Z",
+      "side": 1,
+      "message": "Can we use a case insensitive check for the boot mode flag?",
+      "revId": "dcc04239a5f0f827dd20e5fd2e621f976edfcce6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1c8efef_823525d2",
+        "filename": "src/quads/cli/parser.py",
+        "patchSetId": 18
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-01-28T14:00:12Z",
+      "side": 1,
+      "message": "Anyone object to using \"str.lower\" and then comparing against a lower cased choice list?",
+      "revId": "dcc04239a5f0f827dd20e5fd2e621f976edfcce6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
