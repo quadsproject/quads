@@ -153,7 +153,7 @@ default_wipe: True
 
 # If you're using metadata model / search you want to add any system models
 # here.  Please see docs/quads-host-metadata-search.md
-models: R620,R630,R640,R650,R660,R760,R930,R730XD,FC640,DL360,6018R,6048R,1029U-TRTP,1029U-TN10RT,1029P,5039MS,6049P
+models: R620,R630,R640,R650,R660,R6625,R760,R930,R730XD,FC640,DL360,6018R,6048R,1029U-TRTP,1029U-TN10RT,1029P,5039MS,6049P
 
 # Amount of hours for locking a cloud for redefinition
 cloud_reservation_lock: 48
