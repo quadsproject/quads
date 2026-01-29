@@ -33,6 +33,24 @@
       "message": "Anyone object to using \"str.lower\" and then comparing against a lower cased choice list?",
       "revId": "dcc04239a5f0f827dd20e5fd2e621f976edfcce6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8f4a46b4_b80be567",
+        "filename": "src/quads/cli/parser.py",
+        "patchSetId": 18
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-01-29T14:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1c8efef_823525d2",
+      "revId": "dcc04239a5f0f827dd20e5fd2e621f976edfcce6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
