@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import socket
 
-from quads.tools.helpers import get_running_loop
+from quads.tools.helpers import get_or_create_event_loop
 
 
 class Netcat:
@@ -12,7 +12,7 @@ class Netcat:
         self.port = port
         self.buff = ""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.loop = loop if loop else get_running_loop()
+        self.loop = loop if loop else get_or_create_event_loop()
 
     async def __aenter__(self):
         await self.connect()
