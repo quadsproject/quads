@@ -7,6 +7,7 @@ from quads.tools.external.foreman import Foreman
 import asyncio
 import logging
 import sys
+from quads.tools.helpers import get_or_create_event_loop
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -21,7 +22,7 @@ def rbac(_logger=None):
     if _logger:  # pragma: no cover
         logger = _logger
 
-    loop = asyncio.get_event_loop()
+    loop = get_or_create_event_loop()
 
     foreman_admin = Foreman(
         Config["foreman_api_url"],
