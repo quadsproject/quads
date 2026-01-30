@@ -29,6 +29,7 @@ from quads.tools.move_and_rebuild import move_and_rebuild
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
 from quads.tools.validate_env import main as validate_env
+from quads.tools.helpers import get_or_create_event_loop
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -919,7 +920,7 @@ class QuadsCli:
         if self.cli_args.get("boot_order"):
             boot_order = self.cli_args.get("boot_order")
             interfaces_path = conf.get("badfish_interfaces_path")
-            loop = asyncio.get_event_loop()
+            loop = get_or_create_event_loop()
             host_types = loop.run_until_complete(Badfish.get_host_types_from_yaml(interfaces_path))
             if boot_order in host_types:
                 data["boot_order"] = boot_order
@@ -1508,7 +1509,7 @@ class QuadsCli:
                 vlan=ass.vlan,
             )
 
-            loop = asyncio.get_event_loop()
+            loop = get_or_create_event_loop()
             try:
                 jira = Jira(
                     conf["jira_url"],
@@ -1856,7 +1857,7 @@ class QuadsCli:
                         raise CliException(str(ex))
 
                     done = None
-                    loop = asyncio.get_event_loop()
+                    loop = get_or_create_event_loop()
                     loop.set_exception_handler(
                         lambda _loop, ctx: self.logger.error(f"Caught exception: {ctx['message']}")
                     )
@@ -2131,10 +2132,7 @@ class QuadsCli:
             "skip_network": self.cli_args.get("skip_network"),
             "skip_hosts": self.cli_args.get("skip_hosts"),
         }
-        _loop = asyncio.get_event_loop()
-        if _loop.is_closed():
-            _loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(_loop)
+        _loop = get_or_create_event_loop()
 
         _loop.run_until_complete(validate_env(_args, self.logger))
         self.logger.info("Quads assignments validation executed.")
