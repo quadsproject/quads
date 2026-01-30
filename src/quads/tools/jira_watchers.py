@@ -91,6 +91,10 @@ async def main(_loop):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    loop = asyncio.get_event_loop()
+    try:
+        loop = get_or_create_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     err = loop.run_until_complete(main(loop))
     sys.exit(err)

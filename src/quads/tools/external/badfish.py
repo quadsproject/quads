@@ -13,6 +13,8 @@ import sys
 import warnings
 import yaml
 
+from quads.tools.helpers import get_or_create_event_loop
+
 warnings.filterwarnings("ignore")
 
 RETRIES = 15
@@ -47,7 +49,11 @@ class Badfish:
         self.root_uri = "%s%s" % (self.host_uri, self.redfish_uri)
         self.semaphore = asyncio.Semaphore(50)
         if not loop:
-            self.loop = asyncio.get_event_loop()
+            try:
+                self.loop = get_or_create_event_loop()
+            except RuntimeError:
+                self.loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self.loop)
         else:
             self.loop = loop
 
