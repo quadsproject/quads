@@ -919,7 +919,11 @@ class QuadsCli:
         if self.cli_args.get("boot_order"):
             boot_order = self.cli_args.get("boot_order")
             interfaces_path = conf.get("badfish_interfaces_path")
-            loop = asyncio.get_event_loop()
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             host_types = loop.run_until_complete(Badfish.get_host_types_from_yaml(interfaces_path))
             if boot_order in host_types:
                 data["boot_order"] = boot_order
@@ -1508,7 +1512,11 @@ class QuadsCli:
                 vlan=ass.vlan,
             )
 
-            loop = asyncio.get_event_loop()
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
             try:
                 jira = Jira(
                     conf["jira_url"],
@@ -1856,7 +1864,11 @@ class QuadsCli:
                         raise CliException(str(ex))
 
                     done = None
-                    loop = asyncio.get_event_loop()
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
                     loop.set_exception_handler(
                         lambda _loop, ctx: self.logger.error(f"Caught exception: {ctx['message']}")
                     )
