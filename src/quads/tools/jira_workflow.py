@@ -6,6 +6,7 @@ import sys
 from quads.quads_api import QuadsApi
 from quads.tools.external.jira import Jira, JiraException
 from quads.config import Config
+from quads.tools.helpers import get_or_create_event_loop
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
@@ -53,6 +54,6 @@ async def main(_loop):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    loop = asyncio.get_event_loop()
+    loop = get_or_create_event_loop()
     err = loop.run_until_complete(main(loop))
     sys.exit(err)
