@@ -1,9 +1,11 @@
 import calendar
 import re
+import logging
 
 from datetime import timedelta, datetime
 
 from quads.config import Config
+from quads.server.dao.baseDao import BaseDao
 
 
 def is_supported(_host_name):
@@ -56,3 +58,40 @@ def last_day_month(date):
 
 def first_day_month(date):
     return date - timedelta(days=date.day - 1)
+
+
+logger = logging.getLogger(__name__)
+
+
+def check_assignment_provisioning_status(cloud_name):
+    """
+    Checks if all hosts in an assignment are built
+    If so, marks the assignment as provisioned.
+    """
+    # Import inside function to avoid circular dependency with quads.server.app
+    from quads.server.app import quads
+
+    try:
+        assignment = quads.get_active_cloud_assignment(cloud_name)
+
+        if not assignment or assignment.provisioned:
+            return
+
+        current_schedules = quads.get_current_schedules({"cloud": assignment.cloud.name})
+
+        if not current_schedules:
+            return
+
+        all_provisioned = True
+        for schedule in current_schedules:
+            if not schedule.host.build:
+                all_provisioned = False
+                break
+
+        if all_provisioned:
+            assignment.provisioned = True
+            BaseDao.safe_commit()
+            logger.info(f"Marked assignment for {assignment.cloud.name} as provisioned")
+
+    except Exception as e:
+        logger.error(f"Error checking assignment provisioning status for {cloud_name}: {e}")
