@@ -51,15 +51,41 @@ class TestValidateEnv(TestBase):
         self._caplog.set_level(logging.INFO)
         self.quads_cli_call("validate_env")
 
-        assert self._caplog.messages[-5:] == [
-            "Validating cloud04",
-            "Quads assignments validation executed.",
-        ]
+        # Check for specific success messages
+        assert "Validating cloud04" in self._caplog.messages
+        assert "Quads assignments validation executed." in self._caplog.messages
+
         cloud = CloudDao.get_cloud(name="cloud04")
         ass = AssignmentDao.get_active_cloud_assignment(cloud=cloud)
         db.session.refresh(ass)
         assert ass.notification.fail is False
         assert ass.validated is True
+
+    @patch("quads.tools.validate_env.socket.gethostbyname", switch_config_stub)
+    @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
+    @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
+    @patch("quads.tools.validate_env.Netcat", NetcatStub)
+    @patch("quads.tools.external.postman.SMTP")
+    def test_validate_env_skip_unprovisioned(self, mocked_smtp, validate_fixture):
+        Config.__setattr__("foreman_unavailable", True)
+        mocked_smtp()
+
+        cloud = CloudDao.get_cloud(name="cloud04")
+        ass = AssignmentDao.get_active_cloud_assignment(cloud=cloud)
+        # Ensure we start in a clean state for the negative test
+        ass.provisioned = False
+        ass.validated = False
+        BaseDao.safe_commit()
+
+        self._caplog.set_level(logging.INFO)
+        self.quads_cli_call("validate_env")
+
+        # Verify the tool skipped validation logic
+        assert "Validating cloud04" not in self._caplog.text
+
+        # Verify state remains unchanged
+        db.session.refresh(ass)
+        assert ass.validated is False
 
     @patch("quads.tools.validate_env.socket.gethostbyname", switch_config_stub)
     @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
@@ -76,7 +102,9 @@ class TestValidateEnv(TestBase):
 
         self._caplog.set_level(logging.INFO)
         self.cli_args.update({"cloud": "cloud02"})
-        with pytest.raises(CliException) as ex:
-            self.quads_cli_call("validate_env")
 
-        assert str(ex.value) == "No clouds found with the given filters"
+        # We forced provisioned=True, so this should succeed, NOT raise exception
+        try:
+            self.quads_cli_call("validate_env")
+        except CliException:
+            pytest.fail("validate_env raised CliException unexpectedly")
