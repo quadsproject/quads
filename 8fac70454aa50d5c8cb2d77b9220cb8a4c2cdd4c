@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd7e0f04_880da3a8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 21
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-04T10:39:02Z",
+      "side": 1,
+      "message": "This is looking great, just one thing to check here.",
+      "revId": "8fac70454aa50d5c8cb2d77b9220cb8a4c2cdd4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43498cbe_2f1a23ae",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 21
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-04T10:39:02Z",
+      "side": 1,
+      "message": "In the upstream badfish set_bios_attribute automatically includes a reboot, please double-check that this isn\u0027t the case here.  If it is we likely don\u0027t need a reboot here.",
+      "range": {
+        "startLine": 205,
+        "startChar": 15,
+        "endLine": 205,
+        "endChar": 59
+      },
+      "revId": "8fac70454aa50d5c8cb2d77b9220cb8a4c2cdd4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
