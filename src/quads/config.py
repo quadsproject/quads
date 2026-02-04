@@ -6,9 +6,11 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONF_PATH = "/opt/quads/conf/quads.yml"
-WEB_CONF_PATH = "/opt/quads/conf/quadsweb.yml"
-SS_CONF_PATH = "/opt/quads/conf/selfservice.yml"
+# Allow overriding config directory for development (e.g. QUADS_CONF_DIR=/path/to/repo/conf)
+_QUADS_CONF_DIR = os.environ.get("QUADS_CONF_DIR", "/opt/quads/conf")
+DEFAULT_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quads.yml")
+WEB_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quadsweb.yml")
+SS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "selfservice.yml")
 
 
 class _ConfigBase:
@@ -22,7 +24,11 @@ class _ConfigBase:
         """
         Load values from yaml file as attributes of this class.
         Will never override existing attributes.
+        Skips missing files (e.g. optional configs or dev without full install).
         """
+        if not os.path.isfile(filepath):
+            logger.debug("Config file not found, skipping: %s", filepath)
+            return
         with open(filepath, "r") as config_file:
             conf = yaml.safe_load(config_file)
             assert type(conf) is dict
