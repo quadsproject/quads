@@ -897,6 +897,8 @@ class QuadsCli:
             "ticket": self.cli_args.get("cloudticket"),
             "force": self.cli_args.get("force"),
             "wipe": self.cli_args.get("wipe", True),
+            "validated": False,
+            "provisioned": False,
         }
         if self.cli_args.get("vlan"):
             try:
