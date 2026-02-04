@@ -19,6 +19,7 @@ DEFAULT_HOST_UPDATE_DATA = {
     "build": False,
     "validated": False,
     "switch_config_applied": False,
+    "provisioned": False,
 }
 
 
@@ -227,6 +228,7 @@ async def move_and_rebuild(
         "build": True,
         "last_build": datetime.now().strftime("%Y-%m-%dT%H:%M"),
         "validated": False,
+        "provisioned": True,
     }
     quads.update_host(host_obj.name, success_data)
     return True
