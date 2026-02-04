@@ -1,9 +1,15 @@
 import calendar
 import re
+import logging
 
 from datetime import timedelta, datetime
 
 from quads.config import Config
+from quads.server.dao.baseDao import BaseDao
+from quads.server.dao.cloud import CloudDao
+from quads.server.dao.assignment import AssignmentDao
+from quads.server.dao.schedule import ScheduleDao
+from quads.server.dao.host import HostDao
 
 
 def is_supported(_host_name):
@@ -56,3 +62,52 @@ def last_day_month(date):
 
 def first_day_month(date):
     return date - timedelta(days=date.day - 1)
+
+
+logger = logging.getLogger(__name__)
+
+
+def check_assignment_provisioning_status(cloud_name):
+    """
+    Checks if all hosts in an assignment are built
+    If so, marks the assignment as provisioned.
+    """
+    # Import locally to avoid circular dependency
+    from quads.tools.foreman_heal import rbac as foreman_heal
+
+    try:
+        cloud = CloudDao.get_cloud(cloud_name)
+        if not cloud:
+            return
+
+        assignment = AssignmentDao.get_active_cloud_assignment(cloud)
+
+        if not assignment or assignment.provisioned:
+            return
+
+        # Note: DAO usually uses singular naming convention 'get_current_schedule'
+        current_schedules = ScheduleDao.get_current_schedule(cloud=cloud)
+
+        if not current_schedules:
+            return
+
+        all_provisioned = True
+        for schedule in current_schedules:
+            # Re-fetch host object to ensure we have latest status
+            host_obj = HostDao.get_host(schedule.host.name)
+            if not host_obj.build:
+                all_provisioned = False
+                break
+
+        if all_provisioned:
+            validate = not assignment.wipe
+
+            assignment.provisioned = True
+            assignment.validated = validate
+            BaseDao.safe_commit()
+
+            logger.info(f"Marked assignment for {assignment.cloud.name} as provisioned")
+            foreman_heal(logger)
+
+    except Exception as e:
+        logger.error(f"Error checking assignment provisioning status for {cloud_name}: {e}")
