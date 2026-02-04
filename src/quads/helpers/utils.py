@@ -1,9 +1,14 @@
 import calendar
 import re
+import logging
 
 from datetime import timedelta, datetime
 
 from quads.config import Config
+from quads.quads_api import QuadsApi
+
+logger = logging.getLogger(__name__)
+quads = QuadsApi(Config)
 
 
 def is_supported(_host_name):
@@ -56,3 +61,31 @@ def last_day_month(date):
 
 def first_day_month(date):
     return date - timedelta(days=date.day - 1)
+
+
+def check_assignment_provisioning_status(cloud_name: str) -> None:
+    """
+    Checks if all hosts currently scheduled to the cloud are built.
+    If so, marks the Assignment as provisioned.
+    """
+    try:
+        assignment = quads.get_active_cloud_assignment(cloud_name)
+        if not assignment:
+            return
+
+        schedules = quads.get_current_schedules({"cloud": cloud_name})
+        if not schedules:
+            return
+
+        all_provisioned = True
+        for schedule in schedules:
+            if not schedule.host.build and not schedule.host.validated:
+                all_provisioned = False
+                break
+
+        if all_provisioned:
+            logger.info(f"All hosts in {cloud_name} are ready. Marking assignment {assignment.id} as provisioned.")
+            quads.update_assignment(assignment.id, {"provisioned": True})
+
+    except Exception as e:
+        logger.error(f"Failed to aggregate assignment provisioning status for {cloud_name}: {e}")

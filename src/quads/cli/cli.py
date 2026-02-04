@@ -15,7 +15,7 @@ from requests import ConnectionError
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
-from quads.helpers.utils import first_day_month, last_day_month
+from quads.helpers.utils import first_day_month, last_day_month, check_assignment_provisioning_status
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
@@ -1927,6 +1927,9 @@ class QuadsCli:
                             APIBadRequest,
                         ) as ex:  # pragma: no cover
                             raise CliException(str(ex))
+
+                        # Check if *all* cloud members are ready, not just this batch
+                        check_assignment_provisioning_status(_cloud)
 
             return 0
 
