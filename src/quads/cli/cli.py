@@ -15,7 +15,11 @@ from requests import ConnectionError
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
-from quads.helpers.utils import first_day_month, last_day_month
+from quads.helpers.utils import (
+    check_assignment_provisioning_status,
+    first_day_month,
+    last_day_month,
+)
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
@@ -1093,7 +1097,6 @@ class QuadsCli:
         self.logger.info(f"{_host.name}")
 
     def parse_metadata_components(self, component_string):
-        """Parse and validate metadata components, expanding 'all' alias."""
         valid_components = {"disks", "memory", "interfaces", "cpus", "gpus"}
 
         components = [c.strip().lower() for c in component_string.split(",")]
@@ -1740,6 +1743,18 @@ class QuadsCli:
 
         if not moves:
             self.logger.info("Nothing to do.")
+
+            # Check if any assignments should be marked as provisioned
+            # (all hosts moved successfully, but assignment not yet marked due to previous partial failures)
+            if not self.cli_args.get("dryrun"):
+                try:
+                    active_assignments = self.quads.get_active_assignments()
+                    for assignment in active_assignments:
+                        if not assignment.provisioned and assignment.cloud.name != conf.get("spare_pool_name"):
+                            check_assignment_provisioning_status(assignment.cloud.name)
+                except (APIServerException, APIBadRequest) as ex:
+                    self.logger.error(f"Error checking assignment provisioning status: {ex}")
+
             return 0
 
         if moves:
