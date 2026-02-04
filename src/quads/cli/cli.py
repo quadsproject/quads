@@ -25,7 +25,7 @@ from quads.tools.external.jira import Jira, JiraException
 from quads.tools.external.switch import Switch
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
-from quads.tools.move_and_rebuild import move_and_rebuild
+from quads.tools.move_and_rebuild import move_and_rebuild, check_assignment_provisioning_status
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
 from quads.tools.validate_env import main as validate_env
@@ -1927,6 +1927,9 @@ class QuadsCli:
                             APIBadRequest,
                         ) as ex:  # pragma: no cover
                             raise CliException(str(ex))
+
+                        # Check if all cloud members are ready, not just this batch
+                        check_assignment_provisioning_status(_cloud)
 
             return 0
 

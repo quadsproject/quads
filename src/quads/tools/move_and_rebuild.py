@@ -97,6 +97,34 @@ def _update_host_on_failure(host_obj, data: Dict[str, Any] = None) -> None:
     quads.update_host(host_obj.name, update_data)
 
 
+def check_assignment_provisioning_status(cloud_name: str) -> None:
+    """
+    Checks if all hosts currently scheduled to the cloud are built.
+    If so, marks the Assignment as provisioned.
+    """
+    try:
+        assignment = quads.get_active_cloud_assignment(cloud_name)
+        if not assignment:
+            return
+
+        schedules = quads.get_current_schedules({"cloud": cloud_name})
+        if not schedules:
+            return
+
+        all_provisioned = True
+        for schedule in schedules:
+            if not schedule.host.build and not schedule.host.validated:
+                all_provisioned = False
+                break
+
+        if all_provisioned:
+            logger.info(f"All hosts in {cloud_name} are ready. Marking assignment {assignment.id} as provisioned.")
+            quads.update_assignment(assignment.id, {"provisioned": True})
+
+    except Exception as e:
+        logger.error(f"Failed to aggregate assignment provisioning status for {cloud_name}: {e}")
+
+
 async def move_and_rebuild(
     host: str, new_cloud: str, semaphore: asyncio.Semaphore, rebuild: bool = False
 ) -> bool:  # pragma: no cover

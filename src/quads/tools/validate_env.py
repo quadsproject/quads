@@ -360,25 +360,7 @@ async def main(_args, _logger=None):  # pragma: no cover
     if _logger:
         logger = _logger
 
-    # start by setting any assignment provisioned flag to true if all hosts are validated
-    _filter = {"active": True, "validated": False, "provisioned": False, "cloud__ne": "cloud01"}
-    assignments = quads.filter_assignments(_filter)
-    for _ass in assignments:
-        provisioned = True
-        _schedules = quads.get_current_schedules(data={"cloud": _ass.cloud.name})
-        for _schedule in _schedules:
-            if not _schedule.host.validated:
-                provisioned = False
-                break
-        if provisioned:
-            quads.update_assignment(
-                _ass.id,
-                {
-                    "provisioned": True,
-                },
-            )
-
-    _filter = {"active": True, "validated": False, "provisioned": True, "cloud__ne": "cloud01"}
+    _filter = {"active": True, "validated": False, "cloud__ne": "cloud01"}
     assignments = quads.filter_assignments(_filter)
 
     if type(_args) is dict:
@@ -401,6 +383,10 @@ async def main(_args, _logger=None):  # pragma: no cover
             hosts.append(host)
 
     for ass in assignments:
+        if not ass.provisioned and ass.wipe:
+            logger.debug(f"Skipping validation for {ass.cloud.name}: Assignment not marked provisioned.")
+            continue
+
         _schedules = quads.get_current_schedules(data={"cloud": ass.cloud.name})
         _schedule_count = len(_schedules)
 
