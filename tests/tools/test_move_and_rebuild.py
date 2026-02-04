@@ -5,12 +5,10 @@ from datetime import datetime
 
 from quads.server.dao.host import HostDao
 from quads.server.dao.baseDao import BaseDao
+from quads.tools.move_and_rebuild import move_and_rebuild
 from tests.cli.config import HOST1
 
-# Define what data the prefill fixture should load
-prefill_settings = ["clouds, vlans, hosts, assignments, schedules"]
-
-
+# Mock the external dependencies to avoid needing real hardware
 @pytest.fixture
 def mock_dependencies():
     with patch("quads.tools.move_and_rebuild.badfish_factory", new_callable=AsyncMock) as mock_bf, \
@@ -43,15 +41,13 @@ def mock_dependencies():
 
         yield
 
-
 @pytest.mark.asyncio
-@pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
 async def test_move_and_rebuild_success_sets_provisioned_true(test_client, auth, prefill, mock_dependencies):
     """
     Test that a successful move_and_rebuild sets host.provisioned = True
     """
     # 1. Setup: Get a host and ensure it starts as unprovisioned
-    host_name = "host2.example.com"
+    host_name = "host2.example.com"  # Using host2 as it is usually in cloud01 in standard prefill
     host = HostDao.get_host(host_name)
     host.provisioned = False
     BaseDao.safe_commit()
@@ -60,25 +56,26 @@ async def test_move_and_rebuild_success_sets_provisioned_true(test_client, auth,
     semaphore = asyncio.Semaphore(1)
 
     # 2. Execute: Run the tool
+    # We use rebuild=True to trigger the full logic path
     result = await move_and_rebuild(host_name, target_cloud, semaphore, rebuild=True)
 
     # 3. Assert: Tool returned True
     assert result is True
 
     # 4. Assert: Database flag was updated
+    # We must refresh the object from the DB to see the write
     BaseDao.db.session.expire(host)
     host = HostDao.get_host(host_name)
 
     assert host.provisioned is True
-    assert host.validated is False
+    assert host.validated is False  # Should be False as per your code
     assert host.build is True
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
 async def test_move_and_rebuild_failure_sets_provisioned_false(test_client, auth, prefill, mock_dependencies):
     """
-    Test that a failed move_and_rebuild sets host.provisioned = False
+    Test that a failed move_and_rebuild (e.g. Foreman fails) sets host.provisioned = False
     """
     host_name = "host2.example.com"
     host = HostDao.get_host(host_name)
