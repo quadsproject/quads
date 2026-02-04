@@ -66,6 +66,29 @@ class TestValidateEnv(TestBase):
     @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
     @patch("quads.tools.validate_env.Netcat", NetcatStub)
     @patch("quads.tools.external.postman.SMTP")
+    def test_validate_env_skip_unprovisioned(self, mocked_smtp, validate_fixture):
+        Config.__setattr__("foreman_unavailable", True)
+        mocked_smtp()
+
+        cloud = CloudDao.get_cloud(name="cloud04")
+        ass = AssignmentDao.get_active_cloud_assignment(cloud=cloud)
+        ass.provisioned = False
+        ass.validated = False
+        BaseDao.safe_commit()
+
+        self._caplog.set_level(logging.INFO)
+        self.quads_cli_call("validate_env")
+
+        assert "Validating cloud04" not in self._caplog.text
+
+        db.session.refresh(ass)
+        assert ass.validated is False
+
+    @patch("quads.tools.validate_env.socket.gethostbyname", switch_config_stub)
+    @patch("quads.tools.validate_env.Switch.configure", switch_config_stub)
+    @patch("quads.tools.validate_env.SSHHelper", SSHHelperStub)
+    @patch("quads.tools.validate_env.Netcat", NetcatStub)
+    @patch("quads.tools.external.postman.SMTP")
     def test_validate_env_no_cloud(self, mocked_smtp):
         Config.__setattr__("foreman_unavailable", True)
         mocked_smtp()
