@@ -1,4 +1,5 @@
 import base64
+import asyncio
 
 import pytest
 
@@ -22,6 +23,14 @@ def test_client():
             init_db(flask_app.config)
             populate(user_datastore)
             yield testing_client
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for each test session."""
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 class AuthActions(object):
