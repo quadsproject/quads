@@ -16,6 +16,24 @@
       "message": "it would make more sense to put this at the end of the cli call to M\u0026R so that it would run once at the end of the `--move-hosts` cmd and not for every host.",
       "revId": "b8856d6c7f57d76b7680d6d3d47f9ed5818d0dc5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5a07f13_44790b20",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 25
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-05T13:33:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f0056fe_1cf02ae0",
+      "revId": "b8856d6c7f57d76b7680d6d3d47f9ed5818d0dc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
