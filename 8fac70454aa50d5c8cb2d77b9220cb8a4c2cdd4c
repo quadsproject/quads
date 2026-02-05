@@ -63,6 +63,30 @@
       },
       "revId": "8fac70454aa50d5c8cb2d77b9220cb8a4c2cdd4c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c087de64_bab6b0da",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 21
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-05T15:48:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d2c9b01_c58a7cdc",
+      "range": {
+        "startLine": 205,
+        "startChar": 15,
+        "endLine": 205,
+        "endChar": 59
+      },
+      "revId": "8fac70454aa50d5c8cb2d77b9220cb8a4c2cdd4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
