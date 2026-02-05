@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c94fcba7_b0c29e65",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-05T10:36:17Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "a5471138_b064d960",
+      "revId": "7560f893aca867239aeea4a8d8e11e057123be37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "50500196_8fffada1",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-02-05T08:15:34Z",
       "side": 1,
       "message": "same as above",
+      "revId": "7560f893aca867239aeea4a8d8e11e057123be37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7cafa566_a4c1ace6",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-05T10:36:17Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "50500196_8fffada1",
       "revId": "7560f893aca867239aeea4a8d8e11e057123be37",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }

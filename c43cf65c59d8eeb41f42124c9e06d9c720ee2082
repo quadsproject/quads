@@ -16,6 +16,24 @@
       "message": "this is meant to resolve this:\nhttps://github.com/redhat-performance/quads/issues/361",
       "revId": "c43cf65c59d8eeb41f42124c9e06d9c720ee2082",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "86dbb424_7229c842",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-05T10:36:17Z",
+      "side": 0,
+      "message": "Yes, but I think it also introduces the bug / race condition.  I\u0027m going to think about this and see how I can still retain the same fix logic that was employed but ensure it is done in M\u0026R and we don\u0027t have validate_env ever doing the job of setting things M\u0026R should be setting.",
+      "parentUuid": "6402344f_e1bd9ce0",
+      "revId": "c43cf65c59d8eeb41f42124c9e06d9c720ee2082",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
