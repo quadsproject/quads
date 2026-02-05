@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e950148_e4743000",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 27
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T14:10:15Z",
+      "side": 1,
+      "message": "I believe it would be better to place this method under `src/quads/helpers/utils.py`",
+      "revId": "60c2cdb13eec645a85285e775a44604d132aa504",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
