@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2ac78908_da167558",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 28
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T17:21:12Z",
+      "side": 1,
+      "message": "with this, an active assignment that is no wipe but hasn\u0027t yet been provisioned will be validated",
+      "revId": "2d5e9049a2f6dd59f2286996fc8624f830a3f9c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
