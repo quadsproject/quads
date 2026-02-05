@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b25ec5f6_fa24c206",
+        "filename": "src/quads/tools/helpers.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T17:18:13Z",
+      "side": 1,
+      "message": "we can delete the get_running_loop method and replace the calls to it with the new get_or_create_event_loop methos",
+      "revId": "9c34598c44c1ebc2ba8037c878a884156686e9f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
