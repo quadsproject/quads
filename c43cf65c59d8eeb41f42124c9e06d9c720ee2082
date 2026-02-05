@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6402344f_e1bd9ce0",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T08:15:34Z",
+      "side": 0,
+      "message": "this is meant to resolve this:\nhttps://github.com/redhat-performance/quads/issues/361",
+      "revId": "c43cf65c59d8eeb41f42124c9e06d9c720ee2082",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}

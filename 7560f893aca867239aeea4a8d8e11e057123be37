@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5471138_b064d960",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T08:15:34Z",
+      "side": 1,
+      "message": "provisioned is not a host variable, we only use it on assignments",
+      "revId": "7560f893aca867239aeea4a8d8e11e057123be37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50500196_8fffada1",
+        "filename": "src/quads/tools/move_and_rebuild.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-05T08:15:34Z",
+      "side": 1,
+      "message": "same as above",
+      "revId": "7560f893aca867239aeea4a8d8e11e057123be37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
