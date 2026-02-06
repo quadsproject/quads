@@ -16,6 +16,24 @@
       "message": "with this, an active assignment that is no wipe but hasn\u0027t yet been provisioned will be validated",
       "revId": "2d5e9049a2f6dd59f2286996fc8624f830a3f9c2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "144b1f98_898e006e",
+        "filename": "src/quads/tools/validate_env.py",
+        "patchSetId": 28
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-02-06T10:21:54Z",
+      "side": 1,
+      "message": "but we want that right?  no wipe would never be provisioned because it\u0027s no wipe.\n\nif not ass.provisioned: checks if the provisioning process is complete. Since we moved the authority of this flag to CLI (which sets it to True only after all hosts are done), \n\nand ass.wipe: This restricts the safety gate to ensuring provisoned (wipe) hosts only.\n\nIf wipe\u003dTrue: We are installing an OS. This takes time. We must wait for the provisioned flag, otherwise, we get false failures.\n\nIf wipe\u003dFalse: This is a \"No-Wipe\" move so there is no provisioning at all. In this specific scenario, we want validate_env to attempt validation immediately, after switch configs run.",
+      "parentUuid": "2ac78908_da167558",
+      "revId": "2d5e9049a2f6dd59f2286996fc8624f830a3f9c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
