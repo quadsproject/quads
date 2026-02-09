@@ -237,4 +237,6 @@ async def host_details(hostname):
 @wiki_bp.route("/vlans")
 async def create_vlans():
     vlans = await cloud_operation.get_vlans_list()
-    return render_template("wiki/vlans.html", vlans=vlans)
+    return render_template(
+        "wiki/vlans.html", ticket_url=Config.get("ticket_url"), ticket_queue=Config.get("ticket_queue"), vlans=vlans
+    )
