@@ -15,7 +15,10 @@ from requests import ConnectionError
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
-from quads.helpers.utils import first_day_month, last_day_month
+from quads.helpers.utils import (
+    first_day_month,
+    last_day_month,
+)
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
@@ -1094,7 +1097,6 @@ class QuadsCli:
         self.logger.info(f"{_host.name}")
 
     def parse_metadata_components(self, component_string):
-        """Parse and validate metadata components, expanding 'all' alias."""
         valid_components = {"disks", "memory", "interfaces", "cpus", "gpus"}
 
         components = [c.strip().lower() for c in component_string.split(",")]
@@ -1741,6 +1743,36 @@ class QuadsCli:
 
         if not moves:
             self.logger.info("Nothing to do.")
+
+            # Check if any assignments should be marked as provisioned
+            # (all hosts moved successfully, but assignment not yet marked due to previous partial failures)
+            if not self.cli_args.get("dryrun"):
+                try:
+                    active_assignments = self.quads.get_active_assignments()
+                    for assignment in active_assignments:
+                        if not assignment.provisioned and assignment.cloud.name != conf.get("spare_pool_name"):
+                            # Check if all currently scheduled hosts have been built
+                            current_schedules = self.quads.get_current_schedules({"cloud": assignment.cloud.name})
+
+                            if current_schedules:
+                                all_provisioned = True
+                                for schedule in current_schedules:
+                                    host_obj = self.quads.get_host(schedule.host.name)
+                                    if not host_obj.build:
+                                        all_provisioned = False
+                                        break
+
+                                if all_provisioned:
+                                    validate = not assignment.wipe
+                                    self.quads.update_assignment(
+                                        assignment.id,
+                                        {"provisioned": True, "validated": validate},
+                                    )
+                                    self.logger.info(f"Marked assignment for {assignment.cloud.name} as provisioned")
+                                    foreman_heal(self.logger)
+                except (APIServerException, APIBadRequest) as ex:
+                    self.logger.error(f"Error checking assignment provisioning status: {ex}")
+
             return 0
 
         if moves:

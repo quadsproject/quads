@@ -1,4 +1,7 @@
 import base64
+import asyncio
+import os
+from pathlib import Path
 
 import pytest
 
@@ -6,6 +9,9 @@ from quads.server.database import init_db
 from quads.server.app import create_app, drop_all, populate, user_datastore
 from tests.config import *
 from tests.helpers import unwrap_json
+
+# Use repo conf for tests (must set before any quads imports)
+os.environ.setdefault("QUADS_CONF_DIR", str(Path(__file__).resolve().parent.parent / "conf"))
 
 
 @pytest.fixture(scope="module")
@@ -22,6 +28,15 @@ def test_client():
             init_db(flask_app.config)
             populate(user_datastore)
             yield testing_client
+
+
+@pytest.fixture(scope="function", autouse=True)
+def event_loop():
+    """Create an instance of the default event loop for each test function."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
 
 
 class AuthActions(object):
