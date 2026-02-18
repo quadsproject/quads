@@ -188,19 +188,17 @@ class CloudOperations:
         for vlan in vlans:
             assignment_obj = self.__quads_api.filter_assignments({"active": True, "vlan.vlan_id": vlan.vlan_id})
             assignment_obj = assignment_obj[0] if assignment_obj else None
-            cloud_current_count = 0
             cloud_obj = None
             if assignment_obj:
                 cloud_obj = self.__quads_api.filter_clouds({"name": assignment_obj.cloud.name})
                 if cloud_obj:
                     cloud_obj = cloud_obj[0]
-                    cloud_current_count = len(self.__quads_api.get_current_schedules({"cloud": cloud_obj.name}))
-            if assignment_obj and cloud_current_count > 0 and cloud_obj:
+            if assignment_obj and cloud_obj:
                 owner = assignment_obj.owner
                 ticket = assignment_obj.ticket
                 cloud_name = cloud_obj.name
             else:
-                owner = "nobody"
+                owner = "Free"
                 ticket = ""
                 cloud_name = ""
             columns = {

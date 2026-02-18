@@ -29,7 +29,13 @@
 								<td>{{ vlan["gateway"] }}</td>
 								<td>{{ vlan["ipfree"] }}</td>
 								<td>{{ vlan["owner"] }}</td>
-								<td>{{ vlan["ticket"] }}</td>
+								<td>
+									{% if vlan["ticket"] %}
+										<a href="{{ ticket_url }}/{{ ticket_queue }}-{{ vlan["ticket"] }}">{{ vlan["ticket"] }}</a>
+									{% else %}
+										None
+									{% endif %}
+								</td>
 								<td>{{ vlan["cloud"] }}</td>
 							</tr>
 							{% endfor %}
