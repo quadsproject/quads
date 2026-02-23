@@ -87,7 +87,7 @@ class CloudOperations:
                 if not is_valid:
                     scheduled_hosts = len(self.__quads_api.get_current_schedules({"cloud": cloud_name}))
                     moved_hosts = len(self.__quads_api.filter_hosts({"cloud": cloud_name}))
-                    percent = (moved_hosts / scheduled_hosts) * 100
+                    percent = (moved_hosts / scheduled_hosts) * 100 if scheduled_hosts else 0
                 cloud["is_valid"] = is_valid
                 cloud["percent"] = int(percent)
                 if cloud_name != "cloud01":

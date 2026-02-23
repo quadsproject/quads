@@ -85,7 +85,7 @@ class ScheduleDao(BaseDao):
     @staticmethod
     def get_future_schedules(host: Host = None, cloud: Cloud = None) -> List[Schedule]:
         now = datetime.now()
-        query = db.session.query(Schedule).filter(Schedule.end >= now)
+        query = db.session.query(Schedule).filter(Schedule.start >= now)
         if host:
             query = query.filter(Schedule.host == host)
         if cloud:

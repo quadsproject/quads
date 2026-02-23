@@ -530,7 +530,6 @@ class TestReadSchedule:
         auth_header = auth.get_auth_header()
         schedule_responses = [
             SCHEDULE_2_RESPONSE.copy(),
-            SELF_SCHEDULE_2_RESPONSE.copy(),
         ]
         response = unwrap_json(
             test_client.get(
