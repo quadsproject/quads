@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f94d596_14fedaa6",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-02-25T14:09:59Z",
+      "side": 1,
+      "message": "I believe what we are looking for is:\nvalue \u003d None",
+      "revId": "5a7295894cb76dac86437b5768066df58384c234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
