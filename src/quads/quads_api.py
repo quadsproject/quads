@@ -259,7 +259,7 @@ class QuadsApi(QuadsBase):
         response = self.get(url)
         schedules = []
         for schedule in response.json():
-            schedules.append(Schedule(**schedule))
+            schedules.append(Schedule().from_dict(schedule))
         return schedules
 
     def update_schedule(self, schedule_id, data) -> Response:
@@ -276,7 +276,7 @@ class QuadsApi(QuadsBase):
         response = self.get("available")
         hosts = []
         for host in response.json():
-            hosts.append(Host(**host))
+            hosts.append(Host().from_dict(host))
         return hosts
 
     def filter_available(self, data) -> List[Host]:

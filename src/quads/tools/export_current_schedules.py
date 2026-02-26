@@ -5,7 +5,6 @@ import logging
 
 import yaml
 
-from datetime import datetime
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 
@@ -23,31 +22,20 @@ def export_current_schedules(output):
         logger.error(f"Failed to get future schedules: {e}")
         return
     for schedule in future_schedules:
-        cloud = schedule.assignment["cloud"]
-        if cloud["name"] not in clouds:
-            clouds[cloud["name"]] = {
-                "description": schedule.assignment["description"],
-                "owner": schedule.assignment["owner"],
-                "ticket": schedule.assignment["ticket"],
-                "qinq": schedule.assignment["qinq"],
-                "wipe": schedule.assignment["wipe"],
-                "ccuser": [cc for cc in schedule.assignment["ccuser"]],
-                "vlan": schedule.assignment["vlan"]["vlan_id"] if schedule.assignment.get("vlan") else None,
-            }
-        format_str = "%a, %d %b %Y %H:%M:%S %Z"
-        _start = datetime.strptime(schedule.start, format_str)
-        _end = datetime.strptime(schedule.end, format_str)
-        _build_start = datetime.strptime(schedule.build_start, format_str) if schedule.build_start else None
-        _build_end = datetime.strptime(schedule.build_end, format_str) if schedule.build_end else None
+        cloud = schedule.assignment.cloud
+        if cloud.name not in clouds:
+            clouds[cloud.name] = cloud.as_dict()
+        _build_start = schedule.build_start if schedule.build_start else None
+        _build_end = schedule.build_end if schedule.build_end else None
         current_schedules.append(
             {
-                "cloud": cloud["name"],
-                "host": schedule.host["name"],
-                "start": _start,
-                "end": _end,
+                "cloud": cloud.name,
+                "host": schedule.host.name,
+                "start": schedule.start,
+                "end": schedule.end,
                 "build_start": _build_start,
                 "build_end": _build_end,
-                "moved": schedule.host["cloud"]["name"] != schedule.host["default_cloud"]["name"],
+                "moved": schedule.host.cloud.name != schedule.host.default_cloud.name,
             }
         )
 
