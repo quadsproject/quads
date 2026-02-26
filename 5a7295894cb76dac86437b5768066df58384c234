@@ -16,6 +16,24 @@
       "message": "I believe what we are looking for is:\nvalue \u003d None",
       "revId": "5a7295894cb76dac86437b5768066df58384c234",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "827479a2_502712d7",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-02-26T16:36:04Z",
+      "side": 1,
+      "message": "If you pass None (or \"None\") you get the following error:\n\nsqlalchemy.exc.DataError: (psycopg2.errors.InvalidTextRepresentation) invalid input value for enum bootmode_enum: \"None\"\nLINE 3: WHERE hosts.retired \u003d false AND hosts.bootmode \u003d \u0027None\u0027 ORDE..",
+      "parentUuid": "5f94d596_14fedaa6",
+      "revId": "5a7295894cb76dac86437b5768066df58384c234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
