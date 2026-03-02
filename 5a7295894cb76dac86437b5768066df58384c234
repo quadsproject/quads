@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "999587c3_493bd213",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-03-02T09:10:51Z",
+      "side": 1,
+      "message": "s",
+      "revId": "5a7295894cb76dac86437b5768066df58384c234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f94d596_14fedaa6",
@@ -32,6 +49,24 @@
       "side": 1,
       "message": "If you pass None (or \"None\") you get the following error:\n\nsqlalchemy.exc.DataError: (psycopg2.errors.InvalidTextRepresentation) invalid input value for enum bootmode_enum: \"None\"\nLINE 3: WHERE hosts.retired \u003d false AND hosts.bootmode \u003d \u0027None\u0027 ORDE..",
       "parentUuid": "5f94d596_14fedaa6",
+      "revId": "5a7295894cb76dac86437b5768066df58384c234",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8511e101_78d409b1",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-03-02T09:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "827479a2_502712d7",
       "revId": "5a7295894cb76dac86437b5768066df58384c234",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
