@@ -199,6 +199,8 @@ class QuadsCli:
                             value = False
                         elif value.lower() == "true":
                             value = True
+                        elif value.lower() == "none":
+                            value = "null"
 
                     if keys[0].strip().lower() in [
                         "disks",
@@ -213,12 +215,19 @@ class QuadsCli:
                         else:
                             kwargs[key] = value
                     else:
-                        if keys[0].strip().lower() == "model":
+                        key = keys[0].strip().lower()
+                        if key == "model":
                             if str(value).upper() not in conf["models"].upper().split(","):
                                 self.logger.warning(f"Accepted model names are: {conf['models']}")
                                 raise CliException("Model type not recognized.")
 
-                        if isinstance(value, str):
+                        if key == "bootmoode":
+                            bootmode_enum = ("Bios", "Uefi", "None")
+                            if str(value).capitalize() not in bootmode_enum:
+                                self.logger.warning(f"Accepted bootmode options are: {bootmode_enum}")
+                                raise CliException("Bootmode option not recognized.")
+
+                        if isinstance(value, str) and key != "bootmode":
                             value = value.upper()
                         query = {f"{'__'.join(keys)}{op_suffix}": value}
                         kwargs.update(query)
