@@ -15,7 +15,7 @@
 %define name quads-dev
 %define reponame quads
 %define branch development
-%define version 2.2.4
+%define version 2.2.6
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Summary: Automated future scheduling, documentation, end-to-end provisioning and assignment of servers and networks.
@@ -237,6 +237,13 @@ fi;
 find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
+
+* Thu Mar 05 2026
+- 2.2.6 release
+- bootmode feature to manage BIOS and EFI
+- adjust for stricter python3.14 event_loop usage
+- other fixes
+
 
 * Mon Oct 06 2025 Will Foster <wfoster@redhat.com>
 - 2.2.4 release

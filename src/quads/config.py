@@ -91,7 +91,7 @@ class _Config(_ConfigBase):
 
     FPING_TIMEOUT = 10000
 
-    QUADSVERSION = "2.2.4"
+    QUADSVERSION = "2.2.6"
     QUADSCODENAME = "maximilian"
 
     SUPPORTED = [
