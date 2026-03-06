@@ -1114,10 +1114,18 @@ for host in $(cat /tmp/2491); do quads --mod-schedule --schedule-id $(quads --ls
 ### Modify Host Bootmode
 
 * This parameter defines the value which bootmode should default to during move and rebuild.
-* If not set when a [host is defined](#define-your-quads-hosts) it defaults to None. It can be modified later with the following command:
-
+* If not set when a [host is defined](#define-your-quads-hosts) it defaults to None. It can be modified later with the following commands:
+* If you want to enforce Bios bootmode for a host:
 ```bash
-quads --mod-host <hostname> --bootmode Uefi
+quads --mod-host --host <hostname> --bootmode Bios
+```
+* If you want to enforce UEFI bootmode for a host:
+```bash
+quads --mod-host --host <hostname> --bootmode Uefi
+```
+* If you want to skip bootmode checks for a host:
+```bash
+quads --mod-host --host <hostname> --bootmode None
 ```
 
 ### Modify a Host Interface
