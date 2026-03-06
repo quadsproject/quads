@@ -1117,7 +1117,7 @@ for host in $(cat /tmp/2491); do quads --mod-schedule --schedule-id $(quads --ls
 * If not set when a [host is defined](#define-your-quads-hosts) it defaults to None. It can be modified later with the following command:
 
 ```bash
-quads --mod-host <hostname> --bootmode Uefi
+quads --mod-host --host <hostname> --bootmode Uefi
 ```
 
 ### Modify a Host Interface
