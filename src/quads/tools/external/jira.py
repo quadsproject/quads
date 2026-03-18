@@ -35,6 +35,8 @@ class Jira(object):
             self.semaphore = semaphore
 
         jira_auth = Config.jira_auth
+        self.auth = None
+        self.headers = {"Accept": "application/json", "Content-Type": "application/json"}
         if jira_auth and jira_auth == "token":
             token = Config.jira_token
             if not token:
@@ -43,14 +45,14 @@ class Jira(object):
                     "token has been defined on the configuration file"
                 )
             payload = "Bearer: %s" % token
+            self.headers["Authorization"] = payload
         else:
             if self.username and self.password:
-                payload = BasicAuth(self.username, self.password)
+                self.auth = BasicAuth(self.username, self.password)
             else:
                 raise JiraException(
                     "Jira authentication is set to BasicAuth but no username or password have been defined"
                 )
-        self.headers = {"Authorization": payload}
 
     def __exit__(self):
         if self.new_loop:
@@ -61,6 +63,7 @@ class Jira(object):
         try:
             async with aiohttp.ClientSession(
                 headers=self.headers,
+                auth=self.auth,
                 loop=self.loop,
             ) as session:
                 async with session.get(
@@ -81,13 +84,19 @@ class Jira(object):
         logger.debug("POST: {%s:%s}" % (endpoint, payload))
         try:
             async with self.semaphore:
-                async with aiohttp.ClientSession(headers=self.headers, loop=self.loop) as session:
+                async with aiohttp.ClientSession(headers=self.headers, auth=self.auth, loop=self.loop) as session:
                     async with session.post(
                         self.url + endpoint,
                         json=payload,
+                        headers=self.headers,
                         verify_ssl=False,
                     ) as response:
-                        _response = await response.json(content_type="application/json")
+                        if response.status != 204:
+                            _response = await response.json(content_type="application/json")
+                            logger.debug("Response: %s" % _response)
+                        else:
+                            _response = response
+                            logger.debug("Response: %s" % response)
         except Exception as ex:
             logger.debug(ex)
             logger.error("There was something wrong with your request.")
@@ -103,13 +112,17 @@ class Jira(object):
         logger.debug("POST: {%s:%s}" % (endpoint, payload))
         try:
             async with self.semaphore:
-                async with aiohttp.ClientSession(headers=self.headers, loop=self.loop) as session:
+                async with aiohttp.ClientSession(headers=self.headers, auth=self.auth, loop=self.loop) as session:
                     async with session.put(
                         self.url + endpoint,
                         json=payload,
                         verify_ssl=False,
                     ) as response:
-                        await response.json(content_type="application/json")
+                        if response.status != 204:
+                            _response = await response.json(content_type="application/json")
+                            logger.debug("Response: %s" % _response)
+                        else:
+                            logger.debug("Response: %s" % response)
         except Exception as ex:
             logger.debug(ex)
             logger.error("There was something wrong with your request.")
@@ -153,7 +166,7 @@ class Jira(object):
         data = {
             "fields": {
                 "project": f'"{self.ticket_queue}"',
-                "issuetype": {"id": "5"},
+                "issuetype": {"id": "10015"},
                 "parent": {"key": f"{self.ticket_queue}-{parent_ticket}"},
                 "summary": title,
                 "labels": [type_of_subtask.upper()],
@@ -248,7 +261,7 @@ class Jira(object):
 
     async def get_user_by_email(self, email):
         """Find a Jira user by email."""
-        endpoint = f"/user/search?username={email}"
+        endpoint = f"/user/search?query={email}"
         logger.debug("GET user: %s" % endpoint)
         result = await self.get_request(endpoint)
         if not result:
@@ -272,18 +285,22 @@ class Jira(object):
     async def get_pending_tickets(self):
         query = {"statusCategory": 4, "labels": "EXTENSION"}
         logger.debug("GET pending tickets")
-        result = await self.search_tickets(query)
+        result = {"issues": []}
+        result_extension = await self.search_tickets(query)
+        if result_extension:
+            result["issues"] += result_extension["issues"]
         query_expand = {"statusCategory": 4, "labels": "EXPANSION"}
         result_expand = await self.search_tickets(query_expand)
-        result["issues"] += result_expand["issues"]
-        if not result:  # pragma: no cover
+        if result_expand:
+            result["issues"] += result_expand["issues"]
+        if not result["issues"]:  # pragma: no cover
             logger.error("Failed to get pending tickets")
             return None
         return result
 
     async def search_tickets(self, query=None):
         project = {"project": f'"{self.ticket_queue}"'}
-        prefix = "/search?jql="
+        prefix = "/search/jql?jql="
         query_items = []
 
         if not query:
@@ -303,7 +320,7 @@ class Jira(object):
             return None
         return result
 
-    async def get_field_allowed_values(self, field_id, ticket_id=1):
+    async def get_field_allowed_values(self, field_id, ticket_id=5198):
         """Get list of allowed values from JIRA API for a specified field."""
         endpoint = f"/issue/{self.ticket_queue}-{ticket_id}/editmeta"
         result = await self.get_request(endpoint)
