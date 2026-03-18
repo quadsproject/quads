@@ -26,6 +26,8 @@ async def main(_loop):
     try:
         jira = Jira(
             Config["jira_url"],
+            Config["jira_username"],
+            Config["jira_password"],
             loop=_loop,
         )
     except JiraException as ex:
