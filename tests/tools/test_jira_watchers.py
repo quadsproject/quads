@@ -179,12 +179,10 @@ class TestJiraWatchers(object):
         response = await main(_loop=loop)
         assert response == 0
 
-    @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
+    @patch("quads.tools.jira_watchers.Jira")
     @pytest.mark.asyncio
-    async def test_main_error(self, mock_get):
-        mock_get.side_effect = JiraException("Jira Exception")
-        Config.jira_url = "https://mock_jira.com"
-        Config.jira_auth = "basic"
+    async def test_main_error(self, mock_jira_class):
+        mock_jira_class.side_effect = JiraException("Jira Exception")
         loop = asyncio.new_event_loop()
         response = await main(_loop=loop)
         assert response == 1

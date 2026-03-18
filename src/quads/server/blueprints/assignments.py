@@ -334,6 +334,8 @@ def create_self_assignment() -> Response:
         try:
             jira = Jira(
                 Config["jira_url"],
+                Config["jira_username"],
+                Config["jira_password"],
                 loop=loop,
             )
         except JiraException as ex:  # pragma: no cover

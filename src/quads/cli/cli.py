@@ -1526,6 +1526,8 @@ class QuadsCli:
             try:
                 jira = Jira(
                     conf["jira_url"],
+                    conf["jira_username"],
+                    conf["jira_password"],
                     loop=loop,
                 )
             except JiraException as ex:  # pragma: no cover
