@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "505cb010_7d0883f1",
+        "filename": "src/quads/tools/external/jira.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-03-19T09:55:53Z",
+      "side": 1,
+      "message": "Boilerplate alert:\nplace this outside the `if`\n\n`self.headers \u003d {\"Accept\": \"application/json\", \"Content-Type\": \"application/json\"}`\n\nand then on this branch only add the auth header:\n\n`self.headers[\"Authorization\"] \u003d payload`\n\nremove the `self.headers` definition from the `else`",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 13
+      },
+      "revId": "221253b488ec97dfcc5ad9fc10de38bf635f89d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
