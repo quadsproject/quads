@@ -22,6 +22,30 @@
       },
       "revId": "221253b488ec97dfcc5ad9fc10de38bf635f89d4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "166d14b1_0f2f47f1",
+        "filename": "src/quads/tools/external/jira.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-03-23T10:25:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "505cb010_7d0883f1",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 13
+      },
+      "revId": "221253b488ec97dfcc5ad9fc10de38bf635f89d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
