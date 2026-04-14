@@ -10,11 +10,12 @@
 #### https://copr.fedorainfracloud.org/coprs/quadsdev/QUADS
 ####
 #### Note: quads-dev = latest development branch or changes
+####       quads-stage = staging environment package
 ####       quads     = latest stable release
 
-%define name quads
+%define name quads-stage
 %define reponame quads
-%define branch latest
+%define branch stage
 %define version 2.2.6
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
