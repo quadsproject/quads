@@ -13,9 +13,9 @@
 ####       quads-stage = staging environment package
 ####       quads     = latest stable release
 
-%define name quads-stage
+%define name quads
 %define reponame quads
-%define branch stage
+%define branch latest
 %define version 2.2.6
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
