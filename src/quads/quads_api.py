@@ -223,7 +223,7 @@ class QuadsApi(QuadsBase):
             schedules.append(Schedule().from_dict(schedule))
         return schedules
 
-    def get_current_schedules(self, data: dict = None) -> List[Schedule]:
+    def get_current_schedules(self, data: dict = None, include_broken: bool = False) -> List[Schedule]:
         if data is None:
             data = {}
         endpoint = os.path.join("schedules", "current")
@@ -234,7 +234,9 @@ class QuadsApi(QuadsBase):
         response = self.get(url)
         schedules = []
         for schedule in response.json():
-            if schedule.get("host").get("retired") or schedule.get("host").get("broken"):
+            if schedule.get("host").get("retired"):
+                continue
+            if not include_broken and schedule.get("host").get("broken"):
                 continue
             schedules.append(Schedule().from_dict(schedule))
         return schedules
