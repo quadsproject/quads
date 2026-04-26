@@ -2077,7 +2077,7 @@ class QuadsCli:
         _kwargs = {"cloud": _cloud.name}
         if self.cli_args.get("datearg"):
             _kwargs["date"] = datetime.strptime(self.cli_args.get("datearg"), "%Y-%m-%d %H:%M").isoformat()[:-3]
-        schedules = self.quads.get_current_schedules(_kwargs)
+        schedules = self.quads.get_current_schedules(_kwargs, include_broken=True)
         if schedules:
             host_kwargs = {"retired": False}
             if self.cli_args.get("filter"):

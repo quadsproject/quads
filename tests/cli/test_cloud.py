@@ -3,10 +3,12 @@ from unittest.mock import patch
 
 import pytest
 
+from quads.config import DEFAULT_CONF_PATH, Config
 from quads.exceptions import CliException
-from quads.quads_api import APIServerException
+from quads.quads_api import APIServerException, QuadsApi
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.cloud import CloudDao
+from quads.server.dao.host import HostDao
 from tests.cli.config import CLOUD, DEFAULT_CLOUD, DEFINE_CLOUD, FREE_CLOUD, HOST1, MOD_CLOUD, REMOVE_CLOUD
 from tests.cli.test_base import TestBase
 
@@ -373,3 +375,45 @@ class TestCloudOnly(TestBase):
         self.cli_args["filter"] = None
         self.quads_cli_call("cloudonly")
         assert len(self._caplog.messages) == 0
+
+    def test_cloud_only_broken_host_date(self):
+        # Move HOST1 away from CLOUD so the fallback filter_hosts({"cloud": CLOUD})
+        # cannot satisfy the asertion — only the schedule path can.
+        HostDao.update_host(HOST1, cloud=DEFAULT_CLOUD)
+        HostDao.update_host(HOST1, broken=True)
+        try:
+            date = datetime.now().strftime("%Y-%m-%d %H:%M")
+            self.cli_args["cloud"] = CLOUD
+            self.cli_args["datearg"] = date
+            self.cli_args["filter"] = None
+            self.quads_cli_call("cloudonly")
+            assert any(HOST1 in msg for msg in self._caplog.messages)
+        finally:
+            HostDao.update_host(HOST1, broken=False, cloud=CLOUD)
+
+    def test_cloud_only_broken_host_current(self):
+        # Move HOST1 away from CLOUD so the fallback can't fire.
+        HostDao.update_host(HOST1, cloud=DEFAULT_CLOUD)
+        HostDao.update_host(HOST1, broken=True)
+        try:
+            self.cli_args["cloud"] = CLOUD
+            self.cli_args["datearg"] = None
+            self.cli_args["filter"] = None
+            self.quads_cli_call("cloudonly")
+            assert any(HOST1 in msg for msg in self._caplog.messages)
+        finally:
+            HostDao.update_host(HOST1, broken=False, cloud=CLOUD)
+
+    def test_get_current_schedules_default_excludes_broken(self):
+        HostDao.update_host(HOST1, broken=True)
+        try:
+            Config.load_from_yaml(DEFAULT_CONF_PATH)
+            quads = QuadsApi(config=Config)
+            # Default include_broken=False must exclude the broken host's schedule.
+            default_schedules = quads.get_current_schedules({"host": HOST1})
+            assert not any(s.host.name == HOST1 for s in default_schedules)
+            # include_broken=True must include it.
+            inclusive_schedules = quads.get_current_schedules({"host": HOST1}, include_broken=True)
+            assert any(s.host.name == HOST1 for s in inclusive_schedules)
+        finally:
+            HostDao.update_host(HOST1, broken=False)
