@@ -1,5 +1,5 @@
 [gerrit]
 host=review.gerrithub.io
 port=29418
-project=redhat-performance/quads
+project=quadsproject/quads
 defaultbranch=development
