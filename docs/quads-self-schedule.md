@@ -60,7 +60,7 @@ export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<< $(curl -s -k -X POST \
 curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ```
   > [!TIP]
-  > Additional HW [filtering](https://github.com/redhat-performance/quads/blob/latest/docs/quads-host-metadata-search.md#example-hardware-filter-searches) is available via the `filter` parameter.
+  > Additional HW [filtering](https://github.com/quadsproject/quads/blob/latest/docs/quads-host-metadata-search.md#example-hardware-filter-searches) is available via the `filter` parameter.
 
 ### Create an assignment via REST
 
@@ -91,7 +91,7 @@ curl -s -k \
 >
 > Start and end dates are not required.
 >
-> Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/redhat-performance/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
+> Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/quadsproject/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
 
 > [!NOTE]
 > Replace `host01.example.com` with any desired free host from your previous available query

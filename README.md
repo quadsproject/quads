@@ -7,7 +7,7 @@ QUADS automates the future scheduling, end-to-end provisioning and delivery of b
 QUADS also provides a robust, RESTful API that enables end-to-end self service delivery and a [Python client library](https://github.com/quadsproject/python-quads-lib)
 
 * Visit the [QUADS development blog](https://quads.dev)
-* Please read our [contributing guide](/CONTRIBUTING.md) and use [Gerrit Review](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) to submit patches.
+* Please read our [contributing guide](/CONTRIBUTING.md) and use [Gerrit Review](https://review.gerrithub.io/q/project:quadsproject%252Fquads) to submit patches.
 * Find us on `#quads` on `irc.libera.chat` [IRC web chat](https://web.libera.chat/?channels=#quads)
 
 ![quads-rpm-build](https://copr.fedorainfracloud.org/coprs/quadsdev/python3-quads/package/quads/status_image/last_build.png)
@@ -151,7 +151,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
 ## Design
    - Main components: `Python3, Flask, SqlAlchemy, PostgreSQL, Jinja2`
    - Installation via RPM for Fedora Linux.
-   - We use [Badfish](https://github.com/redhat-performance/badfish) for managing bare-metal IPMI
+   - We use [Badfish](https://github.com/quadsproject/badfish) for managing bare-metal IPMI
    - We use [Foreman](https://theforeman.org/) for the systems provisioning backend.
    - We also provide a standalone [Python client library](https://python-quads-lib.readthedocs.io/en/stable/readme.html#installation) for interacting with the QUADS framework programmatically.
    - A typical QUADS deployment might look like this:
@@ -792,7 +792,7 @@ quads --mod-cloud --cloud cloud03 --vlan none
 
 #### Optional Cloud Boot Order
 
-QUADS supports two pre-defined BIOS boot orders for supported Dell systems based on [badfish](https://github.com/redhat-performance/badfish) [BIOS boot orders](https://github.com/redhat-performance/badfish?tab=readme-ov-file#idrac-and-data-format).  You define and manage this in your [idrac_interfaces.yml](conf/idrac_interfaces.yml).
+QUADS supports two pre-defined BIOS boot orders for supported Dell systems based on [badfish](https://github.com/quadsproject/badfish) [BIOS boot orders](https://github.com/quadsproject/badfish?tab=readme-ov-file#idrac-and-data-format).  You define and manage this in your [idrac_interfaces.yml](conf/idrac_interfaces.yml).
 
 ```
 quads --define-cloud --cloud cloud03 --boot-order foreman
@@ -1774,6 +1774,19 @@ quads=*# update hosts set switch_config_applied=true where id=1926;
 UPDATE 1
 ```
 
+* You can also set this at the entire cloud level.
+
+```sql
+select * from clouds where name = 'cloud11';
+ id |  name   |   last_redefined
+----+---------+---------------------
+ 12 | cloud11 | 2026-04-23 16:15:00
+```
+
+```sql
+update hosts set switch_config_applied = true where cloud_id = 12;
+```
+
 > [!NOTE]
 > First physically verify/fix your configurations with `quads --verify-switch-conf --cloud cloud0X`
 >
@@ -1785,7 +1798,7 @@ Sometimes failed attempts to use the self-scheduling API and workflows may resul
 > [!CAUTION]
 > It's very important to clear empty, active assignments as they will continue to consume the QUADS cloud/environment and hold it hostage unless they are marked inactive.
 
-* In [RFE #605](https://github.com/redhat-performance/quads/issues/605) we'll look to address this automatically as a maintenance task or scheduling mechanic but for now this must be done in the database.
+* In [RFE #605](https://github.com/quadsproject/quads/issues/605) we'll look to address this automatically as a maintenance task or scheduling mechanic but for now this must be done in the database.
 
 ##### Finding Orphaned Assignments
 ```sql

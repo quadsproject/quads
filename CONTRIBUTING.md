@@ -7,7 +7,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
 
 ## Contribution Basics
   * We **do not** use the Github Pull Request system.
-  * We use [Gerrit](https://review.gerrithub.io/q/project:redhat-performance%252Fquads) for code review instead.
+  * We use [Gerrit](https://review.gerrithub.io/q/project:quadsproject%252Fquads) for code review instead.
   * You can also find us on IRC at **#quads** on ```irc.libera.chat``` [webchat](https://web.libera.chat/?channels=#quads)
 
     * [QUADS Development Setup](#quads-development-setup)
@@ -40,7 +40,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
   - Clone `development` branch.
 
     ```
-    git clone --single-branch --branch development https://github.com/redhat-performance/quads
+    git clone --single-branch --branch development https://github.com/quadsproject/quads
     ```
 
   - Change directory to the code and create your own branch to work
@@ -129,7 +129,7 @@ The QUADS project welcomes contributions from everyone!  Please read the below s
     ```
 
 ## Create a Tracking Issue
-* Create a [Github issue](https://github.com/redhat-performance/quads/issues/new) to track your work.
+* Create a [Github issue](https://github.com/quadsproject/quads/issues/new) to track your work.
   - Provide a meaningful explanation, citing code lines when relevant.
   - Explain what you are trying to fix, or what you're trying to contribute.
 
@@ -152,8 +152,8 @@ git config --add gitreview.username "vsathir"
 ```
 
 ## Make a Commit and Submit Review
-* Add a local commit with a meaningful, short title followed by a space and a summary (you can check our [commit history](https://github.com/redhat-performance/quads/commits/latest) for examples.
-* Add a line that relates to a new or existing github issue, e.g. ```fixes: https://github.com/redhat-performance/quads/issues/5``` or ```related-to: https://github.com/redhat-performance/quads/issues/25```
+* Add a local commit with a meaningful, short title followed by a space and a summary (you can check our [commit history](https://github.com/quadsproject/quads/commits/latest) for examples.
+* Add a line that relates to a new or existing github issue, e.g. ```fixes: https://github.com/quadsproject/quads/issues/5``` or ```related-to: https://github.com/quadsproject/quads/issues/25```
 
 ### Make Initial Commit
 * First make your commit
@@ -239,7 +239,7 @@ git review latest
 The CI pipeline currently checks the following for every submitted patchset:
   - shellcheck - checks for common shell syntax errors and issues
   - flake8 - checks Python tools for common syntax errors and issues
-  - [unit tests](https://github.com/redhat-performance/quads/tree/latest/tests)
+  - [unit tests](https://github.com/quadsproject/quads/tree/latest/tests)
 
 #### Code Review Tips
   - You can trigger CI to run again by commenting on your patchset in gerrit with `retrigger`

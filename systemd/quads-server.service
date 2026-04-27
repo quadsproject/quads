@@ -5,7 +5,7 @@
 
 [Unit]
 Description = QUADS Daemon
-Documentation = https://github.com/redhat-performance/quads
+Documentation = https://github.com/quadsproject/quads
 Before=quads-web.service
 After=network.target quads-db.service
 

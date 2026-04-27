@@ -5,7 +5,7 @@
 
 [Unit]
 Description = QUADS Web Service
-Documentation = https://github.com/redhat-performance/quads
+Documentation = https://github.com/quadsproject/quads
 After=network.target quads-server.service
 
 [Service]
