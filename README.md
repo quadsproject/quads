@@ -1807,6 +1807,19 @@ quads=*# update hosts set switch_config_applied=true where id=1926;
 UPDATE 1
 ```
 
+* You can also set this at the entire cloud level.
+
+```sql
+select * from clouds where name = 'cloud11';
+ id |  name   |   last_redefined
+----+---------+---------------------
+ 12 | cloud11 | 2026-04-23 16:15:00
+```
+
+```sql
+update hosts set switch_config_applied = true where cloud_id = 12;
+```
+
 > [!NOTE]
 > First physically verify/fix your configurations with `quads --verify-switch-conf --cloud cloud0X`
 >
