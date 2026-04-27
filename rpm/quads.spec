@@ -22,7 +22,7 @@ Summary: Automated future scheduling, documentation, end-to-end provisioning and
 Name: %{name}
 Version: %{version}
 Release: %{build_timestamp}
-Source0: https://github.com/redhat-performance/quads/archive/%{branch}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
+Source0: https://github.com/quadsproject/quads/archive/%{branch}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 License: GPLv3
 BuildRoot: %{_tmppath}/%{name}-buildroot
 Prefix: /opt/quads

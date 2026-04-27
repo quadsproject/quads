@@ -8,7 +8,7 @@ info:
     This is it's REST API implementation.
     
     Some useful links:
-    - [Quads repository](https://github.com/redhat-performance/quads)
+    - [Quads repository](https://github.com/quadsproject/quads)
     - [Quads blog](https://quads.dev)
   license:
     name: GPLv3

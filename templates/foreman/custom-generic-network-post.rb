@@ -164,7 +164,7 @@ EOS
 
 chmod 755 /root/setup-interfaces.sh
 
-# https://github.com/redhat-performance/quads/issues/183
+# https://github.com/quadsproject/quads/issues/183
 <% if os_major == 9 %>
 cat > /root/clean-interfaces.sh <<EOS
 #!/bin/sh
