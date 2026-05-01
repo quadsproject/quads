@@ -6,11 +6,9 @@ from datetime import timedelta, datetime
 from quads.config import Config
 
 
-def is_supported(_host_name):
-    for host_type in Config.SUPPORTED:
-        if host_type in _host_name:
-            return True
-    return False
+def is_supermicro(_host_name):
+    host_lower = _host_name.lower()
+    return any(host_type.lower() in host_lower for host_type in Config.SUPERMICRO)
 
 
 def get_vlan(ass_obj, index, last_nic=False):
