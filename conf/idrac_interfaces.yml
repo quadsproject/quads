@@ -3,7 +3,6 @@
 # We will store store Dell racadm interface description
 # to server type mappings here
 #
-# Also see /opt/quads/quads/config.py SUPPORTED list if adding system types.
 #
 director_fc640_b01_interfaces: NIC.ChassisSlot.8-1-1,HardDisk.List.1-1,NIC.Integrated.1-1-1
 director_fc640_b02_interfaces: NIC.ChassisSlot.4-1-1,HardDisk.List.1-1,NIC.Integrated.1-1-1
