@@ -12,13 +12,6 @@ from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
 from quads.plugins.manager import PluginManager
-from quads.plugins.dispatchers.chat import get_chat_dispatcher
-from quads.plugins.dispatchers.email import get_email_dispatcher
-from quads.plugins.dispatchers.hardware import get_hardware_dispatcher
-from quads.plugins.dispatchers.provisioner import get_provisioner_dispatcher
-from quads.plugins.dispatchers.switch import get_switch_dispatcher
-from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
-from quads.plugins.dispatchers.validator import get_validator_dispatcher
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -49,10 +42,11 @@ def create_app(test_config=None) -> Flask:
     # Initialize plugin system
     plugin_manager = PluginManager()
     plugin_manager.initialize()
-    flask_app.extensions["plugins"] = plugin_manager
+    flask_app.extensions["plugin_manager"] = plugin_manager
 
     register_extensions(flask_app)
     register_blueprints(flask_app)
+    register_plugin_dispatchers(flask_app)
 
     @flask_app.errorhandler(401)
     def error_401(ex) -> Response:
@@ -166,3 +160,25 @@ def register_blueprints(app):
     api_bp.register_blueprint(memory_bp, url_prefix="/memory")
     api_bp.register_blueprint(moves_bp, url_prefix="/moves")
     app.register_blueprint(api_bp)
+
+
+def register_plugin_dispatchers(app):
+    from quads.plugins.dispatchers.chat import get_chat_dispatcher
+    from quads.plugins.dispatchers.email import get_email_dispatcher
+    from quads.plugins.dispatchers.hardware import get_hardware_dispatcher
+    from quads.plugins.dispatchers.provisioner import get_provisioner_dispatcher
+    from quads.plugins.dispatchers.release import get_release_dispatcher
+    from quads.plugins.dispatchers.switch import get_switch_dispatcher
+    from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
+    from quads.plugins.dispatchers.validator import get_validator_dispatcher
+
+    app.extensions["plugin_dispatchers"] = {
+        "chat": get_chat_dispatcher(app.extensions.get("plugin_manager")),
+        "email": get_email_dispatcher(app.extensions.get("plugin_manager")),
+        "hardware": get_hardware_dispatcher(app.extensions.get("plugin_manager")),
+        "provisioner": get_provisioner_dispatcher(app.extensions.get("plugin_manager")),
+        "release": get_release_dispatcher(app.extensions.get("plugin_manager")),
+        "switch": get_switch_dispatcher(app.extensions.get("plugin_manager")),
+        "ticketing": get_ticketing_dispatcher(app.extensions.get("plugin_manager")),
+        "validator": get_validator_dispatcher(app.extensions.get("plugin_manager")),
+    }

@@ -8,7 +8,7 @@ from jinja2 import Template
 from quads.config import Config
 from quads.quads_api import QuadsApi
 
-from quads.tools.external.jira import Jira, JiraException
+from quads.plugins.interfaces.ticketing import TicketingPlugin
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.manager import PluginManager
 from quads.tools.helpers import get_or_create_event_loop
@@ -19,27 +19,24 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 quads = QuadsApi(Config)
 
 
-async def main(_loop):
+async def main():
     no_extend_label = "CANNOT_EXTEND"
     extend_label = "CAN_EXTEND"
 
-    try:
-        auth_type = Config.get("jira_auth", "basic")
-        jira = Jira(
-            Config["jira_url"],
-            username=Config.get("jira_username") if auth_type == "basic" else None,
-            password=Config.get("jira_password") if auth_type == "basic" else None,
-            token=Config.get("jira_token") if auth_type == "token" else None,
-            ticket_queue=Config.get("ticket_queue"),
-            auth_type=auth_type,
-            loop=_loop,
-        )
-    except JiraException as ex:
-        logger.error(ex)
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+
+    jira_plugin = plugin_manager.get_plugin("jira", TicketingPlugin)
+    if not jira_plugin:
+        logger.error("Jira plugin not found or not enabled")
         return 1
 
+    jira = jira_plugin.jira
+
     tickets = await jira.get_pending_tickets()
-    for ticket in tickets["issues"]:
+    if tickets:
+        tickets = tickets.get("issues") or []
+    for ticket in tickets:
         ticket_key = ticket.get("key").split("-")[-1]
         fields = ticket.get("fields")
         if fields:
@@ -92,8 +89,6 @@ async def main(_loop):
                     content = template.render(**parameters)
                     subject = "Failed to add watchers from parent ticket ticket to the sub-task."
 
-                    plugin_manager = PluginManager()
-                    plugin_manager.initialize()
                     email_dispatcher = get_email_dispatcher(plugin_manager)
                     recipient = "%s@%s" % (submitter, Config["domain"])
                     await email_dispatcher.send_mail(
@@ -108,5 +103,5 @@ async def main(_loop):
 
 if __name__ == "__main__":  # pragma: no cover
     loop = get_or_create_event_loop()
-    err = loop.run_until_complete(main(loop))
+    err = loop.run_until_complete(main())
     sys.exit(err)

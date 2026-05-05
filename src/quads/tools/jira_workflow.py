@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import asyncio
 import logging
 import sys
 
 from quads.quads_api import QuadsApi
-from quads.tools.external.jira import Jira, JiraException
+from quads.plugins.interfaces.ticketing import TicketingPlugin
+from quads.plugins.manager import PluginManager
 from quads.config import Config
 from quads.tools.helpers import get_or_create_event_loop
 
@@ -13,23 +13,20 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 quads = QuadsApi(Config)
 
 
-async def main(_loop):
-    try:
-        auth_type = Config.get("jira_auth", "basic")
-        jira = Jira(
-            Config["jira_url"],
-            username=Config.get("jira_username") if auth_type == "basic" else None,
-            password=Config.get("jira_password") if auth_type == "basic" else None,
-            token=Config.get("jira_token") if auth_type == "token" else None,
-            ticket_queue=Config.get("ticket_queue"),
-            auth_type=auth_type,
-            loop=_loop,
-        )
-    except JiraException as ex:
-        logger.error(ex)
+async def main():
+    plugin_manager = PluginManager()
+    plugin_manager.initialize()
+
+    jira_plugin = plugin_manager.get_plugin("jira", TicketingPlugin)
+    if not jira_plugin:
+        logger.error("Jira plugin not found or not enabled")
         return 1
 
+    jira = jira_plugin.jira
+
     all_pending_tickets = await jira.get_all_pending_tickets()
+    if not all_pending_tickets:
+        return 0
     all_pending_tickets = all_pending_tickets["issues"]
     jira_ticket_keys = []
     for ticket in all_pending_tickets:
@@ -61,5 +58,5 @@ async def main(_loop):
 
 if __name__ == "__main__":  # pragma: no cover
     loop = get_or_create_event_loop()
-    err = loop.run_until_complete(main(loop))
+    err = loop.run_until_complete(main())
     sys.exit(err)

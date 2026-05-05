@@ -1,86 +1,73 @@
-import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from quads.config import Config
-from quads.tools.external.jira import JiraException
 from quads.tools.jira_workflow import main
 from tests.cli.config import CLOUD, DEFAULT_CLOUD
 
 
 class TestJiraWorkflow(object):
-    @patch("quads.tools.external.jira.aiohttp.ClientSession.post")
-    @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
+    @patch("quads.tools.jira_workflow.PluginManager")
     @pytest.mark.asyncio
-    async def test_main(self, mock_get, mock_post):
+    async def test_main(self, mock_pm_class):
         cloud_name = CLOUD
-        resp = AsyncMock()
-        resp.json.side_effect = [
-            [
+
+        mock_jira = AsyncMock()
+        mock_jira.get_all_pending_tickets.return_value = {
+            "issues": [
                 {
-                    "statuses": [
-                        {"name": "In Progress", "id": "1"},
-                        {"name": "In Progress", "id": "2"},
-                    ]
-                }
-            ],
-            {
-                "issues": [
-                    {
-                        "name": "unitest",
-                        "key": "1",
-                        "fields": {
-                            "description": f"Submitted by: unittest@gmail.com\nCloud to extend: {cloud_name}\nJustification: Need "
-                            "more time to make unittests",
-                            "parent": {"key": "5"},
-                            "labels": ["EXTENSION"],
-                            "status": "In Progress",
-                        },
+                    "name": "unitest",
+                    "key": "1",
+                    "fields": {
+                        "description": f"Submitted by: unittest@gmail.com\nCloud to extend: {cloud_name}\nJustification: Need "
+                        "more time to make unittests",
+                        "parent": {"key": "5"},
+                        "labels": ["EXTENSION"],
+                        "status": "In Progress",
                     },
-                    {
-                        "name": "unitest3",
-                        "key": "4",
-                        "fields": {
-                            "description": f"Submitted by: unittest@gmail.com\nCloud to extend: {DEFAULT_CLOUD}\nJustification: Need "
-                            "more time to make unittests",
-                            "labels": ["EXPANSION"],
-                            "status": "In Progress",
-                        },
+                },
+                {
+                    "name": "unitest3",
+                    "key": "4",
+                    "fields": {
+                        "description": f"Submitted by: unittest@gmail.com\nCloud to extend: {DEFAULT_CLOUD}\nJustification: Need "
+                        "more time to make unittests",
+                        "labels": ["EXPANSION"],
+                        "status": "In Progress",
                     },
-                    {
-                        "name": "unitest3",
-                        "key": "5",
-                        "fields": {
-                            "description": "Submitted by: unittest@gmail.com\n",
-                            "labels": ["EXPANSION"],
-                        },
+                },
+                {
+                    "name": "unitest3",
+                    "key": "5",
+                    "fields": {
+                        "description": "Submitted by: unittest@gmail.com\n",
+                        "labels": ["EXPANSION"],
                     },
-                ]
-            },
-            {"transitions": [{"name": "done", "id": "1"}]},
-            {"transitions": [{"name": "New", "id": "2"}]},
+                },
+            ]
+        }
+        mock_jira.get_transitions.side_effect = [
+            [{"name": "done", "id": "1"}],
+            [{"name": "New", "id": "2"}],
         ]
-        mock_get.return_value.__aenter__.return_value = resp
+        mock_jira.post_transition.return_value = True
 
-        post_resp = AsyncMock()
-        post_resp.status = 200
-        post_resp.json.return_value = {}
-        mock_post.return_value.__aenter__.return_value = post_resp
+        mock_plugin = MagicMock()
+        mock_plugin.jira = mock_jira
 
-        Config.jira_url = "https://mock_jira.com"
-        Config.jira_auth = "token"
-        Config.jira_token = "token"
-        loop = asyncio.new_event_loop()
-        response = await main(_loop=loop)
+        mock_pm = MagicMock()
+        mock_pm.get_plugin.return_value = mock_plugin
+        mock_pm_class.return_value = mock_pm
+
+        response = await main()
         assert response == 0
 
-    @patch("quads.tools.external.jira.aiohttp.ClientSession.get")
+    @patch("quads.tools.jira_workflow.PluginManager")
     @pytest.mark.asyncio
-    async def test_main_error(self, mock_get):
-        mock_get.side_effect = JiraException("Jira Exception")
-        Config.jira_url = "https://mock_jira.com"
-        Config.jira_auth = "basic"
-        loop = asyncio.new_event_loop()
-        response = await main(_loop=loop)
+    async def test_main_error(self, mock_pm_class):
+        mock_pm = MagicMock()
+        mock_pm.get_plugin.return_value = None
+        mock_pm_class.return_value = mock_pm
+
+        response = await main()
         assert response == 1

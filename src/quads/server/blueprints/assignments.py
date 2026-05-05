@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request, g, current_app
+from quads.plugins.interfaces.ticketing import TicketingPlugin
 from sqlalchemy import inspect
 
 from quads.config import Config
@@ -329,7 +330,7 @@ def create_self_assignment() -> Response:
 
     create_jira_ticket = Config.get("ssm_jira_create_ticket", False)
     if create_jira_ticket:
-        ticketing_dispatcher = current_app.extensions.get("ticketing")
+        ticketing_dispatcher = current_app.extensions.get("plugin_dispatchers").get("ticketing")
         if not ticketing_dispatcher:
             response = {
                 "status_code": 400,
@@ -369,8 +370,7 @@ def create_self_assignment() -> Response:
             }
             return make_response(jsonify(response), 400)
 
-        ticket = ticket_key.split("-")[1]
-        kwargs["ticket"] = ticket
+        kwargs["ticket"] = ticket_key
     else:
         if not ticket:
             response = {

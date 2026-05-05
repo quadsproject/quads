@@ -22,7 +22,11 @@ class TestJira(object):
         Config.jira_auth = "token"
         Config.jira_token = "token"
         jira = Jira(url=self.url, token="token", auth_type="token", loop=self.loop, semaphore=self.semaphore)
-        assert jira.headers == {"Authorization": "Bearer: token"}
+        assert jira.headers == {
+            "Accept": "application/json",
+            "Authorization": "Bearer: token",
+            "Content-Type": "application/json",
+        }
 
     def test_class_object_parameters_raise_error(self):
         with pytest.raises(JiraException):

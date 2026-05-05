@@ -26,18 +26,18 @@ class JiraTicketingPlugin(TicketingPlugin):
         self.jira = Jira(self.url, self.username, self.password, self.token, self.ticket_queue, self.auth_type)
         return True
 
-    def create_ticket(self, summary: str, description: str, labels: list = None) -> str:
+    async def create_ticket(self, summary: str, description: str, labels: list = None) -> str:
         """Create a ticket"""
-        response = self.jira.create_ticket(summary, description, labels)
+        response = await self.jira.create_ticket(summary, description, labels)
         if response:
             return response.get("key").split("-")[1]
         else:
             raise JiraException(f"Failed to create ticket: {response}")
 
-    def post_comment(self, ticket_id: str, comment: str) -> bool:
+    async def post_comment(self, ticket_id: str, comment: str) -> bool:
         """Post a comment to a ticket"""
-        return self.jira.post_comment(ticket_id, comment)
+        return await self.jira.post_comment(ticket_id, comment)
 
-    def get_ticket(self, ticket_id: str) -> dict:
+    async def get_ticket(self, ticket_id: str) -> dict:
         """Get a ticket"""
-        return self.jira.get_ticket(ticket_id)
+        return await self.jira.get_ticket(ticket_id)
