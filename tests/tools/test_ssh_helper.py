@@ -97,5 +97,5 @@ class TestSSHHelper(TestBase):
         )
         ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
         ssh_helper.copy_ssh_key("ssh_key")
-        assert self._caplog.messages[0] == "There was something wrong with your request"
+        assert self._caplog.messages[0] == "There was something wrong with your SSH request"
         assert self._caplog.messages[1] == "Error here"

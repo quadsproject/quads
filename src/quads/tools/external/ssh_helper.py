@@ -62,7 +62,7 @@ class SSHHelper(object):
         errors = stderr.readlines()
         exit_code = stdout.channel.recv_exit_status()
         if errors or exit_code > 0:
-            logger.error("There was something wrong with your request")
+            logger.error("There was something wrong with your SSH request")
             for line in errors:
                 logger.debug(line)
             return False, errors
@@ -79,7 +79,7 @@ class SSHHelper(object):
         stdin, stdout, stderr = self.ssh.exec_command(command)
 
         if stderr.readlines():
-            logger.error("There was something wrong with your request")
+            logger.error("There was something wrong with your SSH request")
             for line in stderr.readlines():
                 logger.error(line)
         else:

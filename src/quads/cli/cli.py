@@ -2213,9 +2213,14 @@ class QuadsCli:
                 try:
                     skip_system = self.cli_args.get("skip_system")
                     skip_network = self.cli_args.get("skip_network")
-                    await validator_dispatcher.validate(ass.cloud.name, _assignment, hosts, skip_system, skip_network)
+                    result, report = await validator_dispatcher.validate(
+                        ass.cloud.name, _assignment, hosts, skip_system, skip_network
+                    )
                 except Exception as ex:
                     self.logger.debug(ex)
+                    self.logger.info(f"Failed validation for {ass.cloud.name}")
+                if not result:
+                    self.logger.debug(report)
                     self.logger.info(f"Failed validation for {ass.cloud.name}")
             elif _schedule_count and not _assignment.wipe:
                 self.logger.info(f"Auto-Validating {ass.cloud.name} as marked for no wipe")

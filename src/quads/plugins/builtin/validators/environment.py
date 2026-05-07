@@ -273,7 +273,6 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 self.logger.error(i)
             return False, report
 
-        failed_ssh = False
         try:
             ssh_helper = SSHHelper(test_host.name)
         except (
@@ -285,15 +284,13 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
             self.logger.debug(str(ex))
             self.logger.error("Could not establish connection with host: %s." % test_host.name)
             report = report + "Could not establish connection with host: %s.\n" % test_host.name
-            failed_ssh = True
-
-        if failed_ssh:
             return False, report
 
         host_list = " ".join([host.name for host in hosts])
 
         result, output = ssh_helper.run_cmd(f"fping -i 100 -t {Config.FPING_TIMEOUT} -B 1 -u {host_list}")
         if not result:
+            report = report + output[0]
             return False, report
 
         for i, interface in enumerate(Config.INTERFACES.keys()):
