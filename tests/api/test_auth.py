@@ -1,6 +1,7 @@
 import base64
 from unittest.mock import patch
 
+from jwt import decode
 from sqlalchemy.exc import SQLAlchemyError
 
 from tests.config import EXPIRED_TEST_TOKEN
@@ -239,6 +240,25 @@ class TestRegistration:
         assert response.json["message"] == "Successfully registered"
         assert response.json["auth_token"] is not None
 
+    def test_jwt_contains_role(self, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User registers with valid email and password
+        | THEN: JWT token should contain role field with value "user"
+        """
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/register",
+                json=dict(email="new_test_user@redhat.com", password="password"),
+            )
+        )
+        assert response.status_code == 200
+        auth_token = response.json["auth_token"]
+        payload = decode(auth_token, options={"verify_signature": False})
+        assert "role" in payload
+        assert payload["role"] == "user"
+        assert payload["sub"] == "new_test_user@redhat.com"
+
     def test_existing(self, test_client):
         """
         | GIVEN: Client with test user in database
@@ -313,6 +333,48 @@ class TestLogin:
         assert response.json["auth_token"] is not None
         global auth_token_global
         auth_token_global = response.json["auth_token"]
+
+    def test_admin_jwt_contains_role(self, test_client):
+        """
+        | GIVEN: Client with admin user in database
+        | WHEN: Admin user logs in
+        | THEN: JWT token should contain role field with value "admin"
+        """
+        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/login",
+                json=dict(),
+                headers={"Authorization": "Basic " + valid_credentials},
+            )
+        )
+        assert response.status_code == 200
+        auth_token = response.json["auth_token"]
+        payload = decode(auth_token, options={"verify_signature": False})
+        assert "role" in payload
+        assert payload["role"] == "admin"
+        assert payload["sub"] == "grafuls@redhat.com"
+
+    def test_user_jwt_contains_role(self, test_client):
+        """
+        | GIVEN: Client with regular user in database
+        | WHEN: Regular user logs in
+        | THEN: JWT token should contain role field with value "user"
+        """
+        valid_credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/login",
+                json=dict(),
+                headers={"Authorization": "Basic " + valid_credentials},
+            )
+        )
+        assert response.status_code == 200
+        auth_token = response.json["auth_token"]
+        payload = decode(auth_token, options={"verify_signature": False})
+        assert "role" in payload
+        assert payload["role"] == "user"
+        assert payload["sub"] == "gonza@redhat.com"
 
 
 class TestLogout:

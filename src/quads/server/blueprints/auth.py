@@ -40,7 +40,7 @@ def register() -> Response:
         try:
             user = user_datastore.create_user(email=data["email"], password=data["password"], roles=[role])
             db.session.commit()
-            auth_token = User.encode_auth_token(user.id)
+            auth_token = User.encode_auth_token(user.email, role.name)
             response_object = {
                 "status": "success",
                 "status_code": 200,
@@ -77,7 +77,8 @@ def login() -> Response:
     try:
         current_user = basic_auth.username()
         user = db.session.query(User).filter(User.email == current_user).first()
-        auth_token = User.encode_auth_token(user.email)
+        user_role = user.roles[0].name if user.roles else None
+        auth_token = User.encode_auth_token(user.email, user_role)
         if auth_token:
             response_object = {
                 "status_code": 201,

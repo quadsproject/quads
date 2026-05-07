@@ -286,13 +286,15 @@ class User(Base, UserMixin):
         return check_password_hash(self._password, password)
 
     @staticmethod
-    def encode_auth_token(user_email):
+    def encode_auth_token(user_email, user_role=None):
         try:
             payload = {
                 "exp": datetime.utcnow() + timedelta(days=0, seconds=15600),
                 "iat": datetime.utcnow(),
                 "sub": user_email,
             }
+            if user_role:
+                payload["role"] = user_role
             return encode(payload, current_app.config.get("SECRET_KEY"), algorithm="HS256")
         except Exception as e:
             return e
