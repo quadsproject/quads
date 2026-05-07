@@ -7,8 +7,6 @@
 spare_pool_name: cloud01
 spare_pool_description: "Spare Pool"
 spare_pool_owner: quads
-# display name for QUADS email notifications
-mail_display_name: "QUADS Scheduler"
 # set header for User-Agent:
 domain: example.com
 log: /opt/quads/log/quads.log

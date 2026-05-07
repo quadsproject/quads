@@ -19,6 +19,7 @@ class EmailPlugin(EmailPlugin):
     author = "QUADS Team"
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None) -> bool:
+        self.mail_display_name = self.config.get("mail_display_name")
         self.smtp_host = self.config.get("smtp_host")
         self.smtp_port = self.config.get("smtp_port", 25)
         self.from_address = self.config.get("from_address")
@@ -37,7 +38,7 @@ class EmailPlugin(EmailPlugin):
     def compose(self, content: str, subject: str, recipients: List[str], cc: Optional[List[str]] = None):
         msg = MIMEText(markdown.markdown(content, extensions=["tables"]), "html")
         msg["Subject"] = subject
-        msg["From"] = self.from_address
+        msg["From"] = f"{self.mail_display_name} <{self.from_address}>"
         msg["To"] = "@".join(recipients)
         msg["Cc"] = ",".join(cc)
         msg.add_header("Reply-To", self.reply_to)
