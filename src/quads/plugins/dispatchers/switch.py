@@ -49,9 +49,11 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
             logger.error("No switch plugin enabled")
             return False
 
-        logger.info(f"Verifying switch for {host} via {self._default_plugin.name}")
+        component = host if host else cloud
+        logger.info(f"Verifying switch for {component} via {self._default_plugin.name}")
         try:
-            return await self._default_plugin.verify(host, cloud, change)
+            await self._default_plugin.verify(host, cloud, change)
+            return True
         except Exception as e:
             logger.error(f"Failed to verify switch: {e}")
             return False
