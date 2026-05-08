@@ -1,7 +1,11 @@
+import asyncio
+import os
+import re
 from datetime import datetime, timedelta
 from calendar import day_name
+from jinja2 import Template
 
-from flask import Blueprint, Response, g, jsonify, make_response, request
+from flask import Blueprint, Response, current_app, g, jsonify, make_response, request
 
 from quads.config import Config
 from quads.server.blueprints import check_access
@@ -12,8 +16,68 @@ from quads.server.dao.host import HostDao
 from quads.server.dao.notification import NotificationDao
 from quads.server.dao.schedule import ScheduleDao
 from quads.server.models import db
+from quads.server.dao.vlan import VlanDao
 
 schedule_bp = Blueprint("schedules", __name__)
+
+
+def _parse_datetime_with_now(date_str):
+    if isinstance(date_str, str) and date_str.lower() == "now":
+        return datetime.now()
+    if isinstance(date_str, str):
+        return datetime.strptime(date_str, "%Y-%m-%d %H:%M")
+    return date_str
+
+
+def _trigger_jira_notification(assignment, hostnames, start, end):
+    ticketing_dispatcher = current_app.extensions.get("plugin_dispatchers", {}).get("ticketing")
+    if not ticketing_dispatcher:
+        return False
+
+    conf = Config
+    template_file = "jira_ticket_assignment"
+    template_path = os.path.join(conf.TEMPLATES_PATH, template_file)
+
+    try:
+        with open(template_path) as f:
+            template = Template(f.read())
+    except IOError:
+        return False
+
+    jira_docs_links = conf.get("jira_docs_links", "").split(",")
+    jira_vlans_docs_links = conf.get("jira_vlans_docs_links", "").split(",")
+
+    host_list_str = "\n".join(hostnames)
+
+    comment = template.render(
+        schedule_start=start,
+        schedule_end=end,
+        cloud=assignment.cloud.name,
+        jira_docs_links=jira_docs_links,
+        jira_vlans_docs_links=jira_vlans_docs_links,
+        host_list=host_list_str,
+        vlan=assignment.vlan,
+    )
+
+    loop = asyncio.new_event_loop()
+    try:
+        result = loop.run_until_complete(ticketing_dispatcher.post_comment(assignment.ticket, comment))
+        if not result:
+            return False
+
+        transitions = loop.run_until_complete(ticketing_dispatcher.jira.get_transitions(assignment.ticket))
+        for transition in transitions:
+            t_name = transition.get("name")
+            if t_name and t_name.lower() == "scheduled":
+                transition_id = transition.get("id")
+                loop.run_until_complete(ticketing_dispatcher.jira.post_transition(assignment.ticket, transition_id))
+                break
+
+        return True
+    except Exception:
+        return False
+    finally:
+        loop.close()
 
 
 @schedule_bp.route("/")
@@ -163,7 +227,7 @@ def create_schedule() -> Response:
         start = datetime.now()
 
         ssm_deadline_day = Config.get("ssm_deadline_day", "sunday").lower()
-        ssm_deadline_hour = Config.get("ssm_deadline_hour", "21")
+        ssm_deadline_hour = int(Config.get("ssm_deadline_hour", "21"))
         ssm_default_lifetime = Config.get("ssm_default_lifetime", 1)
 
         day_mapping = {day.lower(): i for i, day in enumerate(day_name)}
@@ -188,8 +252,8 @@ def create_schedule() -> Response:
         return make_response(jsonify(response), 400)
 
     try:
-        _start = datetime.strptime(start, "%Y-%m-%d %H:%M") if isinstance(start, str) else start
-        _end = datetime.strptime(end, "%Y-%m-%d %H:%M") if isinstance(end, str) else end
+        _start = _parse_datetime_with_now(start)
+        _end = _parse_datetime_with_now(end)
     except ValueError:
         response = {
             "status_code": 400,
@@ -377,3 +441,211 @@ def delete_schedule(schedule_id: int) -> Response:
         "message": "Schedule deleted",
     }
     return jsonify(response)
+
+
+@schedule_bp.route("/batch", methods=["POST"])
+@check_access(["admin"])
+def create_schedules_batch() -> Response:
+    data = request.get_json()
+
+    cloud_name = data.get("cloud")
+    hostnames = data.get("hostnames")
+    start = data.get("start")
+    end = data.get("end")
+
+    if not cloud_name:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing argument: cloud",
+        }
+        return make_response(jsonify(response), 400)
+
+    if not hostnames or not isinstance(hostnames, list):
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing or invalid argument: hostnames (must be a list)",
+        }
+        return make_response(jsonify(response), 400)
+
+    if not start or not end:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing argument: start or end",
+        }
+        return make_response(jsonify(response), 400)
+
+    _cloud = CloudDao.get_cloud(cloud_name)
+    if not _cloud:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Cloud not found: {cloud_name}",
+        }
+        return make_response(jsonify(response), 400)
+
+    try:
+        _start = _parse_datetime_with_now(start)
+        _end = _parse_datetime_with_now(end)
+    except ValueError:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Invalid date format for start or end, correct format: 'YYYY-MM-DD HH:MM'",
+        }
+        return make_response(jsonify(response), 400)
+
+    if _start >= _end:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Invalid date range: start must be before end",
+        }
+        return make_response(jsonify(response), 400)
+
+    description = data.get("description")
+    owner = data.get("owner")
+    ticket = data.get("ticket")
+
+    should_create_assignment = bool(description or owner or ticket)
+
+    if should_create_assignment:
+        if not description or not owner or not ticket:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": "When creating assignment, description, owner, and ticket are all required",
+            }
+            return make_response(jsonify(response), 400)
+
+        existing_assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
+        if existing_assignment:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"There is already an active assignment for {cloud_name} (ID: {existing_assignment.id}, owner: {existing_assignment.owner}). Terminate it first or use existing assignment by omitting assignment parameters.",
+            }
+            return make_response(jsonify(response), 400)
+
+        vlan_id = data.get("vlan")
+        _vlan = None
+        if vlan_id:
+            _vlan = VlanDao.get_vlan(int(vlan_id))
+            if not _vlan:
+                response = {
+                    "status_code": 400,
+                    "error": "Bad Request",
+                    "message": f"Vlan not found: {vlan_id}",
+                }
+                return make_response(jsonify(response), 400)
+    else:
+        existing_assignment = AssignmentDao.get_active_cloud_assignment(_cloud)
+        if not existing_assignment:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"No active assignment for cloud: {cloud_name}",
+            }
+            return make_response(jsonify(response), 400)
+
+    unavailable_hosts = []
+    for hostname in hostnames:
+        _host = HostDao.get_host(hostname)
+        if not _host:
+            unavailable_hosts.append(f"{hostname}: Host not found")
+            continue
+
+        if not ScheduleDao.is_host_available(hostname, _start, _end):
+            unavailable_hosts.append(f"{hostname}: Not available for specified date range")
+
+    if unavailable_hosts:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Some hosts are unavailable",
+            "unavailable_hosts": unavailable_hosts,
+        }
+        return make_response(jsonify(response), 400)
+
+    _assignment = None
+    created_new_assignment = False
+    assignment_id = None
+
+    if should_create_assignment:
+        ccuser = data.get("ccuser")
+        if ccuser and isinstance(ccuser, str):
+            ccuser = re.split(r"[, ]+", ccuser)
+
+        kwargs = {
+            "description": description,
+            "owner": owner,
+            "ticket": ticket,
+            "qinq": data.get("qinq", 0),
+            "wipe": str(data.get("wipe", True)).lower() in ["true", "y", 1, "yes"],
+            "ccuser": ccuser,
+            "cloud": cloud_name,
+        }
+        if vlan_id:
+            _vlan = VlanDao.get_vlan(int(vlan_id))
+            kwargs["vlan_id"] = int(vlan_id)
+
+        try:
+            _assignment = AssignmentDao.create_assignment(**kwargs)
+            assignment_id = _assignment.id
+            created_new_assignment = True
+        except SQLError as ex:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": f"Failed to create assignment: {ex}",
+            }
+            return make_response(jsonify(response), 400)
+    else:
+        _assignment = existing_assignment
+        assignment_id = _assignment.id
+
+    schedules_created = []
+    failed_schedules = []
+
+    for hostname in hostnames:
+        _host = HostDao.get_host(hostname)
+        try:
+            _schedule_obj = ScheduleDao.create_schedule(start=_start, end=_end, assignment=_assignment, host=_host)
+            schedules_created.append(hostname)
+        except SQLError as ex:
+            failed_schedules.append(f"{hostname}: {ex}")
+
+    if failed_schedules:
+        if created_new_assignment:
+            try:
+                _assignment.active = False
+                BaseDao.safe_commit()
+            except Exception:
+                pass
+
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Some schedules failed to create",
+            "failed_schedules": failed_schedules,
+        }
+        return make_response(jsonify(response), 400)
+
+    if _assignment.notification.pre:
+        try:
+            NotificationDao.update_notification(_assignment.notification.id, pre=False)
+        except SQLError:
+            pass
+
+    jira_updated = _trigger_jira_notification(_assignment, hostnames, start, end)
+
+    response_data = {
+        "assignment_id": assignment_id,
+        "schedules_created": len(schedules_created),
+        "hostnames": schedules_created,
+        "jira_updated": jira_updated,
+    }
+
+    return jsonify(response_data)
