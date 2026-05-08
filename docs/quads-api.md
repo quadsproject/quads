@@ -550,6 +550,54 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
 ]
 ```
 
+### Create Multiple Schedules at Once (Batch)
+
+The batch schedule endpoint creates multiple schedules atomically with JIRA integration. All hosts are validated before creating any schedules. If any host is unavailable, the entire operation fails.
+
+Supports two modes:
+- Create new assignment + schedules (provide description, owner, ticket)
+- Use existing assignment (omit assignment parameters)
+
+```bash
+curl -X 'POST' \
+  'http://localhost/api/v3/schedules/batch' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer $TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "cloud": "cloud02",
+  "hostnames": ["host01.example.com", "host02.example.com"],
+  "start": "2026-05-08 10:00",
+  "end": "2026-05-09 22:00",
+  "description": "Testing environment",
+  "owner": "jdoe",
+  "ticket": "5473",
+  "ccuser": "wfoster,kgodel",
+  "vlan": 1234,
+  "qinq": 0,
+  "wipe": true
+}'
+```
+
+- Response:
+```json
+{
+  "assignment_id": 158,
+  "schedules_created": 2,
+  "hostnames": [
+    "host01.example.com",
+    "host02.example.com"
+  ],
+  "jira_updated": true
+}
+```
+
+**Special Features:**
+- Supports `"now"` keyword for immediate start: `"start": "now"`
+- Automatically posts JIRA comment with host list
+- Transitions JIRA ticket to "scheduled" status
+- All-or-nothing: if any host unavailable, no schedules created
+
 ### Query Available OS in Foreman
 
 ```bash
