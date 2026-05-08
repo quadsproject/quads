@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32a81769_d4470468",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-05-08T18:48:29Z",
+      "side": 1,
+      "message": "Tested already, required for quads-client JIRA admin scheduling.",
+      "revId": "91cb7c512e50aab766f27f2c1f83c947ca127229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
