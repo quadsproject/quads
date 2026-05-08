@@ -96,47 +96,37 @@ class _Config(_ConfigBase):
     QUADSVERSION = "2.2.6"
     QUADSCODENAME = "maximilian"
 
-    SUPPORTED = [
-        "r620",
-        "r630",
-        "640",
-        "fc640",
-        "r640",
-        "650",
-        "r650",
-        "660",
-        "r660",
-        "670",
-        "r670",
-        "r720",
-        "r720xd",
-        "r730",
-        "r730xd",
-        "740xd",
-        "r740xd",
-        "750",
-        "r750",
-        "r750xd",
-        "760",
-        "r760",
-        "770",
-        "r770",
-        "r930",
-        "r960",
-        "6625",
-        "r6625",
-        "6725",
-        "r6725",
-        "7425",
-        "r7425",
-        "7525",
-        "r7525",
-        "7625",
-        "r7625",
-        "XE8640",
-        "xe8640",
-        "xe9680",
-    ]
+    # Model/name fragments for Supermicro hosts that skip Badfish and use ipmitool.
+    # Extend via plugins.badfish.skip_for_supermicro_models in plugins.yml.
+    SUPERMICRO: list = []
+
+    def __init__(self):
+        self.SUPERMICRO = list(self.__class__.SUPERMICRO)
+        super().__init__()
+        self._apply_yaml_extensions()
+
+    def _apply_yaml_extensions(self):
+        badfish_cfg = getattr(self, "plugins", {}).get("badfish", {})
+        raw = badfish_cfg.get("skip_for_supermicro_models")
+        if raw is None:
+            # backward compat: accept old key name with a deprecation notice
+            raw = badfish_cfg.get("supported_supermicro")
+            if raw is not None:
+                logger.warning(
+                    "plugins.badfish.supported_supermicro is deprecated; "
+                    "rename to skip_for_supermicro_models in plugins.yml"
+                )
+        if raw is None:
+            return
+        if not raw:
+            logger.debug("Skipping empty skip_for_supermicro_models in plugins.badfish")
+            return
+        existing_lower = {m.lower() for m in self.SUPERMICRO}
+        for model in [m.strip() for m in str(raw).split(",") if m.strip()]:
+            if model.lower() not in existing_lower:
+                self.SUPERMICRO.append(model)
+                existing_lower.add(model.lower())
+        logger.debug("Extended SUPERMICRO from plugins.badfish.skip_for_supermicro_models")
 
     OFFSETS = {"em1": 0, "em2": 1, "em3": 2, "em4": 3, "em5": 4}
     TEMPLATES_PATH = os.environ.get(

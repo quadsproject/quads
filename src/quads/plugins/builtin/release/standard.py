@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 from quads.config import Config
-from quads.helpers.utils import is_supported
+from quads.helpers.utils import is_supermicro
 from quads.plugins.interfaces.release import ReleasePlugin
 from quads.plugins.dispatchers import get_hardware_dispatcher, get_provisioner_dispatcher
 from quads.quads_api import QuadsApi
@@ -69,54 +69,83 @@ class StandardReleasePlugin(ReleasePlugin):
         ipmi = IPMI(host, ipmi_username, ipmi_password, logger=self.logger)
         await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
 
+        _is_supermicro = is_supermicro(host)
+
         if rebuild and target_cloud.name != host_obj.default_cloud.name:
             # Handle PDU management if configured
             if Config.pdu_management:
                 # TODO: pdu management
                 pass
 
-            # Prepare hardware
-            if not await self.prepare_host_hardware(host_obj, boot_order, Config.get("badfish_interfaces_path")):
-                self._update_host_on_failure(host_obj)
-                return False
+            if _is_supermicro:
+                # No Badfish for Supermicro — use raw ipmitool
+                os_type = Config.plugins["foreman"]["default_os"]
+                if _assignment and _assignment.ostype:
+                    os_type = _assignment.ostype
 
-            # Power on
-            if not await self.power_on_host(host_obj):
-                self.logger.error(f"Failed to power on {host}")
-                self._update_host_on_failure(host_obj)
-                return False
+                if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
+                    self._update_host_on_failure(host_obj)
+                    return False
 
-            # Prepare provisioning
-            os_type = Config.plugins["foreman"]["default_os"]
-            if _assignment and _assignment.ostype:
-                os_type = _assignment.ostype
-
-            if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
-                self._update_host_on_failure(host_obj)
-                return False
-
-            # Cleanup virtual media
-            await self.cleanup_virtual_media(host_obj)
-
-            # Reboot for rebuild (supported hosts only)
-            if is_supported(host):
-                if not await self.reboot_for_rebuild(host_obj, boot_order, Config.get("badfish_interfaces_path")):
+                if not await ipmi.pxe_persistent():
+                    self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
                     self._update_host_on_failure(host_obj)
                     return False
             else:
-                # Fallback to IPMI for unsupported hosts
-                try:
-                    await ipmi.pxe_persistent()
-                except Exception as ex:
-                    self.logger.debug(f"IPMI PXE error for {host}: {ex}")
-                    self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
+                # Dell/HPE: serialize Badfish calls via semaphore so concurrent move
+                # tasks don't interleave on the shared singleton dispatcher.
+                async with semaphore:
+                    self.hardware_initialized = False  # reset inside semaphore so each queued task gets a fresh init
+                    ok, vendor = await self.prepare_host_hardware(host_obj, boot_order, Config.get("badfish_interfaces_path"))
+                    if not ok:
+                        self._update_host_on_failure(host_obj)
+                        return False
+
+                    if not await self.power_on_host(host_obj):
+                        self.logger.error(f"Failed to power on {host}")
+                        self._update_host_on_failure(host_obj)
+                        return False
+
+                    # Capture vendor immediately after power_on_host (synchronous, no yield between)
+                    if vendor is None:
+                        vendor = self.hardware_dispatcher.get_vendor()
+
+                    os_type = Config.plugins["foreman"]["default_os"]
+                    if _assignment and _assignment.ostype:
+                        os_type = _assignment.ostype
+
+                    if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
+                        self._update_host_on_failure(host_obj)
+                        return False
+
+                    await self.cleanup_virtual_media(host_obj)
+
+                    if vendor == "Dell":
+                        if not await self.reboot_for_rebuild(host_obj, boot_order, Config.get("badfish_interfaces_path")):
+                            self._update_host_on_failure(host_obj)
+                            return False
+                    else:
+                        if not await ipmi.pxe_persistent():
+                            self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
+                            self._update_host_on_failure(host_obj)
+                            return False
 
         # Power off if moving back to default cloud
         if target_cloud.name == host_obj.default_cloud.name:
-            if not await self.power_off_host(host_obj):
-                self.logger.error(f"Failed to power off {host}")
-                self._update_host_on_failure(host_obj)
-                return False
+            if _is_supermicro:
+                try:
+                    await ipmi.execute(["chassis", "power", "off"])
+                except Exception as e:
+                    self.logger.error(f"Failed to power off {host}: {e}")
+                    self._update_host_on_failure(host_obj)
+                    return False
+            else:
+                async with semaphore:
+                    self.hardware_initialized = False
+                    if not await self.power_off_host(host_obj):
+                        self.logger.error(f"Failed to power off {host}")
+                        self._update_host_on_failure(host_obj)
+                        return False
 
         # Update schedule
         data = {"host": host_obj.name, "cloud": target_cloud.name}
@@ -139,25 +168,32 @@ class StandardReleasePlugin(ReleasePlugin):
         self.quads.update_host(host_obj.name, success_data)
         return True
 
-    async def prepare_host_hardware(self, host_obj: Host, boot_order: str, interfaces_path: str) -> bool:
-        """Prepare host hardware for rebuild"""
+    async def prepare_host_hardware(
+        self, host_obj: Host, boot_order: str, interfaces_path: str
+    ) -> tuple[bool, Optional[str]]:
+        """Prepare host hardware for rebuild. Returns (success, vendor)."""
         try:
-            # Change boot order if supported and needed
-            if is_supported(host_obj.name) and boot_order != Config.plugins["foreman"]["default_boot_order"]:
+            vendor = None
+            if boot_order != Config.plugins["foreman"]["default_boot_order"]:
                 if not self.hardware_initialized:
                     self.hardware_initialized = await self.hardware_dispatcher.init(
                         host_obj.name, host_obj.rack, host_obj.uloc, host_obj.blade
                     )
-                if not await self.hardware_dispatcher.change_boot(boot_order, interfaces_path):
-                    self.logger.error(f"Could not set boot order for {host_obj.name}.")
-                    return False
-                # wait 10 minutes for the boot order job to complete
-                await asyncio.sleep(600)
+                if not self.hardware_initialized:
+                    return False, None
+                vendor = self.hardware_dispatcher.get_vendor()  # sync read after init, no yield between
+                if vendor == "Dell":
+                    if not await self.hardware_dispatcher.change_boot(boot_order, interfaces_path):
+                        self.logger.error(f"Could not set boot order for {host_obj.name}.")
+                        return False, vendor
+                    # TODO: replace with a proper wait_for_job() poll on the iDRAC job queue
+                    # instead of a fixed 600s sleep
+                    await asyncio.sleep(600)
 
-            return True
+            return True, vendor
         except Exception as e:
             self.logger.error(f"Could not initialize hardware for {host_obj.name}: {e}")
-            return False
+            return False, None
 
     async def power_on_host(self, host_obj: Host) -> bool:
         """Power on a host"""

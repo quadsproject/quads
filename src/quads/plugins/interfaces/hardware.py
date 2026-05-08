@@ -1,5 +1,6 @@
 from quads.plugins.base import BasePlugin
 from abc import abstractmethod
+from typing import Optional
 
 
 class HardwarePlugin(BasePlugin):
@@ -106,3 +107,12 @@ class HardwarePlugin(BasePlugin):
             str: Current power state ('On', 'Off', 'Down', etc.)
         """
         pass
+
+    def get_vendor(self) -> Optional[str]:
+        """Return the hardware vendor string after init(), or None if unavailable.
+
+        Hardware plugins should override this to return the correct vendor so that
+        Dell-specific boot paths (boot_to_type, change_boot) are taken. Plugins that
+        do not override this return None and will use the non-Dell (PXE) path.
+        """
+        return None
