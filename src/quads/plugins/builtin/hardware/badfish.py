@@ -131,3 +131,6 @@ class BadfishHardwarePlugin(HardwarePlugin):
         except BadfishException as e:
             self.logger.error(f"Failed to get power state: {e}")
             return "Unknown"
+
+    def get_vendor(self) -> Optional[str]:
+        return self.badfish.vendor if self.badfish else None

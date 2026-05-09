@@ -272,46 +272,117 @@ class TestEnvironmentValidatorPlugin:
 
     @pytest.mark.asyncio
     async def test_post_system_test_hosts_in_build_mode(self, plugin, mock_config):
-        """Test post_system_test handles hosts marked for build"""
+        """Test post_system_test handles hosts marked for build (Dell path)"""
         with (
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
             patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
-            patch("quads.plugins.builtin.validators.environment.is_supported") as mock_is_supported,
         ):
             for key, value in mock_config.items():
                 setattr(mock_cfg, key, value)
 
-            # Setup Foreman mock
             mock_foreman = AsyncMock()
             mock_foreman.verify_credentials.return_value = True
             mock_foreman.get_build_hosts.return_value = ["host1.example.com"]
             mock_foreman_class.return_value = mock_foreman
 
-            # Setup Netcat mock
             mock_nc = AsyncMock()
             mock_nc.health_check.return_value = True
             mock_netcat_class.return_value = mock_nc
 
-            # Setup hardware dispatcher mock
             plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="Dell")
             plugin.hardware_dispatcher.boot_to_type = AsyncMock()
             plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock()
             plugin.hardware_dispatcher.reboot_server = AsyncMock()
 
-            mock_is_supported.return_value = True
-
-            cloud = "cloud01"
-            ticket = "TICKET-123"
             hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
-            report = ""
-
-            result, updated_report = await plugin.post_system_test(cloud, ticket, hosts, report)
+            result, updated_report = await plugin.post_system_test("cloud01", "TICKET-123", hosts, "")
 
             assert result is False
             assert "marked for build" in updated_report
             plugin.hardware_dispatcher.init.assert_called_once()
+            plugin.hardware_dispatcher.boot_to_type.assert_called_once()
+            plugin.hardware_dispatcher.set_next_boot_pxe.assert_not_called()
             plugin.hardware_dispatcher.reboot_server.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_post_system_test_hosts_in_build_mode_non_dell(self, plugin, mock_config):
+        """Test post_system_test uses PXE boot for non-Dell hosts in build mode"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_foreman = AsyncMock()
+            mock_foreman.verify_credentials.return_value = True
+            mock_foreman.get_build_hosts.return_value = ["host1.example.com"]
+            mock_foreman_class.return_value = mock_foreman
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="HPE")
+            plugin.hardware_dispatcher.boot_to_type = AsyncMock()
+            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock()
+            plugin.hardware_dispatcher.reboot_server = AsyncMock()
+
+            hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
+            result, updated_report = await plugin.post_system_test("cloud01", "TICKET-123", hosts, "")
+
+            assert result is False
+            assert "marked for build" in updated_report
+            plugin.hardware_dispatcher.set_next_boot_pxe.assert_called_once()
+            plugin.hardware_dispatcher.boot_to_type.assert_not_called()
+            plugin.hardware_dispatcher.reboot_server.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_post_system_test_hosts_in_build_mode_supermicro(self, plugin, mock_config):
+        """Test post_system_test uses raw ipmitool for Supermicro hosts in build mode"""
+        supermicro_config = dict(mock_config)
+        supermicro_config["plugins"] = dict(mock_config["plugins"])
+        supermicro_config["plugins"]["badfish"] = {
+            "ipmi_username": "root",
+            "ipmi_password": "password",
+        }
+
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=True),
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
+        ):
+            for key, value in supermicro_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_foreman = AsyncMock()
+            mock_foreman.verify_credentials.return_value = True
+            mock_foreman.get_build_hosts.return_value = ["host1.example.com"]
+            mock_foreman_class.return_value = mock_foreman
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            mock_ipmi = AsyncMock()
+            mock_ipmi.pxe_persistent = AsyncMock(return_value=True)
+            mock_ipmi_class.return_value = mock_ipmi
+
+            hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
+            result, updated_report = await plugin.post_system_test("cloud01", "TICKET-123", hosts, "")
+
+            assert result is False
+            assert "marked for build" in updated_report
+            mock_ipmi.pxe_persistent.assert_called_once()
+            plugin.hardware_dispatcher.init.assert_not_called()
+            plugin.hardware_dispatcher.boot_to_type.assert_not_called()
+            plugin.hardware_dispatcher.reboot_server.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_post_system_test_no_build_hosts(self, plugin, mock_config):
