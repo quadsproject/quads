@@ -96,7 +96,9 @@ class StandardReleasePlugin(ReleasePlugin):
                 # tasks don't interleave on the shared singleton dispatcher.
                 async with semaphore:
                     self.hardware_initialized = False  # reset inside semaphore so each queued task gets a fresh init
-                    ok, vendor = await self.prepare_host_hardware(host_obj, boot_order, Config.get("badfish_interfaces_path"))
+                    ok, vendor = await self.prepare_host_hardware(
+                        host_obj, boot_order, Config.get("badfish_interfaces_path")
+                    )
                     if not ok:
                         self._update_host_on_failure(host_obj)
                         return False
@@ -121,12 +123,16 @@ class StandardReleasePlugin(ReleasePlugin):
                     await self.cleanup_virtual_media(host_obj)
 
                     if vendor == "Dell":
-                        if not await self.reboot_for_rebuild(host_obj, boot_order, Config.get("badfish_interfaces_path")):
+                        if not await self.reboot_for_rebuild(
+                            host_obj, boot_order, Config.get("badfish_interfaces_path")
+                        ):
                             self._update_host_on_failure(host_obj)
                             return False
                     else:
                         if not await ipmi.pxe_persistent():
-                            self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
+                            self.logger.error(
+                                f"There was something wrong setting PXE flag or resetting IPMI on {host}."
+                            )
                             self._update_host_on_failure(host_obj)
                             return False
 

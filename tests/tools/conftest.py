@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 import pytest
@@ -33,6 +34,8 @@ from tests.cli.config import (
     REMOVE_CLOUD,
 )
 from tests.tools.config import HOST_E20
+
+os.makedirs(os.path.join(os.path.dirname(__file__), "artifacts"), exist_ok=True)
 
 
 @pytest.fixture(autouse=True, scope="session")

@@ -165,7 +165,9 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 # Setup hardware for this specific host
                 if is_supermicro(host.name):
                     config_ipmi = Config["plugins"]["badfish"]
-                    ipmi = IPMI(host.name, config_ipmi["ipmi_username"], config_ipmi["ipmi_password"], logger=self.logger)
+                    ipmi = IPMI(
+                        host.name, config_ipmi["ipmi_username"], config_ipmi["ipmi_password"], logger=self.logger
+                    )
                     if not await ipmi.pxe_persistent():
                         self.logger.error(
                             f"There was something wrong setting PXE flag or resetting IPMI on {host.name}."
