@@ -157,6 +157,17 @@ class HardwareDispatcher(SinglePluginDispatcher[HardwarePlugin]):
             logger.error(f"Failed to get hardware info: {e}")
             return None
 
+    def get_vendor(self) -> Optional[str]:
+        plugin = self._get_active_plugin()
+        if not plugin:
+            logger.error("No hardware plugin enabled")
+            return None
+        try:
+            return plugin.get_vendor()
+        except Exception as e:
+            logger.error(f"Failed to get vendor: {e}")
+            return None
+
 
 _dispatcher_instance: Optional[HardwareDispatcher] = None
 
@@ -215,3 +226,8 @@ async def get_power_state() -> Optional[str]:
 def get_hardware_info() -> Optional[dict]:
     dispatcher = get_hardware_dispatcher()
     return dispatcher.get_hardware_info()
+
+
+def get_vendor() -> Optional[str]:
+    dispatcher = get_hardware_dispatcher()
+    return dispatcher.get_vendor()
