@@ -53,6 +53,9 @@ plugins:
     enabled: true
     ipmi_username: root
     ipmi_password: password
+    # Comma-separated model/name fragments for Supermicro hosts that should
+    # skip Badfish and use the raw ipmitool path instead.
+    # skip_for_supermicro_models: 6029p, 1028r, 1029u
 
   foreman:
     enabled: true

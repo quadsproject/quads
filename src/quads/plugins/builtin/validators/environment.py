@@ -15,7 +15,8 @@ from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
-from quads.helpers.utils import is_supported
+from quads.helpers.utils import is_supermicro
+from quads.tools.external.ipmi import IPMI
 from quads.plugins.dispatchers import get_hardware_dispatcher, get_switch_dispatcher, get_email_dispatcher
 from quads.plugins.manager import PluginManager
 from quads.server.models import Assignment
@@ -162,33 +163,41 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     continue
 
                 # Setup hardware for this specific host
-                try:
-                    # Initialize dispatcher for this specific host
-                    if await self.hardware_dispatcher.init(
-                        host.name,
-                        host.rack,
-                        host.uloc,
-                        host.blade,
-                    ):
-                        if is_supported(host.name):
-                            await self.hardware_dispatcher.boot_to_type(
-                                "foreman",
-                                "/opt/quads/conf/idrac_interfaces.yml",
-                            )
-                        else:
-                            await self.hardware_dispatcher.set_next_boot_pxe()
-                        await self.hardware_dispatcher.reboot_server()
-                    else:
-                        self.logger.error(f"Could not initiate hardware for: {host.name}")
-                except Exception as ಥ﹏ಥ:
-                    self.logger.debug(ಥ﹏ಥ)
-                    if self.hardware_dispatcher.has_plugins():
-                        self.logger.warning(
-                            f"There was something wrong trying to boot from Foreman interface for: {host.name}"
+                if is_supermicro(host.name):
+                    config_ipmi = Config["plugins"]["badfish"]
+                    ipmi = IPMI(host.name, config_ipmi["ipmi_username"], config_ipmi["ipmi_password"], logger=self.logger)
+                    if not await ipmi.pxe_persistent():
+                        self.logger.error(
+                            f"There was something wrong setting PXE flag or resetting IPMI on {host.name}."
                         )
-                        await self.hardware_dispatcher.reboot_server()
-                    else:
-                        self.logger.error(f"Could not initiate hardware for: {host.name}")
+                else:
+                    try:
+                        # Initialize dispatcher for this specific host
+                        if await self.hardware_dispatcher.init(
+                            host.name,
+                            host.rack,
+                            host.uloc,
+                            host.blade,
+                        ):
+                            if self.hardware_dispatcher.get_vendor() == "Dell":
+                                await self.hardware_dispatcher.boot_to_type(
+                                    "foreman",
+                                    "/opt/quads/conf/idrac_interfaces.yml",
+                                )
+                            else:
+                                await self.hardware_dispatcher.set_next_boot_pxe()
+                            await self.hardware_dispatcher.reboot_server()
+                        else:
+                            self.logger.error(f"Could not initiate hardware for: {host.name}")
+                    except Exception as ಥ﹏ಥ:
+                        self.logger.debug(ಥ﹏ಥ)
+                        if self.hardware_dispatcher.has_plugins():
+                            self.logger.warning(
+                                f"There was something wrong trying to boot from Foreman interface for: {host.name}"
+                            )
+                            await self.hardware_dispatcher.reboot_server()
+                        else:
+                            self.logger.error(f"Could not initiate hardware for: {host.name}")
 
                 report += f"{host.name}\n"
             return False, report
