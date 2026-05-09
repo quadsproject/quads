@@ -1,5 +1,8 @@
 import os
 
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
+from rich.table import Column
+
 from quads.config import Config
 from quads.quads_api import QuadsApi
 from quads.tools.external.ssh_helper import SSHHelper
@@ -35,14 +38,24 @@ def main() -> None:
     """
     cloud = quads.get_cloud("cloud01")
     hosts = quads.filter_hosts({"cloud": cloud.name, "retired": False, "broken": False})
-    for host in hosts:
-        file_name = f"{host.name}.json"
-        file_path = os.path.join(LSHW_OUTPUT_DIR, file_name)
-        if os.path.exists(file_path):
-            if os.path.getsize(file_path) < 1:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("{task.description}", table_column=Column(min_width=30)),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TimeRemainingColumn(),
+    ) as progress:
+        task = progress.add_task("Collecting lshw", total=len(hosts))
+        for host in hosts:
+            progress.update(task, description=f"[cyan]{host.name}[/]")
+            file_name = f"{host.name}.json"
+            file_path = os.path.join(LSHW_OUTPUT_DIR, file_name)
+            if os.path.exists(file_path):
+                if os.path.getsize(file_path) < 1:
+                    run_lshw(host.name, file_path)
+            else:
                 run_lshw(host.name, file_path)
-        else:
-            run_lshw(host.name, file_path)
+            progress.advance(task)
 
 
 if __name__ == "__main__":  # pragma: no cover
