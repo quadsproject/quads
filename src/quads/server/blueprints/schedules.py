@@ -612,7 +612,7 @@ def create_schedules_batch() -> Response:
     for hostname in hostnames:
         _host = HostDao.get_host(hostname)
         try:
-            _schedule_obj = ScheduleDao.create_schedule(start=_start, end=_end, assignment=_assignment, host=_host)
+            ScheduleDao.create_schedule(start=_start, end=_end, assignment=_assignment, host=_host)
             schedules_created.append(hostname)
         except SQLError as ex:
             failed_schedules.append(f"{hostname}: {ex}")

@@ -76,10 +76,12 @@ class TestConfigExtensions(unittest.TestCase):
         self.assertEqual(len(cfg.SUPERMICRO), 1)
 
     def test_new_key_takes_precedence_over_deprecated(self):
-        cfg = _make_config_with_badfish({
-            "skip_for_supermicro_models": "6029p",
-            "supported_supermicro": "1028r",
-        })
+        cfg = _make_config_with_badfish(
+            {
+                "skip_for_supermicro_models": "6029p",
+                "supported_supermicro": "1028r",
+            }
+        )
         self.assertIn("6029p", cfg.SUPERMICRO)
         self.assertNotIn("1028r", cfg.SUPERMICRO)
 
