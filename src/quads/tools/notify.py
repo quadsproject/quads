@@ -7,14 +7,17 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 from jinja2 import Template
+from rich.logging import RichHandler
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
+from rich.table import Column
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.manager import PluginManager
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.chat import get_chat_dispatcher
 
+logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 quads = QuadsApi(Config)
 
 
@@ -188,82 +191,16 @@ def main(_logger=None):
     _all_clouds = quads.get_clouds()
     _assignments = quads.filter_assignments({"active": True, "validated": True})
 
-    for ass in _assignments:
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("{task.description}", table_column=Column(min_width=30)),
+        BarColumn(),
+        MofNCompleteColumn(),
+    ) as progress:
+        task = progress.add_task("Sending notifications", total=len(_assignments))
+        for ass in _assignments:
+            progress.update(task, description=f"[cyan]{ass.cloud.name}[/]")
 
-        payload = {"cloud": ass.cloud.name}
-        try:
-            current_schedules = quads.get_current_schedules(payload)
-        except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-            logger.debug(str(ex))
-            logger.error("Could not get current schedules")
-
-        cloud_info = "%s: %s (%s)" % (
-            ass.cloud.name,
-            len(current_schedules),
-            ass.description,
-        )
-        if not ass.notification.initial:
-            logger.info("=============== Initial Message")
-            loop.run_until_complete(
-                create_initial_message(
-                    ass.owner,
-                    ass.cloud.name,
-                    cloud_info,
-                    ass.ticket,
-                    ass.ccuser,
-                    ass.is_self_schedule,
-                )
-            )
-            try:
-                quads.update_notification(ass.notification.id, {"initial": True})
-            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-                logger.debug(str(ex))
-                logger.error("Could not update notification: %s." % ass.notification.id)
-
-        if Config.plugins["email"]["enabled"] and not ass.is_self_schedule:
-            for day in Days:
-                future_schedules = None
-                future = datetime.now() + timedelta(days=day.value)
-                future_date = "%4d-%.2d-%.2dT22:00" % (
-                    future.year,
-                    future.month,
-                    future.day,
-                )
-                payload = {"cloud": ass.cloud.name, "date": future_date}
-                try:
-                    future_schedules = quads.get_current_schedules(payload)
-                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-                    logger.debug(str(ex))
-                    logger.error("Could not get current schedules")
-
-                current_hosts = [sched.host.name for sched in current_schedules]
-                future_hosts = [sched.host.name for sched in future_schedules]
-                host_list = set(current_hosts) - set(future_hosts)
-                if host_list and future > current_schedules[0].end:
-                    if not getattr(ass.notification, day.name.lower()):
-                        logger.info("=============== Expiration Notification")
-                        cloud = ass.cloud.name
-                        create_message(
-                            cloud,
-                            ass,
-                            day.value,
-                            cloud_info,
-                            host_list,
-                        )
-
-                        try:
-                            quads.update_notification(ass.notification.id, {day.name.lower(): True})
-                        except (APIServerException, APIBadRequest) as ex:
-                            logger.debug(str(ex))
-                            logger.error("Could not update notification: %s." % ass.notification.id)
-
-                        break
-
-    for cloud in _all_clouds:
-        ass = quads.get_active_cloud_assignment(cloud.name)
-        if not ass:
-            continue
-        if cloud.name != Config["spare_pool_name"] and ass.owner not in ["quads", None]:
             payload = {"cloud": ass.cloud.name}
             try:
                 current_schedules = quads.get_current_schedules(payload)
@@ -272,28 +209,31 @@ def main(_logger=None):
                 logger.error("Could not get current schedules")
 
             cloud_info = "%s: %s (%s)" % (
-                cloud.name,
+                ass.cloud.name,
                 len(current_schedules),
                 ass.description,
             )
-
-            if not ass.notification.pre_initial and Config.plugins["email"]["enabled"]:
-                logger.info("=============== Future Initial Message")
-                create_future_initial_message(
-                    cloud.name,
-                    ass,
-                    cloud_info,
+            if not ass.notification.initial:
+                logger.info("=============== Initial Message")
+                loop.run_until_complete(
+                    create_initial_message(
+                        ass.owner,
+                        ass.cloud.name,
+                        cloud_info,
+                        ass.ticket,
+                        ass.ccuser,
+                        ass.is_self_schedule,
+                    )
                 )
-
                 try:
-                    quads.update_notification(ass.notification.id, {"pre_initial": True})
+                    quads.update_notification(ass.notification.id, {"initial": True})
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     logger.debug(str(ex))
                     logger.error("Could not update notification: %s." % ass.notification.id)
 
-            for day in Days:
-                future_schedules = None
-                if not ass.notification.pre and ass.validated:
+            if Config.plugins["email"]["enabled"] and not ass.is_self_schedule:
+                for day in Days:
+                    future_schedules = None
                     future = datetime.now() + timedelta(days=day.value)
                     future_date = "%4d-%.2d-%.2dT22:00" % (
                         future.year,
@@ -307,14 +247,15 @@ def main(_logger=None):
                         logger.debug(str(ex))
                         logger.error("Could not get current schedules")
 
-                    if len(future_schedules) > 0:
-                        current_hosts = [sched.host.name for sched in current_schedules]
-                        future_hosts = [sched.host.name for sched in future_schedules]
-                        host_list = set(current_hosts) - set(future_hosts)
-                        if host_list:
-                            logger.info("=============== Additional Message")
-                            create_future_message(
-                                cloud.name,
+                    current_hosts = [sched.host.name for sched in current_schedules]
+                    future_hosts = [sched.host.name for sched in future_schedules]
+                    host_list = set(current_hosts) - set(future_hosts)
+                    if host_list and future > current_schedules[0].end:
+                        if not getattr(ass.notification, day.name.lower()):
+                            logger.info("=============== Expiration Notification")
+                            cloud = ass.cloud.name
+                            create_message(
+                                cloud,
                                 ass,
                                 day.value,
                                 cloud_info,
@@ -322,12 +263,95 @@ def main(_logger=None):
                             )
 
                             try:
-                                quads.update_notification(ass.notification.id, {"pre": True})
-                            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                                quads.update_notification(ass.notification.id, {day.name.lower(): True})
+                            except (APIServerException, APIBadRequest) as ex:
                                 logger.debug(str(ex))
                                 logger.error("Could not update notification: %s." % ass.notification.id)
 
                             break
+
+            progress.advance(task)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("{task.description}", table_column=Column(min_width=30)),
+        BarColumn(),
+        MofNCompleteColumn(),
+    ) as progress:
+        task = progress.add_task("Processing clouds", total=len(_all_clouds))
+        for cloud in _all_clouds:
+            progress.update(task, description=f"[cyan]{cloud.name}[/]")
+            ass = quads.get_active_cloud_assignment(cloud.name)
+            if not ass:
+                progress.advance(task)
+                continue
+            if cloud.name != Config["spare_pool_name"] and ass.owner not in ["quads", None]:
+                payload = {"cloud": ass.cloud.name}
+                try:
+                    current_schedules = quads.get_current_schedules(payload)
+                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                    logger.debug(str(ex))
+                    logger.error("Could not get current schedules")
+
+                cloud_info = "%s: %s (%s)" % (
+                    cloud.name,
+                    len(current_schedules),
+                    ass.description,
+                )
+
+                if not ass.notification.pre_initial and Config.plugins["email"]["enabled"]:
+                    logger.info("=============== Future Initial Message")
+                    create_future_initial_message(
+                        cloud.name,
+                        ass,
+                        cloud_info,
+                    )
+
+                    try:
+                        quads.update_notification(ass.notification.id, {"pre_initial": True})
+                    except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                        logger.debug(str(ex))
+                        logger.error("Could not update notification: %s." % ass.notification.id)
+
+                for day in Days:
+                    future_schedules = None
+                    if not ass.notification.pre and ass.validated:
+                        future = datetime.now() + timedelta(days=day.value)
+                        future_date = "%4d-%.2d-%.2dT22:00" % (
+                            future.year,
+                            future.month,
+                            future.day,
+                        )
+                        payload = {"cloud": ass.cloud.name, "date": future_date}
+                        try:
+                            future_schedules = quads.get_current_schedules(payload)
+                        except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                            logger.debug(str(ex))
+                            logger.error("Could not get current schedules")
+
+                        if len(future_schedules) > 0:
+                            current_hosts = [sched.host.name for sched in current_schedules]
+                            future_hosts = [sched.host.name for sched in future_schedules]
+                            host_list = set(current_hosts) - set(future_hosts)
+                            if host_list:
+                                logger.info("=============== Additional Message")
+                                create_future_message(
+                                    cloud.name,
+                                    ass,
+                                    day.value,
+                                    cloud_info,
+                                    host_list,
+                                )
+
+                                try:
+                                    quads.update_notification(ass.notification.id, {"pre": True})
+                                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                                    logger.debug(str(ex))
+                                    logger.error("Could not update notification: %s." % ass.notification.id)
+
+                                break
+
+            progress.advance(task)
 
 
 if __name__ == "__main__":  # pragma: no cover

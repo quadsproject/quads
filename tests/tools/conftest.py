@@ -1,6 +1,9 @@
+import os
 from datetime import datetime, timedelta
 
 import pytest
+
+os.makedirs(os.path.join(os.path.dirname(__file__), "artifacts"), exist_ok=True)
 
 from quads.server.app import create_app, user_datastore
 from quads.server.dao.assignment import AssignmentDao
