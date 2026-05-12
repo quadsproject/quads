@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 
 from quads.config import Config
+from quads.helpers.utils import time_remaining
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.plugins.dispatchers.provisioner import get_all_hosts
 
@@ -120,13 +121,10 @@ class CloudOperations:
             total_time = "∞"
             total_time_left = "∞"
         else:
-            _date_now = datetime.now()
             _date_start = _schedule_obj.start
             _date_end = _schedule_obj.end
-            total_sec_left = (_date_end - _date_now).total_seconds()
             total_days = (_date_end - _date_start).days
-            total_days_left = total_sec_left // 86400
-            total_hours_left = ((total_sec_left / 86400) - total_days_left) * 24
+            total_days_left, total_hours_left = time_remaining(_date_end)
             total_time = "%0d day(s)" % total_days
             total_time_left = "%0d day(s)" % total_days_left
             if total_hours_left > 1:
