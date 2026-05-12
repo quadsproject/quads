@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 from typing import List, Type
 
@@ -81,6 +82,42 @@ class ScheduleDao(BaseDao):
     def get_schedule(schedule_id: int) -> Schedule:
         schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).first()
         return schedule
+
+    @staticmethod
+    def get_expiring_schedules() -> list:
+        now = datetime.now()
+        query = (
+            db.session.query(Schedule)
+            .join(Assignment)
+            .join(Host)
+            .filter(
+                Assignment.active.is_(True),
+                Host.broken.is_(False),
+                Host.retired.is_(False),
+                Schedule.start <= now,
+                Schedule.end >= now,
+            )
+            .order_by(Schedule.end.asc())
+        )
+        seen_clouds = {}
+        for schedule in query.all():
+            cloud_name = schedule.assignment.cloud.name
+            if cloud_name in seen_clouds:
+                continue
+            days_remaining = (schedule.end - now).days
+            if days_remaining <= 1:
+                expires_in = "1"
+            elif days_remaining <= 3:
+                expires_in = "3"
+            elif days_remaining <= 7:
+                expires_in = "7"
+            else:
+                weeks = math.ceil(days_remaining / 7)
+                expires_in = f"{weeks}w"
+            entry = schedule.as_dict()
+            entry["expires_in"] = expires_in
+            seen_clouds[cloud_name] = entry
+        return list(seen_clouds.values())
 
     @staticmethod
     def get_future_schedules(host: Host = None, cloud: Cloud = None) -> List[Schedule]:

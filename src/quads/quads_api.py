@@ -251,6 +251,11 @@ class QuadsApi(QuadsBase):
             schedule_obj = Schedule(**obj_json)
         return schedule_obj
 
+    def get_expiring_schedules(self) -> list:
+        endpoint = os.path.join("assignments", "expirations")
+        response = self.get(endpoint)
+        return response.json()
+
     def get_future_schedules(self, data: dict = None) -> List[Schedule]:
         if data is None:
             data = {}
