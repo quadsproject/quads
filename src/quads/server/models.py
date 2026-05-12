@@ -260,9 +260,12 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     fs_uniquifier = Column(String(256), unique=True, nullable=False)
     email = Column(String(256), unique=True, nullable=False)
-    _password = Column("password", String(256), nullable=False)
+    _password = Column("password", String(256), nullable=True)
     active = Column(Boolean(), default=True)
     confirmed_at = Column(DateTime())
+    google_id = Column(String(256), unique=True, nullable=True, index=True)
+    profile_picture = Column(String(512), nullable=True)
+    last_login = Column(DateTime, nullable=True)
     # many-to-many parent
     roles = relationship(
         "Role",
@@ -283,6 +286,8 @@ class User(Base, UserMixin):
         self._password = generate_password_hash(password)
 
     def verify_password(self, password):
+        if self._password is None:
+            return False
         return check_password_hash(self._password, password)
 
     @staticmethod
