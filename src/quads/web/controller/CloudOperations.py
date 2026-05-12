@@ -71,9 +71,16 @@ class CloudOperations:
             _daily_utilization = _schedules * 100 // _host_count
         return int(_daily_utilization)
 
-    async def get_cloud_summary_report(self) -> list:
+    async def get_cloud_summary_report(self, current_username=None) -> dict:
         """
-        This method returns the cloud summary
+        This method returns the cloud summary, optionally split by ownership.
+
+        Args:
+            current_username: If provided, splits assignments into 'my' and 'other'
+
+        Returns:
+            Dict with 'my_assignments' and 'other_assignments' if username provided,
+            otherwise 'all_assignments' list
         """
         clouds_summary = []
         for cloud in await self.__get_cloud_summary():
@@ -103,7 +110,23 @@ class CloudOperations:
                         cloud["href_url_text_openshift"] = "download" if is_valid else "validating..."
                     cloud["href_color"] = "link-success" if is_valid else "link-danger"
                 clouds_summary.append(cloud)
-        return clouds_summary
+
+        if not current_username:
+            return {"all_assignments": clouds_summary}
+
+        my_assignments = []
+        other_assignments = []
+        for cloud in clouds_summary:
+            owner = cloud.get("owner", "").lower()
+            if owner == current_username.lower():
+                my_assignments.append(cloud)
+            else:
+                other_assignments.append(cloud)
+
+        return {
+            "my_assignments": my_assignments,
+            "other_assignments": other_assignments,
+        }
 
     async def __get_current_schedules(self, host: str) -> dict:
         """

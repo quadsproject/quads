@@ -1,0 +1,13 @@
+google_oauth:
+  client_id: 'your-client-id.apps.googleusercontent.com'
+  client_secret: 'your-client-secret'
+  server_metadata_url: 'https://accounts.google.com/.well-known/openid-configuration'
+  client_kwargs:
+    scope: 'openid email profile'
+
+oauth_settings:
+  flask_secret_key: 'change-this-to-a-random-secret-key'
+  allowed_domains:
+    - 'example.com'
+  session_lifetime_hours: 24
+  remember_me_duration_days: 30

@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter, Retry
 from requests.auth import HTTPBasicAuth
 
 from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
+from quads.web.models import WebUser
 
 
 class APIServerException(Exception):
@@ -400,3 +401,21 @@ class QuadsApi(QuadsBase):
         response = self.get("hosts/os_list")
         data = response.json()
         return data
+
+    # Users
+    def get_user(self, email=None, google_id=None) -> Optional[WebUser]:
+        if email:
+            response = self.get(os.path.join("users", email))
+        elif google_id:
+            response = self.get(f"users?google_id={google_id}")
+        else:
+            return None
+        data = response.json()
+        return WebUser.from_dict(data)
+
+    def create_user(self, data) -> Optional[WebUser]:
+        response = self.post("users", data)
+        return WebUser.from_dict(response.json())
+
+    def update_user(self, email, data) -> Response:
+        return self.patch(os.path.join("users", email), data)
