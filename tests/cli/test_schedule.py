@@ -281,6 +281,28 @@ class TestSchedule(TestBase):
         assert f"{DEFAULT_CLOUD}:" in self._caplog.messages
 
 
+class TestLsExpirations(TestBase):
+    def test_ls_expirations(self, remove_fixture):
+        self.quads_cli_call("ls_expirations")
+        assert any(
+            "cloud" in msg and "ticket" in msg and "end_date" in msg and "expires_in" in msg and "ssm" in msg
+            for msg in self._caplog.messages
+        )
+
+    @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
+    def test_ls_expirations_no_schedules(self, mock_get):
+        mock_get.return_value = []
+        self.quads_cli_call("ls_expirations")
+        assert "No active schedules found." in self._caplog.messages
+
+    @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
+    def test_ls_expirations_exception(self, mock_get):
+        mock_get.side_effect = APIServerException("Connection Error")
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("ls_expirations")
+        assert str(ex.value) == "Connection Error"
+
+
 class TestExtend(TestBase):
     def test_extend_schedule(self, remove_fixture):
         host = HostDao.get_host(HOST2)
