@@ -44,6 +44,12 @@ def get_assignments() -> Response:
     return jsonify([_assignment.as_dict() for _assignment in _assignments])
 
 
+@assignment_bp.route("/expirations/")
+def get_expirations() -> Response:
+    schedules = ScheduleDao.get_expiring_schedules()
+    return jsonify([s.as_dict() for s in schedules])
+
+
 @assignment_bp.route("/<assignment_id>/")
 def get_assignment(assignment_id: str) -> Response:
     """
