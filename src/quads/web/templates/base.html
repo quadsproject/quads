@@ -54,6 +54,25 @@
 								<img class="quads-logo" src="{{ url_for('static', filename='image/quads.png') }}" alt="quads_logo">
 							</a>
 							{{ lab_name }} <small style="font-size: 14px">Dynamic Inventory</small>
+
+							{% if current_user.is_authenticated %}
+							<span class="float-end" style="font-size: 14px;">
+								{% if current_user.profile_picture %}
+								<img src="{{ current_user.profile_picture }}"
+									 alt="Profile"
+									 class="rounded-circle"
+									 style="width: 28px; height: 28px;"
+									 referrerpolicy="no-referrer">
+								{% endif %}
+								<span class="ms-1">{{ username }}</span>
+							</span>
+							{% else %}
+							<span class="float-end">
+								<a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">
+									Login with Google
+								</a>
+							</span>
+							{% endif %}
 						</p>
 						<button class="theme-toggle float-end" id="themeToggleBtn" title="Toggles light & dark" aria-label="auto" aria-live="polite">
 							<svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
@@ -81,6 +100,16 @@
 			{% block content -%}
 				<main>
 					<div class="container">
+						{% with messages = get_flashed_messages(with_categories=true) %}
+							{% if messages %}
+								{% for category, message in messages %}
+								<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+									{{ message }}
+									<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+								</div>
+								{% endfor %}
+							{% endif %}
+						{% endwith %}
 						{% block page_content %}
 						{% endblock %}
 					</div>
