@@ -30,6 +30,7 @@ from quads.tools.simple_table_web import main as regen_heatmap
 from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher
 from quads.plugins.manager import PluginManager
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
+from quads.helpers.utils import time_remaining
 
 default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
 
@@ -263,6 +264,35 @@ class QuadsCli:
             self.logger.info(response.content.decode("utf-8"))
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
+
+    def action_ls_expirations(self):
+        try:
+            schedules = self.quads.get_expiring_schedules()
+        except (APIServerException, APIBadRequest) as ex:
+            raise CliException(str(ex))
+        if not schedules:
+            self.logger.warning("No active schedules found.")
+            return 0
+        headers = ["cloud", "ticket", "end_date", "expires_in", "ssm"]
+        rows = []
+        expiring_clouds = {}
+
+        for schedule in schedules:
+            cloud_name = schedule.assignment.cloud.name
+            if cloud_name in expiring_clouds:
+                continue
+            days, _ = time_remaining(schedule.end)
+            rows.append(
+                [
+                    cloud_name,
+                    schedule.assignment.ticket,
+                    schedule.end.strftime("%Y-%m-%d"),
+                    f"{days}d",
+                    schedule.assignment.is_self_schedule,
+                ]
+            )
+        self.log_in_table_format(headers=headers, rows=rows)
+        return 0
 
     def action_ls_broken(self):
         payload = {"broken": True}
