@@ -399,6 +399,13 @@ action_group.add_argument(
     help="QUADS reporting scheduled assignments",
 )
 action_group.add_argument(
+    "--ls-expirations",
+    dest="action",
+    action="store_const",
+    const="ls_expirations",
+    help="List upcoming host assignment expirations",
+)
+action_group.add_argument(
     "--ls-broken",
     dest="action",
     action="store_const",

@@ -264,6 +264,30 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
 
+    def action_ls_expirations(self):
+        try:
+            results = self.quads.get_expiring_schedules()
+        except (APIServerException, APIBadRequest) as ex:
+            raise CliException(str(ex))
+        if not results:
+            self.logger.warning("No active schedules found.")
+            return 0
+        headers = ["cloud", "ticket", "end_date", "expires_in", "ssm"]
+        rows = []
+        for entry in results:
+            end_dt = datetime.strptime(entry["end"], "%a, %d %b %Y %H:%M:%S %Z")
+            rows.append(
+                [
+                    entry["assignment"]["cloud"]["name"],
+                    entry["assignment"]["ticket"],
+                    end_dt.strftime("%Y-%m-%d"),
+                    entry["expires_in"],
+                    entry["assignment"].get("is_self_schedule", False),
+                ]
+            )
+        self.log_in_table_format(headers=headers, rows=rows)
+        return 0
+
     def action_ls_broken(self):
         payload = {"broken": True}
         try:

@@ -54,3 +54,12 @@ def last_day_month(date):
 
 def first_day_month(date):
     return date - timedelta(days=date.day - 1)
+
+
+def time_remaining(end_date, start_date=None):
+    if start_date is None:
+        start_date = datetime.now()
+    td = end_date - start_date
+    days = td.days
+    hours = td.seconds // 3600
+    return days, hours
