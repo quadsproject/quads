@@ -147,6 +147,7 @@ def register_blueprints(app):
     from quads.server.blueprints.schedules import schedule_bp
     from quads.server.blueprints.vlans import vlan_bp
     from quads.server.blueprints.version import version_bp
+    from quads.server.blueprints.users import user_bp
 
     # Register blueprints
     api_prefix = f"/api/{app.config.get('API_VERSION')}"
@@ -165,4 +166,5 @@ def register_blueprints(app):
     api_bp.register_blueprint(processor_bp, url_prefix="/processors")
     api_bp.register_blueprint(memory_bp, url_prefix="/memory")
     api_bp.register_blueprint(moves_bp, url_prefix="/moves")
+    api_bp.register_blueprint(user_bp, url_prefix="/users")
     app.register_blueprint(api_bp)

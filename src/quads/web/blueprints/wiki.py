@@ -3,7 +3,9 @@ import re
 from datetime import datetime, time
 
 from flask import Blueprint, flash, redirect, url_for, render_template, request, jsonify
+from flask_login import current_user
 
+from quads.web.auth_helpers import get_username_from_email
 from quads.web.blueprints.common import WEB_CONTENT_PATH
 from quads.web.forms import ModelSearchForm
 from quads.quads_api import QuadsApi, APIBadRequest, APIServerException
@@ -50,7 +52,10 @@ async def assignments():
 
 @wiki_bp.route("/summary")
 async def summary():
-    clouds_summary = await cloud_operation.get_cloud_summary_report()
+    username = None
+    if current_user.is_authenticated:
+        username = get_username_from_email(current_user.email)
+    clouds_summary = await cloud_operation.get_cloud_summary_report(username)
     return jsonify(clouds_summary)
 
 
