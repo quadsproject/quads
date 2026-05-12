@@ -48,8 +48,8 @@ def populate(user_datastore):
     admin_role = create_role(admin_role_name, admin_role_description)
     user_role = create_role(user_role_name, user_role_description)
 
-    regular_user = "gonza@redhat.com"
-    admin_user = "grafuls@redhat.com"
+    regular_user = "gonza@example.com"
+    admin_user = "grafuls@example.com"
 
     admin_user_added = create_user(user_datastore, admin_user, "password", [admin_role])
     regular_user_added = create_user(user_datastore, regular_user, "password", [user_role])

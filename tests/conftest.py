@@ -51,7 +51,7 @@ class AuthActions(object):
         self._token = None
         self._username = ""
 
-    def login(self, username="grafuls@redhat.com", password="password"):
+    def login(self, username="grafuls@example.com", password="password"):
         valid_credentials = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
         response = unwrap_json(
             self._client.post(
@@ -72,7 +72,7 @@ class AuthActions(object):
         self._token = None
         self._username = ""
 
-    def get_auth_header(self, username="grafuls@redhat.com", password="password"):
+    def get_auth_header(self, username="grafuls@example.com", password="password"):
         if self._token is None and self._username == "":
             self.login(username, password)
         if self._username != username:
