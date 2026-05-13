@@ -63,6 +63,7 @@ def create_user(user_datastore, email, password, roles):
 
     if not user_entry:
         user_datastore.create_user(email=email, password=password, roles=roles)
+        db.session.commit()
         return True
     return False
 
@@ -73,7 +74,8 @@ def modify_user(user_datastore, email, new_password=None):
         return False
 
     if new_password:
-        user_datastore.set_password(user, new_password)
+        user.password = new_password
+        db.session.commit()
         return True
     return False
 
@@ -83,6 +85,7 @@ def remove_user(user_datastore, email):
 
     if user:
         user_datastore.delete_user(user)
+        db.session.commit()
         return True
     return False
 
