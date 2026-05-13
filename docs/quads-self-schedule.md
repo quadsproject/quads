@@ -133,6 +133,12 @@ curl -s -k \
 
 * Requires the [python-quads-lib](https://python-quads-lib.readthedocs.io/en/stable/readme.html#installation) library.
 
+* In this example we're using the following values
+
+| Username (email)| Owner     | Password   | QUADS Server      |
+|-----------------|-----------|------------|-------------------|
+| joe@example.com | joe       | make one up| quads.example.com |
+
 ### Register via Python
 ```python
 from quads_lib import QuadsApi
@@ -171,14 +177,14 @@ with QuadsApi(username, password, base_url) as quads:
 from quads_lib import QuadsApi
 
 description = "Short description here"
-owner = "user"
+owner = "joe"
 qinq = 0
 wipe = True
 payload = {
   "description": description, "owner": owner, "qinq": qinq, "wipe": wipe}
 
 with QuadsApi(username, password, base_url) as quads:
-    assignment = quads.create_assignment(payload)
+    assignment = quads.create_self_assignment(payload)
 ```
 
 ### Schedule a host via Python
