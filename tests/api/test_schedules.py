@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, AsyncMock, mock_open
 from urllib.parse import urlencode
 
 import pytest
@@ -19,6 +19,8 @@ from tests.config import (
     SELF_SCHEDULE_NON_REQUEST,
 )
 from tests.helpers import unwrap_json
+from quads.server.blueprints.schedules import _trigger_jira_notification
+from quads.tools.external.jira import JiraException
 
 prefill_settings = ["clouds, vlans, hosts, assignments"]
 prefill_schedule = ["clouds, vlans, hosts, assignments, schedules"]
@@ -727,3 +729,627 @@ class TestDeleteSchedule:
         )
         assert response.status_code == 200
         assert response.json["message"] == "Schedule deleted"
+
+
+class TestCreateSchedulesBatch:
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_missing_cloud(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules without specifying a cloud
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Missing argument: cloud"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_missing_hostnames(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules without specifying hostnames
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Missing or invalid argument: hostnames (must be a list)"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_hostnames_not_a_list(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with hostnames as a string instead of a list
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": "host1.example.com",
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Missing or invalid argument: hostnames (must be a list)"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_missing_dates(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules without specifying start or end
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com"],
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Missing argument: start or end"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_cloud_not_found(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules for a non-existent cloud
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "invalid_cloud",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Cloud not found: invalid_cloud"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_date_format(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with an invalid date format
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com"],
+            "start": "invalid_date",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Invalid date format for start or end, correct format: 'YYYY-MM-DD HH:MM'"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_date_range(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with start after end
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-02 22:00",
+            "end": "2040-06-01 10:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Invalid date range: start must be before end"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_no_assignment(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules on a cloud with no active assignment
+        |       and without providing assignment parameters
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud01",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "No active assignment for cloud: cloud01"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_host_not_found(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with a non-existent host
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["nonexistent.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Some hosts are unavailable"
+        assert "nonexistent.example.com: Host not found" in response.json["unavailable_hosts"]
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_host_unavailable(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts, assignments and an existing schedule
+        | WHEN: User tries to batch create schedules for a host that already has a conflicting schedule
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        test_client.post(
+            "/api/v3/schedules",
+            json={
+                "cloud": "cloud02",
+                "hostname": "host1.example.com",
+                "start": "2040-06-01 09:00",
+                "end": "2040-06-03 22:00",
+            },
+            headers=auth_header,
+        )
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "Some hosts are unavailable"
+        assert "host1.example.com" in str(response.json["unavailable_hosts"])
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_partial_assignment_params(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with only some assignment parameters
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud05",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+            "description": "Test assignment",
+            "owner": "testuser",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "When creating assignment, description, owner, and ticket are all required"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_assignment_already_exists(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User tries to batch create schedules with assignment parameters
+        |       on a cloud that already has an active assignment
+        | THEN: User should not be able to create schedules
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com"],
+            "start": "2040-06-01 10:00",
+            "end": "2040-06-02 22:00",
+            "description": "Conflict assignment",
+            "owner": "testuser",
+            "ticket": "99999",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert "There is already an active assignment for cloud02" in response.json["message"]
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_existing_assignment(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User batch creates schedules using an existing assignment on cloud02
+        | THEN: Schedules should be created successfully for all specified hosts
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host1.example.com", "host4.example.com"],
+            "start": "2041-06-01 10:00",
+            "end": "2041-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["schedules_created"] == 2
+        assert len(response.json["hostnames"]) == 2
+        assert "host1.example.com" in response.json["hostnames"]
+        assert "host4.example.com" in response.json["hostnames"]
+        assert "assignment_id" in response.json
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_single_host(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User batch creates a schedule for a single host
+        | THEN: Schedule should be created successfully
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud03",
+            "hostnames": ["host5.example.com"],
+            "start": "2042-06-01 10:00",
+            "end": "2042-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["schedules_created"] == 1
+        assert response.json["hostnames"] == ["host5.example.com"]
+
+    @pytest.mark.parametrize("prefill", ["clouds, vlans, hosts"], indirect=True)
+    def test_valid_create_new_assignment(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans and hosts (no assignments)
+        | WHEN: User batch creates schedules with assignment parameters on a cloud
+        |       that has no existing assignment
+        | THEN: A new assignment and schedules should be created
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud05",
+            "hostnames": ["host1.example.com", "host5.example.com"],
+            "start": "2043-06-01 10:00",
+            "end": "2043-06-02 22:00",
+            "description": "Batch test assignment",
+            "owner": "testuser",
+            "ticket": "12345",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["schedules_created"] == 2
+        assert "assignment_id" in response.json
+        assert response.json["assignment_id"] is not None
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_now_keyword(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User batch creates schedules with 'now' as the start date
+        | THEN: Schedules should be created with the current datetime as start
+        """
+        auth_header = auth.get_auth_header()
+        end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d %H:%M")
+        batch_request = {
+            "cloud": "cloud03",
+            "hostnames": ["host1.example.com"],
+            "start": "now",
+            "end": end_date,
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["schedules_created"] == 1
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    @patch("quads.server.blueprints.schedules._trigger_jira_notification")
+    def test_valid_jira_integration(self, mock_jira, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User batch creates schedules and JIRA notification is configured
+        | THEN: JIRA notification should be triggered and response should indicate success
+        """
+        mock_jira.return_value = True
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud02",
+            "hostnames": ["host5.example.com"],
+            "start": "2044-06-01 10:00",
+            "end": "2044-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["jira_updated"] is True
+        mock_jira.assert_called_once()
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_jira_no_dispatcher(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts and assignments
+        | WHEN: User batch creates schedules without JIRA dispatcher configured
+        | THEN: Schedules should be created but jira_updated should be False
+        """
+        auth_header = auth.get_auth_header()
+        batch_request = {
+            "cloud": "cloud03",
+            "hostnames": ["host2.example.com"],
+            "start": "2045-06-01 10:00",
+            "end": "2045-06-02 22:00",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json=batch_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["schedules_created"] == 1
+        assert response.json["jira_updated"] is False
+
+
+class TestTriggerJiraNotification:
+    """Unit tests for _trigger_jira_notification() internal logic."""
+
+    def _make_assignment(self, cloud_name="cloud02", vlan="601", ticket="123"):
+        assignment = MagicMock()
+        assignment.cloud.name = cloud_name
+        assignment.vlan = vlan
+        assignment.ticket = ticket
+        return assignment
+
+    def _config_side_effect(self, overrides=None):
+        defaults = {
+            "jira_url": "https://jira.example.com",
+            "jira_username": "testuser",
+            "jira_password": "testpass",
+            "jira_docs_links": "http://docs1,http://docs2",
+            "jira_vlans_docs_links": "http://vlans1",
+        }
+        if overrides:
+            defaults.update(overrides)
+
+        def side_effect(key, default=None):
+            return defaults.get(key, default)
+
+        return side_effect
+
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_no_jira_url_returns_false(self, mock_config):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect({"jira_url": None}))
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("builtins.open", side_effect=IOError("No such file"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_template_load_failure_returns_false(self, mock_config, mock_file):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("quads.server.blueprints.schedules.Jira", side_effect=JiraException("auth failed"))
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_jira_init_exception_returns_false(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("quads.server.blueprints.schedules.Jira")
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_post_comment_failure_returns_false(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        mock_jira = MagicMock()
+        mock_jira.post_comment = AsyncMock(return_value=False)
+        mock_jira_cls.return_value = mock_jira
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("quads.server.blueprints.schedules.Jira")
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_success_with_scheduled_transition(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        mock_jira = MagicMock()
+        mock_jira.post_comment = AsyncMock(return_value=True)
+        mock_jira.get_transitions = AsyncMock(
+            return_value=[{"name": "Scheduled", "id": "42"}]
+        )
+        mock_jira.post_transition = AsyncMock(return_value=True)
+        mock_jira_cls.return_value = mock_jira
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is True
+        mock_jira.post_transition.assert_called_once_with("123", "42")
+
+    @patch("quads.server.blueprints.schedules.Jira")
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_success_no_scheduled_transition(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        mock_jira = MagicMock()
+        mock_jira.post_comment = AsyncMock(return_value=True)
+        mock_jira.get_transitions = AsyncMock(
+            return_value=[{"name": "In Progress", "id": "10"}]
+        )
+        mock_jira_cls.return_value = mock_jira
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is True
+        mock_jira.post_transition.assert_not_called()
+
+    @patch("quads.server.blueprints.schedules.Jira")
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_jira_runtime_exception_returns_false(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        mock_jira = MagicMock()
+        mock_jira.post_comment = AsyncMock(side_effect=Exception("connection refused"))
+        mock_jira_cls.return_value = mock_jira
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("quads.server.blueprints.schedules.Jira")
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_jira_constructor_receives_correct_params(self, mock_config, mock_jira_cls):
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        mock_jira = MagicMock()
+        mock_jira.post_comment = AsyncMock(return_value=True)
+        mock_jira.get_transitions = AsyncMock(return_value=[])
+        mock_jira_cls.return_value = mock_jira
+        assignment = self._make_assignment()
+
+        _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        call_kwargs = mock_jira_cls.call_args
+        assert call_kwargs[0][0] == "https://jira.example.com"
+        assert call_kwargs[1]["username"] == "testuser"
+        assert call_kwargs[1]["password"] == "testpass"
