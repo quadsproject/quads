@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "36e88fd4_1c677a5a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-05-13T10:03:43Z",
+      "side": 1,
+      "message": "Thank you for this correction, will get it cherry-picked up to latest branch as well.",
+      "revId": "34fd7cf97cd4a617957700d43acfd7ef683a3cbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
