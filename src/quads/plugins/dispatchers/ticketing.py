@@ -48,6 +48,29 @@ class TicketingDispatcher(SinglePluginDispatcher[TicketingPlugin]):
             logger.error(f"Failed to get ticket: {e}")
             return None
 
+    async def get_transitions(self, ticket_id: str) -> list:
+        if not self._default_plugin:
+            logger.error("No ticketing plugin enabled")
+            return []
+
+        try:
+            return await self._default_plugin.get_transitions(ticket_id)
+        except Exception as e:
+            logger.error(f"Failed to get transitions: {e}")
+            return []
+
+    async def post_transition(self, ticket_id: str, transition_id: str) -> bool:
+        if not self._default_plugin:
+            logger.error("No ticketing plugin enabled")
+            return False
+
+        logger.info(f"Transitioning {ticket_id} via {self._default_plugin.name}")
+        try:
+            return await self._default_plugin.post_transition(ticket_id, transition_id)
+        except Exception as e:
+            logger.error(f"Failed to post transition: {e}")
+            return False
+
 
 _dispatcher_instance: Optional[TicketingDispatcher] = None
 
@@ -76,3 +99,13 @@ async def post_comment(ticket_id: str, comment: str) -> bool:
 async def get_ticket(ticket_id: str) -> Optional[Dict[str, Any]]:
     dispatcher = get_ticketing_dispatcher()
     return await dispatcher.get_ticket(ticket_id)
+
+
+async def get_transitions(ticket_id: str) -> list:
+    dispatcher = get_ticketing_dispatcher()
+    return await dispatcher.get_transitions(ticket_id)
+
+
+async def post_transition(ticket_id: str, transition_id: str) -> bool:
+    dispatcher = get_ticketing_dispatcher()
+    return await dispatcher.post_transition(ticket_id, transition_id)

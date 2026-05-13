@@ -41,3 +41,9 @@ class JiraTicketingPlugin(TicketingPlugin):
     async def get_ticket(self, ticket_id: str) -> dict:
         """Get a ticket"""
         return await self.jira.get_ticket(ticket_id)
+
+    async def get_transitions(self, ticket_id: str) -> list:
+        return await self.jira.get_transitions(ticket_id)
+
+    async def post_transition(self, ticket_id: str, transition_id: str) -> bool:
+        return await self.jira.post_transition(ticket_id, transition_id)
