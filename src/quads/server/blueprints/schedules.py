@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import re
 from datetime import datetime, timedelta
@@ -18,6 +19,8 @@ from quads.server.dao.schedule import ScheduleDao
 from quads.server.models import db
 from quads.server.dao.vlan import VlanDao
 
+logger = logging.getLogger(__name__)
+
 schedule_bp = Blueprint("schedules", __name__)
 
 
@@ -32,6 +35,7 @@ def _parse_datetime_with_now(date_str):
 def _trigger_jira_notification(assignment, hostnames, start, end):
     ticketing_dispatcher = current_app.extensions.get("plugin_dispatchers", {}).get("ticketing")
     if not ticketing_dispatcher:
+        logger.warning("Ticketing system not configured, skipping notification")
         return False
 
     conf = Config
@@ -42,6 +46,7 @@ def _trigger_jira_notification(assignment, hostnames, start, end):
         with open(template_path) as f:
             template = Template(f.read())
     except IOError:
+        logger.error("Failed to load template: %s", template_path)
         return False
 
     jira_docs_links = conf.get("jira_docs_links", "").split(",")
@@ -61,20 +66,32 @@ def _trigger_jira_notification(assignment, hostnames, start, end):
 
     loop = asyncio.new_event_loop()
     try:
-        result = loop.run_until_complete(ticketing_dispatcher.post_comment(assignment.ticket, comment))
+        result = loop.run_until_complete(
+            ticketing_dispatcher.post_comment(assignment.ticket, comment)
+        )
         if not result:
+            logger.error("Failed to post comment for ticket %s", assignment.ticket)
             return False
 
-        transitions = loop.run_until_complete(ticketing_dispatcher.jira.get_transitions(assignment.ticket))
+        transitions = loop.run_until_complete(
+            ticketing_dispatcher.get_transitions(assignment.ticket)
+        )
         for transition in transitions:
             t_name = transition.get("name")
             if t_name and t_name.lower() == "scheduled":
                 transition_id = transition.get("id")
-                loop.run_until_complete(ticketing_dispatcher.jira.post_transition(assignment.ticket, transition_id))
+                result = loop.run_until_complete(
+                    ticketing_dispatcher.post_transition(assignment.ticket, transition_id)
+                )
+                if result:
+                    logger.info("Ticket %s transitioned to 'scheduled'", assignment.ticket)
+                else:
+                    logger.error("Failed to transition ticket %s to 'scheduled'", assignment.ticket)
                 break
 
         return True
-    except Exception:
+    except Exception as ex:
+        logger.error("Ticketing notification failed for ticket %s: %s", assignment.ticket, ex)
         return False
     finally:
         loop.close()

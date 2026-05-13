@@ -19,3 +19,9 @@ class TicketingPlugin(BasePlugin):
     def get_ticket(self, ticket_id: str) -> dict:
         """Get a ticket"""
         pass
+
+    async def get_transitions(self, ticket_id: str) -> list:
+        return []
+
+    async def post_transition(self, ticket_id: str, transition_id: str) -> bool:
+        return False
