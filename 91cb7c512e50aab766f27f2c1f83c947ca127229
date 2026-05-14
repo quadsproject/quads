@@ -16,6 +16,23 @@
       "message": "Tested already, required for quads-client JIRA admin scheduling.",
       "revId": "91cb7c512e50aab766f27f2c1f83c947ca127229",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0959962e_dacdac7f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-05-14T09:51:36Z",
+      "side": 1,
+      "message": "I do not approve this!",
+      "revId": "91cb7c512e50aab766f27f2c1f83c947ca127229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ],
   "submitRequirementResults": []
