@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock, mock_open
 from urllib.parse import urlencode
 
 import pytest
@@ -19,6 +19,7 @@ from tests.config import (
     SELF_SCHEDULE_NON_REQUEST,
 )
 from tests.helpers import unwrap_json
+from quads.server.blueprints.schedules import _trigger_jira_notification
 
 prefill_settings = ["clouds, vlans, hosts, assignments"]
 prefill_schedule = ["clouds, vlans, hosts, assignments, schedules"]
@@ -1070,3 +1071,140 @@ class TestCreateSchedulesBatch:
         assert response.status_code == 200
         assert response.json["jira_updated"] is True
         mock_jira.assert_called_once()
+
+
+class TestTriggerJiraNotification:
+    """Unit tests for _trigger_jira_notification() internal logic."""
+
+    @pytest.fixture(autouse=True)
+    def _app_context(self):
+        from flask import Flask
+
+        app = Flask(__name__)
+        app.extensions["plugin_dispatchers"] = {}
+        with app.app_context():
+            yield app
+
+    def _make_assignment(self, cloud_name="cloud02", vlan="601", ticket="123"):
+        assignment = MagicMock()
+        assignment.cloud.name = cloud_name
+        assignment.vlan = vlan
+        assignment.ticket = ticket
+        return assignment
+
+    def _make_dispatcher(self, post_comment_rv=True, transitions=None, post_transition_rv=True):
+        dispatcher = MagicMock()
+        dispatcher.post_comment = AsyncMock(return_value=post_comment_rv)
+        dispatcher.get_transitions = AsyncMock(return_value=transitions or [])
+        dispatcher.post_transition = AsyncMock(return_value=post_transition_rv)
+        return dispatcher
+
+    def _config_side_effect(self, overrides=None):
+        defaults = {
+            "jira_docs_links": "http://docs1,http://docs2",
+            "jira_vlans_docs_links": "http://vlans1",
+        }
+        if overrides:
+            defaults.update(overrides)
+
+        def side_effect(key, default=None):
+            return defaults.get(key, default)
+
+        return side_effect
+
+    def test_no_dispatcher_returns_false(self, _app_context):
+        _app_context.extensions["plugin_dispatchers"] = {}
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("builtins.open", side_effect=IOError("No such file"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_template_load_failure_returns_false(self, mock_config, mock_file, _app_context):
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": self._make_dispatcher()}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_post_comment_failure_returns_false(self, mock_config, _app_context):
+        dispatcher = self._make_dispatcher(post_comment_rv=False)
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": dispatcher}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_success_with_scheduled_transition(self, mock_config, _app_context):
+        dispatcher = self._make_dispatcher(
+            transitions=[{"name": "Scheduled", "id": "42"}],
+        )
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": dispatcher}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is True
+        dispatcher.post_transition.assert_called_once_with("123", "42")
+
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_success_no_scheduled_transition(self, mock_config, _app_context):
+        dispatcher = self._make_dispatcher(
+            transitions=[{"name": "In Progress", "id": "10"}],
+        )
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": dispatcher}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is True
+        dispatcher.post_transition.assert_not_called()
+
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_runtime_exception_returns_false(self, mock_config, _app_context):
+        dispatcher = self._make_dispatcher()
+        dispatcher.post_comment = AsyncMock(side_effect=Exception("connection refused"))
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": dispatcher}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        result = _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        assert result is False
+
+    @patch("builtins.open", mock_open(read_data="{{cloud}} scheduled"))
+    @patch("quads.server.blueprints.schedules.Config")
+    def test_dispatcher_methods_called_correctly(self, mock_config, _app_context):
+        dispatcher = self._make_dispatcher(
+            transitions=[{"name": "Scheduled", "id": "99"}],
+        )
+        _app_context.extensions["plugin_dispatchers"] = {"ticketing": dispatcher}
+        mock_config.get = MagicMock(side_effect=self._config_side_effect())
+        mock_config.TEMPLATES_PATH = "/fake/templates"
+        assignment = self._make_assignment()
+
+        _trigger_jira_notification(assignment, ["host1"], "2050-01-01", "2050-01-02")
+
+        dispatcher.post_comment.assert_called_once()
+        assert dispatcher.post_comment.call_args[0][0] == "123"
+        dispatcher.get_transitions.assert_called_once_with("123")
+        dispatcher.post_transition.assert_called_once_with("123", "99")
