@@ -56,20 +56,27 @@
 							{{ lab_name }} <small style="font-size: 14px">Dynamic Inventory</small>
 
 							{% if current_user.is_authenticated %}
-							<span class="float-end" style="font-size: 14px;">
-								{% if current_user.profile_picture %}
-								<img src="{{ current_user.profile_picture }}"
-									 alt="Profile"
-									 class="rounded-circle"
-									 style="width: 28px; height: 28px;"
-									 referrerpolicy="no-referrer">
-								{% endif %}
-								<span class="ms-1">{{ username }}</span>
-							</span>
+							<div class="float-end dropdown" style="font-size: 14px;">
+								<a href="#" class="text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+									{% if current_user.profile_picture %}
+									<img src="{{ current_user.profile_picture }}"
+										 alt="Profile"
+										 class="rounded-circle"
+										 style="width: 28px; height: 28px;"
+										 referrerpolicy="no-referrer">
+									{% endif %}
+									<span class="ms-1">{{ username }}</span>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+								</ul>
+							</div>
 							{% else %}
 							<span class="float-end">
 								<a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">
-									Login with Google
+									SSO Login
 								</a>
 							</span>
 							{% endif %}
