@@ -3,7 +3,9 @@ import json
 from flask import Blueprint, Response, jsonify, make_response, request
 from validators import email
 
+from quads.config import Config
 from quads.server.app import basic_auth, user_datastore
+from quads.server.blueprints import is_valid_domain
 from quads.server.models import Role, TokenBlackList, User, db
 
 auth_bp = Blueprint("auth", __name__)
@@ -19,6 +21,14 @@ def register() -> Response:
 
     :return: A json response with the auth token:
     """
+    if Config.get("require_auth_provider", False):
+        response = {
+            "status_code": 403,
+            "status": "fail",
+            "message": "Self-registration is disabled. Contact an administrator or use SSO.",
+        }
+        return Response(response=json.dumps(response), status=403)
+
     data = request.get_json()
     user = user_datastore.find_user(email=data.get("email"))
     role = db.session.query(Role).filter(Role.name == "user").first()
@@ -36,6 +46,13 @@ def register() -> Response:
             "message": "Invalid email address.",
         }
         return Response(response=json.dumps(response), status=401)
+    if not is_valid_domain(data["email"]):
+        response = {
+            "status_code": 403,
+            "status": "fail",
+            "message": f"Registration restricted to @{Config['domain']} addresses.",
+        }
+        return Response(response=json.dumps(response), status=403)
     if not user:
         try:
             user = user_datastore.create_user(email=data["email"], password=data["password"], roles=[role])
@@ -56,6 +73,18 @@ def register() -> Response:
             }
             return Response(response=json.dumps(response), status=401)
     else:
+        if user._password is None:
+            user.password = data["password"]
+            db.session.commit()
+            user_role = user.roles[0].name if user.roles else "user"
+            auth_token = User.encode_auth_token(user.email, user_role)
+            response_object = {
+                "status": "success",
+                "status_code": 200,
+                "message": "Password set on existing account",
+                "auth_token": auth_token,
+            }
+            return jsonify(response_object)
         response = {
             "status_code": 401,
             "status": "fail",

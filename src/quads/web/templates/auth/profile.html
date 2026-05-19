@@ -36,7 +36,7 @@
                             </p>
                             {% if user.last_login %}
                             <p class="text-muted">
-                                Last login: {{ user.last_login.strftime('%Y-%m-%d %H:%M UTC') }}
+                                Last login: {{ user.last_login }}
                             </p>
                             {% endif %}
                         </div>
@@ -44,38 +44,80 @@
                 </div>
             </div>
 
+            {% if new_token %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <h6 class="alert-heading">New API Token: {{ new_token_name }}</h6>
+                <p class="mb-1">Copy your token now. It will not be shown again.</p>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control font-monospace" value="{{ new_token }}" id="newTokenValue" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copyTokenBtn" onclick="copyToken()">Copy</button>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5>API Access Password</h5>
+                    <h5>API Tokens</h5>
                 </div>
                 <div class="card-body">
-                    <p>
-                        Set a password to access QUADS API endpoints for self-scheduled assignments.
-                        Use your email (<code>{{ user.email }}</code>) and this password for API authentication.
+                    <p class="text-muted">
+                        API tokens authenticate with the QUADS API. Use as a Bearer token:
+                        <code>Authorization: Bearer qat_...</code>
                     </p>
 
-                    <form method="POST" action="{{ url_for('auth.reset_password') }}">
+                    <form method="POST" action="{{ url_for('auth.create_token') }}" class="mb-3">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="mb-3">
-                            <label for="new_password" class="form-label">New Password</label>
-                            <input type="password"
+                        <div class="input-group">
+                            <input type="text"
                                    class="form-control"
-                                   id="new_password"
-                                   name="new_password"
+                                   name="token_name"
+                                   placeholder="Token name (e.g. 'CI pipeline', 'laptop')"
                                    required
-                                   minlength="8">
+                                   maxlength="256">
+                            <button type="submit" class="btn btn-primary">Generate Token</button>
                         </div>
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password"
-                                   class="form-control"
-                                   id="confirm_password"
-                                   name="confirm_password"
-                                   required
-                                   minlength="8">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Set Password</button>
                     </form>
+
+                    {% if api_tokens %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Token</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for token in api_tokens %}
+                            <tr>
+                                <td>{{ token.name }}</td>
+                                <td><code>{{ token.token_prefix }}...</code></td>
+                                <td>{{ token.created_at }}</td>
+                                <td>
+                                    {% if token.last_used %}
+                                        {{ token.last_used }}
+                                    {% else %}
+                                        <span class="badge bg-secondary">Never</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST"
+                                          action="{{ url_for('auth.delete_token', token_id=token.id) }}"
+                                          onsubmit="return confirm('Revoke token &quot;{{ token.name }}&quot;? This cannot be undone.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Revoke</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No API tokens yet.</p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -127,4 +169,18 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function copyToken() {
+    var input = document.getElementById('newTokenValue');
+    navigator.clipboard.writeText(input.value).then(function() {
+        var btn = document.getElementById('copyTokenBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+}
+</script>
 {% endblock %}

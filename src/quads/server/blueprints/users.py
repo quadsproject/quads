@@ -1,5 +1,7 @@
 from flask import Blueprint, Response, jsonify, make_response, request
 
+from quads.config import Config
+from quads.server.blueprints import is_valid_domain
 from quads.server.dao.baseDao import EntryNotFound
 from quads.server.dao.user import UserDao
 
@@ -49,6 +51,14 @@ def create_user() -> Response:
         }
         return make_response(jsonify(response), 400)
 
+    if not is_valid_domain(data["email"]):
+        response = {
+            "status_code": 403,
+            "error": "Forbidden",
+            "message": f"Users must have @{Config['domain']} addresses",
+        }
+        return make_response(jsonify(response), 403)
+
     existing = UserDao.get_user_by_email(data["email"])
     if existing:
         response = {
@@ -70,6 +80,14 @@ def create_user() -> Response:
 
 @user_bp.route("/<path:email>", methods=["PATCH"])
 def update_user(email: str) -> Response:
+    if not is_valid_domain(email):
+        response = {
+            "status_code": 403,
+            "error": "Forbidden",
+            "message": f"Users must have @{Config['domain']} addresses",
+        }
+        return make_response(jsonify(response), 403)
+
     data = request.get_json()
     if not data:
         response = {
