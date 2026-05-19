@@ -49,50 +49,58 @@
 			{% block navbar %}
 				<div class="shadow-sm mb-5 rounded">
 					<div class="container">
-						<p class="fs-5 mt-2">
-							<a href="https://quads.dev" target="_blank" rel="noopener noreferrer">
-								<img class="quads-logo" src="{{ url_for('static', filename='image/quads.png') }}" alt="quads_logo">
-							</a>
-							{{ lab_name }} <small style="font-size: 14px">Dynamic Inventory</small>
-
-							{% if current_user.is_authenticated %}
-							<span class="float-end" style="font-size: 14px;">
-								{% if current_user.profile_picture %}
-								<img src="{{ current_user.profile_picture }}"
-									 alt="Profile"
-									 class="rounded-circle"
-									 style="width: 28px; height: 28px;"
-									 referrerpolicy="no-referrer">
-								{% endif %}
-								<span class="ms-1">{{ username }}</span>
-							</span>
-							{% else %}
-							<span class="float-end">
-								<a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">
-									Login with Google
+						<div class="d-flex align-items-center mt-2">
+							<div class="fs-5">
+								<a href="https://quads.dev" target="_blank" rel="noopener noreferrer">
+									<img class="quads-logo" src="{{ url_for('static', filename='image/quads.png') }}" alt="quads_logo">
 								</a>
-							</span>
-							{% endif %}
-						</p>
-						<button class="theme-toggle float-end" id="themeToggleBtn" title="Toggles light & dark" aria-label="auto" aria-live="polite">
-							<svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
-								<mask class="moon" id="moon-mask">
-									<rect x="0" y="0" width="100%" height="100%" fill="white" />
-									<circle cx="24" cy="10" r="6" fill="black" />
-								</mask>
-								<circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor" />
-								<g class="sun-beams" stroke="currentColor" stroke-width="1.5">
-									<line x1="12" y1="1" x2="12" y2="3" />
-									<line x1="12" y1="21" x2="12" y2="23" />
-									<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-									<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-									<line x1="1" y1="12" x2="3" y2="12" />
-									<line x1="21" y1="12" x2="23" y2="12" />
-									<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-									<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-								</g>
-							</svg>
-						</button>
+								{{ lab_name }} <small style="font-size: 14px">Dynamic Inventory</small>
+							</div>
+							<div class="ms-auto d-flex align-items-center gap-2">
+								<button class="theme-toggle" id="themeToggleBtn" title="Toggles light & dark" aria-label="auto" aria-live="polite">
+									<svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+										<mask class="moon" id="moon-mask">
+											<rect x="0" y="0" width="100%" height="100%" fill="white" />
+											<circle cx="24" cy="10" r="6" fill="black" />
+										</mask>
+										<circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor" />
+										<g class="sun-beams" stroke="currentColor" stroke-width="1.5">
+											<line x1="12" y1="1" x2="12" y2="3" />
+											<line x1="12" y1="21" x2="12" y2="23" />
+											<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+											<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+											<line x1="1" y1="12" x2="3" y2="12" />
+											<line x1="21" y1="12" x2="23" y2="12" />
+											<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+											<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+										</g>
+									</svg>
+								</button>
+								{% if current_user.is_authenticated %}
+								<div class="dropdown" style="font-size: 14px;">
+									<a href="#" class="text-decoration-none dropdown-toggle d-inline-flex align-items-center" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+										{% if current_user.profile_picture %}
+										<img src="{{ current_user.profile_picture }}"
+											 alt="Profile"
+											 class="rounded-circle"
+											 style="width: 28px; height: 28px;"
+											 referrerpolicy="no-referrer">
+										{% endif %}
+										<span class="ms-1">{{ username }}</span>
+									</a>
+									<ul class="dropdown-menu dropdown-menu-end">
+										<li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
+										<li><hr class="dropdown-divider"></li>
+										<li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+									</ul>
+								</div>
+								{% else %}
+								<a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-primary">
+									SSO Login
+								</a>
+								{% endif %}
+							</div>
+						</div>
 						{{ nav.navbar.render(renderer="BootStrapRender5") }}
 					</div>
 				</div>
