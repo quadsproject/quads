@@ -1,5 +1,7 @@
+import hashlib
 import os
-from datetime import datetime, timedelta
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from flask import current_app
@@ -341,6 +343,35 @@ class TokenBlackList(Base):
             return True
         else:
             return False
+
+
+class ApiToken(Base):
+    __tablename__ = "api_tokens"
+    __table_args__ = (db.UniqueConstraint("user_id", "name", name="uq_api_tokens_user_id_name"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(256), nullable=False)
+    token_hash = Column(String(64), unique=True, nullable=False, index=True)
+    token_prefix = Column(String(12), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    last_used = Column(DateTime, nullable=True)
+
+    user = relationship("User", backref=backref("api_tokens", lazy="dynamic", cascade="all, delete-orphan"))
+
+    @staticmethod
+    def generate_token():
+        raw = "qat_" + secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        token_prefix = raw[:12]
+        return raw, token_hash, token_prefix
+
+    @staticmethod
+    def hash_token(raw_token):
+        return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+    def __repr__(self):
+        return f"<ApiToken(id={self.id}, name='{self.name}', prefix='{self.token_prefix}')>"
 
 
 class Vlan(Serialize, Base):
