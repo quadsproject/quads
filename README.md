@@ -82,6 +82,10 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
+      * [API Tokens](#api-tokens)
+         * [Creating API Tokens via the Web UI](#creating-api-tokens-via-the-web-ui)
+         * [Using API Tokens](#using-api-tokens)
+         * [Managing API Tokens via the API](#managing-api-tokens-via-the-api)
       * [QUADS Plugin Architecture](/docs/quads-plugins.md)
       * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
@@ -1159,6 +1163,62 @@ Resource properly removed
 
 ## Using the QUADS JSON API
 * All QUADS actions under the covers uses the [JSON API v3](/docs/quads-api.md)
+
+## API Tokens
+
+QUADS supports named API tokens for programmatic access to the REST API. Tokens are long-lived credentials that replace the need to store passwords for API authentication. Each token is prefixed with `qat_` for easy identification.
+
+### Creating API Tokens via the Web UI
+
+1. Log in to the QUADS web interface via SSO
+2. Click your username in the top-right corner and select **Profile**
+3. Under **API Tokens**, enter a descriptive name (e.g. `CI pipeline`, `laptop`) and click **Generate Token**
+4. Copy the token immediately -- it will only be displayed once and cannot be retrieved later
+5. The token table shows all your tokens with their name, prefix, creation date, and last used timestamp
+
+To revoke a token, click the **Revoke** button next to it. Revoked tokens stop working immediately.
+
+### Using API Tokens
+
+Use API tokens as Bearer tokens in the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer qat_your_token_here" \
+     https://quads.example.com/api/v3/hosts/
+```
+
+API tokens have the same permissions as the user who created them and work with all QUADS API endpoints that accept Bearer authentication.
+
+### Managing API Tokens via the API
+
+Tokens can also be managed programmatically through the REST API.
+
+**List tokens:**
+```bash
+curl -H "Authorization: Bearer qat_your_token" \
+     https://quads.example.com/api/v3/tokens/user@example.com/
+```
+
+**Create a token:**
+```bash
+curl -X POST \
+     -H "Authorization: Bearer qat_your_token" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "new-token"}' \
+     https://quads.example.com/api/v3/tokens/user@example.com/
+```
+
+The response includes a `token` field with the raw token value (returned only once).
+
+**Revoke a token:**
+```bash
+curl -X DELETE \
+     -H "Authorization: Bearer qat_your_token" \
+     https://quads.example.com/api/v3/tokens/user@example.com/42
+```
+
+> [!NOTE]
+> Admin users can manage tokens for any user by specifying their email. Regular users can only manage their own tokens.
 
 ## QUADS Plugin Architecture
 * QUADS features a flexible, extensible plugin system for integrating with external services and extending functionality
