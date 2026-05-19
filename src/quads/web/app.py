@@ -41,11 +41,6 @@ def initiate_navbar(flask_app):
                 View(text="Next Month", endpoint="visual.visuals", **{"when": "next"}),
                 View(text="All Time", endpoint="visual.index"),
             ),
-            Subgroup(
-                "Account",
-                View(text="Profile", endpoint="auth.profile"),
-                View(text="Logout", endpoint="auth.logout"),
-            ),
             *dynamic_menus.get_dynamic_navbar_menus(),
         ),
     )

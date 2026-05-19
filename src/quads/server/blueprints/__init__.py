@@ -21,14 +21,26 @@ def check_access(roles):
 
                 if auth_value[0].lower() == "bearer":
                     try:
-                        username = User.decode_auth_token(auth_value[1])
-                        current_user = db.session.query(User).filter(User.email == username).first()
-                        if current_user is None:
-                            response = {
-                                "message": "Invalid Authentication token!",
-                                "error": "Unauthorized",
-                            }
-                            return Response(response=json.dumps(response), status=401)
+                        token_value = auth_value[1]
+                        if token_value.startswith("qat_"):
+                            from quads.server.dao.api_token import ApiTokenDao
+
+                            current_user = ApiTokenDao.authenticate_token(token_value)
+                            if current_user is None:
+                                response = {
+                                    "message": "Invalid API token!",
+                                    "error": "Unauthorized",
+                                }
+                                return Response(response=json.dumps(response), status=401)
+                        else:
+                            username = User.decode_auth_token(token_value)
+                            current_user = db.session.query(User).filter(User.email == username).first()
+                            if current_user is None:
+                                response = {
+                                    "message": "Invalid Authentication token!",
+                                    "error": "Unauthorized",
+                                }
+                                return Response(response=json.dumps(response), status=401)
                         if not current_user.active:
                             response = {
                                 "message": "You don't have the permission to access the requested resource",

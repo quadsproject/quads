@@ -383,20 +383,17 @@ class TestDeleteAssignment:
     def test_invalid_missing_id(self, test_client, auth, prefill):
         """
         | GIVEN: Defaults, auth, clouds and vlans with assignments from TestCreateAssignment
-        | WHEN: User tries to delete an assignment by its ID, that is not specified
-        | THEN: User should not be able to delete an assignment
+        | WHEN: User tries to delete an assignment without specifying an ID in the path
+        | THEN: User should get a 405 Method Not Allowed
         """
         auth_header = auth.get_auth_header()
         response = unwrap_json(
             test_client.delete(
-                "/api/v3/assignments",
-                json={},
+                "/api/v3/assignments/",
                 headers=auth_header,
             )
         )
-        assert response.status_code == 400
-        assert response.json["error"] == "Bad Request"
-        assert response.json["message"] == "Missing argument: id"
+        assert response.status_code == 405
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_assignment_not_found(self, test_client, auth, prefill):
@@ -409,8 +406,7 @@ class TestDeleteAssignment:
         invalid_assignment_id = 42
         response = unwrap_json(
             test_client.delete(
-                "/api/v3/assignments",
-                json={"id": invalid_assignment_id},
+                f"/api/v3/assignments/{invalid_assignment_id}/",
                 headers=auth_header,
             )
         )
@@ -428,8 +424,7 @@ class TestDeleteAssignment:
         auth_header = auth.get_auth_header()
         response = unwrap_json(
             test_client.delete(
-                "/api/v3/assignments",
-                json={"id": ASSIGNMENT_1_RESPONSE["id"]},
+                f"/api/v3/assignments/{ASSIGNMENT_1_RESPONSE['id']}/",
                 headers=auth_header,
             )
         )

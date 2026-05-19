@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from quads.web.auth_helpers import get_or_create_oauth_user, get_username_from_email, is_allowed_domain
@@ -55,7 +55,6 @@ def logout():
 @auth_bp.route("/profile")
 @login_required
 def profile():
-
     quads = QuadsApi(Config)
     username = get_username_from_email(current_user.email)
 
@@ -68,30 +67,63 @@ def profile():
     except Exception:
         logger.exception("Failed to fetch assignments for profile")
 
+    api_tokens = []
+    try:
+        api_tokens = quads.get_api_tokens(current_user.email)
+    except Exception:
+        logger.exception("Failed to fetch API tokens for profile")
+
+    new_token = session.pop("new_token", None)
+    new_token_name = session.pop("new_token_name", None)
+
     return render_template(
         "auth/profile.html",
         user=current_user,
         username=username,
         assignments=user_assignments,
+        api_tokens=api_tokens,
+        new_token=new_token,
+        new_token_name=new_token_name,
     )
 
 
-@auth_bp.route("/profile/reset-password", methods=["POST"])
+@auth_bp.route("/profile/tokens", methods=["POST"])
 @login_required
-def reset_password():
-    new_password = request.form.get("new_password")
-    confirm_password = request.form.get("confirm_password")
-
-    if not new_password or len(new_password) < 8:
-        flash("Password must be at least 8 characters.", "danger")
+def create_token():
+    token_name = request.form.get("token_name", "").strip()
+    if not token_name:
+        flash("Token name is required.", "danger")
         return redirect(url_for("auth.profile"))
-
-    if new_password != confirm_password:
-        flash("Passwords do not match.", "danger")
+    if len(token_name) > 256:
+        flash("Token name must be 256 characters or fewer.", "danger")
         return redirect(url_for("auth.profile"))
 
     quads = QuadsApi(Config)
-    quads.update_user(current_user.email, {"password": new_password})
+    try:
+        result = quads.create_api_token(current_user.email, token_name)
+        raw_token = result.get("token")
+        if raw_token:
+            session["new_token"] = raw_token
+            session["new_token_name"] = token_name
+            flash("Token created. Copy it now — it will not be shown again!", "success")
+        else:
+            flash("Token created but could not retrieve the value.", "warning")
+    except Exception:
+        logger.exception("Failed to create API token")
+        flash("Failed to create token.", "danger")
 
-    flash("Password updated successfully. You can now use API endpoints.", "success")
+    return redirect(url_for("auth.profile"))
+
+
+@auth_bp.route("/profile/tokens/<int:token_id>/delete", methods=["POST"])
+@login_required
+def delete_token(token_id):
+    quads = QuadsApi(Config)
+    try:
+        quads.delete_api_token(current_user.email, token_id)
+        flash("Token revoked.", "success")
+    except Exception:
+        logger.exception("Failed to revoke API token")
+        flash("Failed to revoke token.", "danger")
+
     return redirect(url_for("auth.profile"))

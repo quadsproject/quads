@@ -1,6 +1,6 @@
 """Add OAuth fields to User model
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: cf4d6cca178b
 Revises: cb3d1e473790
 Create Date: 2026-04-30 15:00:00.000000
 
@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = "a1b2c3d4e5f6"
+revision = "cf4d6cca178b"
 down_revision = "cb3d1e473790"
 branch_labels = None
 depends_on = None
