@@ -1,12 +1,12 @@
 openapi: 3.0.0
 info:
-  version: '3.0.0'
+  version: '2.2.6'
   title: 'QUADS'
   description: |-
     QUADS automates the future scheduling, end-to-end provisioning and delivery of bare-metal servers and networks.
-    
+
     This is it's REST API implementation.
-    
+
     Some useful links:
     - [Quads repository](https://github.com/quadsproject/quads)
     - [Quads blog](https://quads.dev)
@@ -14,14 +14,13 @@ info:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
 servers:
+  - url: 'https://quasd2-dev.rdu2.scalelab.redhat.com/api/v3/'
+  - url: 'https://quasd2-stage.rdu2.scalelab.redhat.com/api/v3/'
   - url: 'https://quads.example.com/api/v3/'
 
 tags:
   - name: Auth
     description: Everything about authentication
-#    externalDocs:
-#      description: Find out more
-#      url: http://swagger.io
   - name: Clouds
     description: Operations about clouds
   - name: Assignments
@@ -44,6 +43,8 @@ tags:
     description: Operations about hosts availability
   - name: Moves
     description: Operations about hosts transitions
+  - name: API Tokens
+    description: Operations about API tokens for programmatic access
   - name: Other
     description: Other operations
 
@@ -80,7 +81,7 @@ paths:
       tags:
         - Auth
       security:
-        - BasicAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: Successful user logout
@@ -266,6 +267,13 @@ paths:
       summary: Returns all clouds summary
       tags:
         - Clouds
+      parameters:
+        - name: date
+          in: query
+          description: Date for time-bound summary (format YYYY-MM-DDTHH:MM)
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Cloud summary
@@ -277,7 +285,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CloudSummary'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CloudSummary'
         default:
           description: Unexpected error
           content:
@@ -379,7 +389,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /hosts/{hostName}/:
+  /hosts/{hostName}:
     get:
       summary: Returns a host by name
       tags:
@@ -466,7 +476,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /hosts/{hostName}/memory/:
+  /hosts/{hostName}/memory:
     get:
       summary: Returns a host memory by host name
       tags:
@@ -494,7 +504,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /hosts/{hostName}/processors/:
+  /hosts/{hostName}/processors:
     get:
       summary: Returns a host processors by host name
       tags:
@@ -522,7 +532,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /hosts/{hostName}/disks/:
+  /hosts/{hostName}/disks:
     get:
       summary: Returns a host disks by host name
       tags:
@@ -550,7 +560,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /hosts/{hostName}/interfaces/:
+  /hosts/{hostName}/interfaces:
     get:
       summary: Returns a host interfaces by host name
       tags:
@@ -571,6 +581,36 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Interface'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hosts/os_list:
+    get:
+      summary: Returns a list of available OS images
+      tags:
+        - Hosts
+      responses:
+        '200':
+          description: Available OS images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Id:
+                      type: string
+                    Title:
+                      type: string
+                    Release Name:
+                      type: string
+                    Family:
+                      type: string
         default:
           description: Unexpected error
           content:
@@ -599,7 +639,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /disks/{disk_id}/:
+  /disks/types:
+    get:
+      summary: Returns a list of distinct disk types
+      tags:
+        - Disks
+      responses:
+        '200':
+          description: Disk types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /disks/{disk_id}:
     get:
       summary: Returns a specific disk by disc id
       tags:
@@ -642,7 +703,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /disks/{hostName}/:
+  /disks/{hostName}:
     post:
       summary: Create a host disk definition
       tags:
@@ -748,7 +809,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /interfaces/{interface_id}/:
+  /interfaces/{interface_id}:
     get:
       summary: Returns a specific interface for a specific interface id
       tags:
@@ -774,7 +835,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /interfaces/{hostName}/:
+  /interfaces/{hostName}:
     post:
       summary: Create a host interface definition
       tags:
@@ -849,7 +910,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /interfaces/{hostName}/{ifName}/:
+  /interfaces/{hostName}/{ifName}:
 
     delete:
       summary: Delete interface on host by interface id
@@ -870,7 +931,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Deleted Disk
+          description: Deleted Interface
       security:
         - BearerAuth: [ ]
 
@@ -895,11 +956,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /memory/{memory_id}/:
+  /memory/{memory_id}:
     get:
       summary: Returns a specific memory for a specific memory id
       tags:
         - Memory
+      parameters:
+        - name: memory_id
+          in: path
+          description: Memory ID
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: Memory details
@@ -931,7 +999,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /memory/{hostName}/:
+  /memory/{hostName}:
     post:
       summary: Create a host memory definition
       tags:
@@ -988,7 +1056,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /processors/{processor_id}/:
+  /processors/{processor_id}:
     get:
       summary: Returns a specific processor for a specific processor id
       tags:
@@ -1031,7 +1099,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /processors/{hostName}/:
+  /processors/{hostName}:
     post:
       summary: Create a host processors definition
       tags:
@@ -1110,7 +1178,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /vlans/free/:
+  /vlans/free:
     get:
       summary: Returns a list with all the free vlans
       tags:
@@ -1130,7 +1198,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /vlans/{vlan_id}/:
+  /vlans/{vlan_id}:
     get:
       summary: Returns a detail of a specific vlan by id
       tags:
@@ -1251,7 +1319,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /schedules/{schedule_id}/:
+  /schedules/{schedule_id}:
     get:
       summary: Returns a schedule by id
       tags:
@@ -1335,7 +1403,7 @@ paths:
       security:
         - BearerAuth: [ ]
 
-  /schedules/current/:
+  /schedules/current:
     get:
       summary: Returns all current schedules
       tags:
@@ -1378,7 +1446,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /schedules/future/:
+  /schedules/future:
     get:
       summary: Returns all future schedules
       tags:
@@ -1415,7 +1483,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /schedules/hosts_range/:
+  /schedules/hosts_range:
     get:
       summary: Returns a dictionary with hosts as keys and schedules as values on a given range of dates
       tags:
@@ -1538,7 +1606,6 @@ paths:
       responses:
         '201':
           description: Created
-
   /assignments/self/:
     post:
       summary: Create a new self assignment
@@ -1672,7 +1739,7 @@ paths:
                 schema:
                     $ref: '#/components/schemas/Error'
 
-  /notifications/{notification_id}/:
+  /notifications/{notification_id}:
     get:
       summary: Returns a notification by id
       tags:
@@ -1745,6 +1812,18 @@ paths:
           required: false
           schema:
             type: string
+        - name: model
+          in: query
+          description: Filter by host model
+          required: false
+          schema:
+            type: string
+        - name: host_type
+          in: query
+          description: Filter by host type
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Hosts
@@ -1761,9 +1840,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /available/{hostname}/:
+  /available/{hostname}:
     get:
-      summary: Returns a boolean for weather the host is available or not
+      summary: Returns a boolean for whether the host is available or not
       tags:
         - Available
       parameters:
@@ -1829,6 +1908,138 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /tokens/{email}/:
+    get:
+      summary: List all API tokens for a user
+      tags:
+        - API Tokens
+      parameters:
+        - name: email
+          in: path
+          description: User email
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of API tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiToken'
+        '403':
+          description: Forbidden - cannot manage tokens for another user
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new named API token
+      description: >
+        Generates a new API token with the given name. The raw token value is
+        returned only in this response and cannot be retrieved again. Store it
+        securely. Use as `Authorization: Bearer qat_...` for API access.
+      tags:
+        - API Tokens
+      parameters:
+        - name: email
+          in: path
+          description: User email
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Token name
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: CI pipeline
+                  maxLength: 256
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Token created. The `token` field contains the raw value (shown only once).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiToken'
+                  - type: object
+                    properties:
+                      token:
+                        type: string
+                        description: Raw token value (shown only once)
+                        example: qat_Ab3xKm9pQ7...
+        '400':
+          description: Bad request (missing name or duplicate name)
+        '403':
+          description: Forbidden
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tokens/{email}/{tokenId}:
+    delete:
+      summary: Revoke an API token
+      tags:
+        - API Tokens
+      parameters:
+        - name: email
+          in: path
+          description: User email
+          required: true
+          schema:
+            type: string
+        - name: tokenId
+          in: path
+          description: Token ID
+          required: true
+          schema:
+            type: integer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Token deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: Token not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /version/:
     get:
       summary: Returns Quads version
@@ -1840,7 +2051,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Version'
+                type: string
+                example: "QUADS version 2.2.6 maximilian"
         default:
           description: Unexpected error
           content:
@@ -1890,6 +2102,9 @@ components:
         validated:
           type: boolean
           example: true
+        is_self_schedule:
+          type: boolean
+          example: false
     Disk:
       type: object
       properties:
@@ -1948,6 +2163,9 @@ components:
         threads:
           type: integer
           example: 20
+        processor_type:
+          type: string
+          example: x86
         host_id:
           type: integer
           example: 10
@@ -2017,6 +2235,21 @@ components:
         can_self_schedule:
           type: boolean
           example: false
+        overcloud:
+          type: boolean
+          example: false
+        rack:
+          type: string
+          example: A1
+        uloc:
+          type: string
+          example: U10
+        blade:
+          type: string
+          example: blade1
+        bootmode:
+          type: string
+          example: uefi
         last_build:
           type: string
           example: 2022-02-02
@@ -2059,6 +2292,21 @@ components:
         can_self_schedule:
           type: boolean
           example: false
+        overcloud:
+          type: boolean
+          example: false
+        rack:
+          type: string
+          example: A1
+        uloc:
+          type: string
+          example: U10
+        blade:
+          type: string
+          example: blade1
+        bootmode:
+          type: string
+          example: uefi
         last_build:
           type: string
           example: 2022-02-02
@@ -2129,6 +2377,9 @@ components:
           items:
             type: string
           example: [edroste, kgodel]
+        ostype:
+          type: string
+          example: rhel9
         cloud_id:
           type: integer
           example: 12
@@ -2170,13 +2421,6 @@ components:
         current:
           type: string
           example: cloud01
-
-    Version:
-      type: object
-      properties:
-        result:
-          type: string
-          example: Quads version 2.0 Max
 
     Notification:
       type: object
@@ -2263,6 +2507,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Role'
+    ApiToken:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: CI pipeline
+        token_prefix:
+          type: string
+          description: First 12 characters of the token for identification
+          example: qat_Ab3xKm9p
+        created_at:
+          type: string
+          example: Mon, 19 May 2026 12:00:00 GMT
+        last_used:
+          type: string
+          nullable: true
+          example: null
     Error:
       type: object
       required:

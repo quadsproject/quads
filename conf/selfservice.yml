@@ -17,3 +17,11 @@ ssm_deadline_hour: 21
 
 # Prefix for the description field of the self-schedulable resources
 ssm_description_prefix: "[SSM]"
+
+# Require an external authentication provider (e.g. Google OAuth/SSO) for new users.
+# When false (default): users can self-register via POST /api/v3/register/ with any
+# email+password. Legacy API workflows, self-scheduling, and CLI tools all work without
+# SSO. This preserves backward compatibility.
+# When true: the /register/ endpoint is disabled. New users must authenticate via a
+# configured SSO provider or be pre-created by an administrator.
+require_auth_provider: false

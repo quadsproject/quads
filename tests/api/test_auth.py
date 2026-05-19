@@ -232,7 +232,7 @@ class TestRegistration:
         response = unwrap_json(
             test_client.post(
                 "/api/v3/register",
-                json=dict(email="test_user@redhat.com", password="password"),
+                json=dict(email="test_user@example.com", password="password"),
             )
         )
         assert response.status_code == 200
@@ -249,7 +249,7 @@ class TestRegistration:
         response = unwrap_json(
             test_client.post(
                 "/api/v3/register",
-                json=dict(email="new_test_user@redhat.com", password="password"),
+                json=dict(email="new_test_user@example.com", password="password"),
             )
         )
         assert response.status_code == 200
@@ -257,7 +257,7 @@ class TestRegistration:
         payload = decode(auth_token, options={"verify_signature": False})
         assert "role" in payload
         assert payload["role"] == "user"
-        assert payload["sub"] == "new_test_user@redhat.com"
+        assert payload["sub"] == "new_test_user@example.com"
 
     def test_existing(self, test_client):
         """
@@ -268,7 +268,7 @@ class TestRegistration:
         response = unwrap_json(
             test_client.post(
                 "/api/v3/register",
-                json=dict(email="test_user@redhat.com", password="password"),
+                json=dict(email="test_user@example.com", password="password"),
             )
         )
         assert response.status_code == 401
