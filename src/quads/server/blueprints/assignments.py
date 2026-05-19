@@ -512,31 +512,11 @@ def terminate_assignment(assignment_id) -> Response:
     return jsonify(response)
 
 
-@assignment_bp.route("/", methods=["DELETE"])
+@assignment_bp.route("/<assignment_id>/", methods=["DELETE"])
 @check_access(["admin"])
-def delete_assignment() -> Response:
-    """
-    Used to delete an assignment from the database.
-    It takes in a JSON object with one key, &quot;id&quot;, which corresponds to the id of the assignment that
-    will be deleted.
-    If no such assignment exists, it returns a 400 error code and message explaining that there was no such entry
-    found.
-    Otherwise, it deletes the entry and returns a 204 status code.
-
-    :return: A response with a status code of 204
-    """
-    data = request.get_json()
-    assignment_id = data.get("id")
-    if not assignment_id:
-        response = {
-            "status_code": 400,
-            "error": "Bad Request",
-            "message": "Missing argument: id",
-        }
-        return make_response(jsonify(response), 400)
-
+def delete_assignment(assignment_id) -> Response:
     try:
-        AssignmentDao.delete_assignment(assignment_id)
+        AssignmentDao.delete_assignment(int(assignment_id))
     except EntryNotFound:
         response = {
             "status_code": 400,

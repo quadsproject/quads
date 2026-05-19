@@ -419,3 +419,15 @@ class QuadsApi(QuadsBase):
 
     def update_user(self, email, data) -> Response:
         return self.patch(os.path.join("users", email), data)
+
+    # API Tokens
+    def get_api_tokens(self, email):
+        response = self.get(os.path.join("tokens", email, ""))
+        return response.json()
+
+    def create_api_token(self, email, name):
+        response = self.post(os.path.join("tokens", email, ""), {"name": name})
+        return response.json()
+
+    def delete_api_token(self, email, token_id):
+        return self.delete(os.path.join("tokens", email, str(token_id)))
