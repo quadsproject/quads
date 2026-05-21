@@ -16,6 +16,24 @@
       "message": "I would remove this if-else tree and just show the days_remaning",
       "revId": "20a35114cb943b8bd397673e475ce638a3e8f714",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "91057588_837ccdd2",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-05-21T11:10:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb64a144_327cff0c",
+      "revId": "20a35114cb943b8bd397673e475ce638a3e8f714",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
