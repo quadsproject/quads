@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43057dfc_00b00688",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-05-25T09:32:07Z",
+      "side": 1,
+      "message": "it would make more sense to me if this function was actually returning all expiring schedules. we can leave this logic for the cli instead which is also iterating through the response and save us some cycles. **PERFORMANCE**",
+      "revId": "e93cb8eff027660e6f0629f3603ca7b006adb6de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
