@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -279,6 +279,43 @@ class TestSchedule(TestBase):
             self.cli_args.pop("host")
         self.quads_cli_call("schedule")
         assert f"{DEFAULT_CLOUD}:" in self._caplog.messages
+
+
+class TestLsExpirations(TestBase):
+    @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
+    def test_ls_expirations(self, mock_get):
+        future = datetime.now() + timedelta(days=7, seconds=3600)
+        expected_date = future.strftime("%Y-%m-%d")
+        schedule = MagicMock()
+        schedule.end = future
+        schedule.assignment.cloud.name = "cloud99"
+        schedule.assignment.ticket = "1234"
+        schedule.assignment.is_self_schedule = False
+        mock_get.return_value = [schedule]
+        self.quads_cli_call("ls_expirations")
+        assert "cloud" in self._caplog.messages[0]
+        assert "ticket" in self._caplog.messages[0]
+        assert "end_date" in self._caplog.messages[0]
+        assert "expires_in" in self._caplog.messages[0]
+        assert "ssm" in self._caplog.messages[0]
+        assert "cloud99" in self._caplog.messages[0]
+        assert "1234" in self._caplog.messages[0]
+        assert expected_date in self._caplog.messages[0]
+        assert "7d" in self._caplog.messages[0]
+        assert "False" in self._caplog.messages[0]
+
+    @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
+    def test_ls_expirations_no_schedules(self, mock_get):
+        mock_get.return_value = []
+        self.quads_cli_call("ls_expirations")
+        assert "No active schedules found." in self._caplog.messages
+
+    @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
+    def test_ls_expirations_exception(self, mock_get):
+        mock_get.side_effect = APIServerException("Connection Error")
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("ls_expirations")
+        assert str(ex.value) == "Connection Error"
 
 
 class TestExtend(TestBase):

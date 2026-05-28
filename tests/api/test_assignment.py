@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -13,6 +14,7 @@ from tests.config import (
 from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, vlans"]
+prefill_schedule = ["clouds, vlans, hosts, assignments, schedules"]
 
 
 class TestCreateAssignments:
@@ -430,3 +432,41 @@ class TestDeleteAssignment:
         )
         assert response.status_code == 200
         assert response.json["message"] == "Assignment deleted"
+
+
+class TestExpirations:
+    @pytest.mark.parametrize("prefill", prefill_schedule, indirect=True)
+    def test_valid_expirations(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts, assignments and schedules
+        | WHEN: User tries to read expiring schedules
+        | THEN: User should be able to read the currently active schedules with expiration data
+        """
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/assignments/expirations/",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert isinstance(response.json, list)
+
+    @patch("quads.server.dao.schedule.ScheduleDao.get_expiring_schedules")
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_expirations_empty(self, mock_get, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds and vlans but no schedules
+        | WHEN: User tries to read expiring schedules
+        | THEN: User should get an empty list
+        """
+        mock_get.return_value = []
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/assignments/expirations/",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json == []

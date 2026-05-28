@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Type
 
 from sqlalchemy import Boolean, and_, func
@@ -81,6 +81,27 @@ class ScheduleDao(BaseDao):
     def get_schedule(schedule_id: int) -> Schedule:
         schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).first()
         return schedule
+
+    @staticmethod
+    def get_expiring_schedules() -> List[Schedule]:
+        now = datetime.now()
+        cutoff = now + timedelta(days=7)
+
+        query = (
+            db.session.query(Schedule)
+            .join(Assignment)
+            .join(Host)
+            .filter(
+                Assignment.active.is_(True),
+                Host.broken.is_(False),
+                Host.retired.is_(False),
+                Schedule.start <= now,
+                Schedule.end >= now,
+                Schedule.end <= cutoff,
+            )
+            .order_by(Schedule.end.asc())
+        )
+        return list(query.all())
 
     @staticmethod
     def get_future_schedules(host: Host = None, cloud: Cloud = None) -> List[Schedule]:
