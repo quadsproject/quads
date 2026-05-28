@@ -82,6 +82,7 @@ class TestImport(TestBase):
         assert host.interfaces[0].switch_port == "et-4:0/0"
         assert host.interfaces[0].speed == 1000
         assert host.interfaces[0].vendor == "Intel"
+        assert host.interfaces[0].switch_vendor == "arista"
 
     def test_import_no_arg(self, define_fixture):
         self.cli_args["metadata"] = None
