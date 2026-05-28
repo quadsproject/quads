@@ -1047,6 +1047,9 @@ paths:
                 vendor:
                   type: string
                   example: Intel
+                switch_vendor:
+                  type: string
+                  example: juniper
                 pxe_boot:
                   type: boolean
                   example: true
@@ -1117,6 +1120,9 @@ paths:
                 vendor:
                   type: string
                   example: Intel
+                switch_vendor:
+                  type: string
+                  example: juniper
                 pxe_boot:
                   type: boolean
                   example: true
@@ -3101,6 +3107,9 @@ components:
         vendor:
           type: string
           example: Intel
+        switch_vendor:
+          type: string
+          example: juniper
         pxe_boot:
           type: boolean
           example: true
