@@ -225,17 +225,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         switch_config_missing = []
         for host in hosts:
             if not host.switch_config_applied:
-                data = {"host": host.name, "cloud": host.cloud.name}
-                current_schedule = self.quads.get_current_schedules(data)[0]
-                previous_cloud = host.default_cloud.name
-                data = {
-                    "host": host.name,
-                    "end": current_schedule.start.strftime("%Y-%m-%dT%H:%M"),
-                }
-                previous_schedule = self.quads.get_schedules(data=data)
-                if previous_schedule:
-                    previous_cloud = previous_schedule[0].assignment.cloud.name
-                result = await self.switch_dispatcher.verify(host.name, previous_cloud, host.cloud.name)
+                result = await self.switch_dispatcher.verify(host.name, host.cloud.name)
                 if result:
                     try:
                         self.quads.update_host(host.name, {"switch_config_applied": True})

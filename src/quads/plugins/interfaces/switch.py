@@ -7,6 +7,15 @@ from abc import abstractmethod
 class SwitchPlugin(BasePlugin):
     """Interface for switch plugins"""
 
+    # Interfaces with no switch_vendor belong to the plugin that declares
+    # this True (the historical default), so only one plugin ever programs them.
+    _owns_legacy_interfaces = False
+
+    def owns_interface(self, interface) -> bool:
+        """True if this plugin is responsible for the interface."""
+        vendor = getattr(interface, "switch_vendor", None)
+        return vendor == self.name or (vendor is None and self._owns_legacy_interfaces)
+
     @abstractmethod
     def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
         """

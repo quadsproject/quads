@@ -605,6 +605,7 @@ class TestEnvironmentValidatorPlugin:
                     interfaces=[MagicMock(name="em1")],
                 )
             ]
+            host = hosts[0]
             has_vlan = False
             report = ""
 
@@ -612,6 +613,8 @@ class TestEnvironmentValidatorPlugin:
 
             # Verify switch config was updated
             plugin.quads.update_host.assert_called_with("host1.example.com", {"switch_config_applied": True})
+            # Validate must verify the current cloud without applying changes
+            plugin.switch_dispatcher.verify.assert_awaited_once_with("host1.example.com", host.cloud.name)
 
     @pytest.mark.asyncio
     async def test_validate_success_full_flow(self, plugin, mock_config):
