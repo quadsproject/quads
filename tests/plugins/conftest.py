@@ -148,6 +148,18 @@ def plugin_manager():
 
 
 @pytest.fixture
+def switch_plugin_manager():
+    """Build a PluginManager holding the enabled switch plugins of a rack"""
+
+    def _make(*plugins):
+        manager = PluginManager(config={})
+        manager.loaded_plugins = {plugin.name: plugin for plugin in plugins}
+        return manager
+
+    return _make
+
+
+@pytest.fixture
 def mock_chat_plugin(mock_config):
     """Create a mock chat plugin instance"""
     return MockChatPlugin(mock_config)
