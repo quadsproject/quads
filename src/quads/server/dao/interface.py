@@ -17,6 +17,7 @@ class InterfaceDao(BaseDao):
         switch_port: str,
         speed: int,
         vendor: str,
+        switch_vendor: str,
         pxe_boot: bool,
         maintenance: bool,
     ) -> Interface:
@@ -31,6 +32,7 @@ class InterfaceDao(BaseDao):
             switch_port=switch_port,
             speed=speed,
             vendor=vendor,
+            switch_vendor=switch_vendor,
             pxe_boot=pxe_boot,
             maintenance=maintenance,
             host_id=_host_obj.id,

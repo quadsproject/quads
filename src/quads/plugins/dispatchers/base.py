@@ -3,10 +3,14 @@
 Base Dispatcher Patterns - Two types of dispatchers for different use cases
 
 1. SinglePluginDispatcher: Calls ONLY the default (first enabled) plugin
-   Use for: Hardware, Provisioner, Switch, Release (operations that should only happen once)
+   Use for: Hardware, Provisioner, Release (operations that should only happen once)
 
 2. MultiPluginDispatcher: Calls ALL enabled plugins
    Use for: Notifiers, Ticketing (broadcast operations to multiple providers)
+
+Note: Switch dispatches sequentially to ALL enabled switch plugins: each
+switch plugin filters host interfaces by switch vendor, so mixed-vendor
+hosts need every enabled plugin to act on its own interfaces.
 """
 
 import asyncio
