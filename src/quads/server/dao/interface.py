@@ -19,6 +19,7 @@ class InterfaceDao(BaseDao):
         vendor: str,
         pxe_boot: bool,
         maintenance: bool,
+        switch_vendor: str = None,
     ) -> Interface:
         _host_obj = HostDao.get_host(hostname)
         if not _host_obj:
@@ -31,6 +32,7 @@ class InterfaceDao(BaseDao):
             switch_port=switch_port,
             speed=speed,
             vendor=vendor,
+            switch_vendor=switch_vendor,
             pxe_boot=pxe_boot,
             maintenance=maintenance,
             host_id=_host_obj.id,

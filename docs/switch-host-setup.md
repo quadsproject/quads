@@ -10,6 +10,9 @@ General guidelines of how to setup your network switches, servers and DNS for QU
 * [Distribution Switch Configuration](#distribution-switch-configuration)
 * [TOR Switch Configuration](#tor-switch-configuration)
 * [Greenfield TOR Switch Configuration](#greenfield-tor-switch-configuration)
+* [Switch Vendor Support](#switch-vendor-support)
+  * [Juniper Switch Setup](#juniper-switch-setup)
+  * [Arista Switch Setup](#arista-switch-setup)
 * [QUADS Host Network Setup](#quads-host-network-setup)
 * [Adding New QUADS Host](#adding-new-quads-host)
   * [Integration into Foreman or a Provisioning System](#integration-into-foreman-or-a-provisioning-system)
@@ -131,6 +134,112 @@ set interfaces xe-0/0/1:1 apply-groups QinQ_vl1140
 set interfaces xe-0/0/1:2 apply-groups QinQ_vl1140
 set interfaces xe-0/0/1:3 apply-groups QinQ_vl1140
 ```
+
+## Switch Vendor Support
+
+QUADS routes each host interface to a switch plugin based on the interface's `switch_vendor` value. This allows a single environment to mix interfaces connected to Juniper and Arista switches: QUADS admins only record the vendor per interface, and the move, validate and release phases automatically use the matching plugin for each port.
+
+The switch plugins are configured in `/opt/quads/conf/plugins.yml`:
+
+```yaml
+plugins:
+  juniper:
+    enabled: true
+    username: quads
+  arista:
+    enabled: false
+    username: quads
+```
+
+Each interface is tagged with its switch vendor when it is added, e.g.:
+
+```
+quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port Ethernet1/1 --interface-vendor "Intel" --interface-speed 10 --interface-switch-vendor arista --host <hostname>
+```
+
+Interfaces without a `switch_vendor` default to the Juniper plugin (the historical default). The Juniper and Arista sections below describe the vendor-specific setup; host-side wiring (`QUADS Host Network Setup` and `Adding New QUADS Host`) is identical for both. `--interface-speed` and the API `speed` field are in **Gbps** (`--interface-speed 10` is a 10 Gbps port), and the plugins convert to the unit each switch expects (Junos `speed <N>g`, EOS `speed <N*1000>` Mbps).
+
+A `switch_vendor` must name an enabled switch plugin: only plugins with `enabled: true` in `/opt/quads/conf/plugins.yml` are loaded. If a switch port is tagged with a vendor that no enabled plugin claims (a typo, a disabled plugin, or a plugin that is not installed), QUADS fails the switch configuration for that host instead of quietly skipping the port: the move records a failed switch configuration and leaves `switch_config_applied` false, so `--validate-env` keeps reporting the host under `The following hosts are missing switch configuration` until it is corrected. Fix the tag with `--mod-interface --interface-switch-vendor`, or enable the plugin for that vendor. Ports with no `switch_vendor` are claimed by the Juniper plugin, so keep `juniper` enabled while untagged interfaces exist; an Arista-only site must tag every interface, because an untagged one is then claimed by nobody and fails the host's switch configuration. To deliberately leave a host's switch ports alone, use `omit_network_move` in `/opt/quads/conf/quads.yml`, and re-set `switch_config_applied` for the host as described in the README after each move (`--move-hosts` clears it again), otherwise `--validate-env` reports the host as missing switch configuration.
+
+### Juniper Switch Setup
+
+The Juniper steps are the default and are covered above: `Greenfield TOR Switch Configuration` for a greenfield QFX TOR, including the QinQ groups (`set groups QinQ_vl<vlan> ...`). The Juniper plugin applies `apply-groups QinQ_vl<vlan>` to each access port during a host move and, when the assignment defines a public VLAN, converts the last interface to a public trunk (`native-vlan-id <vlan>`, `family ethernet-switching interface-mode trunk`, `vlan members vlan<vlan>`). Ensure each cloud VLAN is defined on the switch (`set vlans vlan<id> vlan-id <id>`). The `quads` login user needs `class super-user` and the QUADS SSH key (see `Physical Switch Setup` above).
+
+### Arista Switch Setup
+
+Arista EOS switches are supported by the `arista` switch plugin. Prepare a greenfield EOS switch as follows. Commands labeled `QUADS` are what the plugin programs during a move; everything else is a one-time operator prerequisite.
+
+   * Create a privileged user for QUADS. EOS needs privilege 15 so the pexpect driver lands at the `#` prompt after login:
+
+```
+username quads privilege 15 secret <password>
+```
+
+   * Add the QUADS SSH key for key-based management:
+
+```
+ip ssh pubkey-chain
+username quads
+key-string
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAgEAtX0bAdKVSDeQa4PCN4bLLAqjR0DExUB1lhG1q4jPf9tWwWJ1cRqG3wn7CEqlItiankKdqd+8eZHTGgmBft76
+XhjiXtwR4VkANjAqJUFXTkgSXj9nz0rkrHGVYYWvPBvg5KiZm5/ba+ndvyQWc5vDhv8dIKo17uZ5DC6DOcCQs4y6QhYxxVAiqIZaFeFkgRw4Ebkx+MhZ1VrVByOC2PZtj2drwGAa7ItX2i4idIaKTRBI9pehL4ay4NGbzdUeEP304X
+exit
+exit
+```
+
+   * Enable QinQ globally and define the outer VLAN(s) used by your QUADS cloud assignments. QUADS never creates the VLAN, it must pre-exist:
+
+```
+l2-protocol tunnel dot1q
+vlan 1140
+name QinQ_vl1140
+```
+
+   * Server-facing ports: `QUADS` programs `default interface <port>`, `interface <port>`, `switchport mode access`, `switchport access vlan <vlan>` and `write memory` on every move (`set_port()`), plus `speed <N*1000>` when the interface has a speed. The remaining lines are operator prerequisites:
+
+```
+interface Ethernet1/1
+switchport
+no ip address
+spanning-tree portfast
+spanning-tree bpdufilter enable
+no shutdown
+exit
+```
+
+   * On QinQ clouds the aggregation port uses tunnel mode (`QUADS` `set_port_qinq()` programs `l2-protocol tunnel dot1q`, `default interface`, `switchport mode dot1q-tunnel`, `switchport access vlan`, `write memory`):
+
+```
+interface Ethernet1/1
+switchport
+no ip address
+mtu 9218
+no shutdown
+exit
+```
+
+   * The last host interface becomes a public trunk when the assignment defines a public VLAN (`QUADS` `convert_port_public()` programs `default interface`, `switchport mode trunk`, `switchport trunk native vlan`, `switchport trunk allowed vlan`, `write memory`):
+
+```
+interface Ethernet1/1
+switchport
+no ip address
+no shutdown
+exit
+```
+
+   * Persist the configuration (QUADS also runs `write memory` after each change):
+
+```
+write memory
+```
+
+> [!IMPORTANT]
+> The plugin runs `default interface <port>` before each move, resetting the port to factory defaults. Operator settings such as `no shutdown`, `spanning-tree portfast`, `spanning-tree bpdufilter enable` and `mtu 9218` are wiped on every move; re-apply them (or push them via templates/network automation) after each QUADS move. The `--interface-port` database value must be the exact canonical EOS interface name (e.g. `Ethernet1/1`).
+
+QinQ prerequisites on EOS: `l2-protocol tunnel dot1q` must be enabled and the outer VLAN must exist in the VLAN database (`vlan <id>` / `name QinQ_vl<id>` above). MTU on QinQ ports should be raised to 9218 where the platform supports it (EOS default is 9214; the outer tag adds 4 bytes). QUADS ports must be in switch mode, not routed mode (`switchport` / `no ip address`); if a port was previously routed, reset it with `default interface <port>` first.
+
+Enable the plugin in `conf/plugins.yml` (`arista: enabled: true`) and tag interfaces connected to Arista switches with `--interface-switch-vendor arista` (or via the API `switch_vendor` field).
 
 ## QUADS Host Network Setup
 *  QUADS host interface information is now kept in the QUADS database, you can define this afterward at the time of defining your QUADS-managed host.  Refer to the host interface section of the [QUADS Usage Documentation](https://github.com/quadsproject/quads/tree/latest#quads-usage-documentation) after following the rest of this document.

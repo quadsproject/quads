@@ -1043,10 +1043,14 @@ paths:
                   example: nic1
                 speed:
                   type: integer
-                  example: 1000
+                  description: Link speed in Gbps
+                  example: 10
                 vendor:
                   type: string
                   example: Intel
+                switch_vendor:
+                  type: string
+                  example: juniper
                 pxe_boot:
                   type: boolean
                   example: true
@@ -1113,10 +1117,14 @@ paths:
                   example: nic1
                 speed:
                   type: integer
-                  example: 1000
+                  description: Link speed in Gbps
+                  example: 10
                 vendor:
                   type: string
                   example: Intel
+                switch_vendor:
+                  type: string
+                  example: juniper
                 pxe_boot:
                   type: boolean
                   example: true
@@ -3097,10 +3105,14 @@ components:
           example: xt-0-0/1
         speed:
           type: integer
-          example: 1000
+          description: Link speed in Gbps
+          example: 10
         vendor:
           type: string
           example: Intel
+        switch_vendor:
+          type: string
+          example: juniper
         pxe_boot:
           type: boolean
           example: true
