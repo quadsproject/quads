@@ -617,6 +617,13 @@ parser.add_argument(
     default=None,
     help="Interface vendor",
 )
+parser.add_argument(
+    "--interface-switch-vendor",
+    dest="ifswitchvendor",
+    type=str,
+    default=None,
+    help="Switch vendor for plugin routing (e.g. juniper, arista)",
+)
 
 pxe_group_args = parser.add_mutually_exclusive_group()
 pxe_group_args.add_argument(

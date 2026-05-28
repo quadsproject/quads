@@ -359,6 +359,7 @@ class QuadsCli:
                 self.logger.info(f"  port: {interface.switch_port}")
                 self.logger.info(f"  speed: {interface.speed}")
                 self.logger.info(f"  vendor: {interface.vendor}")
+                self.logger.info(f"  switch vendor: {interface.switch_vendor}")
                 self.logger.info(f"  pxe_boot: {interface.pxe_boot}")
                 self.logger.info(f"  maintenance: {interface.maintenance}")
         else:
@@ -1613,6 +1614,7 @@ class QuadsCli:
         _ifbiosid = self.cli_args.get("ifbiosid", None)
         _ifspeed = self.cli_args.get("ifspeed", None)
         _ifvendor = self.cli_args.get("ifvendor", None)
+        _ifswitchvendor = self.cli_args.get("ifswitchvendor", None)
         _ifmaintenance = self.cli_args.get("ifmaintenance", False)
         _force = self.cli_args.get("force", None)
         _host = self.cli_args.get("host", None)
@@ -1640,6 +1642,7 @@ class QuadsCli:
             "switch_port": _ifport,
             "speed": _ifspeed,
             "vendor": _ifvendor,
+            "switch_vendor": _ifswitchvendor,
             "maintenance": _ifmaintenance,
             "pxe_boot": pxe_boot,
             "force": _force,
@@ -1682,6 +1685,7 @@ class QuadsCli:
             "ifbiosid": "bios_id",
             "ifspeed": "speed",
             "ifvendor": "vendor",
+            "ifswitchvendor": "switch_vendor",
             "ifmaintenance": "maintenance",
         }
         _ifmac = self.cli_args.get("ifmac", None)
@@ -1691,6 +1695,7 @@ class QuadsCli:
         _ifbiosid = self.cli_args.get("ifbiosid", None)
         _ifspeed = self.cli_args.get("ifspeed", None)
         _ifvendor = self.cli_args.get("ifvendor", None)
+        _ifswitchvendor = self.cli_args.get("ifswitchvendor", None)
         _host = self.cli_args.get("host", None)
         # TODO: fix all
         if _host is None or _ifname is None:
@@ -1717,6 +1722,7 @@ class QuadsCli:
             and _ifport is None
             and _ifspeed is None
             and _ifvendor is None
+            and _ifswitchvendor is None
             and not hasattr(self.cli_args, "ifpxe")
             and not hasattr(self.cli_args, "ifmaintenance")
         ):
@@ -1729,6 +1735,7 @@ class QuadsCli:
                 "\t--interface-port\n"
                 "\t--interface-speed\n"
                 "\t--interface-vendor\n"
+                "\t--interface-switch-vendor\n"
                 "\t--pxe-boot\n"
                 "\t--maintenance"
             )

@@ -1,27 +1,33 @@
 import logging
 from typing import Optional
-from quads.plugins.dispatchers.base import SinglePluginDispatcher
+from quads.plugins.dispatchers.base import BaseDispatcher
 from quads.plugins.interfaces.switch import SwitchPlugin
 from quads.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 
 
-class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
+class SwitchDispatcher(BaseDispatcher[SwitchPlugin]):
     def __init__(self, plugin_manager: PluginManager):
         super().__init__(plugin_manager, SwitchPlugin, "Switch")
 
     async def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
-        if not self._default_plugin:
+        plugins = self.get_all_plugins()
+        if not plugins:
             logger.error("No switch plugin enabled")
             return False
 
-        logger.info(f"Configuring switch for {host} from {old_cloud} to {new_cloud} via {self._default_plugin.name}")
-        try:
-            return await self._default_plugin.configure(host, old_cloud, new_cloud)
-        except Exception as e:
-            logger.error(f"Failed to configure switch: {e}")
-            return False
+        for plugin in plugins:
+            logger.info(f"Configuring switch for {host} from {old_cloud} to {new_cloud} via {plugin.name}")
+            try:
+                result = await plugin.configure(host, old_cloud, new_cloud)
+                if not result:
+                    return False
+            except Exception as e:
+                logger.error(f"Failed to configure switch via {plugin.name}: {e}")
+                return False
+
+        return True
 
     async def modify(
         self,
@@ -33,41 +39,53 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
         nic4: str = None,
         nic5: str = None,
     ) -> bool:
-        if not self._default_plugin:
+        plugins = self.get_all_plugins()
+        if not plugins:
             logger.error("No switch plugin enabled")
             return False
 
-        logger.info(f"Modifying switch for {host} via {self._default_plugin.name}")
-        try:
-            return await self._default_plugin.modify(host, change, nic1, nic2, nic3, nic4, nic5)
-        except Exception as e:
-            logger.error(f"Failed to modify switch: {e}")
-            return False
+        for plugin in plugins:
+            logger.info(f"Modifying switch for {host} via {plugin.name}")
+            try:
+                await plugin.modify(host, change, nic1, nic2, nic3, nic4, nic5)
+            except Exception as e:
+                logger.error(f"Failed to modify switch via {plugin.name}: {e}")
+                return False
+
+        return True
 
     async def verify(self, host: str = None, cloud: str = None, change: bool = False) -> bool:
-        if not self._default_plugin:
+        plugins = self.get_all_plugins()
+        if not plugins:
             logger.error("No switch plugin enabled")
             return False
 
         component = host if host else cloud
-        logger.info(f"Verifying switch for {component} via {self._default_plugin.name}")
-        try:
-            await self._default_plugin.verify(host, cloud, change)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to verify switch: {e}")
-            return False
+        for plugin in plugins:
+            logger.info(f"Verifying switch for {component} via {plugin.name}")
+            try:
+                await plugin.verify(host, cloud, change)
+            except Exception as e:
+                logger.error(f"Failed to verify switch via {plugin.name}: {e}")
+                return False
+
+        return True
 
     async def ls_config(self, cloud: str, all: bool = False) -> bool:
-        if not self._default_plugin:
+        plugins = self.get_all_plugins()
+        if not plugins:
             logger.error("No switch plugin enabled")
             return False
-        logger.info(f"Listing switch configuration for {cloud} via {self._default_plugin.name}")
-        try:
-            return await self._default_plugin.ls_config(cloud, all)
-        except Exception as e:
-            logger.error(f"Failed to list switch configuration: {e}")
-            return False
+
+        for plugin in plugins:
+            logger.info(f"Listing switch configuration for {cloud} via {plugin.name}")
+            try:
+                await plugin.ls_config(cloud, all)
+            except Exception as e:
+                logger.error(f"Failed to list switch configuration via {plugin.name}: {e}")
+                return False
+
+        return True
 
 
 _dispatcher_instance: Optional[SwitchDispatcher] = None

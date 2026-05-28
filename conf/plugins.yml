@@ -78,8 +78,12 @@ plugins:
     enabled: true
 
   juniper:
-    enabled: true  
+    enabled: true
     username: scaleadmin
+
+  arista:
+    enabled: false
+    username: admin
 
   jira:
     enabled: true

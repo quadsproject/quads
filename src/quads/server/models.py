@@ -540,6 +540,7 @@ class Interface(Serialize, Base):
     switch_port = Column(String)
     speed = Column(Integer)
     vendor = Column(String)
+    switch_vendor = Column(String)
     pxe_boot = Column(Boolean, default=False)
     maintenance = Column(Boolean, default=False)
 
@@ -548,7 +549,7 @@ class Interface(Serialize, Base):
     def __repr__(self):
         return (
             "<Interface(id='{}', name='{}', biod_id='{}', mac_address='{}', switch_ip='{}', "
-            "switch_port='{}', speed='{}', vendor='{}', pxe_boot='{}', maintenance='{}')>".format(
+            "switch_port='{}', speed='{}', vendor='{}', switch_vendor='{}', pxe_boot='{}', maintenance='{}')>".format(
                 self.id,
                 self.name,
                 self.bios_id,
@@ -557,6 +558,7 @@ class Interface(Serialize, Base):
                 self.switch_port,
                 self.speed,
                 self.vendor,
+                self.switch_vendor,
                 self.pxe_boot,
                 self.maintenance,
             )

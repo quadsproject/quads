@@ -3,21 +3,21 @@ from quads.helpers.utils import get_vlan
 from quads.plugins.interfaces.switch import SwitchPlugin
 from quads.config import DEFAULT_CONF_PATH, Config
 from quads.quads_api import QuadsApi
-from quads.tools.external.juniper import Juniper
+from quads.tools.external.arista import Arista
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from quads.plugins.manager import PluginManager
 
 
-class JuniperSwitchPlugin(SwitchPlugin):
+class AristaSwitchPlugin(SwitchPlugin):
     """
-    Juniper switch plugin implementing SwitchPlugin interface.
+    Arista switch plugin implementing SwitchPlugin interface.
 
-    Manages switch configuration and management.
+    Uses SSH/pexpect for switch configuration and management.
     """
 
-    name = "juniper"
+    name = "arista"
     version = "1.0.0"
-    description = "Juniper switch plugin"
+    description = "Arista switch plugin"
     author = "QUADS Team"
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
@@ -55,10 +55,15 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     ssh_helper.disconnect()
                     switch_ip = interface.switch_ip
                     ssh_helper = SSHHelper(switch_ip, self.username)
-            result, old_vlan_out = ssh_helper.run_cmd("show configuration interfaces %s" % interface.switch_port)
+            result, old_vlan_out = ssh_helper.run_cmd(
+                "show running-config interfaces %s | include switchport.access.vlan" % interface.switch_port
+            )
             old_vlan = None
             if result and old_vlan_out:
-                old_vlan = old_vlan_out[0].split(";")[0].split()[1][7:]
+                try:
+                    old_vlan = old_vlan_out[0].strip().split()[-1]
+                except IndexError:
+                    old_vlan = None
             if not old_vlan:
                 if _new_ass_cloud_obj and not _new_ass_cloud_obj.vlan and not last_nic:
                     self.logger.warning(
@@ -78,14 +83,14 @@ class JuniperSwitchPlugin(SwitchPlugin):
                 if int(old_vlan) != int(_new_ass_cloud_obj.vlan.vlan_id):
                     self.logger.info("Setting last interface to public vlan %s." % new_vlan)
 
-                    juniper = Juniper(
+                    arista = Arista(
                         interface.switch_ip,
                         interface.switch_port,
                         interface.speed,
                         old_vlan,
                         _new_ass_cloud_obj.vlan.vlan_id,
                     )
-                    success = juniper.convert_port_public()
+                    success = arista.convert_port_public()
 
                     if success:
                         self.logger.info("Successfully updated switch settings.")
@@ -98,8 +103,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                         return False
             else:
                 if int(old_vlan) != int(new_vlan):
-                    juniper = Juniper(interface.switch_ip, interface.switch_port, interface.speed, old_vlan, new_vlan)
-                    success = juniper.set_port()
+                    arista = Arista(interface.switch_ip, interface.switch_port, interface.speed, old_vlan, new_vlan)
+                    success = arista.set_port()
 
                     if success:
                         self.logger.info("Successfully updated switch settings.")
@@ -138,19 +143,18 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
                     try:
                         _, old_vlan_out = ssh_helper.run_cmd(
-                            "show configuration interfaces %s" % interface.switch_port
+                            "show running-config interfaces %s | include switchport.access.vlan"
+                            % interface.switch_port
                         )
-                        old_vlan = old_vlan_out[0].split(";")[0].split()[1]
-                        if old_vlan.startswith("QinQ"):
-                            old_vlan = old_vlan[7:]
+                        old_vlan = old_vlan_out[0].strip().split()[-1]
                     except IndexError:
                         old_vlan = 0
 
                     try:
                         _, vlan_member_out = ssh_helper.run_cmd(
-                            "show configuration vlans | display set | match %s.0" % interface.switch_port
+                            "show vlan %s | include %s" % (vlan, interface.switch_port)
                         )
-                        vlan_member = vlan_member_out[0].split()[2][4:].strip(",")
+                        vlan_member = vlan_member_out[0].strip().split()[0]
                     except IndexError:
                         self.logger.warning(
                             "Could not determine the previous VLAN member for %s, switch %s, switch port %s "
@@ -177,14 +181,14 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
                         if change:
                             self.logger.info(f"Change requested for {interface.name}")
-                            juniper = Juniper(
+                            arista = Arista(
                                 interface.switch_ip,
                                 interface.switch_port,
                                 interface.speed,
                                 vlan_member,
                                 vlan,
                             )
-                            success = juniper.set_port()
+                            success = arista.set_port()
 
                             if success:
                                 self.logger.info("Successfully updated switch settings.")
@@ -246,18 +250,19 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     vlan = get_vlan(_assignment, i, last_nic)
 
                     try:
-                        _, old_vlan_out = ssh_helper.run_cmd(f"show configuration interfaces {interface.switch_port}")
-                        old_vlan = old_vlan_out[0].split(";")[0].split()[1]
-                        if old_vlan.startswith("QinQ"):
-                            old_vlan = old_vlan[7:]
+                        _, old_vlan_out = ssh_helper.run_cmd(
+                            "show running-config interfaces %s | include switchport.access.vlan"
+                            % interface.switch_port
+                        )
+                        old_vlan = old_vlan_out[0].strip().split()[-1]
                     except IndexError:
                         old_vlan = 0
 
                     try:
                         _, vlan_member_out = ssh_helper.run_cmd(
-                            "show configuration vlans | display set | match %s.0" % interface.switch_port
+                            "show vlan %s | include %s" % (vlan, interface.switch_port)
                         )
-                        vlan_member = vlan_member_out[0].split()[2][4:].strip(",")
+                        vlan_member = vlan_member_out[0].strip().split()[0]
                     except IndexError:
                         if not _assignment.vlan and not last_nic:
                             self.logger.warning(
@@ -293,27 +298,27 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                         "Setting last interface to public vlan %s." % _assignment.vlan.vlan_id
                                     )
 
-                                    juniper = Juniper(
+                                    arista = Arista(
                                         interface.switch_ip,
                                         interface.switch_port,
                                         interface.speed,
                                         old_vlan,
                                         vlan,
                                     )
-                                    success = juniper.convert_port_public()
+                                    success = arista.convert_port_public()
                                 else:
                                     self.logger.info(f"No changes required for {interface.name}")
                                     continue
                             else:
                                 self.logger.info(f"Change requested for {interface.name}")
-                                juniper = Juniper(
+                                arista = Arista(
                                     interface.switch_ip,
                                     interface.switch_port,
                                     interface.speed,
                                     vlan_member,
                                     vlan,
                                 )
-                                success = juniper.set_port()
+                                success = arista.set_port()
 
                             if success:
                                 self.logger.info("Successfully updated switch settings.")
@@ -344,18 +349,11 @@ class JuniperSwitchPlugin(SwitchPlugin):
                 for i, interface in enumerate(interfaces):
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
                     try:
-                        if interface.name == all_interfaces[-1].name:
-                            _, vlan_member_out = ssh_helper.run_cmd(
-                                f"show configuration interfaces {interface.switch_port}"
-                            )
-                            vlan_member = vlan_member_out[0].split(";")[0].split()[1]
-                            if vlan_member.startswith("QinQ"):
-                                vlan_member = vlan_member[7:]
-                        else:
-                            _, vlan_member_out = ssh_helper.run_cmd(
-                                f"show configuration vlans | display set | match {interface.switch_port}.0"
-                            )
-                            vlan_member = vlan_member_out[0].split()[2][4:].strip(",")
+                        _, vlan_out = ssh_helper.run_cmd(
+                            "show running-config interfaces %s | include switchport.access.vlan"
+                            % interface.switch_port
+                        )
+                        vlan_member = vlan_out[0].strip().split()[-1]
                     except IndexError:
                         self.logger.warning(
                             "Could not determine the previous VLAN member for %s, switch %s, switch port %s "

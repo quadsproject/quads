@@ -9,11 +9,12 @@ from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
 class MockInterface:
     """Mock interface object for testing"""
 
-    def __init__(self, name, switch_ip, switch_port, speed="1000"):
+    def __init__(self, name, switch_ip, switch_port, speed="1000", switch_vendor=None):
         self.name = name
         self.switch_ip = switch_ip
         self.switch_port = switch_port
         self.speed = speed
+        self.switch_vendor = switch_vendor
 
 
 class MockHost:
@@ -556,3 +557,54 @@ class TestJuniperSwitchPlugin:
         assert result is True
         # convert_port_public should not be called since VLANs match
         mock_juniper.convert_port_public.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_configure_skips_other_vendor_interfaces(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """Test configure skips interfaces with a different switch_vendor"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="juniper"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2", switch_vendor="arista"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00", vlan=None)
+        mock_new_assignment = MockAssignment("cloud01", vlan=None)
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.return_value = (True, ["members QinQ_vl10;"])
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is True
+        assert mock_juniper.set_port.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_configure_returns_true_no_matching_interfaces(self, plugin):
+        """Test configure returns True when all interfaces belong to other vendors"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="arista"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00")
+        mock_new_assignment = MockAssignment("cloud01")
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is True

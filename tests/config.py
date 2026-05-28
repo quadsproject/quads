@@ -177,6 +177,7 @@ INTERFACE_1_RESPONSE = {
     "switch_port": "et-0/0/0:1",
     "speed": 1000,
     "vendor": "Mellanox",
+    "switch_vendor": None,
     "host_id": 1,
     "id": 1,
     "maintenance": False,
