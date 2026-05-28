@@ -19,6 +19,7 @@ class JuniperSwitchPlugin(SwitchPlugin):
     version = "1.0.0"
     description = "Juniper switch plugin"
     author = "QUADS Team"
+    _owns_legacy_interfaces = True
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         self.quads = QuadsApi(Config)
@@ -32,12 +33,16 @@ class JuniperSwitchPlugin(SwitchPlugin):
         if not _host_obj.interfaces:
             self.logger.error("Host has no interfaces defined.")
             return False
-        self.logger.debug("Connecting to switch on: %s" % _host_obj.interfaces[0].switch_ip)
+        interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
+        if not any(self.owns_interface(interface) for interface in interfaces):
+            return True
+        self.logger.debug(f"Connecting to switch on: {interfaces[0].switch_ip}")
         switch_ip = None
         ssh_helper = None
-        interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
         for i, interface in enumerate(interfaces):
-            last_nic = i == len(_host_obj.interfaces) - 1
+            if not self.owns_interface(interface):
+                continue
+            last_nic = i == len(interfaces) - 1
             if not switch_ip:
                 switch_ip = interface.switch_ip
                 try:
@@ -129,6 +134,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                         len(interfaces),
                     )
             for i, interface in enumerate(interfaces):
+                if not self.owns_interface(interface):
+                    continue
                 vlan = overrides.get(i)
                 if vlan:
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
@@ -237,8 +244,10 @@ class JuniperSwitchPlugin(SwitchPlugin):
             if _host_obj.interfaces:
                 interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
                 for i, interface in enumerate(interfaces):
+                    if not self.owns_interface(interface):
+                        continue
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
-                    last_nic = i == len(_host_obj.interfaces) - 1
+                    last_nic = i == len(interfaces) - 1
                     vlan = get_vlan(_assignment, i, last_nic)
 
                     try:
@@ -355,9 +364,11 @@ class JuniperSwitchPlugin(SwitchPlugin):
                 interfaces = sorted(host.interfaces, key=lambda k: k.name)
 
                 for i, interface in enumerate(interfaces):
+                    if not self.owns_interface(interface):
+                        continue
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
                     try:
-                        if interface == interfaces[-1]:
+                        if i == len(interfaces) - 1:
                             _, vlan_member_out = ssh_helper.run_cmd(
                                 f"show configuration interfaces {interface.switch_port}"
                             )

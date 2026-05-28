@@ -178,7 +178,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
    - Recent [Fedora Server](https://fedoraproject.org/server/download/) for RPM installations
    - 1 x modest sized VM (8 vcpu 8GB mem) for combined QUADS stack (quads-server, quads-web, quads-db)
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
-   - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
+   - Switch/VLAN automation is done on Juniper Switches (QFX5200/5130) and Arista EOS switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches); QUADS routes each interface to the matching switch plugin based on its `switch_vendor`, so environments may mix vendors per interface.  Command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
    - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.  Most enterprise server vendors come standard with IPMI interfaces and the [Redfish API](https://en.wikipedia.org/wiki/Redfish_(specification)).
 
 ## QUADS Terminology
@@ -244,7 +244,7 @@ _How many hosts and environments can a single QUADS instance use?_
 | General Architecture Overview | [docs](/docs/quads-workflow.md) | Architecture overview |
 | Install and Setup Foreman/Satellite | [docs](https://theforeman.org/manuals/nightly/#3.InstallingForeman) | User installed. Or use [Ansible Foreman Create](https://github.com/quadsproject/ansible-foreman-create) |
 | Setup Foreman/Satellite Validation Templates | [examples](/templates) | Templates for internal interface configs |
-| Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper Environments, IPMI, Foreman |
+| Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper and Arista Environments, IPMI, Foreman |
 | Install QUADS | [docs](#installing-quads) | Install via RPM |
 | Enable SSL | [docs](#using-ssl-with-flask-api-and-quads) | Optionally enable SSL for API, Web |
 | Google OAuth Setup | [docs](/docs/google-oauth-setup.md) | Optionally setup Google OAuth for API, Web |
@@ -453,7 +453,7 @@ crontab -e
 #### External Services
 
    - QUADS integrates with external services via the plugin architecture (configured in `/opt/quads/conf/plugins.yml`)
-   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper switches (network automation)
+   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper and Arista switches (network automation)
    - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for configuration details
 
 | Service Command       | Category | Purpose |
