@@ -208,6 +208,7 @@
                                         <th>Name</th>
                                         <th>MAC Address</th>
                                         <th>Speed</th>
+                                        <th>Switch</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -222,6 +223,13 @@
                                         </td>
                                         <td>{{ interface.mac_address }}</td>
                                         <td>{{ interface.speed }}</td>
+                                        <td>
+                                            {% if interface.switch_vendor %}
+                                                <span class="badge {% if interface.switch_vendor == 'juniper' %}bg-primary{% elif interface.switch_vendor == 'arista' %}bg-info{% else %}bg-secondary{% endif %}">{{ interface.switch_vendor }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             {% if interface.maintenance %}
                                                 <span class="badge bg-warning">Maintenance</span>

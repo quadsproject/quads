@@ -148,6 +148,7 @@ quads --export-host-details
 | interfaces.switch_ip   |  string    | switch ip address per port   | ==,!=           |
 | interfaces.speed       |  integer   | link speed                   | ==,!=,<,<=,>,>= |
 | interfaces.vendor      |  string    | interface vendor             | ==,!=           |
+| interfaces.switch_vendor |  string    | switch vendor                | ==,!=           |
 | interfaces.maintenance |  boolean   | interface maintenance status | ==,!=           |
 | interfaces.bios_id     |  string    | interface BIOS boot devname  | ==,!=           |
 | build                  |  boolean   | build status                 | ==,!=           |
