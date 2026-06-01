@@ -66,16 +66,12 @@ def _trigger_jira_notification(assignment, hostnames, start, end):
 
     loop = asyncio.new_event_loop()
     try:
-        result = loop.run_until_complete(
-            ticketing_dispatcher.post_comment(assignment.ticket, comment)
-        )
+        result = loop.run_until_complete(ticketing_dispatcher.post_comment(assignment.ticket, comment))
         if not result:
             logger.error("Failed to post comment for ticket %s", assignment.ticket)
             return False
 
-        transitions = loop.run_until_complete(
-            ticketing_dispatcher.get_transitions(assignment.ticket)
-        )
+        transitions = loop.run_until_complete(ticketing_dispatcher.get_transitions(assignment.ticket))
         for transition in transitions:
             t_name = transition.get("name")
             if t_name and t_name.lower() == "scheduled":
@@ -165,6 +161,14 @@ def get_hosts_range_schedule() -> Response:
     end = data.get("end")
     _schedules = ScheduleDao.get_hosts_range_schedules(start, end)
     return jsonify({row[0]: row[1] for row in _schedules})
+
+
+@schedule_bp.route("/stats/build_delta")
+def get_average_build_delta() -> Response:
+    average = ScheduleDao.get_average_build_delta()
+    if average is None:
+        return jsonify({"average_build_delta": None})
+    return jsonify({"average_build_delta": average.total_seconds()})
 
 
 @schedule_bp.route("/", methods=["POST"])

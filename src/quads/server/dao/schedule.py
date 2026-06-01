@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Type
 
-from sqlalchemy import Boolean, and_, func
+from sqlalchemy import Boolean, and_, extract, func
 from sqlalchemy.dialects.postgresql import array_agg
 
 from quads.server.dao.assignment import AssignmentDao
@@ -114,6 +114,17 @@ class ScheduleDao(BaseDao):
             query = query.join(Assignment).filter(Assignment.id.in_((ass.id for ass in assignments)))
         future_schedules = query.all()
         return future_schedules
+
+    @staticmethod
+    def get_average_build_delta() -> timedelta | None:
+        result = (
+            db.session.query(func.avg(extract("epoch", Schedule.build_end) - extract("epoch", Schedule.build_start)))
+            .filter(Schedule.build_start.isnot(None), Schedule.build_end.isnot(None))
+            .scalar()
+        )
+        if result is None:
+            return None
+        return timedelta(seconds=float(result))
 
     @staticmethod
     def filter_schedule_dict(data: dict) -> List[Schedule]:

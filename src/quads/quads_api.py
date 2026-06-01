@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from json import JSONDecodeError
 from typing import List, Optional
 from urllib import parse as url_parse
@@ -168,6 +169,11 @@ class QuadsApi(QuadsBase):
         response = self.get(f"{uri}?{url_params}")
         return True if "true" in response.text.lower() else False
 
+    def get_availability_summary(self, data: dict) -> list:
+        url_params = url_parse.urlencode(data)
+        response = self.get(f"hosts/availability_summary?{url_params}")
+        return response.json()
+
     # Clouds
     def get_clouds(self) -> List[Cloud]:
         response = self.get("clouds")
@@ -251,6 +257,15 @@ class QuadsApi(QuadsBase):
         if obj_json:
             schedule_obj = Schedule(**obj_json)
         return schedule_obj
+
+    def get_average_build_delta(self) -> timedelta | None:
+        endpoint = os.path.join("schedules", "stats", "build_delta")
+        response = self.get(endpoint)
+        data = response.json()
+        seconds = data.get("average_build_delta")
+        if seconds is None:
+            return None
+        return timedelta(seconds=seconds)
 
     def get_expiring_schedules(self) -> List[Schedule]:
         endpoint = os.path.join("assignments", "expirations")

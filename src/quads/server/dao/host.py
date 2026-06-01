@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, func
+from sqlalchemy import Boolean, case, exists, func, select
 
 from quads.config import Config
 from quads.server.dao.baseDao import (
@@ -12,7 +13,7 @@ from quads.server.dao.baseDao import (
     InvalidArgument,
 )
 from quads.server.dao.cloud import CloudDao
-from quads.server.models import Cloud, Host, db
+from quads.server.models import Cloud, Host, Schedule, db
 
 
 class HostDao(BaseDao):
@@ -113,6 +114,50 @@ class HostDao(BaseDao):
     def get_host_models():
         host_models = db.session.query(Host.model, func.count(Host.model)).group_by(Host.model).all()
         return host_models
+
+    @staticmethod
+    def get_availability_summary(
+        now: datetime,
+        two_week_start: datetime,
+        two_week_end: datetime,
+        four_week_end: datetime,
+    ) -> list:
+        is_scheduled = exists(
+            select(Schedule.id).where(
+                Schedule.host_id == Host.id,
+                Schedule.start <= now,
+                Schedule.end >= now,
+            )
+        )
+
+        has_overlap_2w = exists(
+            select(Schedule.id).where(
+                Schedule.host_id == Host.id,
+                Schedule.start < two_week_end,
+                two_week_start < Schedule.end,
+            )
+        )
+
+        has_overlap_4w = exists(
+            select(Schedule.id).where(
+                Schedule.host_id == Host.id,
+                Schedule.start < four_week_end,
+                two_week_start < Schedule.end,
+            )
+        )
+
+        return (
+            db.session.query(
+                Host.model,
+                func.count(Host.id).label("total"),
+                func.sum(case((is_scheduled, 1), else_=0)).label("scheduled"),
+                func.sum(case((~has_overlap_2w, 1), else_=0)).label("avail_2w"),
+                func.sum(case((~has_overlap_4w, 1), else_=0)).label("avail_4w"),
+            )
+            .filter(Host.retired.is_(False), Host.broken.is_(False))
+            .group_by(Host.model)
+            .all()
+        )
 
     @staticmethod
     def filter_hosts_dict(data: dict) -> List[Host]:
