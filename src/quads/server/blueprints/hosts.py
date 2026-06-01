@@ -1,5 +1,7 @@
 import asyncio
 
+from datetime import datetime
+
 from flask import Blueprint, Response, jsonify, make_response, request
 from sqlalchemy import inspect
 
@@ -38,6 +40,37 @@ def get_hosts() -> Response:
             _hosts_dict = {key: value for key, value in _hosts}
 
     return make_response(jsonify(_hosts_dict), 200)
+
+
+@host_bp.route("/availability_summary")
+def get_availability_summary() -> Response:
+    _params = request.args.to_dict()
+    _format = "%Y-%m-%dT%H:%M"
+    try:
+        now = datetime.strptime(_params["now"], _format)
+        two_week_start = datetime.strptime(_params["two_week_start"], _format)
+        two_week_end = datetime.strptime(_params["two_week_end"], _format)
+        four_week_end = datetime.strptime(_params["four_week_end"], _format)
+    except (KeyError, ValueError) as ex:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Invalid or missing date parameter: {ex}",
+        }
+        return make_response(jsonify(response), 400)
+
+    results = HostDao.get_availability_summary(now, two_week_start, two_week_end, four_week_end)
+    summary = [
+        {
+            "model": row.model,
+            "total": row.total,
+            "scheduled": int(row.scheduled),
+            "avail_2w": int(row.avail_2w),
+            "avail_4w": int(row.avail_4w),
+        }
+        for row in results
+    ]
+    return jsonify(summary)
 
 
 @host_bp.route("/<hostname>")

@@ -37,21 +37,24 @@ def report_available(_logger, _start, _end):
     utilized = total_allocated_month * 100 // (total_hosts * days)
     _logger.info(f"Percentage Utilized: {utilized}%")
 
-    payload = {"build_start__ne": None, "build_end__ne": None}
-    schedules = quads.get_schedules(payload)
-    total = timedelta()
-    for schedule in schedules:
-        if schedule.build_end and schedule.build_start:
-            total += schedule.build_end - schedule.build_start
-    if schedules:
-        average_build = total / len(schedules)
+    average_build = quads.get_average_build_delta()
+    if average_build is not None:
         _logger.info(f"Average build delta: {average_build}")
 
-    hosts_summary = {}
-    for host in hosts:
-        if not hosts_summary.get(host.model):
-            hosts_summary[host.model] = []
-        hosts_summary[host.model].append(host)
+    now = datetime.now()
+    avail_start = next_sunday + timedelta(minutes=1)
+    two_week_end = next_sunday + timedelta(weeks=2)
+    four_week_end = next_sunday + timedelta(weeks=4)
+
+    _fmt = "%Y-%m-%dT%H:%M"
+    summary = quads.get_availability_summary(
+        {
+            "now": now.strftime(_fmt),
+            "two_week_start": avail_start.strftime(_fmt),
+            "two_week_end": two_week_end.strftime(_fmt),
+            "four_week_end": four_week_end.strftime(_fmt),
+        }
+    )
 
     headers = ["Server Type", "Total", "Free", "Scheduled", "2 weeks", "4 weeks"]
     _logger.info(
@@ -62,43 +65,18 @@ def report_available(_logger, _start, _end):
         f"{headers[4]:>7}| "
         f"{headers[5]:>7}"
     )
-    for host_type, _hosts in hosts_summary.items():
-        scheduled_count = 0
-        two_weeks_availability_count = 0
-        four_weeks_availability_count = 0
-        for host in _hosts:
-            schedule = quads.get_current_schedules({"host": host})
-            if schedule:
-                scheduled_count += 1
-            future_end = next_sunday + timedelta(weeks=2)
-            data = {
-                "start": next_sunday.strftime("%Y-%m-%dT%H:%M"),
-                "end": future_end.strftime("%Y-%m-%dT%H:%M"),
-            }
-            two_weeks_availability = quads.is_available(host.name, data)
-            if two_weeks_availability:
-                two_weeks_availability_count += 1
-
-            payload = {
-                "start": next_sunday.strftime("%Y-%m-%dT%H:%M"),
-                "end": (next_sunday + timedelta(weeks=4)).strftime("%Y-%m-%dT%H:%M"),
-            }
-            four_weeks_availability = quads.is_available(
-                host.name,
-                payload,
-            )
-            if four_weeks_availability:
-                four_weeks_availability_count += 1
-
-        free = len(_hosts) - scheduled_count
-        schedule_percent = scheduled_count * 100 // len(_hosts)
+    for row in summary:
+        total = row["total"]
+        scheduled_count = row["scheduled"]
+        free = total - scheduled_count
+        schedule_percent = scheduled_count * 100 // total
         _logger.info(
-            f"{host_type:<12}| "
-            f"{len(_hosts):>5}| "
+            f"{row['model']:<12}| "
+            f"{total:>5}| "
             f"{free:>5}| "
             f"{schedule_percent:>8}%| "
-            f"{two_weeks_availability_count:>7}| "
-            f"{four_weeks_availability_count:>7}"
+            f"{row['avail_2w']:>7}| "
+            f"{row['avail_4w']:>7}"
         )
 
 
