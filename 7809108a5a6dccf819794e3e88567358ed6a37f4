@@ -16,6 +16,24 @@
       "message": "Not sure if this makes sense.",
       "revId": "7809108a5a6dccf819794e3e88567358ed6a37f4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bb24ca01_3aa3b625",
+        "filename": "tests/tools/conftest.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-01T14:45:25Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "bba6c271_bab1cb69",
+      "revId": "7809108a5a6dccf819794e3e88567358ed6a37f4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

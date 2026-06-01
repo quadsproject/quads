@@ -16,6 +16,24 @@
       "message": "Please make sure this is what you want, before it did run the entire CI.",
       "revId": "ba9fc9b37ec0da8a269aff444f6bb9d980a9fa95",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d0177637_d90423a5",
+        "filename": "tox.ini",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-01T14:45:25Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "fecf9cc9_090dd43c",
+      "revId": "ba9fc9b37ec0da8a269aff444f6bb9d980a9fa95",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
