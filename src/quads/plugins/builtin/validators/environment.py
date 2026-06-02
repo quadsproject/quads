@@ -165,7 +165,9 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 # Setup hardware for this specific host
                 if is_supermicro(host.name):
                     config_ipmi = Config["plugins"]["badfish"]
-                    ipmi = IPMI(host.name, config_ipmi["ipmi_username"], config_ipmi["ipmi_password"], logger=self.logger)
+                    ipmi = IPMI(
+                        host.name, config_ipmi["ipmi_username"], config_ipmi["ipmi_password"], logger=self.logger
+                    )
                     if not await ipmi.pxe_persistent():
                         self.logger.error(
                             f"There was something wrong setting PXE flag or resetting IPMI on {host.name}."
@@ -342,6 +344,26 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
 
         return True, report
 
+    def _get_progress_map(self, hosts):
+        progress_map = {}
+        for host in hosts:
+            try:
+                progress = self.quads.get_move_progress(host.name)
+                if progress:
+                    progress_map[host.name] = progress.get("id")
+            except Exception:
+                pass
+        return progress_map
+
+    def _update_progress(self, progress_id, status, message=""):
+        if not progress_id:
+            return
+        try:
+            data = {"status": status, "message": message}
+            self.quads.update_move_progress(progress_id, data)
+        except Exception:
+            pass
+
     async def validate(
         self,
         cloud: str,
@@ -354,6 +376,10 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         """Validate an environment"""
         self.logger.info(f"Validating {cloud}")
         failed = False
+
+        progress_map = self._get_progress_map(hosts)
+        for host in hosts:
+            self._update_progress(progress_map.get(host.name), "validation", "Running validation checks")
 
         if await self.env_allocation_time_exceeded(cloud):
             if hosts:
@@ -398,6 +424,12 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     self.logger.error("Could not update assignment: %s." % assignment.id)
                     report = report + "Could not update assignment: %s.\n" % assignment.id
                     failed = True
+
+                if not failed:
+                    for host in hosts:
+                        _pid = progress_map.get(host.name)
+                        self._update_progress(_pid, "released", "Environment released to tenant")
+                        self._update_progress(_pid, "completed")
 
         if failed and not assignment.notification.fail:
             await self.notify_failure(cloud, assignment.owner, assignment.ticket, report)
