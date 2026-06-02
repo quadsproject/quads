@@ -402,6 +402,32 @@ class QuadsApi(QuadsBase):
         data = response.json()
         return data
 
+    # Move Progress
+    def create_move_progress(self, data) -> Response:
+        return self.post(os.path.join("moves", "progress/"), data)
+
+    def create_move_progress_batch(self, records) -> Response:
+        return self.post(os.path.join("moves", "progress", "batch"), {"records": records})
+
+    def update_move_progress(self, progress_id, data) -> Response:
+        return self.patch(os.path.join("moves", "progress", str(progress_id)), data)
+
+    def get_move_progress(self, hostname):
+        response = self.get(os.path.join("moves", "progress", hostname))
+        return response.json()
+
+    def get_all_move_progress(self, cloud=None, status=None):
+        url = os.path.join("moves", "progress/")
+        params = {}
+        if cloud:
+            params["cloud"] = cloud
+        if status:
+            params["status"] = status
+        if params:
+            url = f"{url}?{url_parse.urlencode(params)}"
+        response = self.get(url)
+        return response.json()
+
     def get_version(self) -> Response:
         return self.get("version")
 

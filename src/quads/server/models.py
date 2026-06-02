@@ -98,6 +98,10 @@ class Serialize:
                 assignment = getattr(self, attr.key)
                 if assignment:
                     result["assignment"] = assignment.as_dict()
+            if attr.key == "schedule":
+                schedule = getattr(self, attr.key)
+                if schedule:
+                    result["schedule"] = schedule.as_dict()
             if attr.key == "notification":
                 notification = getattr(self, attr.key)
                 notification.assignment = None
@@ -146,6 +150,7 @@ class Serialize:
                 "notifications",
                 "assignment",
                 "vlan",
+                "schedule",
             ]
         }
         return {**result, **all_else}
@@ -660,4 +665,74 @@ class Schedule(Serialize, TimestampMixin, Base):
                 self.assignment,
                 self.host,
             )
+        )
+
+
+MOVE_STAGES = [
+    "pending",
+    "switch_config",
+    "ipmi_config",
+    "hardware_prep",
+    "power_on",
+    "provisioning",
+    "cleanup",
+    "reboot",
+    "post_install",
+    "foreman_rbac",
+    "validation",
+    "released",
+]
+TOTAL_STAGES = len(MOVE_STAGES)
+
+
+def stage_of(status):
+    if status in ("completed", "failed"):
+        return TOTAL_STAGES
+    try:
+        return MOVE_STAGES.index(status) + 1
+    except ValueError:
+        return 0
+
+
+class MoveProgress(Serialize, TimestampMixin, Base):
+    __tablename__ = "move_progress"
+    id = Column(Integer, primary_key=True)
+    host_id = Column(Integer, ForeignKey("hosts.id"), nullable=False)
+    host = relationship("Host", foreign_keys=[host_id])
+    schedule_id = Column(Integer, ForeignKey("schedules.id"), nullable=True)
+    schedule = relationship("Schedule", foreign_keys=[schedule_id])
+    source_cloud = Column(String, nullable=False)
+    target_cloud = Column(String, nullable=False)
+    status = Column(
+        Enum(
+            "pending",
+            "switch_config",
+            "ipmi_config",
+            "hardware_prep",
+            "power_on",
+            "provisioning",
+            "cleanup",
+            "reboot",
+            "post_install",
+            "foreman_rbac",
+            "validation",
+            "released",
+            "completed",
+            "failed",
+            name="move_status_enum",
+        ),
+        default="pending",
+    )
+    message = Column(String, nullable=True)
+    error_message = Column(String, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return "<MoveProgress(id='{}', host_id='{}', source='{}', target='{}', " "status='{}')>".format(
+            self.id,
+            self.host_id,
+            self.source_cloud,
+            self.target_cloud,
+            self.status,
         )
