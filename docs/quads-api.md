@@ -15,6 +15,7 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Obtain a List of all Systems in a Cloud](#obtain-a-list-of-all-systems-in-a-cloud)
     * [Query a Model Type by Cloud](#query-a-model-type-by-cloud)
     * [Query a Host Schedule](#query-a-host-schedule)
+    * [Query Move Progress](#query-move-progress)
     * [Query Available OS in Foreman](#query-available-os-in-foreman)
   * [More Examples with API POST](#more-examples-with-api-post)
     * [Define a Host via API POST](#define-a-host-via-api-post)
@@ -112,6 +113,8 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
     - `/api/v3/vlans/free`          Retrieve a list of all available vlans
     - `/api/v3/clouds/summary`      Obtain a full summary of clouds, tickets, descriptions
     - `/api/v3/moves`               Obtain a list of hosts with their current and future clouds
+    - `/api/v3/moves/progress/`     List all active move progress records (supports `?cloud=` and `?status=` filters)
+    - `/api/v3/moves/progress/<hostname>` Get move progress for a specific host
 
 ## API POST Operations
 * The following construct can be used via http ```POST``` to receive more detailed data by providing granular criteria to return JSON body data:
@@ -122,6 +125,9 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
     - ```/api/v3/clouds```       Same as `quads --define-cloud` for creating/updating a cloud environment.
     - ```/api/v3/schedules```    AKA _add host schedule_ used for adding a new host schedule.
     - ```/api/v3/interfaces```   Add an interface to a QUADS-managed host
+    - ```/api/v3/moves/progress/batch```  Start move tracking for a batch of hosts (admin)
+  * Valid PATCH URI queries
+    - ```/api/v3/moves/progress/<id>```  Update move status on a schedule (admin)
 
 ## Working Examples
 
@@ -597,6 +603,48 @@ curl -X 'POST' \
 - Automatically posts JIRA comment with host list
 - Transitions JIRA ticket to "scheduled" status
 - All-or-nothing: if any host unavailable, no schedules created
+
+### Query Move Progress
+
+Query all active moves across all clouds:
+
+```bash
+curl -s http://localhost/api/v3/moves/progress/ | jq
+```
+
+Filter by a specific cloud:
+
+```bash
+curl -s 'http://localhost/api/v3/moves/progress/?cloud=cloud02' | jq
+```
+
+Query a specific host:
+
+```bash
+curl -s http://localhost/api/v3/moves/progress/host01.example.com | jq
+```
+
+- Response:
+```json
+{
+  "id": 42,
+  "host": "host01.example.com",
+  "host_id": 15,
+  "source_cloud": "cloud01",
+  "target_cloud": "cloud02",
+  "status": "provisioning",
+  "message": "Provisioner ready",
+  "error_message": null,
+  "started_at": "2026-06-02T12:00:00",
+  "completed_at": null
+}
+```
+
+> [!NOTE]
+> Progress GET endpoints do not require authentication, matching the pattern of other read-only endpoints. Write endpoints (`POST`, `PATCH`) require admin authentication.
+
+> [!TIP]
+> The `status` field progresses through: `pending` > `switch_config` > `ipmi_config` > `hardware_prep` > `power_on` > `provisioning` > `cleanup` > `reboot` > `post_install` > `foreman_rbac` > `validation` > `released` > `completed`. Hosts that fail report `status: "failed"` with details in `error_message`.
 
 ### Query Available OS in Foreman
 
