@@ -46,6 +46,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [How Provisioning Works](#how-provisioning-works)
             * [QUADS Move Host Command](#quads-move-host-command)
               * [QUADS Move Host Command Dry Run](#quads-move-host-command-dry-run)
+              * [Monitoring Move Progress](#monitoring-move-progress)
       * [QUADS Reporting](#quads-reporting)
         * [Future Assignment Reporting](#future-assignment-reporting)
         * [Server Availability Overview Report](#server-availability-overview-report)
@@ -655,6 +656,19 @@ Moving d16-h06-000-r650.example.com from cloud60 to cloud01, wipe = False
 Moving d16-h07-000-r650.example.com cloud60 to cloud01, wipe = False
 
 ```
+
+##### Monitoring Move Progress
+* Use `--show-progress` to monitor active moves through their 12-stage provisioning pipeline:
+
+```
+quads --show-progress --all
+quads --show-progress --cloud cloud02
+```
+
+> [!TIP]
+> Combine with `watch` for a live dashboard: `watch -n 10 quads --show-progress --all`
+>
+> The same data is available via the [REST API](/docs/quads-api.md#query-move-progress) at `GET /api/v3/moves/progress/`
 
 * The move workflow is now managed through the plugin architecture
 * To customize the release workflow:
