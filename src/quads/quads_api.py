@@ -402,6 +402,29 @@ class QuadsApi(QuadsBase):
         data = response.json()
         return data
 
+    # Move Status
+    def start_move_batch(self, hostnames) -> Response:
+        return self.post(os.path.join("moves", "progress", "batch"), {"hostnames": hostnames})
+
+    def update_move_status(self, schedule_id, data) -> Response:
+        return self.patch(os.path.join("moves", "progress", str(schedule_id)), data)
+
+    def get_move_status(self, hostname):
+        response = self.get(os.path.join("moves", "progress", hostname))
+        return response.json()
+
+    def get_all_move_status(self, cloud=None, status=None):
+        url = os.path.join("moves", "progress/")
+        params = {}
+        if cloud:
+            params["cloud"] = cloud
+        if status:
+            params["status"] = status
+        if params:
+            url = f"{url}?{url_parse.urlencode(params)}"
+        response = self.get(url)
+        return response.json()
+
     def get_version(self) -> Response:
         return self.get("version")
 
