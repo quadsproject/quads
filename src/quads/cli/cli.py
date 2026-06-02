@@ -1834,10 +1834,15 @@ class QuadsCli:
             #  raise the number of semaphores after this is resolved
             #  https://projects.theforeman.org/issues/27953#change-127120
             semaphore = asyncio.Semaphore(1)
+            plugin_manager = PluginManager()
+            plugin_manager.initialize()
+            release_dispatcher = get_release_dispatcher(plugin_manager)
+            switch_dispatcher = get_switch_dispatcher(plugin_manager)
             for _cloud, results in _clouds.items():
                 provisioned = True
                 tasks = []
                 switch_tasks = []
+                move_args = []
                 for result in results:
                     host = result["host"]
                     current = result["current"]
@@ -1883,12 +1888,7 @@ class QuadsCli:
                             ) as ex:  # pragma: no cover
                                 raise CliException(str(ex))
                         try:
-                            plugin_manager = PluginManager()
-                            plugin_manager.initialize()
-                            release_dispatcher = get_release_dispatcher(plugin_manager)
-                            switch_dispatcher = get_switch_dispatcher(plugin_manager)
-                            fn = functools.partial(release_dispatcher.move_and_rebuild, host, new, semaphore, wipe)
-                            tasks.append(fn)
+                            move_args.append({"host": host, "new": new, "semaphore": semaphore, "wipe": wipe})
                             omits = conf.get("omit_network_move")
                             omit = False
                             if omits:
@@ -1903,6 +1903,86 @@ class QuadsCli:
                             provisioned = False
 
                 if not self.cli_args.get("dryrun"):
+                    schedule_ids = {}
+                    hostnames = [r["host"] for r in results]
+                    try:
+                        resp = self.quads.start_move_batch(hostnames)
+                        schedule_ids = resp.json()
+                    except Exception as ex:
+                        self.logger.warning(f"Failed to start move batch: {ex}")
+
+                    for task in switch_tasks:
+                        hostname = task.args[0]
+                        _schedule_id = schedule_ids.get(hostname)
+                        if _schedule_id:
+                            try:
+                                self.quads.update_move_status(
+                                    _schedule_id,
+                                    {"status": "switch_config", "message": "Configuring switch"},
+                                )
+                            except Exception:
+                                pass
+
+                        try:
+                            host_obj = self.quads.get_host(hostname)
+                        except (
+                            APIServerException,
+                            APIBadRequest,
+                        ) as ex:  # pragma: no cover
+                            self.logger.exception(str(ex))
+                            continue
+
+                        if not host_obj.switch_config_applied:
+                            self.logger.info(f"Running switch config for {hostname}")
+                            try:
+                                result = task()
+                            except Exception as exc:
+                                self.logger.exception(
+                                    "There was something wrong configuring the switch.",
+                                    exc_info=exc,
+                                )
+                                if _schedule_id:
+                                    try:
+                                        self.quads.update_move_status(
+                                            _schedule_id,
+                                            {"status": "failed", "error_message": "Switch configuration failed"},
+                                        )
+                                    except Exception:
+                                        pass
+                                continue
+
+                            if result:
+                                try:
+                                    self.quads.update_host(hostname, {"switch_config_applied": True})
+                                except (
+                                    APIServerException,
+                                    APIBadRequest,
+                                ) as ex:  # pragma: no cover
+                                    self.logger.exception(str(ex))
+                                    continue
+                            else:
+                                self.logger.exception("There was something wrong configuring the switch.")
+                                if _schedule_id:
+                                    try:
+                                        self.quads.update_move_status(
+                                            _schedule_id,
+                                            {"status": "failed", "error_message": "Switch configuration failed"},
+                                        )
+                                    except Exception:
+                                        pass
+                                continue
+
+                    for ma in move_args:
+                        fn = functools.partial(
+                            release_dispatcher.move_and_rebuild,
+                            ma["host"],
+                            ma["new"],
+                            ma["semaphore"],
+                            ma["wipe"],
+                            schedule_id=schedule_ids.get(ma["host"]),
+                        )
+                        tasks.append(fn)
+
                     try:
                         old_clouds = set()
                         for result in results:
@@ -1938,38 +2018,6 @@ class QuadsCli:
                     ):
                         self.logger.exception("Move command failed")
                         provisioned = False
-                    for task in switch_tasks:
-                        try:
-                            host_obj = self.quads.get_host(task.args[0])
-                        except (
-                            APIServerException,
-                            APIBadRequest,
-                        ) as ex:  # pragma: no cover
-                            self.logger.exception(str(ex))
-                            continue
-
-                        if not host_obj.switch_config_applied:
-                            self.logger.info(f"Running switch config for {task.args[0]}")
-
-                            try:
-                                result = task()
-                            except Exception as exc:
-                                self.logger.exception(
-                                    "There was something wrong configuring the switch.",
-                                    exc_info=exc,
-                                )
-
-                            if result:
-                                try:
-                                    self.quads.update_host(task.args[0], {"switch_config_applied": True})
-                                except (
-                                    APIServerException,
-                                    APIBadRequest,
-                                ) as ex:  # pragma: no cover
-                                    self.logger.exception(str(ex))
-                                    continue
-                            else:
-                                self.logger.exception("There was something wrong configuring the switch.")
 
                     if done:
                         for future in done:
@@ -1989,6 +2037,22 @@ class QuadsCli:
                                     {"provisioned": True, "validated": validate},
                                 )
                                 foreman_heal(self.logger)
+
+                                for r in results:
+                                    _pid = schedule_ids.get(r["host"])
+                                    if _pid:
+                                        try:
+                                            self.quads.update_move_status(
+                                                _pid,
+                                                {"status": "foreman_rbac", "message": "Foreman RBAC synced"},
+                                            )
+                                            if validate:
+                                                self.quads.update_move_status(
+                                                    _pid, {"status": "released", "message": "Environment released"}
+                                                )
+                                                self.quads.update_move_status(_pid, {"status": "completed"})
+                                        except Exception:
+                                            pass
                         except (
                             APIServerException,
                             APIBadRequest,
@@ -1996,6 +2060,64 @@ class QuadsCli:
                             raise CliException(str(ex))
 
             return 0
+
+    def action_show_progress(self):
+        from quads.server.models import Schedule
+
+        cloud_name = self.cli_args.get("cloud")
+        show_all = self.cli_args.get("all")
+
+        if not cloud_name and not show_all:
+            raise CliException("--show-progress requires --cloud <name> or --all")
+
+        try:
+            if show_all:
+                active_moves = self.quads.get_all_move_status()
+                if not active_moves:
+                    self.logger.info("No active moves")
+                    return 0
+
+                by_cloud = {}
+                for move in active_moves:
+                    cloud = move.get("target_cloud", "unknown")
+                    by_cloud.setdefault(cloud, []).append(move)
+
+                for cloud, moves in sorted(by_cloud.items()):
+                    total = len(moves)
+                    self.logger.info(f"{cloud}: {total} host(s) in progress")
+                return 0
+
+            cloud_moves = self.quads.get_all_move_status(cloud=cloud_name)
+            if not cloud_moves:
+                self.logger.info(f"No active moves for {cloud_name}")
+                return 0
+
+            assignment = self.quads.get_active_cloud_assignment(cloud_name)
+            if assignment:
+                desc = assignment.description or ""
+                owner = assignment.owner or ""
+                self.logger.info(f"{cloud_name} - {desc} ({owner})")
+            else:
+                self.logger.info(cloud_name)
+
+            for move in cloud_moves:
+                host = move.get("host", "?")
+                status = move.get("status", "pending")
+                stage = Schedule.stage_of(status)
+                msg = move.get("message", "") or ""
+                err = move.get("error_message", "")
+                if status == "failed":
+                    display = f"  {host}: FAILED at stage {stage}/{Schedule.TOTAL_STAGES} ({status})"
+                else:
+                    display = f"  {host}: {stage}/{Schedule.TOTAL_STAGES} stages ({status})"
+                if msg:
+                    display += f" - {msg}"
+                if err:
+                    display += f" [ERROR: {err}]"
+                self.logger.info(display)
+            return 0
+        except (APIServerException, APIBadRequest) as ex:
+            raise CliException(str(ex))
 
     def action_mark_broken(self):
         if not self.cli_args.get("host"):

@@ -1,3 +1,4 @@
+import enum
 import hashlib
 import os
 import secrets
@@ -98,6 +99,10 @@ class Serialize:
                 assignment = getattr(self, attr.key)
                 if assignment:
                     result["assignment"] = assignment.as_dict()
+            if attr.key == "schedule":
+                schedule = getattr(self, attr.key)
+                if schedule:
+                    result["schedule"] = schedule.as_dict()
             if attr.key == "notification":
                 notification = getattr(self, attr.key)
                 notification.assignment = None
@@ -146,6 +151,7 @@ class Serialize:
                 "notifications",
                 "assignment",
                 "vlan",
+                "schedule",
             ]
         }
         return {**result, **all_else}
@@ -632,13 +638,41 @@ class Host(Serialize, TimestampMixin, Base):
         )
 
 
+class MoveStatus(enum.Enum):
+    PENDING = "pending"
+    SWITCH_CONFIG = "switch_config"
+    IPMI_CONFIG = "ipmi_config"
+    HARDWARE_PREP = "hardware_prep"
+    POWER_ON = "power_on"
+    PROVISIONING = "provisioning"
+    CLEANUP = "cleanup"
+    REBOOT = "reboot"
+    POST_INSTALL = "post_install"
+    FOREMAN_RBAC = "foreman_rbac"
+    VALIDATION = "validation"
+    RELEASED = "released"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 class Schedule(Serialize, TimestampMixin, Base):
     __tablename__ = "schedules"
+
+    PROGRESSIVE_STAGES = [s for s in MoveStatus if s not in (MoveStatus.COMPLETED, MoveStatus.FAILED)]
+    TOTAL_STAGES = len(PROGRESSIVE_STAGES)
+    VALID_STATUSES = {s.value for s in MoveStatus}
+
     id = Column(Integer, primary_key=True)
     start = Column(DateTime)
     end = Column(DateTime)
     build_start = Column(DateTime)
     build_end = Column(DateTime)
+    move_status = Column(
+        Enum(*[s.value for s in MoveStatus], name="move_status_enum", create_type=False),
+        nullable=True,
+    )
+    move_message = Column(String, nullable=True)
+    move_error = Column(String, nullable=True)
 
     # many-to-one parent
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
@@ -647,6 +681,15 @@ class Schedule(Serialize, TimestampMixin, Base):
     # many-to-one parent
     host_id = Column(Integer, ForeignKey("hosts.id"))
     host = relationship("Host", foreign_keys=[host_id])
+
+    @staticmethod
+    def stage_of(status: str) -> int:
+        if status in (MoveStatus.COMPLETED.value, MoveStatus.FAILED.value):
+            return Schedule.TOTAL_STAGES
+        try:
+            return Schedule.PROGRESSIVE_STAGES.index(MoveStatus(status)) + 1
+        except ValueError:
+            return 0
 
     def __repr__(self):
         return (
