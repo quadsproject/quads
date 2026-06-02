@@ -98,6 +98,10 @@ class Serialize:
                 assignment = getattr(self, attr.key)
                 if assignment:
                     result["assignment"] = assignment.as_dict()
+            if attr.key == "schedule":
+                schedule = getattr(self, attr.key)
+                if schedule:
+                    result["schedule"] = schedule.as_dict()
             if attr.key == "notification":
                 notification = getattr(self, attr.key)
                 notification.assignment = None
@@ -146,6 +150,7 @@ class Serialize:
                 "notifications",
                 "assignment",
                 "vlan",
+                "schedule",
             ]
         }
         return {**result, **all_else}
@@ -639,6 +644,29 @@ class Schedule(Serialize, TimestampMixin, Base):
     end = Column(DateTime)
     build_start = Column(DateTime)
     build_end = Column(DateTime)
+    move_status = Column(
+        Enum(
+            "pending",
+            "switch_config",
+            "ipmi_config",
+            "hardware_prep",
+            "power_on",
+            "provisioning",
+            "cleanup",
+            "reboot",
+            "post_install",
+            "foreman_rbac",
+            "validation",
+            "released",
+            "completed",
+            "failed",
+            name="move_status_enum",
+            create_type=False,
+        ),
+        nullable=True,
+    )
+    move_message = Column(String, nullable=True)
+    move_error = Column(String, nullable=True)
 
     # many-to-one parent
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
@@ -661,3 +689,29 @@ class Schedule(Serialize, TimestampMixin, Base):
                 self.host,
             )
         )
+
+
+MOVE_STAGES = [
+    "pending",
+    "switch_config",
+    "ipmi_config",
+    "hardware_prep",
+    "power_on",
+    "provisioning",
+    "cleanup",
+    "reboot",
+    "post_install",
+    "foreman_rbac",
+    "validation",
+    "released",
+]
+TOTAL_STAGES = len(MOVE_STAGES)
+
+
+def stage_of(status):
+    if status in ("completed", "failed"):
+        return TOTAL_STAGES
+    try:
+        return MOVE_STAGES.index(status) + 1
+    except ValueError:
+        return 0
