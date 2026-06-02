@@ -33,6 +33,23 @@
       "message": "retrigger",
       "revId": "6449a5f6553982608e6c7b1f8b001337c2ee4d10",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a31e3cb4_57765f28",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-02T10:09:06Z",
+      "side": 1,
+      "message": "We need to move this to the new gerrit under quadsproject",
+      "revId": "6449a5f6553982608e6c7b1f8b001337c2ee4d10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
