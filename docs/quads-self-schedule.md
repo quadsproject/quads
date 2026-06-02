@@ -11,6 +11,7 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Get available hosts via REST](#get-available-hosts-via-rest)
     * [Create an assignment via REST](#create-an-assignment-via-rest)
     * [Schedule a host via REST](#schedule-a-host-via-rest)
+    * [Track move progress via REST](#track-move-progress-via-rest)
     * [Wait for validation via REST](#wait-for-validation-via-rest)
     * [Terminate assignment via REST](#terminate-assignment-via-rest)
   * [Via python-quads-lib](#via-python-quads-lib)
@@ -19,6 +20,7 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Get available hosts via Python](#get-available-hosts-via-python)
     * [Create an assignment via Python](#create-an-assignment-via-python)
     * [Schedule a host via Python](#schedule-a-host-via-python)
+    * [Track move progress via Python](#track-move-progress-via-python)
     * [Wait for validation via Python](#wait-for-validation-via-python)
     * [Terminate assignment via Python](#terminate-assignment-via-python)
   * [Via Ansible](#via-ansible)
@@ -109,6 +111,47 @@ curl -s -k \
 >
 > This is managed by the `ssm_host_limit` setting in `/opt/quads/conf/selfservice.yml`
 
+### Track move progress via REST
+
+> [!NOTE]
+> After scheduling, QUADS moves hosts through a 12-stage pipeline (switch config, IPMI, hardware prep, provisioning, validation, etc.).
+>
+> The progress API lets you track each host's current stage without waiting for the final `validated` flag.
+
+Query progress for a specific host:
+
+```bash
+curl -s https://quads.example.com/api/v3/moves/progress/host1.example.com | jq
+```
+
+Response:
+
+```json
+{
+  "id": 42,
+  "host": "host1.example.com",
+  "source_cloud": "cloud01",
+  "target_cloud": "cloud02",
+  "status": "provisioning",
+  "message": "Provisioner ready",
+  "error_message": null,
+  "started_at": "2026-06-02T12:00:00",
+  "completed_at": null
+}
+```
+
+Query all active moves for your cloud:
+
+```bash
+curl -s https://quads.example.com/api/v3/moves/progress/?cloud=cloud02 | jq
+```
+
+> [!TIP]
+> Use `watch` for a live dashboard while waiting for your environment:
+> ```bash
+> watch -n 10 'curl -s https://quads.example.com/api/v3/moves/progress/?cloud=cloud02 | jq'
+> ```
+
 ### Wait for validation via REST
 
 > [!NOTE]
@@ -119,6 +162,9 @@ curl -s -k \
 ```bash
 curl -s http://quads.example.com/api/v3/assignments/assignment_id | jq | grep validated
 ```
+
+> [!TIP]
+> For granular, per-host progress while waiting, use the [move progress endpoint](#track-move-progress-via-rest) instead of polling the binary `validated` flag.
 
 ### Terminate assignment via REST
 
@@ -197,6 +243,32 @@ with QuadsApi(username, password, base_url) as quads:
     quads.create_schedule(payload)
 ```
 
+### Track move progress via Python
+
+Query progress for a specific host:
+
+```python
+from quads_lib import QuadsApi
+
+with QuadsApi(username, password, base_url) as quads:
+    progress = quads.get_move_progress("host1.example.com")
+    print(f"{progress['host']}: {progress['status']} - {progress.get('message', '')}")
+```
+
+Query all active moves for your cloud:
+
+```python
+from quads_lib import QuadsApi
+
+with QuadsApi(username, password, base_url) as quads:
+    moves = quads.get_all_move_progress(cloud="cloud02")
+    for move in moves:
+        print(f"{move['host']}: {move['status']}")
+```
+
+> [!TIP]
+> The `status` field progresses through 12 stages: `pending`, `switch_config`, `ipmi_config`, `hardware_prep`, `power_on`, `provisioning`, `cleanup`, `reboot`, `post_install`, `foreman_rbac`, `validation`, `released`, then terminates as `completed` or `failed`.
+
 ### Wait for validation via Python
 ```python
 from quads_lib import QuadsApi
@@ -208,6 +280,9 @@ while True:
           break
       time.sleep(1)
 ```
+
+> [!TIP]
+> For granular, per-host progress while waiting, use the [move progress methods](#track-move-progress-via-python) instead of polling the binary `validated` flag.
 
 ### Terminate assignment via Python
 ```python
