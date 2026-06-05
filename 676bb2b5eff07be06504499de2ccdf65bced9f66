@@ -16,6 +16,24 @@
       "message": "why is it passing kwargs instead of the 3 args status, message and error?",
       "revId": "676bb2b5eff07be06504499de2ccdf65bced9f66",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4fda7acc_a940bdeb",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-05T14:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f8eb272_9b1e5d78",
+      "revId": "676bb2b5eff07be06504499de2ccdf65bced9f66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
