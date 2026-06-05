@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "960ee811_483ac9d5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-05T17:33:12Z",
+      "side": 1,
+      "message": "Some feedback on last patch (patchset 11)\n\nrecommended adjustments:  https://gist.github.com/sadsfae/b46e24636decd4328828b4b55641168e\n\nSLOP PASTE:\n-----------\n  CRITICAL\n  \n  1. Migration will fail at runtime. The migration uses create_type\u003dFalse on the enum but chains from 965ac44a95f5 (API tokens) -- no prior\n  migration creates the move_status_enum type. PostgreSQL will throw type \"move_status_enum\" does not exist. The established pattern (e9b96f886b77,\n  0f6d1a14c8f5) explicitly creates the enum first with sa.Enum(...).create(op.get_bind()). The downgrade also doesn\u0027t drop the enum type.\n\n  IMPORTANT\n\n  2. Superseded-move logic is dead code. In start_move_batch(), lines 345-351 set move_status \u003d \"failed\" then immediately overwrite it to \"pending\"\n  on the same row before safe_commit(). The \"superseded\" state is never persisted. The if-block has zero effect.\n\n  3. Migration seeds phantom data. The UPDATE schedules SET move_status \u003d CASE WHEN start \u003c NOW() THEN \u0027completed\u0027 ELSE \u0027pending\u0027 END sets ALL\n  existing schedules to a move status. Future schedules get \"pending\", which means they\u0027ll appear in get_active_moves() queries as if they have\n  active moves in progress. Existing schedules should be left NULL -- the code already handles NULL correctly (_progress_to_dict defaults to\n  \"pending\", DAO filters on IS NOT NULL).\n\n  4. Eager loading mismatch. load_only(Host.name) in the DAO queries prevents loading host.cloud_id, but _progress_to_dict() accesses\n  schedule.host.cloud.name. This will trigger N+1 lazy loads or errors.\n,4:16 PM,",
+      "revId": "fa085d5c09407bf5c100ad9855707873c6cba08c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
