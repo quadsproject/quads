@@ -213,11 +213,10 @@ if [ "$1" -eq 1 ]; then
     /usr/bin/systemctl start nginx
 fi
 
-# upgrades only we bounce services and run any migrations
+# Flag for %posttrans so it knows this is an upgrade
 if [ "$1" -eq 2 ]; then
-/usr/bin/systemctl restart quads-server
-/usr/bin/systemctl restart quads-web
-cd /opt/quads && flask --app quads.server.app db upgrade
+    mkdir -p /var/lib/rpm-state/%{name}
+    touch /var/lib/rpm-state/%{name}/upgrade_pending
 fi
 
 if [ "$1" -eq 1 ]; then
@@ -230,6 +229,16 @@ echo "                                                       "
 echo "        flask --app quads.server.app init-db           "
 echo "                                                       "
 echo "======================================================="
+fi
+
+%posttrans
+if [ -f /var/lib/rpm-state/%{name}/upgrade_pending ]; then
+    source /etc/profile.d/quads.sh
+    find /opt/quads/migrations/versions -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null
+    cd /opt/quads && flask --app quads.server.app db upgrade
+    /usr/bin/systemctl restart quads-server
+    /usr/bin/systemctl restart quads-web
+    rm -rf /var/lib/rpm-state/%{name}
 fi
 
 %preun
