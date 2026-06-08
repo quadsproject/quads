@@ -213,11 +213,10 @@ if [ "$1" -eq 1 ]; then
     /usr/bin/systemctl start nginx
 fi
 
-# upgrades only we bounce services and run any migrations
+# upgrades only we bounce services
 if [ "$1" -eq 2 ]; then
-/usr/bin/systemctl restart quads-server
-/usr/bin/systemctl restart quads-web
-cd /opt/quads && flask --app quads.server.app db upgrade
+    /usr/bin/systemctl restart quads-server
+    /usr/bin/systemctl restart quads-web
 fi
 
 if [ "$1" -eq 1 ]; then
@@ -231,6 +230,11 @@ echo "        flask --app quads.server.app init-db           "
 echo "                                                       "
 echo "======================================================="
 fi
+
+%posttrans
+source /etc/profile.d/quads.sh
+find /opt/quads/migrations/versions -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null
+cd /opt/quads && flask --app quads.server.app db upgrade
 
 %preun
 if [ "$1" -eq 0 ]; then
