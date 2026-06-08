@@ -922,6 +922,9 @@ SCHEDULE_1_RESPONSE = {
     },
     "host_id": 2,
     "id": 1,
+    "move_error": None,
+    "move_message": None,
+    "move_status": None,
     "start": "Sat, 04 Feb 2023 22:00:00 GMT",
 }
 SCHEDULE_2_REQUEST = {
@@ -1013,6 +1016,9 @@ SCHEDULE_2_RESPONSE = {
     },
     "host_id": 3,
     "id": 2,
+    "move_error": None,
+    "move_message": None,
+    "move_status": None,
     "start": "Sat, 04 Feb 2023 22:00:00 GMT",
 }
 SCHEDULE_1_UPDATE_REQUEST = {

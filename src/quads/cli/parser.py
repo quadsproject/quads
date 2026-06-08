@@ -665,6 +665,13 @@ parser.add_argument(
     help="Move hosts if schedule has changed",
 )
 parser.add_argument(
+    "--show-progress",
+    dest="action",
+    action="store_const",
+    const="show_progress",
+    help="Show move/provisioning progress for a cloud or all clouds",
+)
+parser.add_argument(
     "--move-command",
     dest="movecommand",
     type=str,

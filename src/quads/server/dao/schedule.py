@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-from typing import List, Type
+from typing import List, Optional, Type
 
 from sqlalchemy import Boolean, and_, extract, func
 from sqlalchemy.dialects.postgresql import array_agg
+from sqlalchemy.orm import joinedload
 
 from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.baseDao import (
@@ -14,7 +15,7 @@ from quads.server.dao.baseDao import (
 )
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.host import HostDao
-from quads.server.models import Assignment, Cloud, Host, Schedule, db
+from quads.server.models import Assignment, Cloud, Host, MoveStatus, Schedule, db
 
 
 class ScheduleDao(BaseDao):
@@ -314,3 +315,78 @@ class ScheduleDao(BaseDao):
                 return False
 
         return True
+
+    @classmethod
+    def update_move_status(
+        cls,
+        schedule_id: int,
+        move_status: Optional[str] = None,
+        move_message: Optional[str] = None,
+        move_error: Optional[str] = None,
+    ) -> Schedule:
+        schedule = cls.get_schedule(schedule_id)
+        if not schedule:
+            raise EntryNotFound
+        if move_status is not None:
+            schedule.move_status = move_status
+            if move_status in (MoveStatus.COMPLETED.value, MoveStatus.FAILED.value):
+                schedule.build_end = datetime.now()
+        if move_message is not None:
+            schedule.move_message = move_message
+        if move_error is not None:
+            schedule.move_error = move_error
+        cls.safe_commit()
+        return schedule
+
+    @classmethod
+    def start_move_batch(cls, hostnames: list) -> dict:
+        result = {}
+        now = datetime.now()
+        for hostname in hostnames:
+            host = HostDao.get_host(hostname)
+            if not host:
+                raise EntryNotFound
+            schedules = cls.get_current_schedule(host=host)
+            if not schedules:
+                raise EntryNotFound
+            schedule = schedules[0]
+            schedule.move_status = "pending"
+            schedule.move_message = None
+            schedule.move_error = None
+            schedule.build_start = now
+            result[hostname] = schedule.id
+        cls.safe_commit()
+        return result
+
+    @classmethod
+    def get_active_moves(cls, cloud: str = None, status: str = None) -> List[Schedule]:
+        query = (
+            db.session.query(Schedule)
+            .options(
+                joinedload(Schedule.host).load_only(Host.name),
+                joinedload(Schedule.assignment).joinedload(Assignment.cloud),
+            )
+            .filter(Schedule.move_status.isnot(None))
+            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+        )
+        if cloud:
+            query = query.join(Assignment).join(Cloud).filter(Cloud.name == cloud)
+        if status:
+            query = query.filter(Schedule.move_status == status)
+        return query.all()
+
+    @classmethod
+    def get_active_move_by_hostname(cls, hostname: str) -> Optional[Schedule]:
+        return (
+            db.session.query(Schedule)
+            .join(Host, Schedule.host_id == Host.id)
+            .options(
+                joinedload(Schedule.host).load_only(Host.name),
+                joinedload(Schedule.assignment).joinedload(Assignment.cloud),
+            )
+            .filter(Host.name == hostname)
+            .filter(Schedule.move_status.isnot(None))
+            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+            .order_by(Schedule.id.desc())
+            .first()
+        )

@@ -14,7 +14,12 @@ class ReleaseDispatcher(SinglePluginDispatcher[ReleasePlugin]):
         super().__init__(plugin_manager, ReleasePlugin, "Release")
 
     async def move_and_rebuild(
-        self, host: str, new_cloud: str, semaphore: asyncio.Semaphore, rebuild: bool = False
+        self,
+        host: str,
+        new_cloud: str,
+        semaphore: asyncio.Semaphore,
+        rebuild: bool = False,
+        schedule_id: Optional[int] = None,
     ) -> bool:
         if not self._default_plugin:
             logger.error("No release plugin enabled")
@@ -22,7 +27,9 @@ class ReleaseDispatcher(SinglePluginDispatcher[ReleasePlugin]):
 
         logger.info(f"Moving {host} to {new_cloud} (rebuild={rebuild}) via {self._default_plugin.name}")
         try:
-            return await self._default_plugin.move_and_rebuild(host, new_cloud, semaphore, rebuild)
+            return await self._default_plugin.move_and_rebuild(
+                host, new_cloud, semaphore, rebuild, schedule_id=schedule_id
+            )
         except Exception as e:
             logger.error(f"Failed to move/rebuild host: {e}")
             return False
@@ -42,6 +49,12 @@ def get_release_dispatcher(plugin_manager: Optional[PluginManager] = None) -> Re
     return _dispatcher_instance
 
 
-async def move_and_rebuild(host: str, new_cloud: str, semaphore: asyncio.Semaphore, rebuild: bool = False) -> bool:
+async def move_and_rebuild(
+    host: str,
+    new_cloud: str,
+    semaphore: asyncio.Semaphore,
+    rebuild: bool = False,
+    schedule_id: Optional[int] = None,
+) -> bool:
     dispatcher = get_release_dispatcher()
-    return await dispatcher.move_and_rebuild(host, new_cloud, semaphore, rebuild)
+    return await dispatcher.move_and_rebuild(host, new_cloud, semaphore, rebuild, schedule_id=schedule_id)

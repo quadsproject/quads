@@ -35,8 +35,24 @@ class StandardReleasePlugin(ReleasePlugin):
         self.hardware_initialized = False
         return True
 
+    async def _report_progress(self, schedule_id, status, message="", error_message=""):
+        if not schedule_id:
+            return
+        try:
+            data = {"status": status, "message": message}
+            if error_message:
+                data["error_message"] = error_message
+            await asyncio.to_thread(self.quads.update_move_status, schedule_id, data)
+        except Exception as e:
+            self.logger.warning(f"Failed to report progress: {e}")
+
     async def move_and_rebuild(
-        self, host: str, new_cloud: str, semaphore: asyncio.Semaphore, rebuild: bool = False
+        self,
+        host: str,
+        new_cloud: str,
+        semaphore: asyncio.Semaphore,
+        rebuild: bool = False,
+        schedule_id: Optional[int] = None,
     ) -> bool:
         """Move a host to a new cloud and optionally rebuild it"""
         build_start = datetime.now()
@@ -68,6 +84,7 @@ class StandardReleasePlugin(ReleasePlugin):
         ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else ipmi_password
         ipmi = IPMI(host, ipmi_username, ipmi_password, logger=self.logger)
         await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
+        await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured")
 
         _is_supermicro = is_supermicro(host)
 
@@ -78,35 +95,40 @@ class StandardReleasePlugin(ReleasePlugin):
                 pass
 
             if _is_supermicro:
-                # No Badfish for Supermicro — use raw ipmitool
+                # No Badfish for Supermicro -- use raw ipmitool
                 os_type = Config.plugins["foreman"]["default_os"]
                 if _assignment and _assignment.ostype:
                     os_type = _assignment.ostype
 
+                await self._report_progress(schedule_id, "provisioning", "Preparing provisioner")
                 if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
-                    self._update_host_on_failure(host_obj)
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                     return False
 
+                await self._report_progress(schedule_id, "reboot", "PXE boot and power cycle")
                 if not await ipmi.pxe_persistent():
                     self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
-                    self._update_host_on_failure(host_obj)
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                     return False
             else:
                 # Dell/HPE: serialize Badfish calls via semaphore so concurrent move
                 # tasks don't interleave on the shared singleton dispatcher.
                 async with semaphore:
-                    self.hardware_initialized = False  # reset inside semaphore so each queued task gets a fresh init
-                    ok, vendor = await self.prepare_host_hardware(host_obj, boot_order, Config.get("badfish_interfaces_path"))
+                    self.hardware_initialized = False
+                    ok, vendor = await self.prepare_host_hardware(
+                        host_obj, boot_order, Config.get("badfish_interfaces_path")
+                    )
                     if not ok:
-                        self._update_host_on_failure(host_obj)
+                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                         return False
+                    await self._report_progress(schedule_id, "hardware_prep", "Hardware prepared")
 
                     if not await self.power_on_host(host_obj):
                         self.logger.error(f"Failed to power on {host}")
-                        self._update_host_on_failure(host_obj)
+                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                         return False
+                    await self._report_progress(schedule_id, "power_on", "Host powered on")
 
-                    # Capture vendor immediately after power_on_host (synchronous, no yield between)
                     if vendor is None:
                         vendor = self.hardware_dispatcher.get_vendor()
 
@@ -115,20 +137,27 @@ class StandardReleasePlugin(ReleasePlugin):
                         os_type = _assignment.ostype
 
                     if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
-                        self._update_host_on_failure(host_obj)
+                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                         return False
+                    await self._report_progress(schedule_id, "provisioning", "Provisioner ready")
 
                     await self.cleanup_virtual_media(host_obj)
+                    await self._report_progress(schedule_id, "cleanup", "Virtual media cleaned")
 
                     if vendor == "Dell":
-                        if not await self.reboot_for_rebuild(host_obj, boot_order, Config.get("badfish_interfaces_path")):
-                            self._update_host_on_failure(host_obj)
+                        if not await self.reboot_for_rebuild(
+                            host_obj, boot_order, Config.get("badfish_interfaces_path")
+                        ):
+                            self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                             return False
                     else:
                         if not await ipmi.pxe_persistent():
-                            self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
-                            self._update_host_on_failure(host_obj)
+                            self.logger.error(
+                                f"There was something wrong setting PXE flag or resetting IPMI on {host}."
+                            )
+                            self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                             return False
+                    await self._report_progress(schedule_id, "reboot", "Rebooting for rebuild")
 
         # Power off if moving back to default cloud
         if target_cloud.name == host_obj.default_cloud.name:
@@ -137,14 +166,14 @@ class StandardReleasePlugin(ReleasePlugin):
                     await ipmi.execute(["chassis", "power", "off"])
                 except Exception as e:
                     self.logger.error(f"Failed to power off {host}: {e}")
-                    self._update_host_on_failure(host_obj)
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                     return False
             else:
                 async with semaphore:
                     self.hardware_initialized = False
                     if not await self.power_off_host(host_obj):
                         self.logger.error(f"Failed to power off {host}")
-                        self._update_host_on_failure(host_obj)
+                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
                         return False
 
         # Update schedule
@@ -166,6 +195,7 @@ class StandardReleasePlugin(ReleasePlugin):
             "validated": False,
         }
         self.quads.update_host(host_obj.name, success_data)
+        await self._report_progress(schedule_id, "post_install", "Records updated")
         return True
 
     async def prepare_host_hardware(
@@ -261,7 +291,7 @@ class StandardReleasePlugin(ReleasePlugin):
 
         return True
 
-    def _update_host_on_failure(self, host_obj) -> None:
+    def _update_host_on_failure(self, host_obj, schedule_id=None) -> None:
         """Update host with failure data"""
         update_data = {
             "build": False,
@@ -269,3 +299,11 @@ class StandardReleasePlugin(ReleasePlugin):
             "switch_config_applied": False,
         }
         self.quads.update_host(host_obj.name, update_data)
+        if schedule_id:
+            try:
+                self.quads.update_move_status(
+                    schedule_id,
+                    {"status": "failed", "error_message": "Move failed"},
+                )
+            except Exception:
+                pass
