@@ -71,6 +71,7 @@ Requires: python3-psycopg2 >= 2.9.6
 Requires: python3-gunicorn >= 20.1.0
 Requires: python3-validators >= 0.20.0
 Requires: python3-markdown >= 3.0.0
+Requires: python3-rich >= 13.9.4
 Requires: logrotate >= 3.0
 Requires: postgresql >= 15.4
 Requires: postgresql-server >= 15.4
