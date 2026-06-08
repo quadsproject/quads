@@ -214,9 +214,16 @@ fi
 
 # upgrades only we bounce services and run any migrations
 if [ "$1" -eq 2 ]; then
-/usr/bin/systemctl restart quads-server
-/usr/bin/systemctl restart quads-web
-cd /opt/quads && flask --app quads.server.app db upgrade
+    # Remove migration files left over from the previous RPM that are
+    # not part of this package.  Stale files cause Alembic to see
+    # multiple heads and refuse to upgrade.
+    rpm -ql %{name} | grep 'migrations/versions/.*\.py$' | sort > /tmp/.quads_new_migrations
+    find /opt/quads/migrations/versions -maxdepth 1 -name '*.py' | sort > /tmp/.quads_disk_migrations
+    comm -23 /tmp/.quads_disk_migrations /tmp/.quads_new_migrations | xargs -r rm -f
+    rm -f /tmp/.quads_new_migrations /tmp/.quads_disk_migrations
+    /usr/bin/systemctl restart quads-server
+    /usr/bin/systemctl restart quads-web
+    cd /opt/quads && flask --app quads.server.app db upgrade
 fi
 
 if [ "$1" -eq 1 ]; then
