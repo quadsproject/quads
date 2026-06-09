@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51372057_684a5ee1",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-09T07:25:03Z",
+      "side": 1,
+      "message": "just a nit pick, I think it makes more sense to have this section right after the `if` on line #217",
+      "revId": "8dee974300b94328801df5345eba6e198b7fed18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90e39d10_ba6db927",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-09T07:25:03Z",
+      "side": 1,
+      "message": "I liked the migrations cleanup from patchset#3, why was it removed on this latest?",
+      "revId": "8dee974300b94328801df5345eba6e198b7fed18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
