@@ -367,7 +367,7 @@ class ScheduleDao(BaseDao):
                 joinedload(Schedule.assignment).joinedload(Assignment.cloud),
             )
             .filter(Schedule.move_status.isnot(None))
-            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+            .filter(Schedule.move_status != "completed")
         )
         if cloud:
             query = query.join(Assignment).join(Cloud).filter(Cloud.name == cloud)
@@ -386,7 +386,7 @@ class ScheduleDao(BaseDao):
             )
             .filter(Host.name == hostname)
             .filter(Schedule.move_status.isnot(None))
-            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+            .filter(Schedule.move_status != "completed")
             .order_by(Schedule.id.desc())
             .first()
         )

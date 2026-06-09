@@ -102,13 +102,15 @@ class StandardReleasePlugin(ReleasePlugin):
 
                 await self._report_progress(schedule_id, "provisioning", "Preparing provisioner")
                 if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
-                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                    self._update_host_on_failure(
+                        host_obj, schedule_id=schedule_id, error_message="Failed at provisioning"
+                    )
                     return False
 
                 await self._report_progress(schedule_id, "reboot", "PXE boot and power cycle")
                 if not await ipmi.pxe_persistent():
                     self.logger.error(f"There was something wrong setting PXE flag or resetting IPMI on {host}.")
-                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id, error_message="Failed at power_on")
                     return False
             else:
                 # Dell/HPE: serialize Badfish calls via semaphore so concurrent move
@@ -119,13 +121,17 @@ class StandardReleasePlugin(ReleasePlugin):
                         host_obj, boot_order, Config.get("badfish_interfaces_path")
                     )
                     if not ok:
-                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                        self._update_host_on_failure(
+                            host_obj, schedule_id=schedule_id, error_message="Failed at hardware_prep"
+                        )
                         return False
                     await self._report_progress(schedule_id, "hardware_prep", "Hardware prepared")
 
                     if not await self.power_on_host(host_obj):
                         self.logger.error(f"Failed to power on {host}")
-                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                        self._update_host_on_failure(
+                            host_obj, schedule_id=schedule_id, error_message="Failed at power_on"
+                        )
                         return False
                     await self._report_progress(schedule_id, "power_on", "Host powered on")
 
@@ -137,7 +143,9 @@ class StandardReleasePlugin(ReleasePlugin):
                         os_type = _assignment.ostype
 
                     if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
-                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                        self._update_host_on_failure(
+                            host_obj, schedule_id=schedule_id, error_message="Failed at provisioning"
+                        )
                         return False
                     await self._report_progress(schedule_id, "provisioning", "Provisioner ready")
 
@@ -148,14 +156,18 @@ class StandardReleasePlugin(ReleasePlugin):
                         if not await self.reboot_for_rebuild(
                             host_obj, boot_order, Config.get("badfish_interfaces_path")
                         ):
-                            self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                            self._update_host_on_failure(
+                                host_obj, schedule_id=schedule_id, error_message="Failed at reboot"
+                            )
                             return False
                     else:
                         if not await ipmi.pxe_persistent():
                             self.logger.error(
                                 f"There was something wrong setting PXE flag or resetting IPMI on {host}."
                             )
-                            self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                            self._update_host_on_failure(
+                                host_obj, schedule_id=schedule_id, error_message="Failed at reboot"
+                            )
                             return False
                     await self._report_progress(schedule_id, "reboot", "Rebooting for rebuild")
 
@@ -166,14 +178,16 @@ class StandardReleasePlugin(ReleasePlugin):
                     await ipmi.execute(["chassis", "power", "off"])
                 except Exception as e:
                     self.logger.error(f"Failed to power off {host}: {e}")
-                    self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id, error_message="Failed at power_on")
                     return False
             else:
                 async with semaphore:
                     self.hardware_initialized = False
                     if not await self.power_off_host(host_obj):
                         self.logger.error(f"Failed to power off {host}")
-                        self._update_host_on_failure(host_obj, schedule_id=schedule_id)
+                        self._update_host_on_failure(
+                            host_obj, schedule_id=schedule_id, error_message="Failed at power_on"
+                        )
                         return False
 
         # Update schedule
@@ -291,7 +305,7 @@ class StandardReleasePlugin(ReleasePlugin):
 
         return True
 
-    def _update_host_on_failure(self, host_obj, schedule_id=None) -> None:
+    def _update_host_on_failure(self, host_obj, schedule_id=None, error_message="Move failed") -> None:
         """Update host with failure data"""
         update_data = {
             "build": False,
@@ -303,7 +317,7 @@ class StandardReleasePlugin(ReleasePlugin):
             try:
                 self.quads.update_move_status(
                     schedule_id,
-                    {"status": "failed", "error_message": "Move failed"},
+                    {"status": "failed", "error_message": error_message},
                 )
             except Exception:
                 pass
