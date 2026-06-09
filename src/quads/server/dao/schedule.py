@@ -360,6 +360,7 @@ class ScheduleDao(BaseDao):
 
     @classmethod
     def get_active_moves(cls, cloud: str = None, status: str = None) -> List[Schedule]:
+        now = datetime.now()
         query = (
             db.session.query(Schedule)
             .options(
@@ -367,7 +368,8 @@ class ScheduleDao(BaseDao):
                 joinedload(Schedule.assignment).joinedload(Assignment.cloud),
             )
             .filter(Schedule.move_status.isnot(None))
-            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+            .filter(Schedule.move_status != "completed")
+            .filter(Schedule.end >= now)
         )
         if cloud:
             query = query.join(Assignment).join(Cloud).filter(Cloud.name == cloud)
@@ -377,6 +379,7 @@ class ScheduleDao(BaseDao):
 
     @classmethod
     def get_active_move_by_hostname(cls, hostname: str) -> Optional[Schedule]:
+        now = datetime.now()
         return (
             db.session.query(Schedule)
             .join(Host, Schedule.host_id == Host.id)
@@ -386,7 +389,8 @@ class ScheduleDao(BaseDao):
             )
             .filter(Host.name == hostname)
             .filter(Schedule.move_status.isnot(None))
-            .filter(Schedule.move_status.notin_(["completed", "failed"]))
+            .filter(Schedule.move_status != "completed")
+            .filter(Schedule.end >= now)
             .order_by(Schedule.id.desc())
             .first()
         )

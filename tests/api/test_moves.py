@@ -244,6 +244,59 @@ class TestMoveStatus:
         assert resp.json["completed_at"] is not None
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_failed_move_visible_in_active(self, test_client, auth, prefill):
+        auth_header = auth.get_auth_header()
+        batch_resp = unwrap_json(
+            test_client.post(
+                "/api/v3/moves/progress/batch",
+                json={"hostnames": ["host2.example.com"]},
+                headers=auth_header,
+            )
+        )
+        schedule_id = batch_resp.json["host2.example.com"]
+        test_client.patch(
+            f"/api/v3/moves/progress/{schedule_id}",
+            json={"status": "failed", "error_message": "Failed at hardware_prep"},
+            headers=auth_header,
+        )
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/moves/progress/",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        failed_hosts = [m for m in response.json if m["status"] == "failed"]
+        assert len(failed_hosts) >= 1
+        assert failed_hosts[0]["error_message"] == "Failed at hardware_prep"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_failed_move_visible_by_hostname(self, test_client, auth, prefill):
+        auth_header = auth.get_auth_header()
+        batch_resp = unwrap_json(
+            test_client.post(
+                "/api/v3/moves/progress/batch",
+                json={"hostnames": ["host3.example.com"]},
+                headers=auth_header,
+            )
+        )
+        schedule_id = batch_resp.json["host3.example.com"]
+        test_client.patch(
+            f"/api/v3/moves/progress/{schedule_id}",
+            json={"status": "failed", "error_message": "Failed at power_on"},
+            headers=auth_header,
+        )
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/moves/progress/host3.example.com",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["status"] == "failed"
+        assert response.json["error_message"] == "Failed at power_on"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_update_move_status_invalid(self, test_client, auth, prefill):
         auth_header = auth.get_auth_header()
         batch_resp = unwrap_json(
