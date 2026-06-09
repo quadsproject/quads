@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import base64
 import logging
 import os
 
@@ -84,3 +85,43 @@ class SSHHelper(object):
                 logger.error(line)
         else:
             logger.info("Your key was copied successfully")
+
+    def distribute_ssh_keys(self, key_lines):
+        if not key_lines:
+            return True
+        keys_content = "\n".join(key_lines) + "\n"
+        encoded = base64.b64encode(keys_content.encode()).decode()
+        cmd = (
+            "mkdir -p ~/.ssh && chmod 700 ~/.ssh && "
+            f"echo '{encoded}' | base64 -d >> ~/.ssh/authorized_keys && "
+            "sort -u -o ~/.ssh/authorized_keys ~/.ssh/authorized_keys && "
+            "chmod 600 ~/.ssh/authorized_keys"
+        )
+        result, errors = self.run_cmd(cmd)
+        if not result:
+            logger.error("Failed to distribute SSH keys to %s" % self.host)
+            for line in errors:
+                logger.error(line)
+        return result
+
+    def remove_ssh_keys(self, key_lines):
+        if not key_lines:
+            return True
+        for key_line in key_lines:
+            key_line = key_line.strip()
+            if not key_line:
+                continue
+            encoded = base64.b64encode(key_line.encode()).decode()
+            cmd = (
+                "if [ -f ~/.ssh/authorized_keys ]; then "
+                f"grep -Fxv \"$(echo '{encoded}' | base64 -d)\" "
+                "~/.ssh/authorized_keys > ~/.ssh/authorized_keys.tmp || true; "
+                "mv ~/.ssh/authorized_keys.tmp ~/.ssh/authorized_keys; "
+                "fi"
+            )
+            result, errors = self.run_cmd(cmd)
+            if not result:
+                logger.error("Failed to remove SSH key from %s" % self.host)
+                for line in errors:
+                    logger.error(line)
+        return True
