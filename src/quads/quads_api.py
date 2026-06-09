@@ -477,3 +477,11 @@ class QuadsApi(QuadsBase):
 
     def delete_api_token(self, email, token_id):
         return self.delete(os.path.join("tokens", email, str(token_id)))
+
+    # SSH Keys
+    def update_ssh_key(self, email, ssh_key):
+        return self.patch(os.path.join("users", email), {"ssh_key": ssh_key})
+
+    def get_ssh_keys_for_assignment(self, assignment_id):
+        response = self.get(os.path.join("assignments", str(assignment_id), "ssh-keys"))
+        return response.json()

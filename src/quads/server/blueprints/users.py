@@ -17,6 +17,7 @@ def _user_to_dict(user):
         "active": user.active,
         "last_login": user.last_login.strftime("%a, %d %b %Y %H:%M:%S GMT") if user.last_login else None,
         "roles": [role.name for role in user.roles],
+        "ssh_key": user.ssh_key,
     }
 
 

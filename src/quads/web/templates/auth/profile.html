@@ -121,6 +121,28 @@
                 </div>
             </div>
 
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>SSH Public Key</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Your SSH key is automatically distributed to hosts in your assignments.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('auth.update_ssh_key') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-2">
+                            <textarea class="form-control font-monospace"
+                                      name="ssh_key"
+                                      rows="3"
+                                      placeholder="Paste your public key (ssh-ed25519 AAAA... user@host)">{{ ssh_key or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save SSH Key</button>
+                    </form>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <h5>My Cloud Assignments</h5>
