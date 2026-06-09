@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a08fa75c_d765c3cc",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-09T08:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51372057_684a5ee1",
+      "revId": "8dee974300b94328801df5345eba6e198b7fed18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "90e39d10_ba6db927",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-06-09T07:25:03Z",
       "side": 1,
       "message": "I liked the migrations cleanup from patchset#3, why was it removed on this latest?",
+      "revId": "8dee974300b94328801df5345eba6e198b7fed18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6c6386d_3d8dc9b0",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 5
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-09T08:41:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90e39d10_ba6db927",
       "revId": "8dee974300b94328801df5345eba6e198b7fed18",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
