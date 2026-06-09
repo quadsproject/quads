@@ -73,6 +73,14 @@ def profile():
     except Exception:
         logger.exception("Failed to fetch API tokens for profile")
 
+    ssh_key = None
+    try:
+        user_data = quads.get_user(email=current_user.email)
+        if user_data:
+            ssh_key = getattr(user_data, "ssh_key", None)
+    except Exception:
+        logger.exception("Failed to fetch SSH key for profile")
+
     new_token = session.pop("new_token", None)
     new_token_name = session.pop("new_token_name", None)
 
@@ -82,6 +90,7 @@ def profile():
         username=username,
         assignments=user_assignments,
         api_tokens=api_tokens,
+        ssh_key=ssh_key,
         new_token=new_token,
         new_token_name=new_token_name,
     )
@@ -125,5 +134,24 @@ def delete_token(token_id):
     except Exception:
         logger.exception("Failed to revoke API token")
         flash("Failed to revoke token.", "danger")
+
+    return redirect(url_for("auth.profile"))
+
+
+@auth_bp.route("/profile/ssh-key", methods=["POST"])
+@login_required
+def update_ssh_key():
+    ssh_key = request.form.get("ssh_key", "").strip()
+
+    quads = QuadsApi(Config)
+    try:
+        quads.update_ssh_key(current_user.email, ssh_key or None)
+        if ssh_key:
+            flash("SSH key saved.", "success")
+        else:
+            flash("SSH key removed.", "success")
+    except Exception:
+        logger.exception("Failed to update SSH key")
+        flash("Failed to update SSH key.", "danger")
 
     return redirect(url_for("auth.profile"))

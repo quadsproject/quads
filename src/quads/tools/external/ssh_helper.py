@@ -84,3 +84,37 @@ class SSHHelper(object):
                 logger.error(line)
         else:
             logger.info("Your key was copied successfully")
+
+    def distribute_ssh_keys(self, key_lines):
+        if not key_lines:
+            return True
+        keys_content = "\n".join(key_lines)
+        cmd = (
+            "mkdir -p ~/.ssh && chmod 700 ~/.ssh && "
+            "cat >> ~/.ssh/authorized_keys << 'QUADS_SSH_EOF'\n"
+            f"{keys_content}\n"
+            "QUADS_SSH_EOF\n"
+            "sort -u -o ~/.ssh/authorized_keys ~/.ssh/authorized_keys && "
+            "chmod 600 ~/.ssh/authorized_keys"
+        )
+        result, errors = self.run_cmd(cmd)
+        if not result:
+            logger.error("Failed to distribute SSH keys to %s" % self.host)
+            for line in errors:
+                logger.error(line)
+        return result
+
+    def remove_ssh_keys(self, key_lines):
+        if not key_lines:
+            return True
+        for key_line in key_lines:
+            parts = key_line.strip().split()
+            if len(parts) < 2:
+                continue
+            pattern = parts[1][:40]
+            cmd = (
+                f"grep -v '{pattern}' ~/.ssh/authorized_keys > ~/.ssh/authorized_keys.tmp && "
+                "mv ~/.ssh/authorized_keys.tmp ~/.ssh/authorized_keys"
+            )
+            self.run_cmd(cmd)
+        return True

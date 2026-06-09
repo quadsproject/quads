@@ -1,5 +1,7 @@
 import asyncio
+import logging
 import re
+import threading
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request, g, current_app
@@ -11,10 +13,90 @@ from quads.server.dao.assignment import AssignmentDao
 from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument, SQLError
 from quads.server.dao.cloud import CloudDao
 from quads.server.dao.schedule import ScheduleDao
+from quads.server.dao.user import UserDao
 from quads.server.dao.vlan import VlanDao
-from quads.server.models import Assignment
+from quads.server.models import Assignment, db, User
+
+logger = logging.getLogger(__name__)
 
 assignment_bp = Blueprint("assignments", __name__)
+
+
+def _get_ssh_keys_for_usernames(usernames, domain):
+    keys = []
+    for username in usernames:
+        email = f"{username}@{domain}"
+        user = db.session.query(User).filter(User.email == email).first()
+        if user and user.ssh_key:
+            keys.append(user.ssh_key.strip())
+    return keys
+
+
+def _async_ssh_key_update(assignment, added_users, removed_users):
+    def _run():
+        try:
+            from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
+
+            domain = Config.get("domain", "")
+            schedules = ScheduleDao.get_current_schedule(cloud=assignment.cloud)
+            if not schedules:
+                return
+            hosts = [s.host.name for s in schedules if s.host]
+
+            if added_users:
+                add_keys = _get_ssh_keys_for_usernames(added_users, domain)
+                if add_keys:
+                    for host_name in hosts:
+                        try:
+                            ssh = SSHHelper(host_name)
+                            ssh.distribute_ssh_keys(add_keys)
+                            ssh.disconnect()
+                        except SSHHelperException as e:
+                            logger.warning(f"Failed to distribute SSH keys to {host_name}: {e}")
+
+            if removed_users:
+                remove_keys = _get_ssh_keys_for_usernames(removed_users, domain)
+                if remove_keys:
+                    for host_name in hosts:
+                        try:
+                            ssh = SSHHelper(host_name)
+                            ssh.remove_ssh_keys(remove_keys)
+                            ssh.disconnect()
+                        except SSHHelperException as e:
+                            logger.warning(f"Failed to remove SSH keys from {host_name}: {e}")
+        except Exception:
+            logger.exception("SSH key update failed")
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+
+
+def _async_ssh_key_cleanup(assignment, host_names):
+    def _run():
+        try:
+            from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
+
+            domain = Config.get("domain", "")
+            usernames = [assignment.owner] if assignment.owner else []
+            if assignment.ccuser:
+                usernames.extend(assignment.ccuser)
+
+            keys = _get_ssh_keys_for_usernames(usernames, domain)
+            if not keys:
+                return
+
+            for host_name in host_names:
+                try:
+                    ssh = SSHHelper(host_name)
+                    ssh.remove_ssh_keys(keys)
+                    ssh.disconnect()
+                except SSHHelperException as e:
+                    logger.warning(f"Failed to remove SSH keys from {host_name}: {e}")
+        except Exception:
+            logger.exception("SSH key cleanup failed")
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
 
 
 @assignment_bp.route("/")
@@ -435,7 +517,7 @@ def update_assignment(assignment_id: str) -> Response:
             return make_response(jsonify(response), 400)
         if _key == "ccuser":
             value = re.split(r"[, ]+", _value)
-            value = [user.strip() for user in value]
+            value = [user.strip() for user in value if user.strip()]
         if _key == "cloud":
             _cloud = CloudDao.get_cloud(_value)
             if not _cloud:
@@ -464,10 +546,20 @@ def update_assignment(assignment_id: str) -> Response:
                 value = eval(_value.lower().capitalize())
         update_fields[_key] = value
 
+    old_ccusers = set(assignment_obj.ccuser or [])
+
     for key, value in update_fields.items():
         setattr(assignment_obj, key, value)
 
     BaseDao.safe_commit()
+
+    if "ccuser" in update_fields and assignment_obj.active and assignment_obj.validated:
+        new_ccusers = set(assignment_obj.ccuser or [])
+        added = new_ccusers - old_ccusers
+        removed = old_ccusers - new_ccusers
+        if added or removed:
+            _async_ssh_key_update(assignment_obj, list(added), list(removed))
+
     return jsonify(assignment_obj.as_dict())
 
 
@@ -501,6 +593,12 @@ def terminate_assignment(assignment_id) -> Response:
             }
             return make_response(jsonify(response), 403)
 
+    hosts_to_clean = []
+    if _assignment.validated:
+        _schedules_for_keys = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
+        if _schedules_for_keys:
+            hosts_to_clean = [s.host.name for s in _schedules_for_keys if s.host]
+
     _assignment.active = False
 
     _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
@@ -509,6 +607,9 @@ def terminate_assignment(assignment_id) -> Response:
             sched.end = datetime.now()
 
     BaseDao.safe_commit()
+
+    if hosts_to_clean:
+        _async_ssh_key_cleanup(_assignment, hosts_to_clean)
 
     response = {
         "status_code": 200,
@@ -534,3 +635,22 @@ def delete_assignment(assignment_id) -> Response:
         "message": "Assignment deleted",
     }
     return jsonify(response)
+
+
+@assignment_bp.route("/<assignment_id>/ssh-keys")
+@check_access(["admin", "user"])
+def get_assignment_ssh_keys(assignment_id) -> Response:
+    assignment = AssignmentDao.get_assignment(int(assignment_id))
+    if not assignment:
+        return make_response(
+            jsonify({"status_code": 404, "error": "Not Found", "message": "Assignment not found"}),
+            404,
+        )
+
+    domain = Config.get("domain", "")
+    usernames = [assignment.owner] if assignment.owner else []
+    if assignment.ccuser:
+        usernames.extend(assignment.ccuser)
+
+    keys = _get_ssh_keys_for_usernames(usernames, domain)
+    return jsonify({"keys": keys, "usernames": usernames})
