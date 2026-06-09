@@ -15,6 +15,7 @@ from sqlalchemy import (
     Enum,
     Integer,
     String,
+    Text,
     Boolean,
     ForeignKey,
     PickleType,
@@ -274,6 +275,7 @@ class User(Base, UserMixin):
     google_id = Column(String(256), unique=True, nullable=True, index=True)
     profile_picture = Column(String(512), nullable=True)
     last_login = Column(DateTime, nullable=True)
+    ssh_key = Column(Text, nullable=True)
     # many-to-many parent
     roles = relationship(
         "Role",

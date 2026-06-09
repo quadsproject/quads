@@ -7,6 +7,29 @@ from quads.server.dao.user import UserDao
 
 user_bp = Blueprint("users", __name__)
 
+VALID_SSH_KEY_PREFIXES = (
+    "ssh-rsa",
+    "ssh-ed25519",
+    "ssh-dss",
+    "ecdsa-sha2-nistp256",
+    "ecdsa-sha2-nistp384",
+    "ecdsa-sha2-nistp521",
+    "sk-ssh-ed25519@openssh.com",
+    "sk-ecdsa-sha2-nistp256@openssh.com",
+)
+
+
+def _validate_ssh_key(ssh_key):
+    if not ssh_key:
+        return None
+    ssh_key = ssh_key.strip()
+    if not ssh_key.startswith(VALID_SSH_KEY_PREFIXES):
+        return "Invalid SSH key format. Key must start with a valid type (e.g. ssh-ed25519, ssh-rsa)."
+    parts = ssh_key.split()
+    if len(parts) < 2:
+        return "Invalid SSH key format. Expected: type base64-data [comment]"
+    return None
+
 
 def _user_to_dict(user):
     return {
@@ -17,6 +40,7 @@ def _user_to_dict(user):
         "active": user.active,
         "last_login": user.last_login.strftime("%a, %d %b %Y %H:%M:%S GMT") if user.last_login else None,
         "roles": [role.name for role in user.roles],
+        "ssh_key": user.ssh_key,
     }
 
 
@@ -96,6 +120,16 @@ def update_user(email: str) -> Response:
             "message": "No data provided",
         }
         return make_response(jsonify(response), 400)
+
+    if "ssh_key" in data and data["ssh_key"]:
+        error = _validate_ssh_key(data["ssh_key"])
+        if error:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": error,
+            }
+            return make_response(jsonify(response), 400)
 
     try:
         user = UserDao.update_user(email, **data)
