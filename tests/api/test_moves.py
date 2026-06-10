@@ -132,6 +132,31 @@ class TestMoveStatus:
         assert response.status_code == 200
         assert response.json["host"] == "host3.example.com"
         assert response.json["status"] == "pending"
+        assert response.json["source_cloud"] == "cloud01"
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_source_cloud_persisted_at_move_start(self, test_client, auth, prefill):
+        auth_header = auth.get_auth_header()
+        test_client.post(
+            "/api/v3/moves/progress/batch",
+            json={"hostnames": ["host3.example.com"]},
+            headers=auth_header,
+        )
+        # Update host's cloud to simulate the release plugin
+        test_client.patch(
+            "/api/v3/hosts/host3.example.com",
+            json={"cloud": "cloud03"},
+            headers=auth_header,
+        )
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/moves/progress/host3.example.com",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["source_cloud"] == "cloud01"
+        assert response.json["target_cloud"] == "cloud03"
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_update_move_status(self, test_client, auth, prefill):

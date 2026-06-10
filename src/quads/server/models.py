@@ -675,6 +675,7 @@ class Schedule(Serialize, TimestampMixin, Base):
     )
     move_message = Column(String, nullable=True)
     move_error = Column(String, nullable=True)
+    move_source_cloud = Column(String, nullable=True)
 
     # many-to-one parent
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
