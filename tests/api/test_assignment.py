@@ -434,6 +434,73 @@ class TestDeleteAssignment:
         assert response.json["message"] == "Assignment deleted"
 
 
+class TestCreateSelfAssignment:
+    @patch("quads.server.blueprints.assignments.Config.get")
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_owner_derived_from_current_user(self, mock_config_get, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans with self-scheduling enabled
+        | WHEN: User creates a self-assignment with a different owner in request body
+        | THEN: Owner should be derived from current user, not from request body
+        """
+        mock_config_get.side_effect = lambda key, default=None: {
+            "ssm_enable": True,
+            "ssm_user_cloud_limit": 1,
+            "spare_pool_name": "cloud01",
+            "ssm_description_prefix": "[SSM]",
+            "ssm_jira_create_ticket": False,
+        }.get(key, default)
+
+        auth_header = auth.get_auth_header("grafuls@redhat.com")
+        assignment_request = {
+            "description": "Test self assignment",
+            "owner": "attacker",
+            "cloud": "cloud05",
+            "ticket": "SELF-001",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/assignments/self/",
+                json=assignment_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 201
+        assert response.json["owner"] == "grafuls"
+
+    @patch("quads.server.blueprints.assignments.Config.get")
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_owner_not_from_request_body(self, mock_config_get, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans with self-scheduling enabled
+        | WHEN: User omits owner from request body
+        | THEN: Owner should be derived from current user
+        """
+        mock_config_get.side_effect = lambda key, default=None: {
+            "ssm_enable": True,
+            "ssm_user_cloud_limit": 1,
+            "spare_pool_name": "cloud01",
+            "ssm_description_prefix": "[SSM]",
+            "ssm_jira_create_ticket": False,
+        }.get(key, default)
+
+        auth_header = auth.get_auth_header("user02@redhat.com")
+        assignment_request = {
+            "description": "Test self assignment no owner",
+            "cloud": "cloud04",
+            "ticket": "SELF-002",
+        }
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/assignments/self/",
+                json=assignment_request,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 201
+        assert response.json["owner"] == "user02"
+
+
 class TestExpirations:
     @pytest.mark.parametrize("prefill", prefill_schedule, indirect=True)
     def test_valid_expirations(self, test_client, auth, prefill):
