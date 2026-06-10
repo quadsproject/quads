@@ -388,7 +388,6 @@ class TestGetHosts:
         assert response.json["error"] == "Bad Request"
         assert response.json["message"] == f"{invalid_field_filter.split('=')[0]} is not a valid field."
 
-
 class TestUpdateHosts:
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_valid_update_host_type(self, test_client, auth, prefill):
