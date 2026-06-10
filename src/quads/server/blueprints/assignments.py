@@ -586,14 +586,13 @@ def terminate_assignment(assignment_id) -> Response:
             return make_response(jsonify(response), 403)
 
     hosts_to_clean = []
+    _schedules = ScheduleDao.get_current_schedule(assignment_id=int(assignment_id))
     if _assignment.validated:
-        _schedules_for_keys = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
-        if _schedules_for_keys:
-            hosts_to_clean = [s.host.name for s in _schedules_for_keys if s.host]
+        if _schedules:
+            hosts_to_clean = [s.host.name for s in _schedules if s.host]
 
     _assignment.active = False
 
-    _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
     if _schedules:
         for sched in _schedules:
             sched.end = datetime.now()
