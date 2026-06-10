@@ -388,6 +388,42 @@ class TestGetHosts:
         assert response.json["error"] == "Bad Request"
         assert response.json["message"] == f"{invalid_field_filter.split('=')[0]} is not a valid field."
 
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_valid_filter_by_model_array(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth token and clouds and hosts from TestCreateHosts
+        | WHEN: User tries to filter hosts by model using a JSON array
+        | THEN: User should be able to filter hosts using JSON array syntax
+        """
+        auth_header = auth.get_auth_header()
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/hosts?model=[%22FC640%22,%22R640%22]",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert len(response.json) == 2
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_invalid_filter_malicious_payload(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth token and clouds and hosts from TestCreateHosts
+        | WHEN: User tries to inject malicious Python code via array filter
+        | THEN: The request should fail safely without executing arbitrary code
+        """
+        auth_header = auth.get_auth_header()
+        malicious_payload = "[__import__('os').system('id')]"
+        response = unwrap_json(
+            test_client.get(
+                f"/api/v3/hosts?model={malicious_payload}",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["error"] == "Bad Request"
+        assert response.json["message"] == "model is not a valid field."
+
 
 class TestUpdateHosts:
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)

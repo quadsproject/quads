@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import List, Optional
 
@@ -194,8 +195,8 @@ class HostDao(BaseDao):
                     value = value.lower() in ["true", "y", 1, "yes"]
                 elif isinstance(value, str) and value.startswith("[") and value.endswith("]"):
                     try:
-                        value = eval(value)
-                    except (SyntaxError, ValueError):
+                        value = json.loads(value)
+                    except (json.JSONDecodeError, ValueError):
                         pass
             except AttributeError:
                 if first_field in ["cloud", "default_cloud"]:
@@ -208,8 +209,8 @@ class HostDao(BaseDao):
                         field_name = f"{first_field.lower()}.{field_name.lower()}"
                     if isinstance(value, str) and value.startswith("[") and value.endswith("]"):
                         try:
-                            value = eval(value)
-                        except (SyntaxError, ValueError):
+                            value = json.loads(value)
+                        except (json.JSONDecodeError, ValueError):
                             pass
 
             if fields[0].lower() != "group_by":
