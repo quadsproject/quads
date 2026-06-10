@@ -503,7 +503,7 @@ def terminate_assignment(assignment_id) -> Response:
 
     _assignment.active = False
 
-    _schedules = ScheduleDao.get_current_schedule(cloud=_assignment.cloud)
+    _schedules = ScheduleDao.get_current_schedule(assignment_id=int(assignment_id))
     if _schedules:
         for sched in _schedules:
             sched.end = datetime.now()
