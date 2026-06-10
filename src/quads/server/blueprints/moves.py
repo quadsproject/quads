@@ -16,7 +16,7 @@ def _progress_to_dict(schedule):
         "id": schedule.id,
         "host": schedule.host.name,
         "host_id": schedule.host_id,
-        "source_cloud": schedule.host.cloud.name,
+        "source_cloud": schedule.move_source_cloud or schedule.host.cloud.name,
         "target_cloud": schedule.assignment.cloud.name,
         "status": schedule.move_status or "pending",
         "message": schedule.move_message,
