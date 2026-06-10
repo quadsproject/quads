@@ -16,6 +16,24 @@
       "message": "this is redundant, all these kwargs go into the description of the ticket, no need to have the ticket number on the ticket",
       "revId": "0e7780ff4dcbdd608c1faf0a95cd1881d63ae888",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cc1b7a33_ca8338e3",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-10T23:37:06Z",
+      "side": 1,
+      "message": "If someone doesn\u0027t use Jira auto-creation (whether they use a different ticketing system, a manual ticket identifier, or just have ssm_jira_create_ticket set to False) then the user-supplied ticket in kwargs[\"ticket\"] is the only way it gets to the database. Removing it\n  from kwargs would crash with a TypeError on that path.\n\nI know it\u0027s not our default but kwargs are used in two possible code flows so I think it needs to stay here.  It\u0027s true I think that our usage/code path doesn\u0027t touch this since kwargs is overwritten with the auto-created key",
+      "parentUuid": "6f063122_c08a45f8",
+      "revId": "0e7780ff4dcbdd608c1faf0a95cd1881d63ae888",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
