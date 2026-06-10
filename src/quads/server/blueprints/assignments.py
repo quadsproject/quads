@@ -304,8 +304,10 @@ def create_self_assignment() -> Response:
         }
         return make_response(jsonify(response), 403)
 
+    owner = g.current_user.email.split("@")[0]
+
     active_ass = AssignmentDao.filter_assignments(
-        {"active": True, "is_self_schedule": True, "owner": data.get("owner")}
+        {"active": True, "is_self_schedule": True, "owner": owner}
     )
     if len(active_ass) >= Config.get("ssm_user_cloud_limit", 1):
         response = {
@@ -320,7 +322,6 @@ def create_self_assignment() -> Response:
     cloud_name = data.get("cloud")
     vlan = data.get("vlan")
     description = data.get("description")
-    owner = data.get("owner")
     ticket = data.get("ticket")
     qinq = data.get("qinq", 0)
     wipe = data.get("wipe")
@@ -329,7 +330,6 @@ def create_self_assignment() -> Response:
     boot_order = data.get("boot_order")
     required_fields = [
         "description",
-        "owner",
     ]
 
     for field in required_fields:
@@ -396,6 +396,7 @@ def create_self_assignment() -> Response:
     kwargs = {
         "description": full_description,
         "owner": owner,
+        "ticket": ticket,
         "qinq": qinq,
         "wipe": str(wipe).lower() in ["true", "y", 1, "yes"],
         "ccuser": cc_user,
