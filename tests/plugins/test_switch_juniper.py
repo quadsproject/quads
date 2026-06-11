@@ -556,3 +556,177 @@ class TestJuniperSwitchPlugin:
         assert result is True
         # convert_port_public should not be called since VLANs match
         mock_juniper.convert_port_public.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    async def test_modify_success(self, mock_juniper_class, mock_ssh_class, plugin):
+        """Test modify applies VLAN overrides with --change flag"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2"),
+            MockInterface("em3", "10.0.0.1", "ge-0/0/3"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+            (True, ["members QinQ_vl20;"]),
+            (True, ["set vlans vlan20 interface ge-0/0/3.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        overrides = {0: "1400", 2: "1402"}
+        await plugin.modify("host1.example.com", change=True, overrides=overrides)
+
+        assert mock_juniper.set_port.call_count == 2
+        plugin.logger.info.assert_any_call("Successfully updated switch settings.")
+
+    @pytest.mark.asyncio
+    async def test_modify_host_not_found(self, plugin):
+        """Test modify handles missing host"""
+        plugin.quads.get_host.return_value = None
+
+        await plugin.modify("nonexistent.example.com", overrides={0: "1400"})
+
+        plugin.logger.error.assert_called_with("Hostname not found.")
+
+    @pytest.mark.asyncio
+    async def test_modify_no_interfaces(self, plugin):
+        """Test modify handles host with no interfaces"""
+        mock_host = MockHost("host1.example.com", interfaces=[])
+        plugin.quads.get_host.return_value = mock_host
+
+        await plugin.modify("host1.example.com", overrides={0: "1400"})
+
+        plugin.logger.error.assert_called_with("The host has no interfaces defined")
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    async def test_modify_no_change_flag(self, mock_ssh_class, plugin):
+        """Test modify in verify-only mode does not call set_port"""
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        await plugin.modify("host1.example.com", change=False, overrides={0: "1400"})
+
+        plugin.logger.warning.assert_any_call(
+            "Interface %s appears to be a member of VLAN %s, should be %s",
+            "ge-0/0/1",
+            "10",
+            "1400",
+        )
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    async def test_modify_already_configured(self, mock_ssh_class, plugin):
+        """Test modify skips interface already on correct VLAN"""
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl1400;"]),
+            (True, ["set vlans vlan1400 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
+
+        plugin.logger.info.assert_any_call("Interface em1 is already configured for vlan1400")
+
+    @pytest.mark.asyncio
+    async def test_modify_override_index_out_of_range(self, plugin):
+        """Test modify warns when override index exceeds interface count"""
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        await plugin.modify("host1.example.com", overrides={5: "1400"})
+
+        plugin.logger.warning.assert_any_call(
+            "NIC index %d exceeds host interface count (%d), skipping",
+            6,
+            1,
+        )
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    async def test_modify_partial_overrides(self, mock_juniper_class, mock_ssh_class, plugin):
+        """Test modify only processes interfaces with overrides"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2"),
+            MockInterface("em3", "10.0.0.1", "ge-0/0/3"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/2.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        overrides = {1: "1401"}
+        await plugin.modify("host1.example.com", change=True, overrides=overrides)
+
+        assert mock_juniper.set_port.call_count == 1
+        mock_juniper_class.assert_called_once_with("10.0.0.1", "ge-0/0/2", "1000", "10", "1401")
+
+    @pytest.mark.asyncio
+    async def test_modify_empty_overrides(self, plugin):
+        """Test modify with no overrides does nothing harmful"""
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        await plugin.modify("host1.example.com", change=True, overrides={})
+
+        plugin.logger.info.assert_any_call("Host: host1.example.com")
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    async def test_modify_set_port_failure(self, mock_juniper_class, mock_ssh_class, plugin):
+        """Test modify logs error when set_port fails"""
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = False
+        mock_juniper_class.return_value = mock_juniper
+
+        await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
+
+        plugin.logger.error.assert_any_call("There was something wrong updating switch for em1")

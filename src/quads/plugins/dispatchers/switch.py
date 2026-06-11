@@ -27,11 +27,7 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
         self,
         host: str,
         change: bool = False,
-        nic1: str = None,
-        nic2: str = None,
-        nic3: str = None,
-        nic4: str = None,
-        nic5: str = None,
+        overrides: Optional[dict] = None,
     ) -> bool:
         if not self._default_plugin:
             logger.error("No switch plugin enabled")
@@ -39,7 +35,7 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
 
         logger.info(f"Modifying switch for {host} via {self._default_plugin.name}")
         try:
-            return await self._default_plugin.modify(host, change, nic1, nic2, nic3, nic4, nic5)
+            return await self._default_plugin.modify(host, change, overrides)
         except Exception as e:
             logger.error(f"Failed to modify switch: {e}")
             return False
@@ -92,14 +88,10 @@ async def configure(host: str, old_cloud: str, new_cloud: str) -> bool:
 async def modify(
     host: str,
     change: bool = False,
-    nic1: str = None,
-    nic2: str = None,
-    nic3: str = None,
-    nic4: str = None,
-    nic5: str = None,
+    overrides: Optional[dict] = None,
 ) -> bool:
     dispatcher = get_switch_dispatcher()
-    return await dispatcher.modify(host, change, nic1, nic2, nic3, nic4, nic5)
+    return await dispatcher.modify(host, change, overrides)
 
 
 async def verify(host: str = None, cloud: str = None, change: bool = False) -> bool:

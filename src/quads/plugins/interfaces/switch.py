@@ -1,3 +1,5 @@
+from typing import Optional
+
 from quads.plugins.base import BasePlugin
 from abc import abstractmethod
 
@@ -25,11 +27,7 @@ class SwitchPlugin(BasePlugin):
         self,
         host: str,
         change: bool = False,
-        nic1: str = None,
-        nic2: str = None,
-        nic3: str = None,
-        nic4: str = None,
-        nic5: str = None,
+        overrides: Optional[dict] = None,
     ) -> bool:
         """
         Modify the switch for the host.
@@ -37,11 +35,7 @@ class SwitchPlugin(BasePlugin):
         Args:
             host: Hostname to modify
             change: True if change is requested, False otherwise
-            nic1: First interface name
-            nic2: Second interface name
-            nic3: Third interface name
-            nic4: Fourth interface name
-            nic5: Fifth interface name
+            overrides: Dict mapping interface index (int) to VLAN ID (str)
 
         Returns:
             bool: True if modification successful, False otherwise

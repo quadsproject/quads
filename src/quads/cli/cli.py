@@ -325,16 +325,17 @@ class QuadsCli:
     def action_mod_switch_conf(self):
         _host = self.cli_args.get("host")
         _change = self.cli_args.get("change")
-        _nic1 = self.cli_args.get("nic1")
-        _nic2 = self.cli_args.get("nic2")
-        _nic3 = self.cli_args.get("nic3")
-        _nic4 = self.cli_args.get("nic4")
-        _nic5 = self.cli_args.get("nic5")
+
+        overrides = {}
+        for key, value in self.cli_args.items():
+            if key.startswith("nic") and key[3:].isdigit() and value is not None:
+                index = int(key[3:]) - 1
+                overrides[index] = value
 
         plugin_manager = PluginManager()
         plugin_manager.initialize()
         switch_dispatcher = get_switch_dispatcher(plugin_manager)
-        asyncio.run(switch_dispatcher.modify(_host, _change, _nic1, _nic2, _nic3, _nic4, _nic5))
+        asyncio.run(switch_dispatcher.modify(_host, _change, overrides))
 
     def action_verify_switch_conf(self):
         _host = self.cli_args.get("host")
