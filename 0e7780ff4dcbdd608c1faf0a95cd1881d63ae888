@@ -34,6 +34,24 @@
       "parentUuid": "6f063122_c08a45f8",
       "revId": "0e7780ff4dcbdd608c1faf0a95cd1881d63ae888",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6786730_b5a7c22a",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-06-11T05:58:30Z",
+      "side": 1,
+      "message": "in that case we can put an `else` for the `if` on line #455 with `kwargs[\"ticket\"] \u003d ticket`",
+      "parentUuid": "cc1b7a33_ca8338e3",
+      "revId": "0e7780ff4dcbdd608c1faf0a95cd1881d63ae888",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
