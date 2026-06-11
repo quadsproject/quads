@@ -111,10 +111,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
         return True
 
-    async def modify(
-        self, host, change=False, nic1=None, nic2=None, nic3=None, nic4=None, nic5=None
-    ):  # pragma: no cover
-        _nics = {"em1": nic1, "em2": nic2, "em3": nic3, "em4": nic4, "em5": nic5}
+    async def modify(self, host, change=False, overrides=None):
+        overrides = overrides or {}
         _host_obj = self.quads.get_host(host)
         if not _host_obj:
             self.logger.error("Hostname not found.")
@@ -123,8 +121,16 @@ class JuniperSwitchPlugin(SwitchPlugin):
         self.logger.info(f"Host: {_host_obj.name}")
         if _host_obj.interfaces:
             interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
-            for _, interface in enumerate(interfaces):
-                vlan = _nics.get(interface.name)
+            for index in sorted(overrides.keys()):
+                if index >= len(interfaces):
+                    self.logger.warning(
+                        "NIC index %d exceeds host interface count (%d), skipping",
+                        index + 1,
+                        len(interfaces),
+                    )
+                    continue
+            for i, interface in enumerate(interfaces):
+                vlan = overrides.get(i)
                 if vlan:
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
 
@@ -356,7 +362,7 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     ssh_helper.disconnect()
 
                     self.logger.info(
-                        f"Interface em{i + 1} appears to be a member of VLAN {vlan_member}",
+                        f"Interface {interface.name} appears to be a member of VLAN {vlan_member}",
                     )
 
             else:

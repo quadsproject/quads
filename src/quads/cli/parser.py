@@ -912,7 +912,7 @@ def str_to_bool(value):
 for arg in mod_notification_arg_names:
     parser.add_argument(f"--{arg}", type=str_to_bool, choices=[True, False], help=f"Set {arg} to true or false.")
 
-nics = ["nic1", "nic2", "nic3", "nic4", "nic5"]
+nics = [f"nic{i}" for i in range(1, 21)]
 
 for nic in nics:
     parser.add_argument(f"--{nic}", type=str, default=None, help=f"Switch port for {nic}")

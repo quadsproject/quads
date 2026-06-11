@@ -1335,6 +1335,7 @@ WARNING -
 ### Modify or check a specific Host Network Switch Settings
 * With the `quads --mod-switch-conf` tool you can set up each individual network interface to a specific vlan id.
 * Passing the `--change` argument will make the changes effective in the switch. Not passing this will only verify the configuration is set to the desired.
+* Interface arguments `--nic1` through `--nic20` are available and map to the host's interfaces in sorted order (e.g. `--nic1` corresponds to the first interface, `--nic2` to the second, etc).
 
 ```bash
 quads --mod-switch-conf --host host01.example.com --nic1 1400 --nic2 1401 --nic3 1400 --nic4 1402 --nic5 1400
