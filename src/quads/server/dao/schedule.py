@@ -356,6 +356,7 @@ class ScheduleDao(BaseDao):
             schedule.move_status = "pending"
             schedule.move_message = None
             schedule.move_error = None
+            schedule.move_source_cloud = host.cloud.name
             schedule.build_start = now
             result[hostname] = schedule.id
         cls.safe_commit()
