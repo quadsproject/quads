@@ -1,7 +1,7 @@
 from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.config import Config
-from quads.server.blueprints import is_valid_domain
+from quads.server.blueprints import check_access, is_valid_domain
 from quads.server.dao.baseDao import EntryNotFound
 from quads.server.dao.user import UserDao
 
@@ -45,6 +45,7 @@ def _user_to_dict(user):
 
 
 @user_bp.route("/")
+@check_access(["admin"])
 def get_users() -> Response:
     google_id = request.args.get("google_id")
     if google_id:
@@ -103,6 +104,7 @@ def create_user() -> Response:
 
 
 @user_bp.route("/<path:email>", methods=["PATCH"])
+@check_access(["admin"])
 def update_user(email: str) -> Response:
     if not is_valid_domain(email):
         response = {
