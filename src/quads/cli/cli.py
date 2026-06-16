@@ -27,7 +27,7 @@ from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
-from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher
+from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher, get_dayzero_dispatcher
 from quads.plugins.manager import PluginManager
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
@@ -1839,6 +1839,7 @@ class QuadsCli:
             plugin_manager.initialize()
             release_dispatcher = get_release_dispatcher(plugin_manager)
             switch_dispatcher = get_switch_dispatcher(plugin_manager)
+            dayzero_dispatcher = get_dayzero_dispatcher(plugin_manager)
             for _cloud, results in _clouds.items():
                 provisioned = True
                 tasks = []
@@ -2039,6 +2040,8 @@ class QuadsCli:
                                 )
                                 foreman_heal(self.logger)
 
+                                cloud_hosts = []
+                                cloud_schedule_data = []
                                 for r in results:
                                     _pid = schedule_ids.get(r["host"])
                                     if _pid:
@@ -2051,9 +2054,30 @@ class QuadsCli:
                                                 self.quads.update_move_status(
                                                     _pid, {"status": "released", "message": "Environment released"}
                                                 )
+                                                try:
+                                                    schedule_data = self.quads.get_move_status(r["host"])
+                                                    cloud_hosts.append(r["host"])
+                                                    cloud_schedule_data.append(schedule_data)
+                                                    loop.run_until_complete(
+                                                        dayzero_dispatcher.run_dayzero(
+                                                            r["host"], _cloud, schedule_data
+                                                        )
+                                                    )
+                                                except Exception as e:
+                                                    self.logger.error(f"dayzero dispatch failed for {r['host']}: {e}")
                                                 self.quads.update_move_status(_pid, {"status": "completed"})
                                         except Exception:
                                             pass
+
+                                if cloud_hosts:
+                                    try:
+                                        loop.run_until_complete(
+                                            dayzero_dispatcher.run_dayzero_cloud(
+                                                cloud_hosts, _cloud, cloud_schedule_data
+                                            )
+                                        )
+                                    except Exception as e:
+                                        self.logger.error(f"dayzero cloud dispatch failed for {_cloud}: {e}")
                         except (
                             APIServerException,
                             APIBadRequest,

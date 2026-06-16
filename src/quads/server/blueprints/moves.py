@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request
@@ -9,6 +10,15 @@ from quads.server.dao.schedule import ScheduleDao
 from quads.server.models import Schedule
 
 moves_bp = Blueprint("moves", __name__)
+
+
+def _parse_stage_timestamps(raw):
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
 
 
 def _progress_to_dict(schedule):
@@ -23,6 +33,7 @@ def _progress_to_dict(schedule):
         "error_message": schedule.move_error,
         "started_at": schedule.build_start.isoformat() if schedule.build_start else None,
         "completed_at": schedule.build_end.isoformat() if schedule.build_end else None,
+        "stage_timestamps": _parse_stage_timestamps(schedule.move_stage_timestamps),
     }
 
 

@@ -21,6 +21,7 @@ All dispatchers follow the pattern:
 from .base import BaseDispatcher, SinglePluginDispatcher, MultiPluginDispatcher
 from .chat import ChatDispatcher, get_chat_dispatcher
 from .cloud import CloudDispatcher, get_cloud_dispatcher
+from .dayzero import DayzeroDispatcher, get_dayzero_dispatcher
 from .email import EmailDispatcher, get_email_dispatcher
 from .hardware import HardwareDispatcher, get_hardware_dispatcher
 from .provisioner import ProvisionerDispatcher, get_provisioner_dispatcher
@@ -35,6 +36,7 @@ __all__ = [
     "MultiPluginDispatcher",
     "ChatDispatcher",
     "CloudDispatcher",
+    "DayzeroDispatcher",
     "EmailDispatcher",
     "HardwareDispatcher",
     "ProvisionerDispatcher",
@@ -44,6 +46,7 @@ __all__ = [
     "ValidatorDispatcher",
     "get_chat_dispatcher",
     "get_cloud_dispatcher",
+    "get_dayzero_dispatcher",
     "get_email_dispatcher",
     "get_hardware_dispatcher",
     "get_provisioner_dispatcher",

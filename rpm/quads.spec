@@ -116,6 +116,9 @@ mkdir %{buildroot}/etc/postfix/postfix-files.d/ -p
 mkdir %{buildroot}%{python3_sitelib}/quads/ -p
 mkdir %{buildroot}%{prefix}/migrations -p
 mkdir %{buildroot}%{prefix}/plugins -p
+mkdir %{buildroot}%{prefix}/plugins/dayzero -p
+mkdir %{buildroot}%{prefix}/plugins/dayzero/runonce -p
+mkdir %{buildroot}%{prefix}/plugins/dayzero/runonce/contrib -p
 mkdir %{buildroot}%{prefix}/templates -p
 tar cf - conf | ( cd %{buildroot}%{prefix} ; tar xvpBf - )
 cp -rf systemd/quads-server.service %{buildroot}/etc/systemd/system/
@@ -149,6 +152,9 @@ rm -rf %{buildroot}
 /opt/quads/migrations/*
 /opt/quads/templates/*
 %dir /opt/quads/plugins
+%dir /opt/quads/plugins/dayzero
+%dir /opt/quads/plugins/dayzero/runonce
+%dir /opt/quads/plugins/dayzero/runonce/contrib
 /usr/bin/quads
 %config(noreplace) /opt/quads/conf/quads.yml
 %config(noreplace) /opt/quads/conf/quadsweb.yml
@@ -171,6 +177,7 @@ rm -rf %{buildroot}
 /usr/bin/mkdir -p /opt/quads/web/instack/
 /usr/bin/mkdir -p /opt/quads/lshw/
 /usr/bin/mkdir -p /opt/quads/plugins/
+/usr/bin/mkdir -p /opt/quads/plugins/dayzero/runonce/contrib/
 /usr/bin/chown -R postgres:postgres /opt/quads/db/
 /usr/bin/chcon -Rt postgresql_db_t /opt/quads/db/data
 /usr/sbin/semanage port -a -t http_port_t -p tcp 5000 2>/dev/null
