@@ -27,7 +27,11 @@ from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
-from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher
+from quads.plugins.dispatchers import (
+    get_release_dispatcher,
+    get_switch_dispatcher,
+    get_validator_dispatcher,
+)
 from quads.plugins.manager import PluginManager
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
@@ -2051,7 +2055,7 @@ class QuadsCli:
                                                 self.quads.update_move_status(
                                                     _pid, {"status": "released", "message": "Environment released"}
                                                 )
-                                                self.quads.update_move_status(_pid, {"status": "completed"})
+                                            self.quads.update_move_status(_pid, {"status": "completed"})
                                         except Exception:
                                             pass
                         except (
