@@ -1,10 +1,13 @@
 import logging
 from typing import Dict, Optional, Type, List
+
 from quads.plugins.base import BasePlugin
 from quads.plugins.discovery import PluginDiscovery
 from quads.config import Config
 
 logger = logging.getLogger(__name__)
+
+_manager_instance: Optional["PluginManager"] = None
 
 
 class PluginManager:
@@ -57,3 +60,16 @@ class PluginManager:
     def get_plugins_by_type(self, plugin_type: Type) -> List[BasePlugin]:
         """Get all loaded plugins of a specific type"""
         return [p for p in self.loaded_plugins.values() if isinstance(p, plugin_type)]
+
+
+def get_plugin_manager(config=None) -> "PluginManager":
+    global _manager_instance
+    if _manager_instance is None:
+        _manager_instance = PluginManager(config)
+        _manager_instance.initialize()
+    return _manager_instance
+
+
+def reset_plugin_manager():
+    global _manager_instance
+    _manager_instance = None

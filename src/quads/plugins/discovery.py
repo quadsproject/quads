@@ -22,6 +22,7 @@ class PluginDiscovery:
             "quads.plugins.builtin.switches",
             "quads.plugins.builtin.ticketing",
             "quads.plugins.builtin.validators",
+            "quads.plugins.builtin.dayzero",
         ]
         self.external_path = Path("/opt/quads/plugins/")
 
@@ -60,19 +61,24 @@ class PluginDiscovery:
         return plugins
 
     def _discover_in_directory(self, directory_path: Path) -> Dict[str, Type[BasePlugin]]:
-        """Load plugins from directory"""
+        """Load plugins from directory and its category subdirectories"""
         plugins = {}
-        for file in directory_path.glob("*.py"):
-            if file.is_file() and file.stem != "__init__":
-                try:
-                    spec = importlib.util.spec_from_file_location(file.stem, file)
-                    if spec and spec.loader:
-                        module = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(module)
-                        for attr_name in dir(module):
-                            attr = getattr(module, attr_name)
-                            if isinstance(attr, type) and issubclass(attr, BasePlugin) and attr is not BasePlugin:
-                                plugins[attr.name] = attr
-                except Exception as e:
-                    logging.warning(f"Failed to load plugin {file}: {e}")
+        search_dirs = [directory_path]
+        for subdir in sorted(directory_path.iterdir()) if directory_path.is_dir() else []:
+            if subdir.is_dir() and not subdir.name.startswith("_"):
+                search_dirs.append(subdir)
+        for search_dir in search_dirs:
+            for file in search_dir.glob("*.py"):
+                if file.is_file() and file.stem != "__init__":
+                    try:
+                        spec = importlib.util.spec_from_file_location(file.stem, file)
+                        if spec and spec.loader:
+                            module = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(module)
+                            for attr_name in dir(module):
+                                attr = getattr(module, attr_name)
+                                if isinstance(attr, type) and issubclass(attr, BasePlugin) and attr is not BasePlugin:
+                                    plugins[attr.name] = attr
+                    except Exception as e:
+                        logging.warning(f"Failed to load plugin {file}: {e}")
         return plugins

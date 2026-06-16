@@ -276,6 +276,7 @@ class User(Base, UserMixin):
     profile_picture = Column(String(512), nullable=True)
     last_login = Column(DateTime, nullable=True)
     ssh_key = Column(Text, nullable=True)
+    release_command = Column(String(1024), nullable=True)
     # many-to-many parent
     roles = relationship(
         "Role",
