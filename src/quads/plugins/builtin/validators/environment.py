@@ -396,6 +396,35 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         except Exception:
             pass
 
+    async def _distribute_ssh_keys(self, assignment, hosts):
+        try:
+            key_data = self.quads.get_ssh_keys_for_assignment(assignment.id)
+            key_lines = key_data.get("keys", [])
+        except Exception as e:
+            self.logger.warning(f"Could not fetch SSH keys for assignment {assignment.id}: {e}")
+            return
+
+        if not key_lines:
+            self.logger.info(f"No SSH keys to distribute for assignment {assignment.id}")
+            return
+
+        max_attempts = 5
+        for host in hosts:
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    ssh = SSHHelper(host.name)
+                    ssh.distribute_ssh_keys(key_lines)
+                    ssh.disconnect()
+                    self.logger.info(f"SSH keys distributed to {host.name}")
+                    break
+                except SSHHelperException as e:
+                    self.logger.warning(
+                        f"SSH key distribution to {host.name} failed "
+                        f"(attempt {attempt}/{max_attempts}): {e}"
+                    )
+                    if attempt < max_attempts:
+                        await asyncio.sleep(2)
+
     async def validate(
         self,
         cloud: str,
@@ -456,6 +485,8 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     self.logger.error("Could not update assignment: %s." % assignment.id)
                     report = report + "Could not update assignment: %s.\n" % assignment.id
                     failed = True
+
+                await self._distribute_ssh_keys(assignment, hosts)
 
                 if not failed:
                     for host in hosts:

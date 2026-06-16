@@ -12,4 +12,8 @@ class TestForemanHeal(TestBase):
 
         foreman_heal_main()
 
-        assert len(self._caplog.messages) == 17
+        messages = self._caplog.messages
+        assert any("Processing cloud" in m for m in messages)
+        assert any("No active schedule nor roles assigned." in m for m in messages)
+        assert any("Current Host Permissions:" in m for m in messages)
+        assert any("Added permission" in m for m in messages)

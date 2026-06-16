@@ -12,7 +12,6 @@ from quads.plugins.interfaces.release import ReleasePlugin
 from quads.plugins.dispatchers import get_hardware_dispatcher, get_provisioner_dispatcher
 from quads.quads_api import QuadsApi
 from quads.tools.external.ipmi import IPMI
-from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from quads.plugins.manager import PluginManager
 from quads.server.models import Host
 
@@ -212,30 +211,7 @@ class StandardReleasePlugin(ReleasePlugin):
         self.quads.update_host(host_obj.name, success_data)
         await self._report_progress(schedule_id, "post_install", "Records updated")
 
-        if rebuild and _assignment:
-            await self._distribute_ssh_keys(host, _assignment, schedule_id)
-
         return True
-
-    async def _distribute_ssh_keys(self, host, assignment, schedule_id=None):
-        try:
-            key_data = await asyncio.to_thread(self.quads.get_ssh_keys_for_assignment, assignment.id)
-            key_lines = key_data.get("keys", [])
-        except Exception as e:
-            self.logger.warning(f"Could not fetch SSH keys for assignment {assignment.id}: {e}")
-            return
-
-        if not key_lines:
-            self.logger.info(f"No SSH keys to distribute for assignment {assignment.id}")
-            return
-
-        try:
-            ssh = SSHHelper(host)
-            ssh.distribute_ssh_keys(key_lines)
-            ssh.disconnect()
-            self.logger.info(f"SSH keys distributed to {host}")
-        except SSHHelperException as e:
-            self.logger.warning(f"Could not distribute SSH keys to {host}: {e}")
 
     async def prepare_host_hardware(
         self, host_obj: Host, boot_order: str, interfaces_path: str
