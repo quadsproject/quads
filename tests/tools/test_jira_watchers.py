@@ -14,9 +14,9 @@ from tests.cli.config import CLOUD, DEFAULT_CLOUD, HOST1
 
 class TestJiraWatchers(object):
     @patch("quads.tools.jira_watchers.get_email_dispatcher")
-    @patch("quads.tools.jira_watchers.PluginManager")
+    @patch("quads.tools.jira_watchers.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main(self, mock_pm_class, mock_get_email):
+    async def test_main(self, mock_get_pm, mock_get_email):
         today = datetime.now()
         tomorrow = today + timedelta(weeks=2)
         cloud_name = CLOUD
@@ -73,7 +73,7 @@ class TestJiraWatchers(object):
 
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = mock_plugin
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         mock_email = AsyncMock()
         mock_get_email.return_value = mock_email
@@ -82,9 +82,9 @@ class TestJiraWatchers(object):
         assert response == 0
 
     @patch("quads.tools.jira_watchers.get_email_dispatcher")
-    @patch("quads.tools.jira_watchers.PluginManager")
+    @patch("quads.tools.jira_watchers.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main_post_fail(self, mock_pm_class, mock_get_email):
+    async def test_main_post_fail(self, mock_get_pm, mock_get_email):
         today = datetime.now()
         tomorrow = today + timedelta(days=1)
         cloud_name = CLOUD
@@ -141,7 +141,7 @@ class TestJiraWatchers(object):
 
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = mock_plugin
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         mock_email = AsyncMock()
         mock_get_email.return_value = mock_email
@@ -149,9 +149,9 @@ class TestJiraWatchers(object):
         response = await main()
         assert response == 0
 
-    @patch("quads.tools.jira_watchers.PluginManager")
+    @patch("quads.tools.jira_watchers.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main_empty(self, mock_pm_class):
+    async def test_main_empty(self, mock_get_pm):
         mock_jira = AsyncMock()
         mock_jira.get_pending_tickets.return_value = {"issues": []}
 
@@ -160,17 +160,17 @@ class TestJiraWatchers(object):
 
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = mock_plugin
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         response = await main()
         assert response == 0
 
-    @patch("quads.tools.jira_watchers.PluginManager")
+    @patch("quads.tools.jira_watchers.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main_error(self, mock_pm_class):
+    async def test_main_error(self, mock_get_pm):
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = None
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         response = await main()
         assert response == 1
