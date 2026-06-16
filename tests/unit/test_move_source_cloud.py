@@ -18,6 +18,7 @@ class TestProgressToDict:
         schedule.move_error = None
         schedule.build_start = datetime(2026, 6, 10, 8, 0)
         schedule.build_end = None
+        schedule.move_stage_timestamps = None
         return schedule
 
     def test_source_cloud_from_persisted_value(self):
@@ -52,6 +53,7 @@ class TestProgressToDict:
             "error_message",
             "started_at",
             "completed_at",
+            "stage_timestamps",
         }
         assert set(result.keys()) == expected_keys
 

@@ -332,6 +332,7 @@ class ScheduleDao(BaseDao):
             raise EntryNotFound
         if move_status is not None:
             schedule.move_status = move_status
+            schedule.record_stage_timestamp(move_status)
             if move_status in (MoveStatus.COMPLETED.value, MoveStatus.FAILED.value):
                 schedule.build_end = datetime.now()
         if move_message is not None:

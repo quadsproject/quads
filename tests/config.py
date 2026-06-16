@@ -925,6 +925,7 @@ SCHEDULE_1_RESPONSE = {
     "move_error": None,
     "move_message": None,
     "move_source_cloud": None,
+    "move_stage_timestamps": None,
     "move_status": None,
     "start": "Sat, 04 Feb 2023 22:00:00 GMT",
 }
@@ -1020,6 +1021,7 @@ SCHEDULE_2_RESPONSE = {
     "move_error": None,
     "move_message": None,
     "move_source_cloud": None,
+    "move_stage_timestamps": None,
     "move_status": None,
     "start": "Sat, 04 Feb 2023 22:00:00 GMT",
 }
