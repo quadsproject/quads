@@ -95,3 +95,6 @@ plugins:
 
   environment:
     enabled: true
+
+  # dayzero - post-release plugins
+  # lab-admin plugins go in /opt/quads/plugins/dayzero/

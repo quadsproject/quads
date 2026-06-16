@@ -168,6 +168,7 @@ def register_blueprints(app):
 
 def register_plugin_dispatchers(app):
     from quads.plugins.dispatchers.chat import get_chat_dispatcher
+    from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
     from quads.plugins.dispatchers.email import get_email_dispatcher
     from quads.plugins.dispatchers.hardware import get_hardware_dispatcher
     from quads.plugins.dispatchers.provisioner import get_provisioner_dispatcher
@@ -178,6 +179,7 @@ def register_plugin_dispatchers(app):
 
     app.extensions["plugin_dispatchers"] = {
         "chat": get_chat_dispatcher(app.extensions.get("plugin_manager")),
+        "dayzero": get_dayzero_dispatcher(app.extensions.get("plugin_manager")),
         "email": get_email_dispatcher(app.extensions.get("plugin_manager")),
         "hardware": get_hardware_dispatcher(app.extensions.get("plugin_manager")),
         "provisioner": get_provisioner_dispatcher(app.extensions.get("plugin_manager")),
