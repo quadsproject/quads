@@ -12,4 +12,4 @@ class TestForemanHeal(TestBase):
 
         foreman_heal_main()
 
-        assert len(self._caplog.messages) == 12
+        assert len(self._caplog.messages) == 17

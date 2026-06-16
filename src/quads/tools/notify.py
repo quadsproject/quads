@@ -15,6 +15,7 @@ from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.manager import PluginManager
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.chat import get_chat_dispatcher
+from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
@@ -180,6 +181,36 @@ def create_future_message(
     )
 
 
+_dayzero_dispatcher = None
+
+
+def _get_dayzero_dispatcher():
+    global _dayzero_dispatcher
+    if _dayzero_dispatcher is None:
+        pm = PluginManager()
+        pm.initialize()
+        _dayzero_dispatcher = get_dayzero_dispatcher(pm)
+    return _dayzero_dispatcher
+
+
+def _run_dayzero(loop, cloud_name, current_schedules):
+    hosts = [s.host.name for s in current_schedules]
+    if not hosts:
+        return
+    dispatcher = _get_dayzero_dispatcher()
+    schedule_data_list = []
+    for host in hosts:
+        try:
+            loop.run_until_complete(dispatcher.run_dayzero(host, cloud_name, {}))
+        except Exception as e:
+            logger.error(f"dayzero per-host dispatch failed for {host}: {e}")
+        schedule_data_list.append({})
+    try:
+        loop.run_until_complete(dispatcher.run_dayzero_cloud(hosts, cloud_name, schedule_data_list))
+    except Exception as e:
+        logger.error(f"dayzero per-cloud dispatch failed for {cloud_name}: {e}")
+
+
 def main(_logger=None):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -233,6 +264,8 @@ def main(_logger=None):
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     logger.debug(str(ex))
                     logger.error("Could not update notification: %s." % ass.notification.id)
+
+                _run_dayzero(loop, ass.cloud.name, current_schedules)
 
             if Config.plugins["email"]["enabled"] and not ass.is_self_schedule:
                 for day in Days:
