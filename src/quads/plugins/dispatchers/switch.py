@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from quads.plugins.dispatchers.base import SinglePluginDispatcher
 from quads.plugins.interfaces.switch import SwitchPlugin
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import PluginManager, get_plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def get_switch_dispatcher(plugin_manager: Optional[PluginManager] = None) -> Swi
 
     if _dispatcher_instance is None:
         if plugin_manager is None:
-            raise RuntimeError("PluginManager required to initialize SwitchDispatcher")
+            plugin_manager = get_plugin_manager()
         _dispatcher_instance = SwitchDispatcher(plugin_manager)
 
     return _dispatcher_instance

@@ -15,8 +15,7 @@ from tests.config import (
 class TestNotify:
     @patch("quads.tools.notify.get_chat_dispatcher")
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_create_initial_message(self, mock_plugin_manager, mock_email_dispatcher, mock_chat_dispatcher):
+    def test_create_initial_message(self, mock_email_dispatcher, mock_chat_dispatcher):
         # Setup mocks
         mock_email_disp = MagicMock()
         mock_email_disp.send_mail = AsyncMock(return_value={"email": True})
@@ -45,8 +44,7 @@ class TestNotify:
         mock_chat_disp.send_message.assert_called_once()
 
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_create_message(self, mock_plugin_manager, mock_email_dispatcher):
+    def test_create_message(self, mock_email_dispatcher):
         # Setup mocks
         mock_email_disp = MagicMock()
         mock_email_disp.send_mail_sync = MagicMock(return_value={"email": True})
@@ -69,8 +67,7 @@ class TestNotify:
         assert cloud in call_kwargs["subject"]
 
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_create_future_initial_message(self, mock_plugin_manager, mock_email_dispatcher):
+    def test_create_future_initial_message(self, mock_email_dispatcher):
         # Setup mocks
         mock_email_disp = MagicMock()
         mock_email_disp.send_mail_sync = MagicMock(return_value={"email": True})
@@ -91,8 +88,7 @@ class TestNotify:
         assert cloud in call_kwargs["subject"]
 
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_create_future_message(self, mock_plugin_manager, mock_email_dispatcher):
+    def test_create_future_message(self, mock_email_dispatcher):
         # Setup mocks
         mock_email_disp = MagicMock()
         mock_email_disp.send_mail_sync = MagicMock(return_value={"email": True})

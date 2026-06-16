@@ -88,6 +88,8 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Using API Tokens](#using-api-tokens)
          * [Managing API Tokens via the API](#managing-api-tokens-via-the-api)
       * [QUADS Plugin Architecture](/docs/quads-plugins.md)
+         * [Custom Post Validation Plugins](#custom-post-validation-plugins)
+         * [Writing Custom Plugins](#writing-custom-plugins)
       * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
@@ -1255,6 +1257,67 @@ curl -X DELETE \
   - How to create custom plugins
   - Plugin interfaces and APIs
   - Migration from legacy tools
+
+### Custom Post Validation Plugins
+dayzero plugins run after a cloud environment is validated and released. They are non-fatal by design, all exceptions are caught and logged to `/var/log/quads-dayzero.log`.
+
+Each plugin's `execute(cloud)` method receives the cloud name and is responsible for looking up whatever host or schedule data it needs via the QUADS API.
+
+User and lab-admin created plugins go in `/opt/quads/plugins/` under the appropriate category subdirectory. The directory structure mirrors the built-in plugin categories:
+
+```
+/opt/quads/plugins/
+    chat/
+    cloud/
+    dayzero/
+    email/
+    hardware/
+    provisioners/
+    release/
+    switches/
+    ticketing/
+    validators/
+```
+
+* Plugins placed here are auto-discovered at startup.
+* The `/opt/quads/plugins/` tree is `%config(noreplace)` in the RPM, so your plugins will not be overwritten on upgrades.
+* All plugins are enabled/disabled in `/opt/quads/conf/plugins.yml`.
+
+### Writing Custom Plugins
+To create your own dayzero plugin:
+
+1. Create a Python file in `/opt/quads/plugins/dayzero/`
+2. Inherit from `DayzeroPlugin` and implement `execute()`
+3. Set `name` to match your filename (without `.py`)
+4. Add a config entry in `plugins.yml` with `enabled: true`
+
+```python
+from quads.plugins.interfaces.dayzero import DayzeroPlugin
+
+
+class MyPlugin(DayzeroPlugin):
+    name = "myplugin"
+    version = "1.0.0"
+    description = "Example dayzero plugin"
+    author = "Your Name"
+
+    def initialize(self, plugin_manager=None):
+        return True
+
+    async def execute(self, cloud):
+        self.logger.info(f"Cloud {cloud} released")
+        return True
+```
+
+```yaml
+# plugins.yml
+  myplugin:
+    enabled: true
+  summary:
+    enabled: true
+```
+
+This pattern works for any plugin category. For example, a custom chat plugin goes in `/opt/quads/plugins/chat/`, a custom validator in `/opt/quads/plugins/validators/`, etc.
 
 ## Self-Scheduling Hosts
 * QUADS supports full-featured self service provisioning via the API documented [here](/docs/quads-self-schedule.md).

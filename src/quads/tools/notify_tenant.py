@@ -11,7 +11,6 @@ from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
-from quads.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -45,9 +44,7 @@ def post_message(args, ticket, description, cloud_name):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    ticketing_dispatcher = get_ticketing_dispatcher(plugin_manager)
+    ticketing_dispatcher = get_ticketing_dispatcher()
     _ass = quads.filter_assignments({"active": True, "validated": True, "cloud": cloud_name})[0]
     result = loop.run_until_complete(ticketing_dispatcher.post_comment(_ass.ticket, content))
     if not result:
@@ -75,9 +72,7 @@ def send_message(args, owner, ccuser, ticket, description, cloud_name):
         ticket=ticket,
         cloud_name=cloud_name,
     )
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    email_dispatcher = get_email_dispatcher(plugin_manager)
+    email_dispatcher = get_email_dispatcher()
     recipient = "%s@%s" % (owner, Config["domain"])
     email_dispatcher.send_mail_sync(
         subject="INFO: [%s] %s" % (cloud_name, args.subject),

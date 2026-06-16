@@ -4,7 +4,7 @@ import sys
 
 from quads.quads_api import QuadsApi
 from quads.plugins.interfaces.ticketing import TicketingPlugin
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import get_plugin_manager
 from quads.config import Config
 from quads.tools.helpers import get_or_create_event_loop
 
@@ -14,9 +14,7 @@ quads = QuadsApi(Config)
 
 
 async def main():
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-
+    plugin_manager = get_plugin_manager()
     jira_plugin = plugin_manager.get_plugin("jira", TicketingPlugin)
     if not jira_plugin:
         logger.error("Jira plugin not found or not enabled")

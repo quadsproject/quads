@@ -12,14 +12,8 @@ from tests.cli.test_base import TestBase
 class TestNotify(TestBase):
     @patch("quads.tools.notify.get_chat_dispatcher")
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_notify_not_validated(self, mock_plugin_manager, mock_email_dispatcher, mock_chat_dispatcher):
+    def test_notify_not_validated(self, mock_email_dispatcher, mock_chat_dispatcher):
         Config.__setattr__("foreman_unavailable", True)
-
-        # Mock PluginManager
-        pm_instance = MagicMock()
-        pm_instance.initialize = MagicMock()
-        mock_plugin_manager.return_value = pm_instance
 
         # Mock email dispatcher
         email_disp = AsyncMock()
@@ -43,17 +37,12 @@ class TestNotify(TestBase):
             "Notifications sent out.",
         ]
 
+    @patch("quads.tools.notify.get_dayzero_dispatcher")
     @patch("quads.tools.notify.get_chat_dispatcher")
     @patch("quads.tools.notify.get_email_dispatcher")
-    @patch("quads.tools.notify.PluginManager")
-    def test_notify_validated(self, mock_plugin_manager, mock_email_dispatcher, mock_chat_dispatcher):
+    def test_notify_validated(self, mock_email_dispatcher, mock_chat_dispatcher, mock_dayzero_dispatcher):
         Config.__setattr__("foreman_unavailable", True)
         Config.__setattr__("webhook_notify", True)
-
-        # Mock PluginManager
-        pm_instance = MagicMock()
-        pm_instance.initialize = MagicMock()
-        mock_plugin_manager.return_value = pm_instance
 
         # Mock email dispatcher
         email_disp = AsyncMock()
@@ -64,6 +53,11 @@ class TestNotify(TestBase):
         chat_disp = AsyncMock()
         chat_disp.send_message = AsyncMock()
         mock_chat_dispatcher.return_value = chat_disp
+
+        # Mock dayzero dispatcher
+        dayzero_disp = MagicMock()
+        dayzero_disp.execute = MagicMock()
+        mock_dayzero_dispatcher.return_value = dayzero_disp
 
         cloud = CloudDao.get_cloud(name="cloud99")
         ass = AssignmentDao.get_active_cloud_assignment(cloud=cloud)

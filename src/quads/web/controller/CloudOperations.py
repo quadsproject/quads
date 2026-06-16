@@ -4,7 +4,6 @@ from datetime import datetime
 from quads.config import Config
 from quads.helpers.utils import time_remaining
 from quads.quads_api import APIBadRequest, APIServerException
-from quads.plugins.manager import PluginManager
 from quads.plugins.dispatchers import get_provisioner_dispatcher
 
 
@@ -27,9 +26,7 @@ class CloudOperations:
         """
         This method returns all hosts
         """
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        provisioner_dispatcher = get_provisioner_dispatcher(plugin_manager)
+        provisioner_dispatcher = get_provisioner_dispatcher()
         all_hosts = await provisioner_dispatcher.get_all_hosts()
         return all_hosts
 
