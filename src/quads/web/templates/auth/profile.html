@@ -143,6 +143,35 @@
                 </div>
             </div>
 
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Cloud Release Command</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        An optional command to run on the first host of your
+                        allocations after release. Executes in a detached tmux
+                        session as root. Maximum 1024 characters.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('auth.update_release_command') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-2">
+                            <textarea class="form-control font-monospace"
+                                      id="releaseCommandInput"
+                                      name="release_command"
+                                      rows="3"
+                                      maxlength="1024"
+                                      placeholder="e.g. source /home/user/.env ; start_service">{{ release_command or '' }}</textarea>
+                            <div class="form-text">
+                                <span id="cmdCharCount">{{ (release_command or '')|length }}</span>/1024
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Command</button>
+                    </form>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <h5>My Cloud Assignments</h5>
@@ -202,6 +231,12 @@ function copyToken() {
         var btn = document.getElementById('copyTokenBtn');
         btn.textContent = 'Copied!';
         setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+}
+var cmdInput = document.getElementById('releaseCommandInput');
+if (cmdInput) {
+    cmdInput.addEventListener('input', function() {
+        document.getElementById('cmdCharCount').textContent = this.value.length;
     });
 }
 </script>
