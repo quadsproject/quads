@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.config import Config
@@ -31,6 +33,36 @@ def _validate_ssh_key(ssh_key):
     return None
 
 
+RELEASE_CMD_MAX_LENGTH = 1024
+
+BLOCKED_PATTERNS = [
+    r"(?:^|[;&|]\s*)rm\s+.*-[rR].*\s+/",
+    r":\(\)\s*\{\s*:\|:\s*&\s*\}\s*;",
+    r"(?:^|[;&|]\s*)dd\s+.*of=/dev/",
+    r"(?:^|[;&|]\s*)mkfs",
+    r"(?:^|[;&|]\s*)shutdown",
+    r"(?:^|[;&|]\s*)reboot",
+    r"(?:^|[;&|]\s*)halt",
+    r"(?:^|[;&|]\s*)poweroff",
+    r"(?:^|[;&|]\s*)init\s+[06]",
+    r"(?:^|[;&|]\s*)systemctl\s+reboot",
+]
+
+
+def _validate_release_command(command):
+    if not command:
+        return None
+    if len(command) > RELEASE_CMD_MAX_LENGTH:
+        return f"Command exceeds {RELEASE_CMD_MAX_LENGTH} character limit."
+    cleaned = re.sub(r"[^\x09\x0a\x0d\x20-\x7e]", "", command)
+    if cleaned != command:
+        return "Command contains invalid control characters."
+    for pattern in BLOCKED_PATTERNS:
+        if re.search(pattern, command, re.IGNORECASE):
+            return "Command contains a blocked operation."
+    return None
+
+
 def _user_to_dict(user):
     return {
         "id": user.id,
@@ -41,6 +73,7 @@ def _user_to_dict(user):
         "last_login": user.last_login.strftime("%a, %d %b %Y %H:%M:%S GMT") if user.last_login else None,
         "roles": [role.name for role in user.roles],
         "ssh_key": user.ssh_key,
+        "release_command": user.release_command,
     }
 
 
@@ -58,6 +91,7 @@ def get_users() -> Response:
 
 
 @user_bp.route("/<path:email>")
+@check_access(["admin"])
 def get_user(email: str) -> Response:
     user = UserDao.get_user_by_email(email)
     if not user:
@@ -125,6 +159,16 @@ def update_user(email: str) -> Response:
 
     if "ssh_key" in data and data["ssh_key"]:
         error = _validate_ssh_key(data["ssh_key"])
+        if error:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": error,
+            }
+            return make_response(jsonify(response), 400)
+
+    if "release_command" in data and data["release_command"]:
+        error = _validate_release_command(data["release_command"])
         if error:
             response = {
                 "status_code": 400,

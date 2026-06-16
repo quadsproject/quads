@@ -12,9 +12,9 @@ from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn
 from rich.table import Column
 from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
-from quads.plugins.manager import PluginManager
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.chat import get_chat_dispatcher
+from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
@@ -52,9 +52,7 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_s
             is_self_schedule=is_self_schedule,
         )
 
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        email_dispatcher = get_email_dispatcher(plugin_manager)
+        email_dispatcher = get_email_dispatcher()
         recipient = "%s@%s" % (real_owner, Config["domain"])
         await email_dispatcher.send_mail(
             subject="New QUADS Assignment Allocated - %s %s" % (cloud, ticket),
@@ -71,9 +69,7 @@ async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_s
         Config.plugins["email"]["report_cc"],
     )
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    chat_dispatcher = get_chat_dispatcher(plugin_manager)
+    chat_dispatcher = get_chat_dispatcher()
     await chat_dispatcher.send_message(
         message=message,
     )
@@ -108,9 +104,7 @@ def create_message(
         hosts=host_list_expire,
     )
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    email_dispatcher = get_email_dispatcher(plugin_manager)
+    email_dispatcher = get_email_dispatcher()
     recipient = "%s@%s" % (real_owner, Config["domain"])
     email_dispatcher.send_mail_sync(
         subject="QUADS upcoming expiration for %s - %s" % (cloud, ticket),
@@ -134,9 +128,7 @@ def create_future_initial_message(cloud, assignment_obj, cloud_info):
         is_self_schedule=assignment_obj.is_self_schedule,
     )
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    email_dispatcher = get_email_dispatcher(plugin_manager)
+    email_dispatcher = get_email_dispatcher()
     recipient = "%s@%s" % (assignment_obj.owner, Config["domain"])
     email_dispatcher.send_mail_sync(
         subject="New QUADS Assignment Defined for the Future: %s - %s" % (cloud, ticket),
@@ -168,9 +160,7 @@ def create_future_message(
         hosts=host_list_expire,
     )
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-    email_dispatcher = get_email_dispatcher(plugin_manager)
+    email_dispatcher = get_email_dispatcher()
     recipient = "%s@%s" % (assignment_obj.owner, Config["domain"])
     email_dispatcher.send_mail_sync(
         subject="QUADS upcoming assignment notification - %s - %s" % (cloud, ticket),
@@ -233,6 +223,9 @@ def main(_logger=None):
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     logger.debug(str(ex))
                     logger.error("Could not update notification: %s." % ass.notification.id)
+
+                dayzero_dispatcher = get_dayzero_dispatcher()
+                loop.run_until_complete(dayzero_dispatcher.execute(ass.cloud.name))
 
             if Config.plugins["email"]["enabled"] and not ass.is_self_schedule:
                 for day in Days:

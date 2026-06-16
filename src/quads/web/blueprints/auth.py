@@ -1,4 +1,5 @@
 import logging
+import re
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
@@ -74,12 +75,14 @@ def profile():
         logger.exception("Failed to fetch API tokens for profile")
 
     ssh_key = None
+    release_command = None
     try:
         user_data = quads.get_user(email=current_user.email)
         if user_data:
             ssh_key = getattr(user_data, "ssh_key", None)
+            release_command = getattr(user_data, "release_command", None)
     except Exception:
-        logger.exception("Failed to fetch SSH key for profile")
+        logger.exception("Failed to fetch user data for profile")
 
     new_token = session.pop("new_token", None)
     new_token_name = session.pop("new_token_name", None)
@@ -91,6 +94,7 @@ def profile():
         assignments=user_assignments,
         api_tokens=api_tokens,
         ssh_key=ssh_key,
+        release_command=release_command,
         new_token=new_token,
         new_token_name=new_token_name,
     )
@@ -174,5 +178,33 @@ def update_ssh_key():
     except Exception:
         logger.exception("Failed to update SSH key")
         flash("Failed to update SSH key.", "danger")
+
+    return redirect(url_for("auth.profile"))
+
+
+@auth_bp.route("/profile/release-command", methods=["POST"])
+@login_required
+def update_release_command():
+    command = request.form.get("release_command", "").strip()
+
+    if command:
+        if len(command) > 1024:
+            flash("Command exceeds 1024 character limit.", "danger")
+            return redirect(url_for("auth.profile"))
+        cleaned = re.sub(r"[^\x09\x0a\x0d\x20-\x7e]", "", command)
+        if cleaned != command:
+            flash("Command contains invalid control characters.", "danger")
+            return redirect(url_for("auth.profile"))
+
+    quads = QuadsApi(Config)
+    try:
+        quads.update_user(current_user.email, {"release_command": command or None})
+        if command:
+            flash("Release command saved.", "success")
+        else:
+            flash("Release command removed.", "success")
+    except Exception:
+        logger.exception("Failed to update release command")
+        flash("Failed to update release command.", "danger")
 
     return redirect(url_for("auth.profile"))
