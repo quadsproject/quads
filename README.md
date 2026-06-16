@@ -88,6 +88,8 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Using API Tokens](#using-api-tokens)
          * [Managing API Tokens via the API](#managing-api-tokens-via-the-api)
       * [QUADS Plugin Architecture](/docs/quads-plugins.md)
+         * [Custom Post Validation Plugins](#custom-post-validation-plugins)
+         * [Writing Contrib Plugins](#writing-contrib-plugins)
       * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
@@ -1255,6 +1257,59 @@ curl -X DELETE \
   - How to create custom plugins
   - Plugin interfaces and APIs
   - Migration from legacy tools
+
+### Custom Post Validation Plugins
+dayzero plugins run once per host after a cloud environment is released through the 12-stage move pipeline. They are non-fatal by design, all exceptions are caught and logged to `/var/log/quads-dayzero.log`.
+
+The plugin hierarchy:
+
+```
+plugins/builtin/dayzero/
+    runonce/
+        moveinfo.py          # shipped example plugin
+        contrib/             # user-contributed plugins go here
+```
+
+* `moveinfo` is the first-party example. It SSHes to each released host and writes `/root/quads_deployed.txt` containing timestamps from all 12 move stages.
+* User-contributed plugins belong in the `contrib/` directory and are auto-discovered at startup.
+* The `contrib/` directory is protected from RPM upgrades, your plugins will not be overwritten.
+* dayzero plugins are enabled/disabled in `/opt/quads/conf/plugins.yml` like all other plugins.
+
+### Writing Contrib Plugins
+To create your own dayzero plugin:
+
+1. Create a Python file in `plugins/builtin/dayzero/runonce/contrib/`
+2. Inherit from `DayzeroPlugin` and implement `execute()`
+3. Set the `name` class attribute to match your filename (without `.py`)
+4. Add a config entry in `plugins.yml` with `enabled: true`
+
+```python
+from quads.plugins.interfaces.dayzero import DayzeroPlugin
+
+
+class MyPlugin(DayzeroPlugin):
+    name = "myplugin"
+    version = "1.0.0"
+    description = "Example contrib dayzero plugin"
+    author = "Your Name"
+
+    def initialize(self, plugin_manager=None):
+        return True
+
+    async def execute(self, host, cloud, schedule_data):
+        timestamps = schedule_data.get("stage_timestamps", {})
+        self.logger.info(f"Running on {host} in {cloud}")
+        # your post-release logic here
+        return True
+```
+
+```yaml
+# plugins.yml
+  myplugin:
+    enabled: true
+```
+
+The `schedule_data` dict contains the host's move progress including `stage_timestamps` with ISO timestamps for each of the 12 stages. Your plugin receives one call per released host.
 
 ## Self-Scheduling Hosts
 * QUADS supports full-featured self service provisioning via the API documented [here](/docs/quads-self-schedule.md).

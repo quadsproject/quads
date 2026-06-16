@@ -22,6 +22,8 @@ class PluginDiscovery:
             "quads.plugins.builtin.switches",
             "quads.plugins.builtin.ticketing",
             "quads.plugins.builtin.validators",
+            "quads.plugins.builtin.dayzero.runonce",
+            "quads.plugins.builtin.dayzero.runonce.contrib",
         ]
         self.external_path = Path("/opt/quads/plugins/")
 
