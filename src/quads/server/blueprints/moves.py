@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request
@@ -23,6 +24,7 @@ def _progress_to_dict(schedule):
         "error_message": schedule.move_error,
         "started_at": schedule.build_start.isoformat() if schedule.build_start else None,
         "completed_at": schedule.build_end.isoformat() if schedule.build_end else None,
+        "stage_timestamps": json.loads(schedule.move_stage_timestamps) if schedule.move_stage_timestamps else {},
     }
 
 

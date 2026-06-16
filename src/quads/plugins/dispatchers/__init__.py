@@ -28,6 +28,7 @@ from .release import ReleaseDispatcher, get_release_dispatcher
 from .switch import SwitchDispatcher, get_switch_dispatcher
 from .ticketing import TicketingDispatcher, get_ticketing_dispatcher
 from .validator import ValidatorDispatcher, get_validator_dispatcher
+from .dayzero import DayzeroDispatcher, get_dayzero_dispatcher
 
 __all__ = [
     "BaseDispatcher",
@@ -51,4 +52,6 @@ __all__ = [
     "get_switch_dispatcher",
     "get_ticketing_dispatcher",
     "get_validator_dispatcher",
+    "DayzeroDispatcher",
+    "get_dayzero_dispatcher",
 ]

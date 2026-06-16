@@ -175,6 +175,7 @@ def register_plugin_dispatchers(app):
     from quads.plugins.dispatchers.switch import get_switch_dispatcher
     from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
     from quads.plugins.dispatchers.validator import get_validator_dispatcher
+    from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
 
     app.extensions["plugin_dispatchers"] = {
         "chat": get_chat_dispatcher(app.extensions.get("plugin_manager")),
@@ -185,4 +186,5 @@ def register_plugin_dispatchers(app):
         "switch": get_switch_dispatcher(app.extensions.get("plugin_manager")),
         "ticketing": get_ticketing_dispatcher(app.extensions.get("plugin_manager")),
         "validator": get_validator_dispatcher(app.extensions.get("plugin_manager")),
+        "dayzero": get_dayzero_dispatcher(app.extensions.get("plugin_manager")),
     }

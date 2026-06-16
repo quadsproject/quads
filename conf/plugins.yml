@@ -95,3 +95,7 @@ plugins:
 
   environment:
     enabled: true
+
+  # dayzero - post-release run-once plugins
+  moveinfo:
+    enabled: true
