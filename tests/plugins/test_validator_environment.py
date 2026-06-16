@@ -721,6 +721,7 @@ class TestEnvironmentValidatorPlugin:
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
             patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper"),
             patch("builtins.open", mock_open(read_data="template")),
         ):
             mock_cfg.__getitem__ = lambda self, key: mock_config[key]
