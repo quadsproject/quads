@@ -721,6 +721,7 @@ class TestEnvironmentValidatorPlugin:
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
             patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper"),
             patch("builtins.open", mock_open(read_data="template")),
         ):
             mock_cfg.__getitem__ = lambda self, key: mock_config[key]
@@ -843,6 +844,125 @@ class TestEnvironmentValidatorPlugin:
             result, updated_report = await plugin.post_network_test(hosts, has_vlan, report)
 
             assert result is False
+
+    @pytest.mark.asyncio
+    async def test_distribute_ssh_keys_success(self, plugin):
+        """Test SSH keys are distributed to all hosts"""
+        with patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class:
+            mock_ssh = MagicMock()
+            mock_ssh.distribute_ssh_keys.return_value = True
+            mock_ssh_class.return_value = mock_ssh
+
+            plugin.quads.get_ssh_keys_for_assignment.return_value = {
+                "keys": ["ssh-rsa AAAA testkey"],
+                "usernames": ["testuser"],
+            }
+
+            assignment = MockAssignment()
+            hosts = [MockHost("host1.example.com"), MockHost("host2.example.com")]
+
+            await plugin._distribute_ssh_keys(assignment, hosts)
+
+            assert mock_ssh_class.call_count == 2
+            mock_ssh_class.assert_any_call("host1.example.com")
+            mock_ssh_class.assert_any_call("host2.example.com")
+            assert mock_ssh.distribute_ssh_keys.call_count == 2
+            mock_ssh.distribute_ssh_keys.assert_called_with(["ssh-rsa AAAA testkey"])
+            assert mock_ssh.disconnect.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_distribute_ssh_keys_retry_then_succeed(self, plugin):
+        """Test SSH key distribution retries on failure and succeeds"""
+        from quads.tools.external.ssh_helper import SSHHelperException
+
+        with (
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("quads.plugins.builtin.validators.environment.asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+        ):
+            mock_ssh_fail = MagicMock()
+            mock_ssh_success = MagicMock()
+            mock_ssh_success.distribute_ssh_keys.return_value = True
+            mock_ssh_class.side_effect = [
+                SSHHelperException("Connection refused"),
+                SSHHelperException("Connection refused"),
+                mock_ssh_success,
+            ]
+
+            plugin.quads.get_ssh_keys_for_assignment.return_value = {
+                "keys": ["ssh-rsa AAAA testkey"],
+                "usernames": ["testuser"],
+            }
+
+            assignment = MockAssignment()
+            hosts = [MockHost("host1.example.com")]
+
+            await plugin._distribute_ssh_keys(assignment, hosts)
+
+            assert mock_ssh_class.call_count == 3
+            assert mock_sleep.call_count == 2
+            mock_sleep.assert_called_with(2)
+            mock_ssh_success.distribute_ssh_keys.assert_called_once()
+            mock_ssh_success.disconnect.assert_called_once()
+            assert plugin.logger.warning.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_distribute_ssh_keys_exhausted_retries(self, plugin):
+        """Test SSH key distribution logs warnings but does not fail after exhausting retries"""
+        from quads.tools.external.ssh_helper import SSHHelperException
+
+        with (
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("quads.plugins.builtin.validators.environment.asyncio.sleep", new_callable=AsyncMock),
+        ):
+            mock_ssh_class.side_effect = SSHHelperException("Connection refused")
+
+            plugin.quads.get_ssh_keys_for_assignment.return_value = {
+                "keys": ["ssh-rsa AAAA testkey"],
+                "usernames": ["testuser"],
+            }
+
+            assignment = MockAssignment()
+            hosts = [MockHost("host1.example.com")]
+
+            await plugin._distribute_ssh_keys(assignment, hosts)
+
+            assert mock_ssh_class.call_count == 5
+            assert plugin.logger.warning.call_count == 5
+            last_warning = plugin.logger.warning.call_args[0][0]
+            assert "attempt 5/5" in last_warning
+
+    @pytest.mark.asyncio
+    async def test_distribute_ssh_keys_no_keys(self, plugin):
+        """Test SSH key distribution returns early when no keys exist"""
+        with patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class:
+            plugin.quads.get_ssh_keys_for_assignment.return_value = {
+                "keys": [],
+                "usernames": [],
+            }
+
+            assignment = MockAssignment()
+            hosts = [MockHost("host1.example.com")]
+
+            await plugin._distribute_ssh_keys(assignment, hosts)
+
+            mock_ssh_class.assert_not_called()
+            plugin.logger.info.assert_called_once()
+            assert "No SSH keys" in plugin.logger.info.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_distribute_ssh_keys_api_failure(self, plugin):
+        """Test SSH key distribution handles API fetch failure gracefully"""
+        with patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class:
+            plugin.quads.get_ssh_keys_for_assignment.side_effect = Exception("API unreachable")
+
+            assignment = MockAssignment()
+            hosts = [MockHost("host1.example.com")]
+
+            await plugin._distribute_ssh_keys(assignment, hosts)
+
+            mock_ssh_class.assert_not_called()
+            plugin.logger.warning.assert_called_once()
+            assert "Could not fetch SSH keys" in plugin.logger.warning.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_post_system_test_health_check_failure_skip(self, plugin, mock_config):
