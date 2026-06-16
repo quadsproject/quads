@@ -38,8 +38,7 @@ class TestNotifyTenant(TestBase):
         os.remove(f.name)
 
     @patch("quads.tools.notify_tenant.get_email_dispatcher")
-    @patch("quads.tools.notify_tenant.PluginManager")
-    def test_notify_tenant_send_message(self, mock_plugin_manager, mock_email_dispatcher, setup):
+    def test_notify_tenant_send_message(self, mock_email_dispatcher, setup):
         # Setup mocks
         mock_email_disp = MagicMock()
         mock_email_disp.send_mail_sync = MagicMock(return_value={"email": True})
