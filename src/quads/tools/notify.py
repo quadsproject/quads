@@ -15,6 +15,7 @@ from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.manager import PluginManager
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.chat import get_chat_dispatcher
+from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
@@ -233,6 +234,11 @@ def main(_logger=None):
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     logger.debug(str(ex))
                     logger.error("Could not update notification: %s." % ass.notification.id)
+
+                plugin_manager = PluginManager()
+                plugin_manager.initialize()
+                dayzero_dispatcher = get_dayzero_dispatcher(plugin_manager)
+                dayzero_dispatcher.execute(ass.cloud.name)
 
             if Config.plugins["email"]["enabled"] and not ass.is_self_schedule:
                 for day in Days:
