@@ -13,7 +13,7 @@ class TestPluginDiscovery:
     def test_discovery_initialization(self):
         """Test that discovery initializes with correct paths"""
         discovery = PluginDiscovery()
-        assert len(discovery.builtin_paths) == 9
+        assert len(discovery.builtin_paths) == 11
         assert "quads.plugins.builtin.chat" in discovery.builtin_paths
         assert "quads.plugins.builtin.cloud" in discovery.builtin_paths
         assert discovery.external_path == Path("/opt/quads/plugins/")
@@ -189,5 +189,7 @@ class TestPluginDiscovery:
             "quads.plugins.builtin.switches",
             "quads.plugins.builtin.ticketing",
             "quads.plugins.builtin.validators",
+            "quads.plugins.builtin.dayzero.runonce",
+            "quads.plugins.builtin.dayzero.runonce.contrib",
         ]
         assert discovery.builtin_paths == expected_paths

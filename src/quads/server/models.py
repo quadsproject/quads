@@ -1,5 +1,6 @@
 import enum
 import hashlib
+import json
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -676,6 +677,7 @@ class Schedule(Serialize, TimestampMixin, Base):
     move_message = Column(String, nullable=True)
     move_error = Column(String, nullable=True)
     move_source_cloud = Column(String, nullable=True)
+    move_stage_timestamps = Column(Text, nullable=True)
 
     # many-to-one parent
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
@@ -693,6 +695,16 @@ class Schedule(Serialize, TimestampMixin, Base):
             return Schedule.PROGRESSIVE_STAGES.index(MoveStatus(status)) + 1
         except ValueError:
             return 0
+
+    def record_stage_timestamp(self, status):
+        timestamps = {}
+        if self.move_stage_timestamps:
+            try:
+                timestamps = json.loads(self.move_stage_timestamps)
+            except json.JSONDecodeError:
+                pass
+        timestamps[status] = datetime.now().isoformat()
+        self.move_stage_timestamps = json.dumps(timestamps)
 
     def __repr__(self):
         return (
