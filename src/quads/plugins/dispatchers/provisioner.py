@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from quads.plugins.dispatchers.base import SinglePluginDispatcher
 from quads.plugins.interfaces.provisioner import ProvisionerPlugin
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import PluginManager, get_plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def get_provisioner_dispatcher(plugin_manager: Optional[PluginManager] = None) -
 
     if _dispatcher_instance is None:
         if plugin_manager is None:
-            raise RuntimeError("PluginManager required to initialize ProvisionerDispatcher")
+            plugin_manager = get_plugin_manager()
         _dispatcher_instance = ProvisionerDispatcher(plugin_manager)
 
     return _dispatcher_instance

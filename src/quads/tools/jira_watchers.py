@@ -10,7 +10,7 @@ from quads.quads_api import QuadsApi
 
 from quads.plugins.interfaces.ticketing import TicketingPlugin
 from quads.plugins.dispatchers.email import get_email_dispatcher
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import get_plugin_manager
 from quads.tools.helpers import get_or_create_event_loop
 
 logger = logging.getLogger(__name__)
@@ -23,9 +23,7 @@ async def main():
     no_extend_label = "CANNOT_EXTEND"
     extend_label = "CAN_EXTEND"
 
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
-
+    plugin_manager = get_plugin_manager()
     jira_plugin = plugin_manager.get_plugin("jira", TicketingPlugin)
     if not jira_plugin:
         logger.error("Jira plugin not found or not enabled")
@@ -89,7 +87,7 @@ async def main():
                     content = template.render(**parameters)
                     subject = "Failed to add watchers from parent ticket ticket to the sub-task."
 
-                    email_dispatcher = get_email_dispatcher(plugin_manager)
+                    email_dispatcher = get_email_dispatcher()
                     recipient = "%s@%s" % (submitter, Config["domain"])
                     await email_dispatcher.send_mail(
                         subject=subject,

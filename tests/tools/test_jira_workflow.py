@@ -7,9 +7,9 @@ from tests.cli.config import CLOUD, DEFAULT_CLOUD
 
 
 class TestJiraWorkflow(object):
-    @patch("quads.tools.jira_workflow.PluginManager")
+    @patch("quads.tools.jira_workflow.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main(self, mock_pm_class):
+    async def test_main(self, mock_get_pm):
         cloud_name = CLOUD
 
         mock_jira = AsyncMock()
@@ -57,17 +57,17 @@ class TestJiraWorkflow(object):
 
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = mock_plugin
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         response = await main()
         assert response == 0
 
-    @patch("quads.tools.jira_workflow.PluginManager")
+    @patch("quads.tools.jira_workflow.get_plugin_manager")
     @pytest.mark.asyncio
-    async def test_main_error(self, mock_pm_class):
+    async def test_main_error(self, mock_get_pm):
         mock_pm = MagicMock()
         mock_pm.get_plugin.return_value = None
-        mock_pm_class.return_value = mock_pm
+        mock_get_pm.return_value = mock_pm
 
         response = await main()
         assert response == 1

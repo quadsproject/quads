@@ -3,7 +3,7 @@ import logging
 from typing import List, Optional, Dict
 from quads.plugins.dispatchers.base import MultiPluginDispatcher
 from quads.plugins.interfaces.email import EmailPlugin
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import PluginManager, get_plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ def get_email_dispatcher(plugin_manager: Optional[PluginManager] = None) -> Emai
 
     if _dispatcher_instance is None:
         if plugin_manager is None:
-            raise RuntimeError("PluginManager required to initialize EmailDispatcher")
+            plugin_manager = get_plugin_manager()
         _dispatcher_instance = EmailDispatcher(plugin_manager)
 
     return _dispatcher_instance

@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Tuple
 from quads.plugins.dispatchers.base import SinglePluginDispatcher
 from quads.plugins.interfaces.validator import ValidatorPlugin
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import PluginManager, get_plugin_manager
 from quads.server.models import Assignment
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ def get_validator_dispatcher(plugin_manager: Optional[PluginManager] = None) -> 
 
     if _dispatcher_instance is None:
         if plugin_manager is None:
-            raise RuntimeError("PluginManager required to initialize ValidatorDispatcher")
+            plugin_manager = get_plugin_manager()
         _dispatcher_instance = ValidatorDispatcher(plugin_manager)
 
     return _dispatcher_instance
