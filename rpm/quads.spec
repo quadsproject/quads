@@ -115,7 +115,17 @@ mkdir %{buildroot}/etc/nginx/conf.d/ -p
 mkdir %{buildroot}/etc/postfix/postfix-files.d/ -p
 mkdir %{buildroot}%{python3_sitelib}/quads/ -p
 mkdir %{buildroot}%{prefix}/migrations -p
-mkdir %{buildroot}%{prefix}/plugins -p
+mkdir -p %{buildroot}%{prefix}/plugins
+mkdir -p %{buildroot}%{prefix}/plugins/chat
+mkdir -p %{buildroot}%{prefix}/plugins/cloud
+mkdir -p %{buildroot}%{prefix}/plugins/dayzero
+mkdir -p %{buildroot}%{prefix}/plugins/email
+mkdir -p %{buildroot}%{prefix}/plugins/hardware
+mkdir -p %{buildroot}%{prefix}/plugins/provisioners
+mkdir -p %{buildroot}%{prefix}/plugins/release
+mkdir -p %{buildroot}%{prefix}/plugins/switches
+mkdir -p %{buildroot}%{prefix}/plugins/ticketing
+mkdir -p %{buildroot}%{prefix}/plugins/validators
 mkdir %{buildroot}%{prefix}/templates -p
 tar cf - conf | ( cd %{buildroot}%{prefix} ; tar xvpBf - )
 cp -rf systemd/quads-server.service %{buildroot}/etc/systemd/system/
@@ -148,7 +158,17 @@ rm -rf %{buildroot}
 /opt/quads/conf/quads.cron.example
 /opt/quads/migrations/*
 /opt/quads/templates/*
-%dir /opt/quads/plugins
+%config(noreplace) %dir /opt/quads/plugins
+%config(noreplace) %dir /opt/quads/plugins/chat
+%config(noreplace) %dir /opt/quads/plugins/cloud
+%config(noreplace) %dir /opt/quads/plugins/dayzero
+%config(noreplace) %dir /opt/quads/plugins/email
+%config(noreplace) %dir /opt/quads/plugins/hardware
+%config(noreplace) %dir /opt/quads/plugins/provisioners
+%config(noreplace) %dir /opt/quads/plugins/release
+%config(noreplace) %dir /opt/quads/plugins/switches
+%config(noreplace) %dir /opt/quads/plugins/ticketing
+%config(noreplace) %dir /opt/quads/plugins/validators
 /usr/bin/quads
 %config(noreplace) /opt/quads/conf/quads.yml
 %config(noreplace) /opt/quads/conf/quadsweb.yml
@@ -170,7 +190,16 @@ rm -rf %{buildroot}
 /usr/bin/mkdir -p /opt/quads/web/visual/
 /usr/bin/mkdir -p /opt/quads/web/instack/
 /usr/bin/mkdir -p /opt/quads/lshw/
-/usr/bin/mkdir -p /opt/quads/plugins/
+/usr/bin/mkdir -p /opt/quads/plugins/chat
+/usr/bin/mkdir -p /opt/quads/plugins/cloud
+/usr/bin/mkdir -p /opt/quads/plugins/dayzero
+/usr/bin/mkdir -p /opt/quads/plugins/email
+/usr/bin/mkdir -p /opt/quads/plugins/hardware
+/usr/bin/mkdir -p /opt/quads/plugins/provisioners
+/usr/bin/mkdir -p /opt/quads/plugins/release
+/usr/bin/mkdir -p /opt/quads/plugins/switches
+/usr/bin/mkdir -p /opt/quads/plugins/ticketing
+/usr/bin/mkdir -p /opt/quads/plugins/validators
 /usr/bin/chown -R postgres:postgres /opt/quads/db/
 /usr/bin/chcon -Rt postgresql_db_t /opt/quads/db/data
 /usr/sbin/semanage port -a -t http_port_t -p tcp 5000 2>/dev/null
