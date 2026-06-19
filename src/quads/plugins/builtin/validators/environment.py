@@ -304,10 +304,12 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
             report = report + output[0]
             return False, report
 
+        resolved_ips = {host.name: socket.gethostbyname(host.name) for host in hosts}
+        ip_map = {}
         for i, interface in enumerate(Config.INTERFACES.keys()):
             new_ips = []
             host_ips = [
-                {"ip": socket.gethostbyname(host.name), "host": host}
+                {"ip": resolved_ips[host.name], "host": host}
                 for host in hosts
                 if interface in [_interface.name for _interface in host.interfaces]
             ]
@@ -322,7 +324,9 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     octets = value.split(".")
                     ip_apart[0] = octets[0]
                     ip_apart[1] = octets[1]
-                    new_ips.append(".".join(ip_apart))
+                    derived_ip = ".".join(ip_apart)
+                    new_ips.append(derived_ip)
+                    ip_map[derived_ip] = (_host_obj.name, interface)
 
             if new_ips:
                 all_ips = " ".join(new_ips)
@@ -336,8 +340,9 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                             hosts_list.append(ip)
                     hosts_set = set(hosts_list)
                     self.logger.warning("The following IPs are not responsive:")
-                    for host in hosts_set:
-                        self.logger.warning(host)
+                    for ip in hosts_set:
+                        hostname, iface = ip_map.get(ip, ("unknown", "unknown"))
+                        self.logger.warning("%s on %s (%s)", ip, hostname, iface)
                     return False, report
 
         ssh_helper.disconnect()

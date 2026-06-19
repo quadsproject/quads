@@ -845,6 +845,165 @@ class TestEnvironmentValidatorPlugin:
             assert result is False
 
     @pytest.mark.asyncio
+    async def test_post_network_test_interface_fping_failures(self, plugin, mock_config):
+        """Test post_network_test logs hostname and interface for failed IPs"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("socket.gethostbyname") as mock_gethostbyname,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            mock_ssh = MagicMock()
+            mock_ssh.run_cmd = MagicMock(
+                side_effect=[
+                    (True, []),
+                    (False, ["172.16.37.26"]),
+                ]
+            )
+            mock_ssh.disconnect = MagicMock()
+            mock_ssh_class.return_value = mock_ssh
+
+            mock_gethostbyname.return_value = "10.1.37.26"
+
+            iface_em1 = MagicMock()
+            iface_em1.name = "em1"
+            iface_em2 = MagicMock()
+            iface_em2.name = "em2"
+            hosts = [
+                MockHost(
+                    "host1.example.com",
+                    switch_config_applied=True,
+                    interfaces=[iface_em1, iface_em2],
+                )
+            ]
+            has_vlan = False
+            report = ""
+
+            result, updated_report = await plugin.post_network_test(hosts, has_vlan, report)
+
+            assert result is False
+            warning_calls = [
+                call[0][0] % call[0][1:] if len(call[0]) > 1 else call[0][0]
+                for call in plugin.logger.warning.call_args_list
+            ]
+            assert any("172.16.37.26" in w for w in warning_calls)
+            assert any("host1.example.com" in w for w in warning_calls)
+            assert any("em1" in w for w in warning_calls)
+
+    @pytest.mark.asyncio
+    async def test_post_network_test_multi_host_interface_failures(self, plugin, mock_config):
+        """Test failure logging distinguishes hosts and interfaces correctly"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("socket.gethostbyname") as mock_gethostbyname,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            mock_ssh = MagicMock()
+            mock_ssh.run_cmd = MagicMock(
+                side_effect=[
+                    (True, []),
+                    (False, ["172.16.37.26", "172.16.38.10"]),
+                ]
+            )
+            mock_ssh.disconnect = MagicMock()
+            mock_ssh_class.return_value = mock_ssh
+
+            mock_gethostbyname.side_effect = lambda name: {
+                "host1.example.com": "10.1.37.26",
+                "host2.example.com": "10.1.38.10",
+            }[name]
+
+            h1_em1 = MagicMock()
+            h1_em1.name = "em1"
+            h1_em2 = MagicMock()
+            h1_em2.name = "em2"
+            h2_em1 = MagicMock()
+            h2_em1.name = "em1"
+            h2_em2 = MagicMock()
+            h2_em2.name = "em2"
+            hosts = [
+                MockHost(
+                    "host1.example.com",
+                    switch_config_applied=True,
+                    interfaces=[h1_em1, h1_em2],
+                ),
+                MockHost(
+                    "host2.example.com",
+                    switch_config_applied=True,
+                    interfaces=[h2_em1, h2_em2],
+                ),
+            ]
+            has_vlan = False
+            report = ""
+
+            result, updated_report = await plugin.post_network_test(hosts, has_vlan, report)
+
+            assert result is False
+            warning_calls = [
+                call[0][0] % call[0][1:] if len(call[0]) > 1 else call[0][0]
+                for call in plugin.logger.warning.call_args_list
+            ]
+            assert any("host1.example.com" in w and "172.16.37.26" in w for w in warning_calls)
+            assert any("host2.example.com" in w and "172.16.38.10" in w for w in warning_calls)
+
+    @pytest.mark.asyncio
+    async def test_post_network_test_resolves_ips_once(self, plugin, mock_config):
+        """Test socket.gethostbyname is called once per host, not per interface"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("socket.gethostbyname") as mock_gethostbyname,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            mock_ssh = MagicMock()
+            mock_ssh.run_cmd = MagicMock(return_value=(True, []))
+            mock_ssh.disconnect = MagicMock()
+            mock_ssh_class.return_value = mock_ssh
+
+            mock_gethostbyname.return_value = "10.1.37.26"
+
+            iface_em1 = MagicMock()
+            iface_em1.name = "em1"
+            iface_em2 = MagicMock()
+            iface_em2.name = "em2"
+            hosts = [
+                MockHost(
+                    "host1.example.com",
+                    switch_config_applied=True,
+                    interfaces=[iface_em1, iface_em2],
+                )
+            ]
+            has_vlan = False
+            report = ""
+
+            result, updated_report = await plugin.post_network_test(hosts, has_vlan, report)
+
+            assert result is True
+            assert mock_gethostbyname.call_count == 1
+
+    @pytest.mark.asyncio
     async def test_post_system_test_health_check_failure_skip(self, plugin, mock_config):
         """Test post_system_test skips unhealthy hosts during build"""
         with (
