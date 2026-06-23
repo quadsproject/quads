@@ -16,6 +16,24 @@
       "message": "here we keep passing the current_schedules with is used for getting all hosts in the allocation and then it is executing run_dayzero for each host and later for the cloud. I would modify this so that the dayzero is only run per cloud, and let user deal with any other execution at a per host level since they can leverage the existing QUADS rest api calls to get what hosts are related to the assignment, we can later implement a per host solution. I am also curious how the web implementation would look like, where are we going to store the user scripts that they would input on the profile page and are we going to allow a per allocation script or a single input script for all allocations that user would create going forward.",
       "revId": "c8edc486c996b04da0812a67866bdfc0491de199",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10feef9d_4330a148",
+        "filename": "src/quads/tools/notify.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-23T14:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b2a898d_fb995e5c",
+      "revId": "c8edc486c996b04da0812a67866bdfc0491de199",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
