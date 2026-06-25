@@ -12,4 +12,5 @@ class TestForemanHeal(TestBase):
 
         foreman_heal_main()
 
-        assert len(self._caplog.messages) == 12
+        heal_messages = [r.message for r in self._caplog.records if r.name == "quads.tools.foreman_heal"]
+        assert len(heal_messages) == 5
