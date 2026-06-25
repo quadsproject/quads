@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6926ad24_fc12546e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 22
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "Please don\u0027t be upset for the use of claude to analyze.  Each of the points raised are added as comments.  In summary:\n\n  Summary\n\n  The architectural intent is sound and the refactoring to get_plugin_manager() singleton is a clear improvement. The critical issue is the missing await\n  in notify.py that means dayzero will never fire at all. Beyond that, the run_mode feature is documented but not implemented, the tmux session name\n  collision will cause silent failures on re-allocated hosts, and the schedule query selects historical rather than current schedules.\n\nLeaving votes as neutral until various comments are addressed.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e8d8441_48323de9",
+        "filename": "README.md",
+        "patchSetId": 22
+      },
+      "lineNbr": 1264,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "5. run_mode is documented but completely unimplemented\n\n  DayzeroPlugin and CloudCmdPlugin declare run_mode \u003d \"per_cloud\", the README describes per_host vs per_cloud behavior, and there\u0027s a test that the\n  attribute can be set - but DayzeroDispatcher.execute() ignores it entirely and always calls plugin.execute(cloud). The per_host behavior described in\n  the docs (calling execute once per host with a single hostname string) is never implemented. This is a non-functional documented API.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "806da6c9_ae23ba9e",
+        "filename": "README.md",
+        "patchSetId": 22
+      },
+      "lineNbr": 1314,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "4. README plugin examples have wrong execute() signature\n\n  The interface defines:\n  async def execute(self, cloud: str) -\u003e bool:\n\n  But the README documentation shows:\n  async def execute(self, host, cloud):   # both per_cloud and per_host examples\n\n  Any user who follows the README docs and implements execute(self, host, cloud) will get a TypeError at runtime because the dispatcher only passes\n  cloud. The built-in cloudcmd.py has the correct signature, but the docs contradict it.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0b2e6d75_4a0b5f7a",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "3. get_schedules() fetches all schedules, not current ones (cloudcmd.py:43,48)\n\n  schedules \u003d quads.get_schedules({\"assignment_id\": assignment.id})\n  first_host \u003d schedules[0].host.name\n\n  This returns all schedules ever associated with the assignment (past, present, future), ordered by Schedule.id. On a long-lived or re-used assignment\n  the first schedule in the list could be a historical one. Should use get_current_schedules or filter by current date.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b994ad72_f9a926a1",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "Minor / Correctness\n\n  6. schedules[0].host not guarded against None (cloudcmd.py)\n\n  first_host \u003d schedules[0].host.name\n\n  The list is checked for being non-empty, but if schedules[0].host is None this will raise AttributeError. A schedule can exist without an associated\n  host in edge cases.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57ee042d_af5366de",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "Significant\n\n  2. Hardcoded tmux session name will silently fail on repeat releases (cloudcmd.py:52)\n\n  tmux_cmd \u003d f\"tmux new-session -d -s quads_release \u0027echo {encoded} | base64 -d | bash\u0027\"\n\n  tmux new-session exits non-zero if a session named quads_release already exists. If a host gets re-allocated and the prior tmux session wasn\u0027t cleaned\n  up, the SSH command returns a non-zero exit code, _ssh_exec returns False, and the command is silently skipped. The session name should be unique per\n  invocation (e.g. include cloud name or a timestamp).",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4d31bce6_bc414a90",
+        "filename": "src/quads/plugins/dispatchers/dayzero.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "7. DayzeroDispatcher is a MultiPluginDispatcher but only runs one plugin\n\n  execute() calls get_active_plugin() and runs only the first enabled plugin. The Multi in MultiPluginDispatcher implies all enabled plugins are invoked.\n  Either the base class choice is wrong (should be SinglePluginDispatcher) or the dispatch logic should iterate all enabled dayzero plugins.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "796b80ce_5274217c",
+        "filename": "src/quads/plugins/interfaces/dayzero.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "9. run_mode not defined on DayzeroPlugin base class\n\n  The run_mode attribute is not declared in the interface (interfaces/dayzero.py), so subclasses have no enforced contract for it. Given it\u0027s currently\n  unimplemented anyway, this is minor, but if run_mode dispatch is added later, the interface should define the default.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "341d433c_3fb5bfc9",
+        "filename": "src/quads/tools/notify.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "According to claude, and someone else can confirm:\n\n Issues Found\n\n  Critical\n\n  1. Missing await on dayzero_dispatcher.execute() in notify.py:227-228\n\n  dayzero_dispatcher \u003d get_dayzero_dispatcher()\n  dayzero_dispatcher.execute(ass.cloud.name)   # \u003c-- coroutine is never awaited\n\n  DayzeroDispatcher.execute() is async. Calling it without await silently creates and immediately discards a coroutine object. The dayzero plugins will\n  never execute. This is the most impactful bug in the PR.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d105d1ed_0a7c1da6",
+        "filename": "src/quads/web/blueprints/auth.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-06-25T13:22:02Z",
+      "side": 1,
+      "message": "8. Partial validation duplication in auth.py\n\n  auth.py:update_release_command manually re-implements length and control-character checks but does not call _validate_release_command(), which means\n  the blocked-patterns check (rm -rf, fork bomb, dd, mkfs, etc.) is not performed at the web layer. In practice the request goes through\n  quads.update_user() which hits the API and runs the full validation, so there\u0027s no actual security hole. But the duplicated partial logic in auth.py is\n  misleading and inconsistent - it will confuse future maintainers into thinking the web route is fully validating.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
