@@ -103,6 +103,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae8891cb_3ca845bd",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:25:57Z",
+      "side": 1,
+      "message": "This isn\u0027t valid, this runs only once and if a cloud went out again the host would be wiped anyway.",
+      "parentUuid": "57ee042d_af5366de",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4d31bce6_bc414a90",
