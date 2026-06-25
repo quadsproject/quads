@@ -9,6 +9,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form method="post" id="search" autocomplete="off">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label for="date_range" class="form-label">{{ form.date_range.label }}</label>
                                 {{ form.date_range(class_="form-control") }}
