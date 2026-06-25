@@ -35,6 +35,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9e083ea_e0328836",
+        "filename": "README.md",
+        "patchSetId": 22
+      },
+      "lineNbr": 1264,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e8d8441_48323de9",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "806da6c9_ae23ba9e",
@@ -48,6 +66,24 @@
       "writtenOn": "2026-06-25T13:22:02Z",
       "side": 1,
       "message": "4. README plugin examples have wrong execute() signature\n\n  The interface defines:\n  async def execute(self, cloud: str) -\u003e bool:\n\n  But the README documentation shows:\n  async def execute(self, host, cloud):   # both per_cloud and per_host examples\n\n  Any user who follows the README docs and implements execute(self, host, cloud) will get a TypeError at runtime because the dispatcher only passes\n  cloud. The built-in cloudcmd.py has the correct signature, but the docs contradict it.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "687488f4_3b0c2d0d",
+        "filename": "README.md",
+        "patchSetId": 22
+      },
+      "lineNbr": 1314,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "806da6c9_ae23ba9e",
       "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -69,6 +105,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "859f3a74_0ee9412a",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b2e6d75_4a0b5f7a",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b994ad72_f9a926a1",
@@ -82,6 +136,24 @@
       "writtenOn": "2026-06-25T13:22:02Z",
       "side": 1,
       "message": "Minor / Correctness\n\n  6. schedules[0].host not guarded against None (cloudcmd.py)\n\n  first_host \u003d schedules[0].host.name\n\n  The list is checked for being non-empty, but if schedules[0].host is None this will raise AttributeError. A schedule can exist without an associated\n  host in edge cases.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54fcf003_af6206bb",
+        "filename": "src/quads/plugins/builtin/dayzero/cloudcmd.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b994ad72_f9a926a1",
       "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -138,6 +210,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0a6cb53a_7f34c811",
+        "filename": "src/quads/plugins/dispatchers/dayzero.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "(MultiPlugin vs single): Architectural choice already made. Single plugin is intentional.",
+      "parentUuid": "4d31bce6_bc414a90",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "796b80ce_5274217c",
@@ -151,6 +241,24 @@
       "writtenOn": "2026-06-25T13:22:02Z",
       "side": 1,
       "message": "9. run_mode not defined on DayzeroPlugin base class\n\n  The run_mode attribute is not declared in the interface (interfaces/dayzero.py), so subclasses have no enforced contract for it. Given it\u0027s currently\n  unimplemented anyway, this is minor, but if run_mode dispatch is added later, the interface should define the default.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3076c00_eea15dc9",
+        "filename": "src/quads/plugins/interfaces/dayzero.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "(run_mode on interface): We chose not to implement per-host mode. Removing the docs is the fix.",
+      "parentUuid": "796b80ce_5274217c",
       "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -172,6 +280,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "022fa5ea_fc8839cb",
+        "filename": "src/quads/tools/notify.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "341d433c_3fb5bfc9",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d105d1ed_0a7c1da6",
@@ -185,6 +311,24 @@
       "writtenOn": "2026-06-25T13:22:02Z",
       "side": 1,
       "message": "8. Partial validation duplication in auth.py\n\n  auth.py:update_release_command manually re-implements length and control-character checks but does not call _validate_release_command(), which means\n  the blocked-patterns check (rm -rf, fork bomb, dd, mkfs, etc.) is not performed at the web layer. In practice the request goes through\n  quads.update_user() which hits the API and runs the full validation, so there\u0027s no actual security hole. But the duplicated partial logic in auth.py is\n  misleading and inconsistent - it will confuse future maintainers into thinking the web route is fully validating.",
+      "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "68cfc66f_6e059432",
+        "filename": "src/quads/web/blueprints/auth.py",
+        "patchSetId": 22
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-06-25T13:33:18Z",
+      "side": 1,
+      "message": "(auth.py validation duplication): Pre-existing pattern matching SSH key validation. The API layer has full validation.",
+      "parentUuid": "d105d1ed_0a7c1da6",
       "revId": "3bd7e03700c722c478d67be5bfefd47a70cf2d99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
