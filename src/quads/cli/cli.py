@@ -27,8 +27,11 @@ from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
 from quads.tools.notify import main as notify
 from quads.tools.simple_table_web import main as regen_heatmap
-from quads.plugins.dispatchers import get_release_dispatcher, get_switch_dispatcher, get_validator_dispatcher
-from quads.plugins.manager import PluginManager
+from quads.plugins.dispatchers import (
+    get_release_dispatcher,
+    get_switch_dispatcher,
+    get_validator_dispatcher,
+)
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
 
@@ -317,9 +320,7 @@ class QuadsCli:
         _cloud = self.cli_args.get("cloud")
         _all = self.cli_args.get("all")
 
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        switch_dispatcher = get_switch_dispatcher()
         asyncio.run(switch_dispatcher.ls_config(_cloud, _all))
 
     def action_mod_switch_conf(self):
@@ -332,9 +333,7 @@ class QuadsCli:
                 index = int(key[3:]) - 1
                 overrides[index] = value
 
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        switch_dispatcher = get_switch_dispatcher()
         asyncio.run(switch_dispatcher.modify(_host, _change, overrides))
 
     def action_verify_switch_conf(self):
@@ -342,9 +341,7 @@ class QuadsCli:
         _cloud = self.cli_args.get("cloud")
         _change = self.cli_args.get("change")
 
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        switch_dispatcher = get_switch_dispatcher()
         asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
 
     def _call_api_action(self, action: str):
@@ -1835,10 +1832,8 @@ class QuadsCli:
             #  raise the number of semaphores after this is resolved
             #  https://projects.theforeman.org/issues/27953#change-127120
             semaphore = asyncio.Semaphore(1)
-            plugin_manager = PluginManager()
-            plugin_manager.initialize()
-            release_dispatcher = get_release_dispatcher(plugin_manager)
-            switch_dispatcher = get_switch_dispatcher(plugin_manager)
+            release_dispatcher = get_release_dispatcher()
+            switch_dispatcher = get_switch_dispatcher()
             for _cloud, results in _clouds.items():
                 provisioned = True
                 tasks = []
@@ -2051,7 +2046,7 @@ class QuadsCli:
                                                 self.quads.update_move_status(
                                                     _pid, {"status": "released", "message": "Environment released"}
                                                 )
-                                                self.quads.update_move_status(_pid, {"status": "completed"})
+                                            self.quads.update_move_status(_pid, {"status": "completed"})
                                         except Exception:
                                             pass
                         except (
@@ -2321,9 +2316,7 @@ class QuadsCli:
         self.logger.info("Quads assignments validation executed.")
 
     async def _run_validation(self):
-        plugin_manager = PluginManager()
-        plugin_manager.initialize()
-        validator_dispatcher = get_validator_dispatcher(plugin_manager)
+        validator_dispatcher = get_validator_dispatcher()
 
         # Update provisioned flags for assignments where all hosts are validated
         _filter = {"active": True, "validated": False, "provisioned": False, "cloud__ne": "cloud01"}

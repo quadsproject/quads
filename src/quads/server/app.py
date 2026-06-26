@@ -11,7 +11,7 @@ from quads.server.database import create_user, modify_user, remove_user, populat
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
-from quads.plugins.manager import PluginManager
+from quads.plugins.manager import get_plugin_manager
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -40,8 +40,7 @@ def create_app(test_config=None) -> Flask:
         flask_app.config.from_object(test_config)
 
     # Initialize plugin system
-    plugin_manager = PluginManager()
-    plugin_manager.initialize()
+    plugin_manager = get_plugin_manager()
     flask_app.extensions["plugin_manager"] = plugin_manager
 
     register_extensions(flask_app)
@@ -168,6 +167,7 @@ def register_blueprints(app):
 
 def register_plugin_dispatchers(app):
     from quads.plugins.dispatchers.chat import get_chat_dispatcher
+    from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
     from quads.plugins.dispatchers.email import get_email_dispatcher
     from quads.plugins.dispatchers.hardware import get_hardware_dispatcher
     from quads.plugins.dispatchers.provisioner import get_provisioner_dispatcher
@@ -177,12 +177,13 @@ def register_plugin_dispatchers(app):
     from quads.plugins.dispatchers.validator import get_validator_dispatcher
 
     app.extensions["plugin_dispatchers"] = {
-        "chat": get_chat_dispatcher(app.extensions.get("plugin_manager")),
-        "email": get_email_dispatcher(app.extensions.get("plugin_manager")),
-        "hardware": get_hardware_dispatcher(app.extensions.get("plugin_manager")),
-        "provisioner": get_provisioner_dispatcher(app.extensions.get("plugin_manager")),
-        "release": get_release_dispatcher(app.extensions.get("plugin_manager")),
-        "switch": get_switch_dispatcher(app.extensions.get("plugin_manager")),
-        "ticketing": get_ticketing_dispatcher(app.extensions.get("plugin_manager")),
-        "validator": get_validator_dispatcher(app.extensions.get("plugin_manager")),
+        "chat": get_chat_dispatcher(),
+        "dayzero": get_dayzero_dispatcher(),
+        "email": get_email_dispatcher(),
+        "hardware": get_hardware_dispatcher(),
+        "provisioner": get_provisioner_dispatcher(),
+        "release": get_release_dispatcher(),
+        "switch": get_switch_dispatcher(),
+        "ticketing": get_ticketing_dispatcher(),
+        "validator": get_validator_dispatcher(),
     }
