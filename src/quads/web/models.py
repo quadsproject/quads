@@ -3,7 +3,15 @@ from flask_login import UserMixin
 
 class WebUser(UserMixin):
     def __init__(
-        self, email, google_id=None, profile_picture=None, active=True, last_login=None, roles=None, ssh_key=None
+        self,
+        email,
+        google_id=None,
+        profile_picture=None,
+        active=True,
+        last_login=None,
+        roles=None,
+        ssh_key=None,
+        release_command=None,
     ):
         self.email = email
         self.google_id = google_id
@@ -12,6 +20,7 @@ class WebUser(UserMixin):
         self.last_login = last_login
         self.roles = roles or []
         self.ssh_key = ssh_key
+        self.release_command = release_command
 
     def get_id(self):
         return self.email
@@ -32,4 +41,5 @@ class WebUser(UserMixin):
             last_login=data.get("last_login"),
             roles=data.get("roles", []),
             ssh_key=data.get("ssh_key"),
+            release_command=data.get("release_command"),
         )
