@@ -2,7 +2,9 @@
 import asyncio
 import logging
 import os
+import sys
 
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -19,6 +21,22 @@ from quads.plugins.dispatchers.dayzero import get_dayzero_dispatcher
 logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 logger = logging.getLogger(__name__)
 quads = QuadsApi(Config)
+
+_interactive = sys.stdout.isatty()
+
+
+@contextmanager
+def _progress():
+    if _interactive:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("{task.description}", table_column=Column(min_width=30)),
+            BarColumn(),
+            MofNCompleteColumn(),
+        ) as progress:
+            yield progress
+    else:
+        yield None
 
 
 class Days(Enum):
@@ -178,18 +196,14 @@ def main(_logger=None):
     if _logger:
         logger = _logger
 
-    _all_clouds = quads.get_clouds()
+    _all_clouds = [c for c in quads.get_clouds() if c.name != Config["spare_pool_name"]]
     _assignments = quads.filter_assignments({"active": True, "validated": True})
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("{task.description}", table_column=Column(min_width=30)),
-        BarColumn(),
-        MofNCompleteColumn(),
-    ) as progress:
-        task = progress.add_task("Sending notifications", total=len(_assignments))
+    with _progress() as progress:
+        task = progress.add_task("Sending notifications", total=len(_assignments)) if progress else None
         for ass in _assignments:
-            progress.update(task, description=f"[cyan]{ass.cloud.name}[/]")
+            if progress:
+                progress.update(task, description=f"[cyan]{ass.cloud.name}[/]")
 
             payload = {"cloud": ass.cloud.name}
             current_schedules = []
@@ -198,7 +212,8 @@ def main(_logger=None):
             except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                 logger.debug(str(ex))
                 logger.error("Could not get current schedules")
-                progress.advance(task)
+                if progress:
+                    progress.advance(task)
                 continue
 
             cloud_info = "%s: %s (%s)" % (
@@ -267,22 +282,20 @@ def main(_logger=None):
 
                             break
 
-            progress.advance(task)
+            if progress:
+                progress.advance(task)
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("{task.description}", table_column=Column(min_width=30)),
-        BarColumn(),
-        MofNCompleteColumn(),
-    ) as progress:
-        task = progress.add_task("Processing clouds", total=len(_all_clouds))
+    with _progress() as progress:
+        task = progress.add_task("Processing clouds", total=len(_all_clouds)) if progress else None
         for cloud in _all_clouds:
-            progress.update(task, description=f"[cyan]{cloud.name}[/]")
+            if progress:
+                progress.update(task, description=f"[cyan]{cloud.name}[/]")
             ass = quads.get_active_cloud_assignment(cloud.name)
             if not ass:
-                progress.advance(task)
+                if progress:
+                    progress.advance(task)
                 continue
-            if cloud.name != Config["spare_pool_name"] and ass.owner not in ["quads", None]:
+            if ass.owner not in ["quads", None]:
                 payload = {"cloud": ass.cloud.name}
                 current_schedules = []
                 try:
@@ -290,7 +303,8 @@ def main(_logger=None):
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     logger.debug(str(ex))
                     logger.error("Could not get current schedules")
-                    progress.advance(task)
+                    if progress:
+                        progress.advance(task)
                     continue
 
                 cloud_info = "%s: %s (%s)" % (
@@ -352,7 +366,8 @@ def main(_logger=None):
 
                                 break
 
-            progress.advance(task)
+            if progress:
+                progress.advance(task)
 
 
 if __name__ == "__main__":  # pragma: no cover

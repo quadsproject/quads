@@ -4,6 +4,7 @@ from quads.tools.notify import main as notify_main
 
 
 class TestNotifyMain:
+    @patch("quads.tools.notify._interactive", True)
     @patch("quads.tools.notify.quads")
     def test_main_progress_advances_per_assignment(self, mock_quads):
         ass1 = MagicMock()
@@ -25,10 +26,11 @@ class TestNotifyMain:
         mock_progress.add_task.assert_any_call("Sending notifications", total=1)
         assert mock_progress.advance.call_count >= 1
 
+    @patch("quads.tools.notify._interactive", True)
     @patch("quads.tools.notify.quads")
     def test_main_progress_advances_per_cloud(self, mock_quads):
         cloud1 = MagicMock()
-        cloud1.name = "cloud01"
+        cloud1.name = "cloud02"
         mock_quads.get_clouds.return_value = [cloud1]
         mock_quads.filter_assignments.return_value = []
         mock_quads.get_active_cloud_assignment.return_value = None
@@ -50,3 +52,18 @@ class TestNotifyMain:
         mock_quads.filter_assignments.return_value = []
 
         notify_main()
+
+    @patch("quads.tools.notify.quads")
+    def test_main_no_progress_when_not_interactive(self, mock_quads):
+        ass1 = MagicMock()
+        ass1.cloud.name = "cloud02"
+        ass1.notification.initial = True
+        ass1.is_self_schedule = True
+        mock_quads.get_clouds.return_value = []
+        mock_quads.filter_assignments.return_value = [ass1]
+        mock_quads.get_current_schedules.return_value = []
+
+        with patch("quads.tools.notify.Progress") as mock_progress_cls:
+            notify_main()
+
+        mock_progress_cls.assert_not_called()
