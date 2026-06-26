@@ -12,20 +12,22 @@ DAYZERO_LOG = "/var/log/quads-dayzero.log"
 
 
 def _ensure_dayzero_log_handler():
-    dayzero_logger = logging.getLogger("quads.plugins.dayzero")
     abs_log = os.path.abspath(DAYZERO_LOG)
-    if any(
-        isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log
-        for h in dayzero_logger.handlers
-    ):
-        return
     try:
         handler = logging.FileHandler(DAYZERO_LOG)
         handler.setFormatter(logging.Formatter(Config.LOGFMT))
-        dayzero_logger.addHandler(handler)
-        dayzero_logger.setLevel(logging.DEBUG)
     except PermissionError:
         logger.warning(f"Cannot write to {DAYZERO_LOG}, dayzero logs will use standard logging only")
+        return
+
+    for logger_name in [__name__, "quads.plugins.cloudcmd"]:
+        target = logging.getLogger(logger_name)
+        if not any(
+            isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log
+            for h in target.handlers
+        ):
+            target.addHandler(handler)
+            target.setLevel(logging.DEBUG)
 
 
 class DayzeroDispatcher(MultiPluginDispatcher[DayzeroPlugin]):
