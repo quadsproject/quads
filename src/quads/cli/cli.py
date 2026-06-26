@@ -2046,7 +2046,7 @@ class QuadsCli:
                                                 self.quads.update_move_status(
                                                     _pid, {"status": "released", "message": "Environment released"}
                                                 )
-                                            self.quads.update_move_status(_pid, {"status": "completed"})
+                                                self.quads.update_move_status(_pid, {"status": "completed"})
                                         except Exception:
                                             pass
                         except (
