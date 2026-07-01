@@ -70,6 +70,28 @@ class MockDayzeroPlugin(DayzeroPlugin):
         return True
 
 
+class MockCloudDataPlugin(DayzeroPlugin):
+    """Second mock dayzero plugin for multi-plugin dispatch testing"""
+
+    name = "mock_clouddata"
+    version = "1.0.0"
+    description = "Mock clouddata plugin for testing"
+    author = "Test"
+
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self._initialized = False
+        self.executed = False
+
+    def initialize(self, plugin_manager=None) -> bool:
+        self._initialized = True
+        return True
+
+    async def execute(self, cloud: str) -> bool:
+        self.executed = True
+        return True
+
+
 class FailingDayzeroPlugin(DayzeroPlugin):
     """Dayzero plugin that raises during execute"""
 

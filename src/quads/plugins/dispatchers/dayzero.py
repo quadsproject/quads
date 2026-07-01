@@ -37,17 +37,16 @@ class DayzeroDispatcher(MultiPluginDispatcher[DayzeroPlugin]):
         _ensure_dayzero_log_handler()
 
     async def execute(self, cloud: str):
-        plugin = self.get_active_plugin()
-        if not plugin:
-            logger.error("No dayzero plugin enabled")
+        plugins = self.get_active_plugins()
+        if not plugins:
+            logger.error("No dayzero plugins enabled")
             return False
 
-        try:
-            logger.info(f"Executing dayzero via {plugin.name}")
-            return await plugin.execute(cloud)
-        except Exception as e:
-            logger.error(f"Failed to execute dayzero script: {e}", exc_info=True)
-            return False
+        results = await self.dispatch_all(
+            f"dayzero for {cloud}",
+            lambda plugin: plugin.execute(cloud),
+        )
+        return all(results.values()) if results else False
 
 
 _dispatcher_instance: Optional[DayzeroDispatcher] = None

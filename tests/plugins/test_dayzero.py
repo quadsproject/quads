@@ -10,6 +10,7 @@ from quads.plugins.dispatchers.dayzero import DayzeroDispatcher
 from quads.plugins.manager import PluginManager
 from tests.plugins.conftest import (
     MockDayzeroPlugin,
+    MockCloudDataPlugin,
     FailingDayzeroPlugin,
 )
 
@@ -64,6 +65,17 @@ class TestDayzeroDispatcher:
         return manager
 
     @pytest.fixture
+    def setup_manager_with_two_dayzero(self):
+        manager = PluginManager(config={})
+        manager.available_plugins = {
+            "mock_dayzero": MockDayzeroPlugin,
+            "mock_clouddata": MockCloudDataPlugin,
+        }
+        manager.load_plugin("mock_dayzero", {"enabled": True})
+        manager.load_plugin("mock_clouddata", {"enabled": True})
+        return manager
+
+    @pytest.fixture
     def setup_manager_with_failing_dayzero(self):
         manager = PluginManager(config={})
         manager.available_plugins = {
@@ -94,11 +106,21 @@ class TestDayzeroDispatcher:
         assert result is False
 
     @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
-    def test_execute_with_failing_plugin_uses_first(self, mock_handler, setup_manager_with_failing_dayzero):
-        dispatcher = DayzeroDispatcher(setup_manager_with_failing_dayzero)
+    def test_execute_runs_all_plugins(self, mock_handler, setup_manager_with_two_dayzero):
+        dispatcher = DayzeroDispatcher(setup_manager_with_two_dayzero)
         result = asyncio.run(dispatcher.execute("cloud02"))
         assert result is True
-        assert dispatcher.get_active_plugin().name == "mock_dayzero"
+        plugins = dispatcher.get_active_plugins()
+        assert len(plugins) == 2
+        plugin_names = [p.name for p in plugins]
+        assert "mock_dayzero" in plugin_names
+        assert "mock_clouddata" in plugin_names
+
+    @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
+    def test_execute_one_fails_returns_false(self, mock_handler, setup_manager_with_failing_dayzero):
+        dispatcher = DayzeroDispatcher(setup_manager_with_failing_dayzero)
+        result = asyncio.run(dispatcher.execute("cloud02"))
+        assert result is False
 
     @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
     def test_execute_returns_false_on_exception(self, mock_handler):
@@ -112,9 +134,9 @@ class TestDayzeroDispatcher:
     @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
     def test_execute_uses_active_plugin(self, mock_handler, setup_manager_with_dayzero):
         dispatcher = DayzeroDispatcher(setup_manager_with_dayzero)
-        plugin = dispatcher.get_active_plugin()
-        assert plugin is not None
-        assert plugin.name == "mock_dayzero"
+        plugins = dispatcher.get_active_plugins()
+        assert len(plugins) > 0
+        assert plugins[0].name == "mock_dayzero"
 
 
 class TestCloudCmdPlugin:
