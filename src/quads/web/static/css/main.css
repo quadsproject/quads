@@ -156,12 +156,26 @@ main {
 
     /* General Table adjustments */
     .table {
-        /* Bootstrap dark table variables are generally good,
-           but you can override specific things here if needed */
         border-color: #495057;
     }
     th, td {
-        border-color: inherit; /* Ensure table cells use the table's border color */
+        border-color: inherit;
+    }
+
+    /* MY ASSIGNMENTS banner: dark blue, white text */
+    .table-primary {
+        --bs-table-bg: #1e3a5c;
+        --bs-table-color: #ffffff;
+        --bs-table-border-color: #2a4f7a;
+        color: #ffffff;
+    }
+
+    /* OTHER ASSIGNMENTS banner: dark grey, white text */
+    .table-secondary {
+        --bs-table-bg: #3d4348;
+        --bs-table-color: #ffffff;
+        --bs-table-border-color: #4f5558;
+        color: #ffffff;
     }
 
      /* Ensure footer has appropriate dark theme colors if bg-light was used */
