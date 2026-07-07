@@ -82,6 +82,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Modify Host Bootmode](#modify-host-bootmode)
          * [Modify a Host Interface](#modify-a-host-interface)
          * [Remove a Host Interface](#remove-a-host-interface)
+         * [QUADS Provided Metadata](#quads-provided-metadata)
       * [Using the QUADS JSON API](#using-the-quads-json-api)
       * [API Tokens](#api-tokens)
          * [Creating API Tokens via the Web UI](#creating-api-tokens-via-the-web-ui)
@@ -1175,6 +1176,50 @@ To remove a host interface entirely from QUADS management you can use the `--rm-
 ```bash
 quads --rm-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com
 Resource properly removed
+```
+
+### QUADS Provided Metadata
+
+When a new cloud assignment is validated and released, QUADS automatically generates a `/root/quads_env.yml` metadata file on the first host of the allocation. This file provides the cloud owner with various metadata and environmment variables to assist with their automation.  Combining this with information from the QUADS API can empower tenants with a full range of post-release automation capabilities. 
+
+The file is delivered once during the initial release notification via the built-in `clouddata` dayzero plugin and contains the following structure:
+
+```yaml
+cloud_name: cloud02
+assignment_id: 42
+bmc_user: quads
+bmc_pass: rdu2@SCALELAB-12345
+cloud_systems:
+  - host01.example.com
+  - host02.example.com
+  - host03.example.com
+cloud_ticket: https://issues.example.com/browse/SCALELAB-12345
+foreman_api_url: https://foreman.example.com/api/v2
+foreman_username: cloud02
+foreman_password: rdu2@SCALELAB-12345
+foreman_supported_os:
+  - "RHEL 9.4"
+  - "RHEL 10.0"
+```
+
+| Field | Source | Description |
+|-------|--------|-------------|
+| `cloud_name` | Assignment | Name of the allocated cloud environment |
+| `assignment_id` | Assignment | Internal QUADS assignment identifier |
+| `bmc_user` | `quads.yml` | IPMI/BMC username for out-of-band management |
+| `bmc_pass` | Computed | BMC password (`{infra_location}@{ticket}`) |
+| `cloud_systems` | Schedules | Sorted list of all host FQDNs in the allocation |
+| `cloud_ticket` | Assignment | Full URL to the associated JIRA ticket |
+| `foreman_api_url` | `plugins.yml` | Foreman API endpoint for host provisioning |
+| `foreman_username` | Assignment | Per-cloud Foreman RBAC username (matches cloud name) |
+| `foreman_password` | Computed | Foreman RBAC password (matches BMC password) |
+| `foreman_supported_os` | Foreman API | List of available operating systems for reprovisioning |
+
+To enable this plugin, add the following to `/opt/quads/conf/plugins.yml`:
+
+```yaml
+  clouddata:
+    enabled: true
 ```
 
 ## Using the QUADS JSON API

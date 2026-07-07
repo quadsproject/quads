@@ -58,7 +58,12 @@ class TestCloudDataPluginExecute:
         assert result is True
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "rdu2", "ticket_url": "https://issues.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_yaml_content_structure(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
@@ -71,6 +76,10 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 42
         mock_assignment.ticket = "SCALELAB-12345"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = [
+            {"Id": 1, "Title": "RHEL 9.4", "Release Name": "RHEL_9_4", "Family": "Redhat"},
+            {"Id": 2, "Title": "RHEL 10.0", "Release Name": "RHEL_10_0", "Family": "Redhat"},
+        ]
 
         sched1 = MagicMock()
         sched1.host.name = "host01.example.com"
@@ -103,9 +112,18 @@ class TestCloudDataPluginExecute:
         assert data["bmc_pass"] == "rdu2@SCALELAB-12345"
         assert data["cloud_systems"] == ["host01.example.com", "host02.example.com"]
         assert data["cloud_ticket"] == "https://issues.example.com/browse/SCALELAB-12345"
+        assert data["foreman_api_url"] == "https://foreman.example.com/api/v2"
+        assert data["foreman_username"] == "cloud02"
+        assert data["foreman_password"] == "rdu2@SCALELAB-12345"
+        assert data["foreman_supported_os"] == ["RHEL 9.4", "RHEL 10.0"]
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "rdu2", "ticket_url": "https://issues.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_hosts_sorted(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
@@ -118,6 +136,7 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 1
         mock_assignment.ticket = "TICKET-1"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = []
 
         sched_c = MagicMock()
         sched_c.host.name = "host03.example.com"
@@ -151,7 +170,12 @@ class TestCloudDataPluginExecute:
         ]
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "rdu2", "ticket_url": "https://issues.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_first_host_only(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
@@ -164,6 +188,7 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 1
         mock_assignment.ticket = "TICKET-1"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = []
 
         sched1 = MagicMock()
         sched1.host.name = "host01.example.com"
@@ -183,7 +208,12 @@ class TestCloudDataPluginExecute:
         mock_ssh_cls.assert_called_once_with("host01.example.com")
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "rdu2", "ticket_url": "https://issues.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_ssh_delivery_failure(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin, SSHHelperException
@@ -196,6 +226,7 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 1
         mock_assignment.ticket = "TICKET-1"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = []
 
         sched1 = MagicMock()
         sched1.host.name = "host01.example.com"
@@ -210,7 +241,12 @@ class TestCloudDataPluginExecute:
         assert result is False
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "rdu2", "ticket_url": "https://issues.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_ssh_cmd_failure(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
@@ -223,6 +259,7 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 1
         mock_assignment.ticket = "TICKET-1"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = []
 
         sched1 = MagicMock()
         sched1.host.name = "host01.example.com"
@@ -239,7 +276,12 @@ class TestCloudDataPluginExecute:
         assert result is False
 
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
-    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {"ipmi_cloud_username": "quads", "infra_location": "lab1", "ticket_url": "https://jira.lab1.example.com/browse"})
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "lab1",
+        "ticket_url": "https://jira.lab1.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.lab1.example.com/api/v2"}},
+    })
     @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
     def test_bmc_pass_construction(self, mock_api_cls, mock_ssh_cls):
         from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
@@ -252,6 +294,7 @@ class TestCloudDataPluginExecute:
         mock_assignment.id = 99
         mock_assignment.ticket = "JIRA-7890"
         mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = []
 
         sched1 = MagicMock()
         sched1.host.name = "host01.example.com"
@@ -274,6 +317,59 @@ class TestCloudDataPluginExecute:
         decoded = base64.b64decode(match.group(1)).decode()
         data = yaml.safe_load(decoded)
         assert data["bmc_pass"] == "lab1@JIRA-7890"
+        assert data["foreman_password"] == "lab1@JIRA-7890"
+
+
+    @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
+    @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
+        "ipmi_cloud_username": "quads",
+        "infra_location": "rdu2",
+        "ticket_url": "https://issues.example.com/browse",
+        "plugins": {"foreman": {"api_url": "https://foreman.example.com/api/v2"}},
+    })
+    @patch("quads.plugins.builtin.dayzero.clouddata.QuadsApi")
+    def test_foreman_fields(self, mock_api_cls, mock_ssh_cls):
+        from quads.plugins.builtin.dayzero.clouddata import CloudDataPlugin
+
+        mock_api = MagicMock()
+        mock_api_cls.return_value = mock_api
+
+        mock_assignment = MagicMock()
+        mock_assignment.cloud.name = "cloud09"
+        mock_assignment.id = 7
+        mock_assignment.ticket = "SCALELAB-999"
+        mock_api.get_active_cloud_assignment.return_value = mock_assignment
+        mock_api.get_os_list.return_value = [
+            {"Id": 1, "Title": "RHEL 8.10", "Release Name": "RHEL_8_10", "Family": "Redhat"},
+            {"Id": 2, "Title": "RHEL 9.4", "Release Name": "RHEL_9_4", "Family": "Redhat"},
+            {"Id": 3, "Title": "RHEL 10.0", "Release Name": "RHEL_10_0", "Family": "Redhat"},
+        ]
+
+        sched1 = MagicMock()
+        sched1.host.name = "host01.example.com"
+        mock_api.get_current_schedules.return_value = [sched1]
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.return_value = (True, [])
+        mock_ssh_cls.return_value = mock_ssh
+
+        plugin = CloudDataPlugin({"enabled": True})
+        plugin.initialize()
+        plugin.logger = MagicMock()
+        asyncio.run(plugin.execute("cloud09"))
+
+        call_args = mock_ssh.run_cmd.call_args[0][0]
+        import base64
+        import re
+
+        match = re.search(r"echo '([^']+)'", call_args)
+        decoded = base64.b64decode(match.group(1)).decode()
+        data = yaml.safe_load(decoded)
+
+        assert data["foreman_api_url"] == "https://foreman.example.com/api/v2"
+        assert data["foreman_username"] == "cloud09"
+        assert data["foreman_password"] == "rdu2@SCALELAB-999"
+        assert data["foreman_supported_os"] == ["RHEL 8.10", "RHEL 9.4", "RHEL 10.0"]
 
 
 class TestCloudDataDiscovery:

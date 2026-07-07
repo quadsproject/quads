@@ -39,13 +39,23 @@ class CloudDataPlugin(DayzeroPlugin):
         hosts = sorted(sched.host.name for sched in current_schedules)
         first_host = current_schedules[0].host.name
 
+        bmc_pass = f"{Config['infra_location']}@{assignment.ticket}"
+        foreman_config = Config.get("plugins", {}).get("foreman", {})
+
+        os_list = quads.get_os_list()
+        supported_os = [entry.get("Title", "") for entry in os_list if entry.get("Title")]
+
         env_data = {
             "cloud_name": assignment.cloud.name,
             "assignment_id": assignment.id,
             "bmc_user": Config["ipmi_cloud_username"],
-            "bmc_pass": f"{Config['infra_location']}@{assignment.ticket}",
+            "bmc_pass": bmc_pass,
             "cloud_systems": hosts,
             "cloud_ticket": f"{Config.get('ticket_url', '')}/{assignment.ticket}",
+            "foreman_api_url": foreman_config.get("api_url", ""),
+            "foreman_username": assignment.cloud.name,
+            "foreman_password": bmc_pass,
+            "foreman_supported_os": supported_os,
         }
 
         content = yaml.dump(env_data, default_flow_style=False, sort_keys=False)
