@@ -689,7 +689,7 @@ class QuadsCli:
             months = self.cli_args.get("months")
             year = now.year
 
-        reports.report_scheduled(self.logger, int(months), int(year))
+        reports.report_scheduled(int(months), int(year))
 
     def _helper_report_start_end(self) -> Tuple[datetime, datetime]:
         now = datetime.now()
@@ -712,11 +712,11 @@ class QuadsCli:
 
     def action_report_available(self):
         start, end = self._helper_report_start_end()
-        reports.report_available(self.logger, start, end)
+        reports.report_available(start, end)
 
     def action_report_detailed(self):
         start, end = self._helper_report_start_end()
-        reports.report_detailed(self.logger, start, end)
+        reports.report_detailed(start, end)
 
     def action_extend(self):
         weeks = self.cli_args.get("weeks")
