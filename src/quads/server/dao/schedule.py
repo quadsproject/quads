@@ -256,6 +256,50 @@ class ScheduleDao(BaseDao):
         return current_schedule
 
     @staticmethod
+    def get_utilization_stats(start: datetime, end: datetime) -> dict:
+        days = (end - start).days or 1
+
+        overlap_days = (
+            func.extract(
+                "epoch",
+                func.least(Schedule.end, end) - func.greatest(Schedule.start, start),
+            )
+            / 86400.0
+        )
+        scheduled_count = (
+            db.session.query(func.coalesce(func.sum(overlap_days), 0))
+            .join(Host, Schedule.host_id == Host.id)
+            .filter(
+                and_(
+                    Schedule.start <= end,
+                    Schedule.end >= start,
+                    Host.retired.is_(False),
+                    Host.broken.is_(False),
+                )
+            )
+            .scalar()
+        )
+
+        total_schedules = (
+            db.session.query(func.count(Schedule.id))
+            .filter(and_(Schedule.start <= end, Schedule.end >= start))
+            .scalar()
+        )
+
+        hosts = (
+            db.session.query(func.count(Host.id))
+            .filter(and_(Host.retired.is_(False), Host.broken.is_(False)))
+            .scalar()
+        )
+
+        return {
+            "scheduled_count": int(scheduled_count),
+            "days": days,
+            "hosts": hosts,
+            "schedules": total_schedules,
+        }
+
+    @staticmethod
     def get_hosts_range_schedules(start: datetime = None, end: datetime = None):
         now = datetime.now()
         _start = start if start else now

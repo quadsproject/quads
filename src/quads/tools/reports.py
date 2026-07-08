@@ -1,6 +1,3 @@
-import logging
-import sys
-
 from quads.config import Config
 from quads.helpers.utils import (
     date_span,
@@ -10,23 +7,21 @@ from quads.helpers.utils import (
 )
 from datetime import datetime, timedelta
 
+from rich.console import Console
+from rich.table import Table
+
 from quads.quads_api import QuadsApi
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.propagate = False
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 quads = QuadsApi(Config)
+console = Console()
 
 
-def report_available(_logger, _start, _end):
+def report_available(_start, _end):
     start = _start.replace(hour=22, minute=0, second=0)
     end = _end.replace(hour=22, minute=0, second=0)
     next_sunday = start + timedelta(days=(6 - start.weekday()))
 
     hosts = quads.filter_hosts({"retired": False, "broken": False})
-
-    _logger.info(f"QUADS report for {start.date()} to {end.date()}:")
 
     days = 0
     total_allocated_month = 0
@@ -35,11 +30,13 @@ def report_available(_logger, _start, _end):
         total_allocated_month += len(quads.get_current_schedules({"date": _date.strftime("%Y-%m-%dT%H:%M")}))
         days += 1
     utilized = total_allocated_month * 100 // (total_hosts * days)
-    _logger.info(f"Percentage Utilized: {utilized}%")
+
+    console.print(f"[bold]QUADS report for {start.date()} to {end.date()}[/bold]")
+    console.print(f"Percentage Utilized: [cyan]{utilized}%[/cyan]")
 
     average_build = quads.get_average_build_delta()
     if average_build is not None:
-        _logger.info(f"Average build delta: {average_build}")
+        console.print(f"Average build delta: [cyan]{average_build}[/cyan]")
 
     now = datetime.now()
     avail_start = next_sunday + timedelta(minutes=1)
@@ -56,69 +53,73 @@ def report_available(_logger, _start, _end):
         }
     )
 
-    headers = ["Server Type", "Total", "Free", "Scheduled", "2 weeks", "4 weeks"]
-    _logger.info(
-        f"{headers[0]:<12}| "
-        f"{headers[1]:>5}| "
-        f"{headers[2]:>5}| "
-        f"{headers[3]:>9}| "
-        f"{headers[4]:>7}| "
-        f"{headers[5]:>7}"
-    )
+    table = Table(title="Availability Summary", show_header=True, header_style="bold cyan")
+    table.add_column("Server Type", style="cyan")
+    table.add_column("Total", justify="right")
+    table.add_column("Free", justify="right")
+    table.add_column("Scheduled", justify="right")
+    table.add_column("2 weeks", justify="right")
+    table.add_column("4 weeks", justify="right")
+
     for row in summary:
         total = row["total"]
         scheduled_count = row["scheduled"]
         free = total - scheduled_count
         schedule_percent = scheduled_count * 100 // total
-        _logger.info(
-            f"{row['model']:<12}| "
-            f"{total:>5}| "
-            f"{free:>5}| "
-            f"{schedule_percent:>8}%| "
-            f"{row['avail_2w']:>7}| "
-            f"{row['avail_4w']:>7}"
+        table.add_row(
+            row["model"],
+            str(total),
+            str(free),
+            f"{schedule_percent}%",
+            str(row["avail_2w"]),
+            str(row["avail_4w"]),
         )
 
+    console.print(table)
 
-def report_scheduled(_logger, months, year):
-    headers = ["Month", "Scheduled", "Systems", "% Utilized"]
-    _logger.info(f"{headers[0]:<8}| " f"{headers[1]:>8}| " f"{headers[2]:>8}| " f"{headers[3]:>11}| ")
+
+def report_scheduled(months, year):
+    table = Table(title="Scheduled Report", show_header=True, header_style="bold cyan")
+    table.add_column("Month", style="cyan")
+    table.add_column("Scheduled", justify="right")
+    table.add_column("Systems", justify="right")
+    table.add_column("% Utilized", justify="right")
 
     now = datetime.now()
     now = now.replace(year=year, hour=22, minute=0, second=0)
     if months:
         for month in range(months):
-            process_scheduled(_logger, month, now)
+            _add_scheduled_row(table, month, now)
     else:
-        process_scheduled(_logger, months, now)
+        _add_scheduled_row(table, months, now)
+
+    console.print(table)
 
 
-def process_scheduled(_logger, month, now):
+def _add_scheduled_row(table, month, now):
     _date = now
     if month > 0:
         _date = month_delta_past(now, month)
     start = first_day_month(_date)
     end = last_day_month(_date)
-    payload = {
-        "start": start.strftime("%Y-%m-%dT%H:%M"),
-        "end": end.strftime("%Y-%m-%dT%H:%M"),
-    }
-    scheduled = len(quads.get_schedules(payload))
-    hosts = len(quads.filter_hosts({"retired": False, "broken": False}))
+    _fmt = "%Y-%m-%dT%H:%M"
+    stats = quads.get_utilization_stats({"start": start.strftime(_fmt), "end": end.strftime(_fmt)})
 
-    days = 0
-    scheduled_count = 0
+    hosts = stats["hosts"]
+    days = stats["days"]
     utilization = 0
-    for date in date_span(start, end):
-        days += 1
-        scheduled_count += len(quads.get_current_schedules({"date": date.strftime("%Y-%m-%dT%H:%M")}))
     if hosts and days:
-        utilization = scheduled_count * 100 // (days * hosts)
+        utilization = stats["scheduled_count"] * 100 // (days * hosts)
     f_month = f"{start.month:02}"
-    _logger.info(f"{start.year}-{f_month:<3}| " f"{scheduled:>9}| " f"{hosts:>8}| " f"{utilization:>10}%| ")
+    table.add_row(
+        f"{start.year}-{f_month}",
+        str(stats["schedules"]),
+        str(hosts),
+        f"{utilization}%",
+    )
 
 
-def report_detailed(_logger, _start, _end):
+def report_detailed(_start, _end):
     start = _start.replace(hour=21, minute=59, second=0)
     end = _end.replace(hour=22, minute=1, second=0)
     payload = {
@@ -127,45 +128,37 @@ def report_detailed(_logger, _start, _end):
     }
     schedules = quads.get_schedules(payload)
 
-    headers = [
-        "Owner",
-        "Ticket",
-        "Cloud",
-        "Description",
-        "Systems",
-        "Scheduled",
-        "Duration",
-    ]
-    _logger.info(
-        f"{headers[0]:<9}| "
-        f"{headers[1]:>9}| "
-        f"{headers[2]:>8}| "
-        f"{headers[3]:>10}| "
-        f"{headers[4]:>5}| "
-        f"{headers[5]:>10}| "
-        f"{headers[6]:>5}| "
-    )
+    table = Table(title="Detailed Report", show_header=True, header_style="bold cyan")
+    table.add_column("Owner", style="cyan")
+    table.add_column("Ticket", justify="right")
+    table.add_column("Cloud", justify="right")
+    table.add_column("Description")
+    table.add_column("Systems", justify="right")
+    table.add_column("Scheduled", justify="right")
+    table.add_column("Duration", justify="right")
 
     for schedule in schedules:
         if schedule:
             delta = schedule.end - schedule.start
-            description = schedule.assignment.description[: len(headers[3])]
-            _logger.info(
-                f"{schedule.assignment.owner:<9}| "
-                f"{schedule.assignment.ticket:>9}| "
-                f"{schedule.assignment.cloud.name:>8}| "
-                f"{description:>11}| "
-                f"{len(schedules):>7}| "
-                f"{str(schedule.start)[:10]:>9}| "
-                f"{delta.days:>8}| "
+            description = schedule.assignment.description
+            table.add_row(
+                schedule.assignment.owner,
+                schedule.assignment.ticket,
+                schedule.assignment.cloud.name,
+                description,
+                str(len(schedules)),
+                str(schedule.start)[:10],
+                str(delta.days),
             )
+
+    console.print(table)
 
 
 if __name__ == "__main__":  # pragma: no cover
     _start = first_day_month(datetime.now())
     _end = last_day_month(datetime.now())
-    report_available(logger, _start, _end)
+    report_available(_start, _end)
 
     _months = datetime.now().month
     _year = datetime.now().year
-    report_scheduled(logger, _months, _year)
+    report_scheduled(_months, _year)
