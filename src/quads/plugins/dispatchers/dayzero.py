@@ -20,7 +20,7 @@ def _ensure_dayzero_log_handler():
         logger.warning(f"Cannot write to {DAYZERO_LOG}, dayzero logs will use standard logging only")
         return
 
-    for logger_name in [__name__, "quads.plugins.cloudcmd"]:
+    for logger_name in [__name__, "quads.plugins.builtin.dayzero.cloudcmd", "quads.plugins.builtin.dayzero.clouddata"]:
         target = logging.getLogger(logger_name)
         if not any(
             isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log

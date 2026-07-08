@@ -100,3 +100,7 @@ plugins:
   # lab-admin plugins go in /opt/quads/plugins/dayzero/
   cloudcmd:
     enabled: true
+
+  # clouddata - drops /root/quads_env.yml on the first host per cloud
+  clouddata:
+    enabled: true
