@@ -6,15 +6,16 @@ from tests.cli.test_base import TestBase
 
 
 class TestMemory(TestBase):
-    def test_ls_memory(self):
+    def test_ls_memory(self, capsys):
         self.cli_args["host"] = HOST1
 
         self.quads_cli_call("memory")
+        output = capsys.readouterr().out
 
-        assert self._caplog.messages[0] == "memory: DIMM1"
-        assert self._caplog.messages[1] == "  size: 2048"
-        assert self._caplog.messages[2] == "memory: DIMM2"
-        assert self._caplog.messages[3] == "  size: 2048"
+        assert "Memory:" in output
+        assert "DIMM1" in output
+        assert "2048" in output
+        assert "DIMM2" in output
 
     def test_ls_memory_missing_host(self):
         if self.cli_args.get("host"):

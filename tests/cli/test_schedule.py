@@ -283,7 +283,7 @@ class TestSchedule(TestBase):
 
 class TestLsExpirations(TestBase):
     @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
-    def test_ls_expirations(self, mock_get):
+    def test_ls_expirations(self, mock_get, capsys):
         future = datetime.now() + timedelta(days=7, seconds=3600)
         expected_date = future.strftime("%Y-%m-%d")
         schedule = MagicMock()
@@ -293,16 +293,13 @@ class TestLsExpirations(TestBase):
         schedule.assignment.is_self_schedule = False
         mock_get.return_value = [schedule]
         self.quads_cli_call("ls_expirations")
-        assert "cloud" in self._caplog.messages[0]
-        assert "ticket" in self._caplog.messages[0]
-        assert "end_date" in self._caplog.messages[0]
-        assert "expires_in" in self._caplog.messages[0]
-        assert "ssm" in self._caplog.messages[0]
-        assert "cloud99" in self._caplog.messages[0]
-        assert "1234" in self._caplog.messages[0]
-        assert expected_date in self._caplog.messages[0]
-        assert "7d" in self._caplog.messages[0]
-        assert "False" in self._caplog.messages[0]
+        output = capsys.readouterr().out
+        assert "Expiring Schedules" in output
+        assert "cloud99" in output
+        assert "1234" in output
+        assert expected_date in output
+        assert "7d" in output
+        assert "False" in output
 
     @patch("quads.quads_api.QuadsApi.get_expiring_schedules")
     def test_ls_expirations_no_schedules(self, mock_get):
