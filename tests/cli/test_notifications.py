@@ -43,15 +43,16 @@ def define_free_cloud(request):
 
 
 class TestNotifications(TestBase):
-    def test_ls_notifications(self):
+    def test_ls_notifications(self, capsys):
         self.quads_cli_call("list_notifications")
-        assert len(self._caplog.messages) == 1
+        output = capsys.readouterr().out
+        assert "Notifications" in output
 
-    def test_ls_cloud_notification(self):
+    def test_ls_cloud_notification(self, capsys):
         self.cli_args["cloud"] = MOD_CLOUD
         self.quads_cli_call("list_notifications")
-        messages = self._caplog.messages
-        assert MOD_CLOUD in messages[0]
+        output = capsys.readouterr().out
+        assert MOD_CLOUD in output
 
     def test_ls_non_exists_cloud_notifications(self):
         self.cli_args["cloud"] = FREE_CLOUD

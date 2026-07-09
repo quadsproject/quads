@@ -191,20 +191,22 @@ class TestInterface(TestBase):
 
         assert str(ex.value) == "Host not found: BADHOST"
 
-    def test_ls_interface(self):
+    def test_ls_interface(self, capsys):
         self.cli_args["host"] = HOST1
 
         self.quads_cli_call("interface")
+        output = capsys.readouterr().out
 
-        assert self._caplog.messages[0] == f"interface: {IFNAME1}"
-        assert self._caplog.messages[1] == f"  bios id: {IFBIOSID1}"
-        assert self._caplog.messages[2] == f"  mac address: {IFMAC1}"
-        assert self._caplog.messages[3] == f"  switch ip: {IFIP1}"
-        assert self._caplog.messages[4] == f"  port: {IFPORT1}"
-        assert self._caplog.messages[5] == f"  speed: {IFSPEED}"
-        assert self._caplog.messages[6] == f"  vendor: {IFVENDOR1}"
-        assert self._caplog.messages[7] == "  pxe_boot: True"
-        assert self._caplog.messages[8] == "  maintenance: False"
+        assert "Interfaces:" in output
+        assert IFNAME1 in output
+        assert IFBIOSID1 in output
+        assert IFMAC1 in output
+        assert IFIP1 in output
+        assert IFPORT1 in output
+        assert str(IFSPEED) in output
+        assert IFVENDOR1 in output
+        assert "True" in output
+        assert "False" in output
 
     def test_ls_interface_missing_host(self):
         if self.cli_args.get("host"):

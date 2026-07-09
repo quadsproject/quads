@@ -42,6 +42,87 @@ def remove_fixture(request):
     assert schedule
 
 
+def ssm_finalizer():
+    cloud = CloudDao.get_cloud(CLOUD)
+    host = HostDao.get_host(HOST2)
+    schedules = ScheduleDao.get_current_schedule(host=host, cloud=cloud)
+    if schedules:
+        ScheduleDao.remove_schedule(schedules[0].id)
+        AssignmentDao.remove_assignment(schedules[0].assignment_id)
+
+
+@pytest.fixture
+def ssm_fixture(request):
+    request.addfinalizer(ssm_finalizer)
+
+    today = datetime.now()
+    tomorrow = today + timedelta(weeks=2)
+
+    cloud = CloudDao.get_cloud(CLOUD)
+    host = HostDao.get_host(HOST2)
+    vlan = VlanDao.create_vlan("192.168.2.1", 123, "192.168.2.1/22", "255.255.255.255", 1)
+    assignment = AssignmentDao.create_assignment(
+        "[SSM] test",
+        "testuser",
+        "SSM-1234",
+        0,
+        False,
+        [""],
+        cloud.name,
+        vlan.vlan_id,
+        is_self_schedule=True,
+    )
+    schedule = ScheduleDao.create_schedule(
+        today.strftime("%Y-%m-%d %H:%M"),
+        tomorrow.strftime("%Y-%m-%d %H:%M"),
+        assignment,
+        host,
+    )
+    assert schedule
+
+
+class TestReportSelfScheduled(TestBase):
+    def test_report_self_scheduled(self, ssm_fixture, capsys):
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Self-Scheduled Report" in output
+        assert "Cloud Owner" in output
+        assert "Cloud Ticket" in output
+        assert "System Count" in output
+        assert "Date Requested" in output
+        assert "testuser" in output
+        assert "SSM-1234" in output
+
+    def test_report_self_scheduled_days(self, ssm_fixture, capsys):
+        self.cli_args["days"] = 30
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Self-Scheduled Report" in output
+        assert "testuser" in output
+        self.cli_args["days"] = None
+
+    def test_report_self_scheduled_weeks(self, ssm_fixture, capsys):
+        self.cli_args["weeks"] = 4
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Self-Scheduled Report" in output
+        assert "SSM-1234" in output
+        self.cli_args["weeks"] = None
+
+    def test_report_self_scheduled_months(self, ssm_fixture, capsys):
+        self.cli_args["months"] = 1
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Self-Scheduled Report" in output
+        assert "testuser" in output
+        self.cli_args["months"] = None
+
+    def test_report_self_scheduled_empty(self, capsys):
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Self-Scheduled Report" in output
+
+
 class TestReport(TestBase):
     def test_report_available(self, remove_fixture, capsys):
         self.quads_cli_call("report_available")

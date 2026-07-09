@@ -222,15 +222,17 @@ class TestHost(TestBase):
 
         assert self._caplog.messages[0] == "No hosts found."
 
-    def test_ls_cpu(self):
+    def test_ls_cpu(self, capsys):
         self.cli_args["host"] = HOST1
         self.quads_cli_call("cpu")
+        output = capsys.readouterr().out
 
-        assert self._caplog.messages[0] == "cpu: P1"
-        assert self._caplog.messages[1] == "  vendor: Intel"
-        assert self._caplog.messages[2] == "  product: i7"
-        assert self._caplog.messages[3] == "  cores: 2"
-        assert self._caplog.messages[4] == "  threads: 4"
+        assert "CPUs:" in output
+        assert "P1" in output
+        assert "Intel" in output
+        assert "i7" in output
+        assert "2" in output
+        assert "4" in output
 
     def test_ls_cpu_no_host(self):
         if self.cli_args.get("host"):
@@ -266,14 +268,15 @@ class TestHost(TestBase):
 
         assert self._caplog.messages[0] == f"No GPUs defined for {HOST2}"
 
-    def test_ls_memory(self):
+    def test_ls_memory(self, capsys):
         self.cli_args["host"] = HOST1
         self.quads_cli_call("memory")
+        output = capsys.readouterr().out
 
-        assert self._caplog.messages[0] == "memory: DIMM1"
-        assert self._caplog.messages[1] == "  size: 2048"
-        assert self._caplog.messages[2] == "memory: DIMM2"
-        assert self._caplog.messages[3] == "  size: 2048"
+        assert "Memory:" in output
+        assert "DIMM1" in output
+        assert "2048" in output
+        assert "DIMM2" in output
 
     def test_mod_host(self, add_host):
         new_model = "nob666"

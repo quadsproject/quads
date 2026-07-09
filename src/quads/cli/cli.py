@@ -12,11 +12,15 @@ import yaml
 from jinja2 import Template
 from requests import ConnectionError
 
+from rich.console import Console
+from rich.table import Table as RichTable
+
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
 from quads.helpers.utils import (
     first_day_month,
     last_day_month,
+    month_delta_past,
 )
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
@@ -48,6 +52,7 @@ class QuadsCli:
     def __init__(self, quads: Quads, logger: logging.Logger):
         self.quads = quads
         self.logger = logger
+        self.console = Console()
 
     @staticmethod
     def _confirmation_dialog(msg, default_choice="n"):
@@ -276,26 +281,33 @@ class QuadsCli:
         if not schedules:
             self.logger.warning("No active schedules found.")
             return 0
-        headers = ["cloud", "ticket", "end_date", "expires_in", "ssm"]
-        rows = []
-        expiring_clouds = set()
 
+        table = RichTable(
+            title="Expiring Schedules",
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Cloud", style="cyan")
+        table.add_column("Ticket")
+        table.add_column("End Date")
+        table.add_column("Expires In", justify="right")
+        table.add_column("SSM")
+
+        expiring_clouds = set()
         for schedule in schedules:
             cloud_name = schedule.assignment.cloud.name
             if cloud_name in expiring_clouds:
                 continue
             days, _ = time_remaining(schedule.end)
-            rows.append(
-                [
-                    cloud_name,
-                    schedule.assignment.ticket,
-                    schedule.end.strftime("%Y-%m-%d"),
-                    f"{days}d",
-                    schedule.assignment.is_self_schedule,
-                ]
+            table.add_row(
+                cloud_name,
+                schedule.assignment.ticket,
+                schedule.end.strftime("%Y-%m-%d"),
+                f"{days}d",
+                str(schedule.assignment.is_self_schedule),
             )
             expiring_clouds.add(cloud_name)
-        self.log_in_table_format(headers=headers, rows=rows)
+        self.console.print(table)
         return 0
 
     def action_ls_broken(self):
@@ -380,16 +392,33 @@ class QuadsCli:
             raise CliException(str(ex))
 
         if data:
+            table = RichTable(
+                title=f"Interfaces: {hostname}",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Name", style="cyan")
+            table.add_column("BIOS ID")
+            table.add_column("MAC Address")
+            table.add_column("Switch IP")
+            table.add_column("Port")
+            table.add_column("Speed")
+            table.add_column("Vendor")
+            table.add_column("PXE Boot")
+            table.add_column("Maintenance")
             for interface in sorted(data, key=lambda k: k.name):
-                self.logger.info(f"interface: {interface.name}")
-                self.logger.info(f"  bios id: {interface.bios_id}")
-                self.logger.info(f"  mac address: {interface.mac_address}")
-                self.logger.info(f"  switch ip: {interface.switch_ip}")
-                self.logger.info(f"  port: {interface.switch_port}")
-                self.logger.info(f"  speed: {interface.speed}")
-                self.logger.info(f"  vendor: {interface.vendor}")
-                self.logger.info(f"  pxe_boot: {interface.pxe_boot}")
-                self.logger.info(f"  maintenance: {interface.maintenance}")
+                table.add_row(
+                    str(interface.name),
+                    str(interface.bios_id),
+                    str(interface.mac_address),
+                    str(interface.switch_ip),
+                    str(interface.switch_port),
+                    str(interface.speed),
+                    str(interface.vendor),
+                    str(interface.pxe_boot),
+                    str(interface.maintenance),
+                )
+            self.console.print(table)
         else:
             self.logger.error(f"No interfaces defined for {hostname}")
 
@@ -404,9 +433,19 @@ class QuadsCli:
             raise CliException(str(ex))
 
         if host.memory:
-            for i, memory in enumerate(host.memory):
-                self.logger.info(f"memory: {memory.handle}")
-                self.logger.info(f"  size: {memory.size_gb}")
+            table = RichTable(
+                title=f"Memory: {hostname}",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Handle", style="cyan")
+            table.add_column("Size (GB)", justify="right")
+            for memory in host.memory:
+                table.add_row(
+                    str(memory.handle),
+                    str(memory.size_gb),
+                )
+            self.console.print(table)
         else:
             self.logger.error(f"No memory defined for {hostname}")
 
@@ -421,11 +460,23 @@ class QuadsCli:
             raise CliException(str(ex))
 
         if host.disks:
+            table = RichTable(
+                title=f"Disks: {hostname}",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Disk", style="cyan")
+            table.add_column("Type")
+            table.add_column("Size (GB)", justify="right")
+            table.add_column("Count", justify="right")
             for i, disk in enumerate(host.disks):
-                self.logger.info(f"disk{i}:")
-                self.logger.info(f"  type: {disk.disk_type}")
-                self.logger.info(f"  size: {disk.size_gb}")
-                self.logger.info(f"  count: {disk.count}")
+                table.add_row(
+                    f"disk{i}",
+                    str(disk.disk_type),
+                    str(disk.size_gb),
+                    str(disk.count),
+                )
+            self.console.print(table)
         else:
             self.logger.error(f"No disks defined for {hostname}")
 
@@ -442,12 +493,25 @@ class QuadsCli:
         if host.processors:
             cpu_processors = [p for p in host.processors if p.processor_type == "CPU"]
             if cpu_processors:
-                for i, processor in enumerate(cpu_processors):
-                    self.logger.info(f"cpu: {processor.handle}")
-                    self.logger.info(f"  vendor: {processor.vendor}")
-                    self.logger.info(f"  product: {processor.product}")
-                    self.logger.info(f"  cores: {processor.cores}")
-                    self.logger.info(f"  threads: {processor.threads}")
+                table = RichTable(
+                    title=f"CPUs: {hostname}",
+                    show_header=True,
+                    header_style="bold cyan",
+                )
+                table.add_column("Handle", style="cyan")
+                table.add_column("Vendor")
+                table.add_column("Product")
+                table.add_column("Cores", justify="right")
+                table.add_column("Threads", justify="right")
+                for processor in cpu_processors:
+                    table.add_row(
+                        str(processor.handle),
+                        str(processor.vendor),
+                        str(processor.product),
+                        str(processor.cores),
+                        str(processor.threads),
+                    )
+                self.console.print(table)
             else:
                 self.logger.error(f"No CPUs defined for {hostname}")
         else:
@@ -466,12 +530,25 @@ class QuadsCli:
         if host.processors:
             gpu_processors = [p for p in host.processors if p.processor_type == "GPU"]
             if gpu_processors:
-                for i, processor in enumerate(gpu_processors):
-                    self.logger.info(f"gpu: {processor.handle}")
-                    self.logger.info(f"  vendor: {processor.vendor}")
-                    self.logger.info(f"  product: {processor.product}")
-                    self.logger.info(f"  cores: {processor.cores}")
-                    self.logger.info(f"  threads: {processor.threads}")
+                table = RichTable(
+                    title=f"GPUs: {hostname}",
+                    show_header=True,
+                    header_style="bold cyan",
+                )
+                table.add_column("Handle", style="cyan")
+                table.add_column("Vendor")
+                table.add_column("Product")
+                table.add_column("Cores", justify="right")
+                table.add_column("Threads", justify="right")
+                for processor in gpu_processors:
+                    table.add_row(
+                        str(processor.handle),
+                        str(processor.vendor),
+                        str(processor.product),
+                        str(processor.cores),
+                        str(processor.threads),
+                    )
+                self.console.print(table)
             else:
                 self.logger.error(f"No GPUs defined for {hostname}")
         else:
@@ -717,6 +794,33 @@ class QuadsCli:
     def action_report_detailed(self):
         start, end = self._helper_report_start_end()
         reports.report_detailed(start, end)
+
+    def _helper_ssm_date_range(self) -> Tuple[datetime, datetime]:
+        now = datetime.now()
+        days = self.cli_args.get("days")
+        weeks = self.cli_args.get("weeks")
+        months = self.cli_args.get("months")
+
+        if days:
+            start = now - timedelta(days=int(days))
+        elif weeks:
+            weeks_val = int(weeks)
+            if weeks_val == 1:
+                days_since_sunday = (now.weekday() + 1) % 7
+                start = (now - timedelta(days=days_since_sunday)).replace(hour=0, minute=0, second=0)
+            else:
+                start = now - timedelta(weeks=weeks_val)
+        elif months:
+            start = first_day_month(month_delta_past(now, int(months)))
+        else:
+            start = first_day_month(now)
+            now = last_day_month(now)
+
+        return start, now
+
+    def action_report_self_scheduled(self):
+        start, end = self._helper_ssm_date_range()
+        reports.report_self_scheduled(start, end)
 
     def action_extend(self):
         weeks = self.cli_args.get("weeks")
@@ -2073,14 +2177,22 @@ class QuadsCli:
                     self.logger.info("No active moves")
                     return 0
 
+                table = RichTable(
+                    title="Move Progress",
+                    show_header=True,
+                    header_style="bold cyan",
+                )
+                table.add_column("Cloud", style="cyan")
+                table.add_column("Hosts in Progress", justify="right")
+
                 by_cloud = {}
                 for move in active_moves:
                     cloud = move.get("target_cloud", "unknown")
                     by_cloud.setdefault(cloud, []).append(move)
 
                 for cloud, moves in sorted(by_cloud.items()):
-                    total = len(moves)
-                    self.logger.info(f"{cloud}: {total} host(s) in progress")
+                    table.add_row(cloud, str(len(moves)))
+                self.console.print(table)
                 return 0
 
             cloud_moves = self.quads.get_all_move_status(cloud=cloud_name)
@@ -2089,12 +2201,21 @@ class QuadsCli:
                 return 0
 
             assignment = self.quads.get_active_cloud_assignment(cloud_name)
+            title = cloud_name
             if assignment:
                 desc = assignment.description or ""
                 owner = assignment.owner or ""
-                self.logger.info(f"{cloud_name} - {desc} ({owner})")
-            else:
-                self.logger.info(cloud_name)
+                title = f"{cloud_name} - {desc} ({owner})"
+
+            table = RichTable(
+                title=title,
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Host", style="cyan")
+            table.add_column("Stage")
+            table.add_column("Status")
+            table.add_column("Message")
 
             for move in cloud_moves:
                 host = move.get("host", "?")
@@ -2102,15 +2223,16 @@ class QuadsCli:
                 stage = Schedule.stage_of(status)
                 msg = move.get("message", "") or ""
                 err = move.get("error_message", "")
+                stage_str = f"{stage}/{Schedule.TOTAL_STAGES}"
                 if status == "failed":
-                    display = f"  {host}: FAILED at stage {stage}/{Schedule.TOTAL_STAGES} ({status})"
+                    status_str = f"FAILED ({status})"
                 else:
-                    display = f"  {host}: {stage}/{Schedule.TOTAL_STAGES} stages ({status})"
-                if msg:
-                    display += f" - {msg}"
+                    status_str = status
+                msg_str = msg
                 if err:
-                    display += f" [ERROR: {err}]"
-                self.logger.info(display)
+                    msg_str += f" [ERROR: {err}]" if msg else f"ERROR: {err}"
+                table.add_row(host, stage_str, status_str, msg_str)
+            self.console.print(table)
             return 0
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
@@ -2276,19 +2398,37 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
             raise CliException(str(ex))
         summary_json = summary.json()
+
+        table = RichTable(
+            title="Cloud Summary",
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("Cloud", style="cyan")
+        if self.cli_args.get("detail"):
+            table.add_column("Owner")
+        table.add_column("Count", justify="right")
+        table.add_column("Description")
+        if self.cli_args.get("detail"):
+            table.add_column("Ticket")
+
         for cloud in summary_json:
-            cloud_name = cloud.get("name")
-            cloud_count = cloud.get("count")
-            cloud_description = cloud.get("description")
-            cloud_owner = cloud.get("owner")
-            cloud_ticket = cloud.get("ticket")
             if self.cli_args.get("all") or cloud["count"] > 0:
                 if self.cli_args.get("detail"):
-                    self.logger.info(
-                        f"{cloud_name} ({cloud_owner}): {cloud_count} ({cloud_description}) - {cloud_ticket}"
+                    table.add_row(
+                        cloud.get("name"),
+                        cloud.get("owner"),
+                        str(cloud.get("count")),
+                        cloud.get("description"),
+                        cloud.get("ticket"),
                     )
                 else:
-                    self.logger.info(f"{cloud_name}: {cloud_count} ({cloud_description})")
+                    table.add_row(
+                        cloud.get("name"),
+                        str(cloud.get("count")),
+                        cloud.get("description"),
+                    )
+        self.console.print(table)
 
     def action_regen_instack(self):
         regen_instack()
@@ -2383,30 +2523,42 @@ class QuadsCli:
                 assignments = [] if not assignment else [assignment]
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
-        headers = [
-            "fail",
-            "success",
-            "initial",
-            "pre_initial",
-            "pre",
-            "one_day",
-            "three_days",
-            "five_days",
-            "seven_days",
-        ]
-        rows = []
+
         if assignments:
+            table = RichTable(
+                title="Notifications",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Cloud", style="cyan")
+            table.add_column("Ticket")
+            table.add_column("Fail")
+            table.add_column("Success")
+            table.add_column("Initial")
+            table.add_column("Pre Initial")
+            table.add_column("Pre")
+            table.add_column("1 Day")
+            table.add_column("3 Days")
+            table.add_column("5 Days")
+            table.add_column("7 Days")
+
+            notification_fields = [
+                "fail",
+                "success",
+                "initial",
+                "pre_initial",
+                "pre",
+                "one_day",
+                "three_days",
+                "five_days",
+                "seven_days",
+            ]
             for ass in assignments:
-                cloud_name = str(ass.cloud.name)
-                ticket = str(ass.ticket)
-                notification = ass.notification
-                row = [cloud_name, ticket]
-                for header in headers:
-                    row.append(str(getattr(notification, header)))
-                rows.append(row)
-            headers.insert(0, "cloud")
-            headers.insert(1, "ticket")
-            self.log_in_table_format(headers=headers, rows=rows)
+                row = [str(ass.cloud.name), str(ass.ticket)]
+                for field in notification_fields:
+                    row.append(str(getattr(ass.notification, field)))
+                table.add_row(*row)
+            self.console.print(table)
         else:
             message = "WARNING: there are no current or future schedules"
             if not cloud_name:
@@ -2455,21 +2607,19 @@ class QuadsCli:
         else:
             self.logger.warning(f"{cloud_name}, No active cloud assignment found")
 
-    def log_in_table_format(self, headers: list, rows: list):
-        col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
-
-        def format_row(data_row):
-            return "  ".join(str(item).ljust(width) for item, width in zip(data_row, col_widths))
-
-        table = [format_row(headers), "=" * (sum(col_widths) + 2 * (len(headers) - 1))]
-        table.extend(format_row(row) for row in rows)
-        self.logger.info("\n".join(table))
-
     def action_os_list(self):
         available_os_list = self.quads.get_os_list()
         if available_os_list:
+            table = RichTable(
+                title="Available OS",
+                show_header=True,
+                header_style="bold cyan",
+            )
             headers = list(available_os_list[0].keys())
-            rows = list(map(lambda item: list(item.values()), available_os_list))
-            self.log_in_table_format(headers=headers, rows=rows)
+            for header in headers:
+                table.add_column(header, style="cyan" if header == headers[0] else None)
+            for item in available_os_list:
+                table.add_row(*[str(v) for v in item.values()])
+            self.console.print(table)
         else:
             self.logger.error("No available OS list")
