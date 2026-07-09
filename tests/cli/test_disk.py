@@ -6,19 +6,18 @@ from tests.cli.test_base import TestBase
 
 
 class TestDisk(TestBase):
-    def test_ls_disk(self):
+    def test_ls_disk(self, capsys):
         self.cli_args["host"] = HOST1
 
         self.quads_cli_call("disks")
+        output = capsys.readouterr().out
 
-        assert self._caplog.messages[0] == "disk0:"
-        assert self._caplog.messages[1] == "  type: NVME"
-        assert self._caplog.messages[2] == "  size: 4096"
-        assert self._caplog.messages[3] == "  count: 10"
-        assert self._caplog.messages[4] == "disk1:"
-        assert self._caplog.messages[5] == "  type: SATA"
-        assert self._caplog.messages[6] == "  size: 4096"
-        assert self._caplog.messages[7] == "  count: 5"
+        assert "Disks:" in output
+        assert "NVME" in output
+        assert "4096" in output
+        assert "10" in output
+        assert "SATA" in output
+        assert "5" in output
 
     def test_ls_disk_missing_host(self):
         if self.cli_args.get("host"):

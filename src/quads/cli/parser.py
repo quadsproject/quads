@@ -108,7 +108,14 @@ time_args.add_argument(
     dest="weeks",
     type=str,
     default=None,
-    help="Number of weeks to extend an existing schedule",
+    help="Number of weeks (extend/shrink or reporting lookback)",
+)
+time_args.add_argument(
+    "--days",
+    dest="days",
+    type=str,
+    default=None,
+    help="Number of days for reporting lookback",
 )
 time_args.add_argument(
     "--now",
@@ -397,6 +404,13 @@ action_group.add_argument(
     action="store_const",
     const="report_detailed",
     help="QUADS reporting scheduled assignments",
+)
+action_group.add_argument(
+    "--report-self-scheduled",
+    dest="action",
+    action="store_const",
+    const="report_self_scheduled",
+    help="QUADS reporting self-scheduled (SSM) assignments",
 )
 action_group.add_argument(
     "--ls-expirations",

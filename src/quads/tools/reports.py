@@ -1,3 +1,5 @@
+import sys
+
 from quads.config import Config
 from quads.helpers.utils import (
     date_span,
@@ -13,7 +15,7 @@ from rich.table import Table
 from quads.quads_api import QuadsApi
 
 quads = QuadsApi(Config)
-console = Console()
+console = Console(width=None if sys.stdout.isatty() else 200)
 
 
 def report_available(_start, _end):
@@ -150,6 +152,60 @@ def report_detailed(_start, _end):
                 str(schedule.start)[:10],
                 str(delta.days),
             )
+
+    console.print(table)
+
+
+def report_self_scheduled(_start, _end):
+    start = _start.replace(hour=21, minute=59, second=0)
+    end = _end.replace(hour=22, minute=1, second=0)
+    _fmt = "%Y-%m-%dT%H:%M"
+    payload = {
+        "start__lte": end.strftime(_fmt),
+        "end__gte": start.strftime(_fmt),
+    }
+    schedules = quads.get_schedules(payload)
+
+    ssm_assignments = {}
+    for schedule in schedules:
+        if schedule and schedule.assignment.is_self_schedule:
+            ass_id = schedule.assignment.id
+            if ass_id not in ssm_assignments:
+                ssm_assignments[ass_id] = {
+                    "assignment": schedule.assignment,
+                    "hosts": set(),
+                }
+            ssm_assignments[ass_id]["hosts"].add(schedule.host.name)
+
+    ssm_prefix = Config.get("ssm_description_prefix", "[SSM]")
+
+    table = Table(
+        title="Self-Scheduled Report",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    table.add_column("#", style="cyan", justify="right")
+    table.add_column("Cloud Owner")
+    table.add_column("Cloud Ticket")
+    table.add_column("Cloud Name")
+    table.add_column("Description", max_width=30)
+    table.add_column("System Count", justify="right")
+    table.add_column("Date Requested")
+
+    for idx, data in enumerate(ssm_assignments.values(), 1):
+        ass = data["assignment"]
+        description = ass.description or ""
+        if description.startswith(ssm_prefix):
+            description = description[len(ssm_prefix) :].strip()
+        table.add_row(
+            str(idx),
+            ass.owner,
+            ass.ticket,
+            ass.cloud.name,
+            description,
+            str(len(data["hosts"])),
+            str(ass.created_at)[:10],
+        )
 
     console.print(table)
 
