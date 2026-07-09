@@ -249,6 +249,11 @@ class QuadsApi(QuadsBase):
             schedules.append(Schedule().from_dict(schedule))
         return schedules
 
+    def get_utilization_stats(self, data: dict) -> dict:
+        url_params = url_parse.urlencode(data)
+        response = self.get(f"schedules/stats/utilization?{url_params}")
+        return response.json()
+
     def get_schedule(self, schedule_id: int) -> Schedule:
         schedule_obj = None
         url = os.path.join("schedules", str(schedule_id))

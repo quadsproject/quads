@@ -171,6 +171,20 @@ def get_average_build_delta() -> Response:
     return jsonify({"average_build_delta": average.total_seconds()})
 
 
+@schedule_bp.route("/stats/utilization")
+def get_utilization_stats() -> Response:
+    start = request.args.get("start")
+    end = request.args.get("end")
+    if not start or not end:
+        return make_response(
+            jsonify({"status_code": 400, "error": "Bad Request", "message": "start and end required"}), 400
+        )
+    start_dt = datetime.strptime(start, "%Y-%m-%dT%H:%M")
+    end_dt = datetime.strptime(end, "%Y-%m-%dT%H:%M")
+    stats = ScheduleDao.get_utilization_stats(start_dt, end_dt)
+    return jsonify(stats)
+
+
 @schedule_bp.route("/", methods=["POST"])
 @check_access(["admin", "user"])
 def create_schedule() -> Response:
