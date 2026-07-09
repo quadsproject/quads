@@ -900,6 +900,15 @@ parser.add_argument(
     help="Remove specified host metadata components (comma-separated: disks,memory,interfaces,cpus,gpus,all)",
 )
 
+parser.add_argument(
+    "--export",
+    dest="export",
+    type=str,
+    choices=["markdown", "html", "json"],
+    default=None,
+    help="Export report to /tmp/ as markdown, html, or json",
+)
+
 mod_notification_arg_names = [
     "fail",
     "success",

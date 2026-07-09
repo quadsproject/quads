@@ -1,3 +1,5 @@
+import json
+import os
 import sys
 
 from quads.config import Config
@@ -18,7 +20,58 @@ quads = QuadsApi(Config)
 console = Console(width=None if sys.stdout.isatty() else 200)
 
 
-def report_available(_start, _end):
+def _report_to_markdown(title, headers, rows, metadata=None):
+    lines = [f"# {title}", ""]
+    if metadata:
+        for label, value in metadata:
+            lines.append(f"**{label}**: {value}")
+        lines.append("")
+    lines.append("| " + " | ".join(headers) + " |")
+    lines.append("| " + " | ".join("---" for _ in headers) + " |")
+    for row in rows:
+        lines.append("| " + " | ".join(row) + " |")
+    return "\n".join(lines) + "\n"
+
+
+def _report_to_html(title, headers, rows, metadata=None):
+    rec_console = Console(record=True, width=200)
+    if metadata:
+        for label, value in metadata:
+            rec_console.print(f"[bold]{label}[/bold]: {value}")
+    table = Table(title=title, show_header=True, header_style="bold cyan")
+    for header in headers:
+        table.add_column(header)
+    for row in rows:
+        table.add_row(*row)
+    rec_console.print(table)
+    return rec_console.export_html()
+
+
+def _export_report(title, headers, rows, export_format, prefix, metadata=None):
+    timestamp = datetime.now().strftime("%Y%m%d%H%M")
+    ext = {"markdown": "md", "html": "html", "json": "json"}[export_format]
+    filepath = os.path.join("/tmp", f"{prefix}_{timestamp}.{ext}")
+
+    if export_format == "json":
+        payload = {
+            "title": title,
+            "headers": headers,
+            "data": [dict(zip(headers, row)) for row in rows],
+        }
+        if metadata:
+            payload["metadata"] = {label: value for label, value in metadata}
+        content = json.dumps(payload, indent=2, default=str)
+    elif export_format == "markdown":
+        content = _report_to_markdown(title, headers, rows, metadata=metadata)
+    else:
+        content = _report_to_html(title, headers, rows, metadata=metadata)
+
+    with open(filepath, "w") as f:
+        f.write(content)
+    console.print(f"Report exported to {filepath}")
+
+
+def report_available(_start, _end, export_format=None):
     start = _start.replace(hour=22, minute=0, second=0)
     end = _end.replace(hour=22, minute=0, second=0)
     next_sunday = start + timedelta(days=(6 - start.weekday()))
@@ -33,12 +86,7 @@ def report_available(_start, _end):
         days += 1
     utilized = total_allocated_month * 100 // (total_hosts * days)
 
-    console.print(f"[bold]QUADS report for {start.date()} to {end.date()}[/bold]")
-    console.print(f"Percentage Utilized: [cyan]{utilized}%[/cyan]")
-
     average_build = quads.get_average_build_delta()
-    if average_build is not None:
-        console.print(f"Average build delta: [cyan]{average_build}[/cyan]")
 
     now = datetime.now()
     avail_start = next_sunday + timedelta(minutes=1)
@@ -55,6 +103,47 @@ def report_available(_start, _end):
         }
     )
 
+    headers = ["Server Type", "Total", "Free", "Scheduled", "2 weeks", "4 weeks"]
+    rows = []
+    for row in summary:
+        total = row["total"]
+        scheduled_count = row["scheduled"]
+        free = total - scheduled_count
+        schedule_percent = scheduled_count * 100 // total
+        rows.append(
+            [
+                row["model"],
+                str(total),
+                str(free),
+                f"{schedule_percent}%",
+                str(row["avail_2w"]),
+                str(row["avail_4w"]),
+            ]
+        )
+
+    metadata = [
+        ("Report Period", f"{start.date()} to {end.date()}"),
+        ("Percentage Utilized", f"{utilized}%"),
+    ]
+    if average_build is not None:
+        metadata.append(("Average build delta", str(average_build)))
+
+    if export_format:
+        _export_report(
+            "Availability Summary",
+            headers,
+            rows,
+            export_format,
+            "availability_report",
+            metadata=metadata,
+        )
+        return
+
+    console.print(f"[bold]QUADS report for {start.date()} to {end.date()}[/bold]")
+    console.print(f"Percentage Utilized: [cyan]{utilized}%[/cyan]")
+    if average_build is not None:
+        console.print(f"Average build delta: [cyan]{average_build}[/cyan]")
+
     table = Table(title="Availability Summary", show_header=True, header_style="bold cyan")
     table.add_column("Server Type", style="cyan")
     table.add_column("Total", justify="right")
@@ -62,43 +151,38 @@ def report_available(_start, _end):
     table.add_column("Scheduled", justify="right")
     table.add_column("2 weeks", justify="right")
     table.add_column("4 weeks", justify="right")
-
-    for row in summary:
-        total = row["total"]
-        scheduled_count = row["scheduled"]
-        free = total - scheduled_count
-        schedule_percent = scheduled_count * 100 // total
-        table.add_row(
-            row["model"],
-            str(total),
-            str(free),
-            f"{schedule_percent}%",
-            str(row["avail_2w"]),
-            str(row["avail_4w"]),
-        )
-
+    for row in rows:
+        table.add_row(*row)
     console.print(table)
 
 
-def report_scheduled(months, year):
+def report_scheduled(months, year, export_format=None):
+    headers = ["Month", "Scheduled", "Systems", "% Utilized"]
+
+    now = datetime.now()
+    now = now.replace(year=year, hour=22, minute=0, second=0)
+    rows = []
+    if months:
+        for month in range(months):
+            rows.append(_get_scheduled_row(month, now))
+    else:
+        rows.append(_get_scheduled_row(months, now))
+
+    if export_format:
+        _export_report("Scheduled Report", headers, rows, export_format, "scheduled_report")
+        return
+
     table = Table(title="Scheduled Report", show_header=True, header_style="bold cyan")
     table.add_column("Month", style="cyan")
     table.add_column("Scheduled", justify="right")
     table.add_column("Systems", justify="right")
     table.add_column("% Utilized", justify="right")
-
-    now = datetime.now()
-    now = now.replace(year=year, hour=22, minute=0, second=0)
-    if months:
-        for month in range(months):
-            _add_scheduled_row(table, month, now)
-    else:
-        _add_scheduled_row(table, months, now)
-
+    for row in rows:
+        table.add_row(*row)
     console.print(table)
 
 
-def _add_scheduled_row(table, month, now):
+def _get_scheduled_row(month, now):
     _date = now
     if month > 0:
         _date = month_delta_past(now, month)
@@ -113,15 +197,15 @@ def _add_scheduled_row(table, month, now):
     if hosts and days:
         utilization = stats["scheduled_count"] * 100 // (days * hosts)
     f_month = f"{start.month:02}"
-    table.add_row(
+    return [
         f"{start.year}-{f_month}",
         str(stats["schedules"]),
         str(hosts),
         f"{utilization}%",
-    )
+    ]
 
 
-def report_detailed(_start, _end):
+def report_detailed(_start, _end, export_format=None):
     start = _start.replace(hour=21, minute=59, second=0)
     end = _end.replace(hour=22, minute=1, second=0)
     payload = {
@@ -129,6 +213,27 @@ def report_detailed(_start, _end):
         "end": end.strftime("%Y-%m-%dT%H:%M"),
     }
     schedules = quads.get_schedules(payload)
+
+    headers = ["Owner", "Ticket", "Cloud", "Description", "Systems", "Scheduled", "Duration"]
+    rows = []
+    for schedule in schedules:
+        if schedule:
+            delta = schedule.end - schedule.start
+            rows.append(
+                [
+                    schedule.assignment.owner,
+                    schedule.assignment.ticket,
+                    schedule.assignment.cloud.name,
+                    schedule.assignment.description,
+                    str(len(schedules)),
+                    str(schedule.start)[:10],
+                    str(delta.days),
+                ]
+            )
+
+    if export_format:
+        _export_report("Detailed Report", headers, rows, export_format, "detailed_report")
+        return
 
     table = Table(title="Detailed Report", show_header=True, header_style="bold cyan")
     table.add_column("Owner", style="cyan")
@@ -138,25 +243,12 @@ def report_detailed(_start, _end):
     table.add_column("Systems", justify="right")
     table.add_column("Scheduled", justify="right")
     table.add_column("Duration", justify="right")
-
-    for schedule in schedules:
-        if schedule:
-            delta = schedule.end - schedule.start
-            description = schedule.assignment.description
-            table.add_row(
-                schedule.assignment.owner,
-                schedule.assignment.ticket,
-                schedule.assignment.cloud.name,
-                description,
-                str(len(schedules)),
-                str(schedule.start)[:10],
-                str(delta.days),
-            )
-
+    for row in rows:
+        table.add_row(*row)
     console.print(table)
 
 
-def report_self_scheduled(_start, _end):
+def report_self_scheduled(_start, _end, export_format=None):
     start = _start.replace(hour=21, minute=59, second=0)
     end = _end.replace(hour=22, minute=1, second=0)
     _fmt = "%Y-%m-%dT%H:%M"
@@ -178,6 +270,28 @@ def report_self_scheduled(_start, _end):
             ssm_assignments[ass_id]["hosts"].add(schedule.host.name)
 
     ssm_prefix = Config.get("ssm_description_prefix", "[SSM]")
+    headers = ["#", "Cloud Owner", "Cloud Ticket", "Cloud Name", "Description", "System Count", "Date Requested"]
+    rows = []
+    for idx, data in enumerate(ssm_assignments.values(), 1):
+        ass = data["assignment"]
+        description = ass.description or ""
+        if description.startswith(ssm_prefix):
+            description = description[len(ssm_prefix) :].strip()
+        rows.append(
+            [
+                str(idx),
+                ass.owner,
+                ass.ticket,
+                ass.cloud.name,
+                description,
+                str(len(data["hosts"])),
+                str(ass.created_at)[:10],
+            ]
+        )
+
+    if export_format:
+        _export_report("Self-Scheduled Report", headers, rows, export_format, "ssm_report")
+        return
 
     table = Table(
         title="Self-Scheduled Report",
@@ -191,22 +305,8 @@ def report_self_scheduled(_start, _end):
     table.add_column("Description", max_width=30)
     table.add_column("System Count", justify="right")
     table.add_column("Date Requested")
-
-    for idx, data in enumerate(ssm_assignments.values(), 1):
-        ass = data["assignment"]
-        description = ass.description or ""
-        if description.startswith(ssm_prefix):
-            description = description[len(ssm_prefix) :].strip()
-        table.add_row(
-            str(idx),
-            ass.owner,
-            ass.ticket,
-            ass.cloud.name,
-            description,
-            str(len(data["hosts"])),
-            str(ass.created_at)[:10],
-        )
-
+    for row in rows:
+        table.add_row(*row)
     console.print(table)
 
 

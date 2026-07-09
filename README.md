@@ -52,6 +52,8 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
         * [Server Availability Overview Report](#server-availability-overview-report)
         * [Assignment Scheduling Statistics](#assignment-scheduling-statistics)
         * [Upcoming Scheduled Assignments Report](#upcoming-scheduled-assignments-report)
+        * [Self-Scheduled Assignments Report](#self-scheduled-assignments-report)
+        * [Exporting Reports](#exporting-reports)
       * [Customizing Environment Web Details](#customizing-environment-web-details)
         * [Changing the Default Lab Name](#changing-the-default-lab-name)
       * [Common Administration Tasks](#common-administration-tasks)
@@ -760,6 +762,41 @@ Month   | Scheduled|  Systems|  % Utilized|
 ```
 
 Additionally, you can pass `--year` instead for a report for every month in that year.
+
+### Self-Scheduled Assignments Report
+
+Generate a report of all self-scheduled (SSM) assignments within a given time range. By default this reports on the current month.
+
+```bash
+quads --report-self-scheduled
+```
+Example Output
+```
+# | Cloud Owner | Cloud Ticket | Cloud Name | Description    | System Count | Date Requested
+1 | jsmith      | SSM-4521     | cloud12    | OCP testing    |            5 | 2026-07-01
+2 | cwalken     | SSM-4530     | cloud14    | Network lab    |            3 | 2026-07-03
+```
+
+You can filter by `--days`, `--weeks` or `--months` to adjust the reporting window.
+
+```bash
+quads --report-self-scheduled --days 7
+quads --report-self-scheduled --weeks 2
+quads --report-self-scheduled --months 3
+```
+
+### Exporting Reports
+
+All report commands support `--export` to save report output as markdown, HTML or JSON. Exported files are written to `/tmp/` with a timestamped filename.
+
+```bash
+quads --report-self-scheduled --export json
+quads --report-available --export markdown
+quads --report-scheduled --months 6 --export html
+quads --report-detailed --export json
+```
+
+The `--export` flag can be combined with any time range arguments supported by the report.
 
 ## Customizing Environment Web Details
 ### Changing the Default Lab Name

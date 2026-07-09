@@ -1,3 +1,6 @@
+import glob
+import json
+import os
 from datetime import datetime, timedelta
 
 import pytest
@@ -124,6 +127,57 @@ class TestReportSelfScheduled(TestBase):
         self.quads_cli_call("report_self_scheduled")
         output = capsys.readouterr().out
         assert "Self-Scheduled Report" in output
+
+    def test_report_self_scheduled_export_json(self, ssm_fixture, capsys):
+        self.cli_args["export"] = "json"
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Report exported to /tmp/ssm_report_" in output
+        files = sorted(glob.glob("/tmp/ssm_report_*.json"))
+        assert files
+        filepath = files[-1]
+        with open(filepath) as f:
+            data = json.load(f)
+        assert data["title"] == "Self-Scheduled Report"
+        assert "headers" in data
+        assert "data" in data
+        assert len(data["data"]) > 0
+        assert data["data"][0]["Cloud Owner"] == "testuser"
+        assert data["data"][0]["Cloud Ticket"] == "SSM-1234"
+        os.remove(filepath)
+        self.cli_args["export"] = None
+
+    def test_report_self_scheduled_export_markdown(self, ssm_fixture, capsys):
+        self.cli_args["export"] = "markdown"
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Report exported to /tmp/ssm_report_" in output
+        files = sorted(glob.glob("/tmp/ssm_report_*.md"))
+        assert files
+        filepath = files[-1]
+        with open(filepath) as f:
+            content = f.read()
+        assert "# Self-Scheduled Report" in content
+        assert "Cloud Owner" in content
+        assert "testuser" in content
+        assert "SSM-1234" in content
+        os.remove(filepath)
+        self.cli_args["export"] = None
+
+    def test_report_self_scheduled_export_html(self, ssm_fixture, capsys):
+        self.cli_args["export"] = "html"
+        self.quads_cli_call("report_self_scheduled")
+        output = capsys.readouterr().out
+        assert "Report exported to /tmp/ssm_report_" in output
+        files = sorted(glob.glob("/tmp/ssm_report_*.html"))
+        assert files
+        filepath = files[-1]
+        with open(filepath) as f:
+            content = f.read()
+        assert "testuser" in content
+        assert "SSM-1234" in content
+        os.remove(filepath)
+        self.cli_args["export"] = None
 
 
 class TestReport(TestBase):

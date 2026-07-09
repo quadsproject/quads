@@ -768,7 +768,7 @@ class QuadsCli:
             months = self.cli_args.get("months")
             year = now.year
 
-        reports.report_scheduled(int(months), int(year))
+        reports.report_scheduled(int(months), int(year), export_format=self.cli_args.get("export"))
 
     def _helper_report_start_end(self) -> Tuple[datetime, datetime]:
         now = datetime.now()
@@ -791,11 +791,11 @@ class QuadsCli:
 
     def action_report_available(self):
         start, end = self._helper_report_start_end()
-        reports.report_available(start, end)
+        reports.report_available(start, end, export_format=self.cli_args.get("export"))
 
     def action_report_detailed(self):
         start, end = self._helper_report_start_end()
-        reports.report_detailed(start, end)
+        reports.report_detailed(start, end, export_format=self.cli_args.get("export"))
 
     def _helper_ssm_date_range(self) -> Tuple[datetime, datetime]:
         now = datetime.now()
@@ -822,7 +822,7 @@ class QuadsCli:
 
     def action_report_self_scheduled(self):
         start, end = self._helper_ssm_date_range()
-        reports.report_self_scheduled(start, end)
+        reports.report_self_scheduled(start, end, export_format=self.cli_args.get("export"))
 
     def action_extend(self):
         weeks = self.cli_args.get("weeks")
