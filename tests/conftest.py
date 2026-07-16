@@ -5,8 +5,17 @@ from pathlib import Path
 
 import pytest
 
-# Use repo conf for tests (must set before any quads imports)
-os.environ.setdefault("QUADS_CONF_DIR", str(Path(__file__).resolve().parent.parent / "conf"))
+# Point config at repo conf/ for tests (must happen before Config singleton is used)
+import quads.config as _qcfg
+
+_test_conf_dir = str(Path(__file__).resolve().parent.parent / "conf")
+_qcfg.QUADS_CONF_DIR = _test_conf_dir
+_qcfg.DEFAULT_CONF_PATH = os.path.join(_test_conf_dir, "quads.yml")
+_qcfg.WEB_CONF_PATH = os.path.join(_test_conf_dir, "quadsweb.yml")
+_qcfg.SS_CONF_PATH = os.path.join(_test_conf_dir, "selfservice.yml")
+_qcfg.PLUGINS_CONF_PATH = os.path.join(_test_conf_dir, "plugins.yml")
+_qcfg.OAUTH_CONF_PATH = os.path.join(_test_conf_dir, "oauth.yml")
+_qcfg.Config = _qcfg._Config()
 
 from quads.server.database import init_db  # noqa: E402
 from quads.server.app import create_app, drop_all, populate, user_datastore  # noqa: E402
