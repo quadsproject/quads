@@ -16,6 +16,24 @@
       "message": "why is the import here and not at the top?\nAdditionally, it\u0027s common knowledge that a variable starting with _ is meant to be private and not to be referenced from outside the file so it\u0027d be good practice to change the variable name to remove the prefix _.\nIf we don\u0027t want to have it imported earlier to avoid overhead then we can load it on the conf_check file directly and not passing it here.",
       "revId": "938eed2ce8a0a572ff36e3b6b64dabb14d377f11",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a2bed497_1776e570",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2613,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-16T11:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b7833dd_be7da189",
+      "revId": "938eed2ce8a0a572ff36e3b6b64dabb14d377f11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
