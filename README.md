@@ -36,6 +36,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Making QUADS Run](#making-quads-run)
             * [Major Components](#major-components)
             * [External Services](#external-services)
+            * [Verifying Configuration](#verifying-configuration)
       * [QUADS Usage Documentation](#quads-usage-documentation)
          * [Adding New Hosts to QUADS](#adding-new-hosts-to-quads)
             * [Define Initial Cloud Environments](#define-initial-cloud-environments)
@@ -439,6 +440,28 @@ crontab -e
 |-----------------------|----------|---------|
 | quads --foreman-rbac  | RBAC | ensures environment user ownership maps to systems in Foreman |
 
+#### Verifying Configuration
+   - After editing your QUADS configuration files you can verify them with `--conf-check` before proceeding.
+   - This checks all files in `/opt/quads/conf/` for YAML syntax errors, duplicate keys, and mandatory settings that are still set to their shipped defaults.
+
+```bash
+quads --conf-check
+```
+
+   - Settings that must be changed from their defaults include:
+
+| File | Setting | Default Value |
+|------|---------|---------------|
+| quads.yml | domain | example.com |
+| quads.yml | quads_url | https://quads.scalelab.example.com |
+| plugins.yml | plugins.foreman.url | http://foreman.example.com/hosts/ |
+| plugins.yml | plugins.foreman.api_url | https://foreman.example.com/api/v2 |
+| plugins.yml | plugins.email.smtp_host | mail.example.com |
+| oauth.yml | oauth_settings.allowed_domains | example.com |
+
+   - The `oauth_settings.allowed_domains` check severity depends on `require_auth_provider` in `selfservice.yml`. When `require_auth_provider` is `false` this is a warning; when `true` it is an error.
+   - Duplicate YAML keys are reported as warnings since `yaml.safe_load()` silently keeps only the last value, which can lead to unexpected behavior.
+   - A clean configuration returns a health check summary; any findings are displayed in a table with severity levels.
 
 ## QUADS Usage Documentation
 
