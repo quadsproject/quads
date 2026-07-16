@@ -37,6 +37,7 @@ from quads.plugins.dispatchers import (
     get_switch_dispatcher,
     get_validator_dispatcher,
 )
+from quads.tools.conf_check import run_conf_check
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
 
@@ -2608,6 +2609,48 @@ class QuadsCli:
                 self.logger.error("Something went wrong while updating notification")
         else:
             self.logger.warning(f"{cloud_name}, No active cloud assignment found")
+
+    def action_conf_check(self):
+        result = run_conf_check()
+
+        if result.passed:
+            table = RichTable(
+                title="Configuration Health Check",
+                show_header=True,
+                header_style="bold cyan",
+            )
+            table.add_column("Status", style="green")
+            table.add_column("Files Checked", justify="right")
+            table.add_row("All checks passed", str(result.files_checked))
+            self.console.print(table)
+            return 0
+
+        table = RichTable(
+            title="Configuration Check Results",
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("File", style="cyan")
+        table.add_column("Check")
+        table.add_column("Severity")
+        table.add_column("Key")
+        table.add_column("Message")
+
+        for finding in result.findings:
+            severity_style = "red" if finding.severity == "error" else "yellow"
+            table.add_row(
+                finding.file,
+                finding.check_type,
+                f"[{severity_style}]{finding.severity}[/{severity_style}]",
+                finding.key,
+                finding.message,
+            )
+
+        self.console.print(table)
+        error_count = sum(1 for f in result.findings if f.severity == "error")
+        warn_count = sum(1 for f in result.findings if f.severity == "warning")
+        self.logger.info(f"Files checked: {result.files_checked}, " f"Errors: {error_count}, Warnings: {warn_count}")
+        return 1
 
     def action_os_list(self):
         available_os_list = self.quads.get_os_list()
