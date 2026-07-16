@@ -6,13 +6,12 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-# Allow overriding config directory for development (e.g. QUADS_CONF_DIR=/path/to/repo/conf)
-_QUADS_CONF_DIR = os.environ.get("QUADS_CONF_DIR", "/opt/quads/conf")
-DEFAULT_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quads.yml")
-WEB_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "quadsweb.yml")
-SS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "selfservice.yml")
-PLUGINS_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "plugins.yml")
-OAUTH_CONF_PATH = os.path.join(_QUADS_CONF_DIR, "oauth.yml")
+QUADS_CONF_DIR = os.environ.get("QUADS_CONF_DIR", "/opt/quads/conf")
+DEFAULT_CONF_PATH = os.path.join(QUADS_CONF_DIR, "quads.yml")
+WEB_CONF_PATH = os.path.join(QUADS_CONF_DIR, "quadsweb.yml")
+SS_CONF_PATH = os.path.join(QUADS_CONF_DIR, "selfservice.yml")
+PLUGINS_CONF_PATH = os.path.join(QUADS_CONF_DIR, "plugins.yml")
+OAUTH_CONF_PATH = os.path.join(QUADS_CONF_DIR, "oauth.yml")
 
 
 class _ConfigBase:

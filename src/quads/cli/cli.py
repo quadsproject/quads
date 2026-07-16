@@ -37,6 +37,7 @@ from quads.plugins.dispatchers import (
     get_switch_dispatcher,
     get_validator_dispatcher,
 )
+from quads.tools.conf_check import main as conf_check
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
 
@@ -2608,6 +2609,9 @@ class QuadsCli:
                 self.logger.error("Something went wrong while updating notification")
         else:
             self.logger.warning(f"{cloud_name}, No active cloud assignment found")
+
+    def action_conf_check(self):
+        conf_check(self.logger)
 
     def action_os_list(self):
         available_os_list = self.quads.get_os_list()
