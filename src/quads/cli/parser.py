@@ -787,6 +787,13 @@ action_group.add_argument(
     const="validate_env",
     help="Validate Quads assignments",
 )
+action_group.add_argument(
+    "--conf-check",
+    dest="action",
+    action="store_const",
+    const="conf_check",
+    help="Check configuration files for default values and duplicates",
+)
 parser.add_argument(
     "--skip-system",
     dest="skip_system",
