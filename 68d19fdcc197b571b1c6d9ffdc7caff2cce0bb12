@@ -33,6 +33,24 @@
       "message": "this is going to be empty always and use the default as it is not a linux environment variable, we should still import it from the config to avoid redundancy",
       "revId": "68d19fdcc197b571b1c6d9ffdc7caff2cce0bb12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d36d3154_1525a094",
+        "filename": "src/quads/tools/conf_check.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-16T14:28:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e4fbe2b5_026f2d3d",
+      "revId": "68d19fdcc197b571b1c6d9ffdc7caff2cce0bb12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
