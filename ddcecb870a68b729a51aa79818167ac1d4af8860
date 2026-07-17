@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0570d37_18525b10",
+        "filename": "src/quads/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-17T11:04:43Z",
+      "side": 1,
+      "message": "this is not an environment variable, import from config instead",
+      "revId": "ddcecb870a68b729a51aa79818167ac1d4af8860",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
