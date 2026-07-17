@@ -16,6 +16,24 @@
       "message": "this is not an environment variable, import from config instead",
       "revId": "ddcecb870a68b729a51aa79818167ac1d4af8860",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad1fb823_0c9353ed",
+        "filename": "src/quads/config.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-17T11:34:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0570d37_18525b10",
+      "revId": "ddcecb870a68b729a51aa79818167ac1d4af8860",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
