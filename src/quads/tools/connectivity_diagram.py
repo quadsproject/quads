@@ -7,7 +7,6 @@ from typing import Dict, Any
 from quads.config import Config
 from quads.quads_api import QuadsApi
 
-
 logger = logging.getLogger(__name__)
 
 

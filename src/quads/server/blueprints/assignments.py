@@ -306,9 +306,7 @@ def create_self_assignment() -> Response:
 
     owner = g.current_user.email.split("@")[0]
 
-    active_ass = AssignmentDao.filter_assignments(
-        {"active": True, "is_self_schedule": True, "owner": owner}
-    )
+    active_ass = AssignmentDao.filter_assignments({"active": True, "is_self_schedule": True, "owner": owner})
     if len(active_ass) >= Config.get("ssm_user_cloud_limit", 1):
         response = {
             "status_code": 403,

@@ -13,7 +13,6 @@ from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
 from quads.plugins.manager import get_plugin_manager
 
-
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
 
@@ -187,3 +186,10 @@ def register_plugin_dispatchers(app):
         "ticketing": get_ticketing_dispatcher(),
         "validator": get_validator_dispatcher(),
     }
+
+    from quads.config import Config
+
+    if Config.plugins.get("foreman", {}).get("enabled", False) and not app.config.get("TESTING", False):
+        from quads.tools.foreman_setup import start_foreman_rbac_thread
+
+        start_foreman_rbac_thread(app)
