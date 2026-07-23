@@ -49,6 +49,12 @@ plugins:
     user_agent: Rufus Postman 2.2.6
     report_cc: someuser@example.com, someuser@example.com, someuser@example.com, someuser@example.com
 
+  libvirt:
+    enabled: false
+    # Map hypervisor FQDN (stored in host.rack) to its sushy-emulator base URL.
+    hypervisors:
+      libvirt-host.example.com: "http://libvirt-host.example.com:8000"
+
   badfish:
     enabled: true
     ipmi_username: root
