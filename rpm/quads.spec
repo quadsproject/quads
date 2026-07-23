@@ -265,6 +265,16 @@ fi
 if [ -f /var/lib/rpm-state/%{name}/upgrade_pending ]; then
     source /etc/profile.d/quads.sh
     find /opt/quads/migrations/versions -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null
+    /usr/bin/systemctl start quads-db
+    for i in $(seq 1 30); do
+        /usr/bin/pg_isready -q && break
+        sleep 1
+    done
+    # If alembic_version table is missing the DB was created via flask init-db
+    # without migration tracking. Stamp head so upgrade only applies new migrations.
+    if ! sudo -u postgres psql -d quads -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | grep -q .; then
+        cd /opt/quads && flask --app quads.server.app db stamp head
+    fi
     cd /opt/quads && flask --app quads.server.app db upgrade
     /usr/bin/systemctl restart quads-server
     /usr/bin/systemctl restart quads-web
