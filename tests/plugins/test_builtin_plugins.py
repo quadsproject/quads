@@ -1,12 +1,14 @@
 """Tests for built-in plugins"""
 
-from unittest.mock import patch
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from quads.plugins.builtin.chat.slack import SlackPlugin
 from quads.plugins.builtin.chat.gchat import GoogleChatPlugin
 from quads.plugins.builtin.chat.irc import IRCPlugin
 from quads.plugins.builtin.email.email import EmailPlugin as SMTPEmailPlugin
 from quads.plugins.builtin.hardware.badfish import BadfishHardwarePlugin
+from quads.plugins.builtin.hardware.libvirt import LibvirtHardwarePlugin
 from quads.plugins.builtin.provisioners.foreman import ForemanProvisionerPlugin
 from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
 from quads.plugins.builtin.ticketing.jira import JiraTicketingPlugin
@@ -357,3 +359,150 @@ class TestBuiltinPluginNaming:
         for plugin_class in plugins:
             assert hasattr(plugin_class, "description")
             assert isinstance(plugin_class.description, str)
+
+
+class TestLibvirtHardwarePlugin:
+    """Test cases for LibvirtHardwarePlugin"""
+
+    _config = {
+        "enabled": True,
+        "hypervisors": {
+            "hvhost.example.com": "http://hvhost.example.com:8000",
+        },
+    }
+
+    def _plugin(self):
+        p = LibvirtHardwarePlugin(self._config)
+        p.initialize()
+        p.logger = MagicMock()
+        return p
+
+    def test_metadata(self):
+        assert LibvirtHardwarePlugin.name == "libvirt"
+        assert LibvirtHardwarePlugin.version == "1.0.0"
+        assert LibvirtHardwarePlugin.author == "QUADS Team"
+
+    def test_initialize(self):
+        p = LibvirtHardwarePlugin(self._config)
+        assert p.initialize() is True
+        assert p.hypervisors == self._config["hypervisors"]
+        assert p.sushy_url is None
+        assert p.system_uri is None
+
+    def test_get_vendor(self):
+        assert self._plugin().get_vendor() == "Libvirt"
+
+    @pytest.mark.asyncio
+    async def test_unmount_virtual_media(self):
+        assert await self._plugin().unmount_virtual_media() is True
+
+    @pytest.mark.asyncio
+    async def test_detach_remote_image(self):
+        assert await self._plugin().detach_remote_image() is True
+
+    @pytest.mark.asyncio
+    async def test_init_unknown_hypervisor(self):
+        p = self._plugin()
+        with pytest.raises(RuntimeError, match="No sushy-emulator URL"):
+            await p.init("vm1.example.com", "unknown-hv.example.com", "u1", None)
+
+    @pytest.mark.asyncio
+    async def test_init_vm_not_found(self):
+        p = self._plugin()
+        mock_resp = AsyncMock()
+        mock_resp.json = AsyncMock(return_value={"Members": []})
+        mock_resp.__aenter__ = AsyncMock(return_value=mock_resp)
+        mock_resp.__aexit__ = AsyncMock(return_value=False)
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = mock_resp
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=False)
+
+        with patch("aiohttp.ClientSession", return_value=mock_session):
+            with pytest.raises(RuntimeError, match="not found via sushy-emulator"):
+                await p.init("vm1.example.com", "hvhost.example.com", "u1", None)
+
+    @pytest.mark.asyncio
+    async def test_init_vm_found_by_name(self):
+        p = self._plugin()
+        system_uri = "http://hvhost.example.com:8000/redfish/v1/Systems/vm1"
+
+        index_resp = AsyncMock()
+        index_resp.json = AsyncMock(return_value={"Members": [{"@odata.id": "/redfish/v1/Systems/vm1"}]})
+        index_resp.__aenter__ = AsyncMock(return_value=index_resp)
+        index_resp.__aexit__ = AsyncMock(return_value=False)
+
+        system_resp = AsyncMock()
+        system_resp.json = AsyncMock(return_value={"Name": "vm1.example.com", "HostName": ""})
+        system_resp.__aenter__ = AsyncMock(return_value=system_resp)
+        system_resp.__aexit__ = AsyncMock(return_value=False)
+
+        mock_session = MagicMock()
+        mock_session.get.side_effect = [index_resp, system_resp]
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=False)
+
+        with patch("aiohttp.ClientSession", return_value=mock_session):
+            result = await p.init("vm1.example.com", "hvhost.example.com", "u1", None)
+
+        assert result is True
+        assert p.system_uri == system_uri
+
+    @pytest.mark.asyncio
+    async def test_get_power_state(self):
+        p = self._plugin()
+        p.system_uri = "http://hvhost.example.com:8000/redfish/v1/Systems/vm1"
+
+        resp = AsyncMock()
+        resp.json = AsyncMock(return_value={"PowerState": "On"})
+        resp.__aenter__ = AsyncMock(return_value=resp)
+        resp.__aexit__ = AsyncMock(return_value=False)
+
+        mock_session = MagicMock()
+        mock_session.get.return_value = resp
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=False)
+
+        with patch("aiohttp.ClientSession", return_value=mock_session):
+            state = await p.get_power_state()
+
+        assert state == "On"
+
+    @pytest.mark.asyncio
+    async def test_reboot_server_when_off_sends_on(self):
+        p = self._plugin()
+        p.system_uri = "http://hvhost.example.com:8000/redfish/v1/Systems/vm1"
+        p.host = "vm1.example.com"
+        p.get_power_state = AsyncMock(return_value="Off")
+        p._reset = AsyncMock()
+
+        result = await p.reboot_server()
+
+        assert result is True
+        p._reset.assert_awaited_once_with("On")
+
+    @pytest.mark.asyncio
+    async def test_reboot_server_when_on_sends_force_restart(self):
+        p = self._plugin()
+        p.system_uri = "http://hvhost.example.com:8000/redfish/v1/Systems/vm1"
+        p.host = "vm1.example.com"
+        p.get_power_state = AsyncMock(return_value="On")
+        p._reset = AsyncMock()
+
+        result = await p.reboot_server(graceful=False)
+
+        assert result is True
+        p._reset.assert_awaited_once_with("ForceRestart")
+
+    @pytest.mark.asyncio
+    async def test_reboot_server_exception_returns_false(self):
+        p = self._plugin()
+        p.system_uri = "http://hvhost.example.com:8000/redfish/v1/Systems/vm1"
+        p.host = "vm1.example.com"
+        p.get_power_state = AsyncMock(side_effect=RuntimeError("connection refused"))
+
+        result = await p.reboot_server()
+
+        assert result is False
+        p.logger.error.assert_called_once()
