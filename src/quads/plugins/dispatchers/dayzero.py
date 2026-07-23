@@ -23,8 +23,7 @@ def _ensure_dayzero_log_handler():
     for logger_name in [__name__, "quads.plugins.builtin.dayzero.cloudcmd", "quads.plugins.builtin.dayzero.clouddata"]:
         target = logging.getLogger(logger_name)
         if not any(
-            isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log
-            for h in target.handlers
+            isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log for h in target.handlers
         ):
             target.addHandler(handler)
             target.setLevel(logging.DEBUG)

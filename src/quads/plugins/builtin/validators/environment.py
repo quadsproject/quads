@@ -241,6 +241,17 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         switch_config_missing = []
         for host in hosts:
             if not host.switch_config_applied:
+                if host.model.upper() == "LIBVIRT":
+                    # VMs have no physical switch ports; mark applied and continue.
+                    try:
+                        self.quads.update_host(host.name, {"switch_config_applied": True})
+                    except (APIServerException, APIBadRequest) as ex:
+                        self.logger.debug(str(ex))
+                        self.logger.error("Could not update host: %s." % host.name)
+                        report = report + "Could not update host: %s.\n" % host.name
+                        return False, report
+                    continue
+
                 data = {"host": host.name, "cloud": host.cloud.name}
                 current_schedule = self.quads.get_current_schedules(data)[0]
                 previous_cloud = host.default_cloud.name
@@ -419,8 +430,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     break
                 except SSHHelperException as e:
                     self.logger.warning(
-                        f"SSH key distribution to {host.name} failed "
-                        f"(attempt {attempt}/{max_attempts}): {e}"
+                        f"SSH key distribution to {host.name} failed " f"(attempt {attempt}/{max_attempts}): {e}"
                     )
                     if attempt < max_attempts:
                         await asyncio.sleep(2)

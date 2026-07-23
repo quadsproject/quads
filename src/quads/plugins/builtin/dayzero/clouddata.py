@@ -64,9 +64,7 @@ class CloudDataPlugin(DayzeroPlugin):
 
         loop = asyncio.get_running_loop()
         try:
-            result = await loop.run_in_executor(
-                None, self._deliver_file, first_host, content
-            )
+            result = await loop.run_in_executor(None, self._deliver_file, first_host, content)
         except Exception as e:
             self.logger.error(f"Failed to deploy {REMOTE_PATH} to {first_host}: {e}")
             return False
@@ -77,10 +75,7 @@ class CloudDataPlugin(DayzeroPlugin):
         try:
             ssh = SSHHelper(host)
             encoded = base64.b64encode(content.encode()).decode()
-            cmd = (
-                f"echo '{encoded}' | base64 -d > {REMOTE_PATH} && "
-                f"chmod 644 {REMOTE_PATH}"
-            )
+            cmd = f"echo '{encoded}' | base64 -d > {REMOTE_PATH} && " f"chmod 644 {REMOTE_PATH}"
             result, _ = ssh.run_cmd(cmd)
             ssh.disconnect()
             return result
