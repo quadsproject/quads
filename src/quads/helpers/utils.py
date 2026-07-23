@@ -11,6 +11,10 @@ def is_supermicro(_host_name):
     return any(host_type.lower() in host_lower for host_type in Config.SUPERMICRO)
 
 
+def is_libvirt(host_obj) -> bool:
+    return host_obj.model.upper() == "LIBVIRT"
+
+
 def get_vlan(ass_obj, index, last_nic=False):
     if ass_obj and ass_obj.vlan and last_nic:
         return int(ass_obj.vlan.vlan_id)

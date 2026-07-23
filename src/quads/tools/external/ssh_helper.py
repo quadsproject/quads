@@ -38,12 +38,15 @@ class SSHHelper(object):
         ssh.set_missing_host_key_policy(AutoAddPolicy())
         ssh.load_system_host_keys()
 
+        identity_files = host_config.get("identityfile")
+        key_filename = identity_files[0] if identity_files else None
+
         try:
             ssh.connect(
                 self.host,
                 username=self.user,
                 password=self.password,
-                key_filename=host_config["identityfile"][0],
+                key_filename=key_filename,
                 allow_agent=False,
                 timeout=30,
             )
