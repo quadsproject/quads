@@ -18,6 +18,7 @@ class MockHost:
         rack=None,
         uloc=None,
         blade=None,
+        model="Dell",
         switch_config_applied=True,
         cloud=None,
         default_cloud=None,
@@ -27,6 +28,7 @@ class MockHost:
         self.rack = rack
         self.uloc = uloc
         self.blade = blade
+        self.model = model
         self.switch_config_applied = switch_config_applied
         self.cloud = cloud or MagicMock(name="cloud01")
         self.default_cloud = default_cloud or MagicMock(name="cloud00")
@@ -558,6 +560,41 @@ class TestEnvironmentValidatorPlugin:
 
             assert result is False
             assert "Could not establish connection" in updated_report
+
+    @pytest.mark.asyncio
+    async def test_post_network_test_libvirt_skips_switch_config(self, plugin):
+        """Test post_network_test auto-applies switch config for LIBVIRT hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+            patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("socket.gethostbyname", return_value="192.168.1.1"),
+        ):
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            mock_ssh = MagicMock()
+            mock_ssh.run_cmd = MagicMock(return_value=(True, []))
+            mock_ssh.disconnect = MagicMock()
+            mock_ssh_class.return_value = mock_ssh
+
+            plugin.quads.update_host = MagicMock()
+
+            hosts = [
+                MockHost(
+                    "vm1.example.com",
+                    model="LIBVIRT",
+                    switch_config_applied=False,
+                    interfaces=[MagicMock(name="em1")],
+                )
+            ]
+            has_vlan = False
+            report = ""
+
+            result, updated_report = await plugin.post_network_test(hosts, has_vlan, report)
+
+            plugin.quads.update_host.assert_called_with("vm1.example.com", {"switch_config_applied": True})
+            plugin.switch_dispatcher.verify.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_post_network_test_switch_config_update(self, plugin):
@@ -1123,7 +1160,6 @@ class TestEnvironmentValidatorPlugin:
             patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
             patch("quads.plugins.builtin.validators.environment.asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
         ):
-            mock_ssh_fail = MagicMock()
             mock_ssh_success = MagicMock()
             mock_ssh_success.distribute_ssh_keys.return_value = True
             mock_ssh_class.side_effect = [

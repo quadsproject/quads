@@ -49,10 +49,7 @@ class CloudCmdPlugin(DayzeroPlugin):
         self.logger.info(f"Running release command for {owner} on {first_host} in {cloud}")
 
         encoded = base64.b64encode(command.encode("utf-8")).decode("ascii")
-        tmux_cmd = (
-            "tmux new-session -d -s quads_release \\; "
-            f"send-keys 'echo {encoded} | base64 -d | bash' Enter"
-        )
+        tmux_cmd = "tmux new-session -d -s quads_release \\; " f"send-keys 'echo {encoded} | base64 -d | bash' Enter"
 
         try:
             return await self._ssh_exec(first_host, tmux_cmd)

@@ -7,7 +7,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 from quads.config import Config
-from quads.helpers.utils import is_supermicro
+from quads.helpers.utils import is_libvirt, is_supermicro
+from quads.plugins.builtin.hardware.libvirt import LibvirtHardwarePlugin
 from quads.plugins.interfaces.release import ReleasePlugin
 from quads.plugins.dispatchers import get_hardware_dispatcher, get_provisioner_dispatcher
 from quads.quads_api import QuadsApi
@@ -101,6 +102,9 @@ class StandardReleasePlugin(ReleasePlugin):
         host_obj = self.quads.get_host(host)
         target_cloud = self.quads.get_cloud(new_cloud)
 
+        _is_libvirt = is_libvirt(host_obj)
+        _is_supermicro = is_supermicro(host)
+
         # Get boot order and ticket info
         boot_order = Config.plugins["foreman"]["default_boot_order"]
         ticket = ""
@@ -110,28 +114,29 @@ class StandardReleasePlugin(ReleasePlugin):
             if _assignment.boot_order:
                 boot_order = _assignment.boot_order
 
-        # Configure and verify IPMI credentials
-        config_ipmi = Config["plugins"]["badfish"]
-        ipmi_username = config_ipmi["ipmi_username"]
-        ipmi_password = config_ipmi["ipmi_password"]
-        ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else ipmi_password
+        # Configure IPMI credentials -- libvirt VMs have no BMC
+        if not _is_libvirt:
+            config_ipmi = Config["plugins"]["badfish"]
+            ipmi_username = config_ipmi["ipmi_username"]
+            ipmi_password = config_ipmi["ipmi_password"]
+            ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else ipmi_password
 
-        ipmi = await self._configure_and_verify_ipmi(host, ipmi_username, ipmi_password, ipmi_new_pass)
-        if ipmi is None:
-            self._update_host_on_failure(
-                host_obj,
-                schedule_id=schedule_id,
-                error_message="Failed at ipmi_config",
-            )
-            return False
+            ipmi = await self._configure_and_verify_ipmi(host, ipmi_username, ipmi_password, ipmi_new_pass)
+            if ipmi is None:
+                self._update_host_on_failure(
+                    host_obj,
+                    schedule_id=schedule_id,
+                    error_message="Failed at ipmi_config",
+                )
+                return False
 
-        await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured and verified")
+            await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured and verified")
 
-        if rebuild:
-            if not await ipmi.disable_user(Config["ipmi_cloud_username_id"]):
-                self.logger.warning(f"Failed to gate IPMI user for {host}, continuing")
-            else:
-                self.logger.info(f"IPMI user gated for {host} until validation completes")
+            if rebuild:
+                if not await ipmi.disable_user(Config["ipmi_cloud_username_id"]):
+                    self.logger.warning(f"Failed to gate IPMI user for {host}, continuing")
+                else:
+                    self.logger.info(f"IPMI user gated for {host} until validation completes")
 
         _is_supermicro = is_supermicro(host)
 
@@ -141,7 +146,40 @@ class StandardReleasePlugin(ReleasePlugin):
                 # TODO: pdu management
                 pass
 
-            if _is_supermicro:
+            if _is_libvirt:
+                os_type = Config.plugins["foreman"]["default_os"]
+                if _assignment and _assignment.ostype:
+                    os_type = _assignment.ostype
+
+                libvirt_plugin = LibvirtHardwarePlugin(Config.plugins.get("libvirt", {}))
+                libvirt_plugin.initialize()
+                try:
+                    await libvirt_plugin.init(host, host_obj.rack, host_obj.uloc, host_obj.blade)
+                except Exception as e:
+                    self.logger.error(f"Could not initialize libvirt plugin for {host}: {e}")
+                    self._update_host_on_failure(
+                        host_obj, schedule_id=schedule_id, error_message="Failed at libvirt init"
+                    )
+                    return False
+
+                await self._report_progress(schedule_id, "provisioning", "Preparing provisioner")
+                if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
+                    self._update_host_on_failure(
+                        host_obj, schedule_id=schedule_id, error_message="Failed at provisioning"
+                    )
+                    return False
+
+                await self._report_progress(schedule_id, "reboot", "PXE boot and power cycle")
+                if not await libvirt_plugin.boot_to_type("foreman", ""):
+                    self._update_host_on_failure(
+                        host_obj, schedule_id=schedule_id, error_message="Failed at boot override"
+                    )
+                    return False
+                if not await libvirt_plugin.reboot_server(graceful=False):
+                    self._update_host_on_failure(host_obj, schedule_id=schedule_id, error_message="Failed at reboot")
+                    return False
+
+            elif _is_supermicro:
                 # No Badfish for Supermicro -- use raw ipmitool
                 os_type = Config.plugins["foreman"]["default_os"]
                 if _assignment and _assignment.ostype:
@@ -218,7 +256,19 @@ class StandardReleasePlugin(ReleasePlugin):
 
         # Power off if moving back to default cloud
         if target_cloud.name == host_obj.default_cloud.name:
-            if _is_supermicro:
+            if _is_libvirt:
+                libvirt_plugin = LibvirtHardwarePlugin(Config.plugins.get("libvirt", {}))
+                libvirt_plugin.initialize()
+                try:
+                    await libvirt_plugin.init(host, host_obj.rack, host_obj.uloc, host_obj.blade)
+                    await libvirt_plugin.set_power_state("off")
+                except Exception as e:
+                    self.logger.error(f"Failed to power off {host}: {e}")
+                    self._update_host_on_failure(
+                        host_obj, schedule_id=schedule_id, error_message="Failed at power_off"
+                    )
+                    return False
+            elif _is_supermicro:
                 try:
                     await ipmi.execute(["chassis", "power", "off"])
                 except Exception as e:
@@ -379,8 +429,9 @@ class StandardReleasePlugin(ReleasePlugin):
         update_data = {
             "build": False,
             "validated": False,
-            "switch_config_applied": False,
         }
+        if not is_libvirt(host_obj):
+            update_data["switch_config_applied"] = False
         self.quads.update_host(host_obj.name, update_data)
         if schedule_id:
             try:

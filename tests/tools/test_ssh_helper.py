@@ -88,6 +88,7 @@ class TestSSHHelper(TestBase):
             allow_agent=False,
             timeout=30,
         )
+        assert ssh_helper.ssh is not None
 
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")
