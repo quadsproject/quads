@@ -1,0 +1,242 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b52ae7f5_9c10c089",
+        "filename": "conf/plugins.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "NEIN",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba5a55a7_3db750e4",
+        "filename": "conf/quads.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "OH HELL NAH",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fc3feff9_8a79f854",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "I don\u0027t understand much what this whole block is trying to achieve but the quads-db should be started already anyway",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ecf76d6b_bc3e05d1",
+        "filename": "src/quads/helpers/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "I SAID NO",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ab22c307_cd410540",
+        "filename": "src/quads/plugins/builtin/hardware/libvirt.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "OH HELL NO",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3275c1b0_c41280b5",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "nope",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69335d10_fd754844",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "nope",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b9e19ce4_f6fb84e3",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "nope",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0dda0c37_784f7892",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "nope",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "befd3216_72b57a84",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "I\u0027m not sold on this functionality of having VMs being handled by QUADS, I\u0027d remove this whole logic",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e6895a2_608a0c03",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "move this import to the top with the rest of the imports",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f8c4bb3a_fd0cc1a8",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "move this to line #48 after the register_plugin_dispatchers() call",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "76ef311f_f9094f69",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "Move this up after the get() method on line #27",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "54d2378e_4af63a30",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-24T08:17:37Z",
+      "side": 1,
+      "message": "same as above",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
