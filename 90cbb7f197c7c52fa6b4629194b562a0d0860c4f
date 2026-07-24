@@ -52,6 +52,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3f214091_a4fd8190",
+        "filename": "rpm/quads.spec",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-07-24T11:55:52Z",
+      "side": 1,
+      "message": "I think it is a corner case in which postgres is not fully started.  It has to do with upgrade situations only and just puts a wait for postgres to start.  This should be OK.",
+      "parentUuid": "fc3feff9_8a79f854",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ecf76d6b_bc3e05d1",
@@ -188,6 +206,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c36bb7a1_b7b16bd9",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-07-24T11:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e6895a2_608a0c03",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f8c4bb3a_fd0cc1a8",
@@ -201,6 +237,24 @@
       "writtenOn": "2026-07-24T08:17:37Z",
       "side": 1,
       "message": "move this to line #48 after the register_plugin_dispatchers() call",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc59c571_2d09fb2e",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-07-24T11:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8c4bb3a_fd0cc1a8",
       "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -222,6 +276,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0a170531_b66afe90",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-07-24T11:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76ef311f_f9094f69",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "54d2378e_4af63a30",
@@ -235,6 +307,24 @@
       "writtenOn": "2026-07-24T08:17:37Z",
       "side": 1,
       "message": "same as above",
+      "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9eeffcba_25cef716",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-07-24T11:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54d2378e_4af63a30",
       "revId": "90cbb7f197c7c52fa6b4629194b562a0d0860c4f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
