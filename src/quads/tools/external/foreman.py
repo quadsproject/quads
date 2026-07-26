@@ -6,6 +6,8 @@ import aiohttp
 import urllib3
 from aiohttp import BasicAuth
 
+from quads.config import Config
+
 urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,40 @@ class Foreman(object):
             logger.error("There was something wrong with your request.")
             return {}
         return result
+
+    async def delete(self, endpoint):
+        logger.debug("DELETE: %s" % endpoint)
+        try:
+            async with self.semaphore:
+                async with aiohttp.ClientSession() as session:
+                    async with session.delete(
+                        self.url + endpoint,
+                        auth=BasicAuth(self.username, self.password),
+                        ssl=False,
+                        timeout=60,
+                    ) as response:
+                        return response.status in (200, 204)
+        except Exception as ex:
+            logger.debug(ex)
+            return False
+
+    async def post(self, endpoint, data):
+        logger.debug("POST: %s %s" % (endpoint, data))
+        try:
+            async with self.semaphore:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        self.url + endpoint,
+                        json=data,
+                        auth=BasicAuth(self.username, self.password),
+                        ssl=False,
+                        timeout=60,
+                    ) as response:
+                        result = await response.json(content_type=None)
+        except Exception as ex:
+            logger.debug(ex)
+            return {}, 0
+        return result, response.status
 
     async def get_obj_dict(self, endpoint, identifier="name"):
         response_json = await self.get(endpoint)
@@ -181,7 +217,8 @@ class Foreman(object):
                 put_name = "medium"
             else:
                 put_name = param_name[:-1]
-            endpoint = "/%s" % param_name
+            # Search by the specific value to avoid pagination truncation
+            endpoint = '/%s?search=%s="%s"' % (param_name, param_identifier, param_value)
             result = await self.get(endpoint)
             if result.get("results", False):
                 for item in result["results"]:
@@ -405,40 +442,202 @@ class Foreman(object):
         put_result = await self.put_parameter(host_name, "build", 1)
         return put_result
 
-    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
+    async def get_permission_ids(self, permission_names):
+        ids = []
+        for name in permission_names:
+            result = await self.get("/permissions?search=name=%s" % name)
+            for perm in result.get("results", []):
+                if perm["name"] == name:
+                    ids.append(perm["id"])
+                    break
+        return ids
 
-        results = []
+    async def get_or_create_role(self, name):
+        role_id = await self.get_role_id(name)
+        if role_id:
+            return role_id
+        result, status = await self.post("/roles", {"role": {"name": name, "description": ""}})
+        if status in (200, 201):
+            logger.info("Created Foreman role '%s'" % name)
+            return result.get("id")
+        # Role may have been created by another worker between our get and post
+        role_id = await self.get_role_id(name)
+        if role_id:
+            return role_id
+        logger.error("Failed to create Foreman role '%s': HTTP %s %s" % (name, status, result))
+        return None
+
+    async def get_filters_for_role(self, role_id):
+        result = await self.get("/filters?search=role_id=%s&per_page=100" % role_id)
+        return result.get("results", [])
+
+    async def role_has_permission(self, role_id, permission_name):
+        for f in await self.get_filters_for_role(role_id):
+            for perm in f.get("permissions", []):
+                if perm.get("name") == permission_name:
+                    return True
+        return False
+
+    async def cleanup_duplicate_filters(self, role_id):
+        """Remove duplicate filters (same permission set) for a role, keeping the lowest ID."""
+        filters = await self.get_filters_for_role(role_id)
+        seen = {}
+        to_delete = []
+        for f in sorted(filters, key=lambda x: x["id"]):
+            perm_key = frozenset(p["name"] for p in f.get("permissions", []))
+            if perm_key in seen:
+                to_delete.append(f["id"])
+            else:
+                seen[perm_key] = f["id"]
+        for filter_id in to_delete:
+            await self.delete("/filters/%s" % filter_id)
+        if to_delete:
+            logger.info("Removed %d duplicate filter(s) for role %s" % (len(to_delete), role_id))
+        return len(to_delete)
+
+    async def ensure_filter(self, role_id, permission_names, search=None):
+        if await self.role_has_permission(role_id, permission_names[0]):
+            return True
+        permission_ids = await self.get_permission_ids(permission_names)
+        filter_data = {"filter": {"role_id": role_id, "permission_ids": permission_ids}}
+        if search:
+            filter_data["filter"]["search"] = search
+        _, status = await self.post("/filters", filter_data)
+        if status in (200, 201):
+            logger.info("Created filter %s for role %s" % (permission_names, role_id))
+            return True
+        logger.error("Failed to create filter %s for role %s: HTTP %s" % (permission_names, role_id, status))
+        return False
+
+    async def get_usergroup_id(self, name):
+        result = await self.get_obj_dict("/usergroups?search=name=%s" % name)
+        if name in result:
+            return result[name]["id"]
+        return None
+
+    async def get_or_create_usergroup(self, name, role_ids):
+        group_id = await self.get_usergroup_id(name)
+        if group_id:
+            return group_id
+        result, status = await self.post("/usergroups", {"usergroup": {"name": name, "role_ids": role_ids}})
+        if status in (200, 201):
+            logger.info("Created Foreman usergroup '%s'" % name)
+            return result.get("id")
+        logger.error("Failed to create Foreman usergroup '%s': HTTP %s" % (name, status))
+        return None
+
+    async def add_user_to_usergroup(self, group_id, user_id):
+        result = await self.get("/usergroups/%s" % group_id)
+        current_ids = [u["id"] for u in result.get("users", [])]
+        if user_id in current_ids:
+            return True
+        # POST to the nested users endpoint is atomic; no read-modify-write race.
+        _, status = await self.post(
+            "/usergroups/%s/users" % group_id,
+            {"user": {"id": user_id}},
+        )
+        if status in (200, 201):
+            return True
+        # Fallback: the nested endpoint may not exist in older Foreman — try PUT.
+        current_ids.append(user_id)
+        return await self.put_element("usergroups", group_id, "user_ids", current_ids)
+
+    async def cleanup_duplicate_memberships(self, group_id):
+        result = await self.get("/usergroups/%s" % group_id)
+        users = result.get("users", [])
+        seen = set()
+        to_remove = []
+        for u in users:
+            uid = u["id"]
+            if uid in seen:
+                to_remove.append(uid)
+            else:
+                seen.add(uid)
+        for uid in to_remove:
+            await self.delete("/usergroups/%s/users/%s" % (group_id, uid))
+        if to_remove:
+            logger.info("Removed %d duplicate user membership(s) from usergroup %s" % (len(to_remove), group_id))
+        return len(to_remove)
+
+    async def get_or_create_cloud_user(self, login, password, mail, auth_source_id=1):
+        user_id = await self.get_user_id(login)
+        if user_id:
+            return user_id
+        result, status = await self.post(
+            "/users",
+            {
+                "user": {
+                    "login": login,
+                    "password": password,
+                    "mail": mail,
+                    "auth_source_id": auth_source_id,
+                    "admin": False,
+                }
+            },
+        )
+        if status in (200, 201):
+            logger.info("Created Foreman user '%s'" % login)
+            return result.get("id")
+        # User may have been created by another process between our get and post
+        user_id = await self.get_user_id(login)
+        if user_id:
+            return user_id
+        logger.error("Failed to create Foreman user '%s': HTTP %s %s" % (login, status, result))
+        return None
+
+    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
 
         try:
             available_os = await self.get_available_os()
             os_id = next((os["id"] for os in available_os if os["title"] == os_type), None)
 
             if not os_id:
-                logger.error(f"OS type {os_type} not found in Foreman")
+                logger.error(f"OS type '{os_type}' not found in Foreman")
                 return False
 
             params = [{"name": "operatingsystems", "value": os_type, "identifier": "title"}]
 
             available_mediums = await self.get_mediums(os_id)
-            params.append({"name": "media", "value": available_mediums[0]["name"]})
+            if not available_mediums:
+                logger.error(f"No installation media found in Foreman for OS '{os_type}'")
+                return False
+            default_medium = Config.plugins.get("foreman", {}).get("default_medium", "")
+            medium = next(
+                (m["name"] for m in available_mediums if m["name"] == default_medium),
+                available_mediums[0]["name"],
+            )
+            params.append({"name": "media", "value": medium})
 
             available_ptables = await self.get_ptables(os_id)
-            params.append({"name": "ptables", "value": available_ptables[0]["name"]})
+            if not available_ptables:
+                logger.error(f"No partition tables found in Foreman for OS '{os_type}'")
+                return False
+            default_ptable = Config.plugins.get("foreman", {}).get("default_ptable", "")
+            ptable = next(
+                (p["name"] for p in available_ptables if p["name"] == default_ptable),
+                available_ptables[0]["name"],
+            )
+            params.append({"name": "ptables", "value": ptable})
 
-            mark_for_build_result = await self.mark_for_build(host_name)
-            results.append(mark_for_build_result)
+            host_id = await self.get_host_id(host_name)
+            if not host_id:
+                logger.error(f"Host '{host_name}' not found in Foreman")
+                return False
 
-            put_param_result = await self.put_parameters_by_name(host_name, params)
-            results.append(put_param_result)
+            if not await self.mark_for_build(host_name):
+                logger.error(f"Failed to mark '{host_name}' for build in Foreman")
+                return False
+
+            if not await self.put_parameters_by_name(host_name, params):
+                logger.error(f"Failed to set OS/media/ptable parameters for '{host_name}' in Foreman")
+                return False
 
             owner_id = await self.get_user_id(cloud)
-            host_id = await self.get_host_id(host_name)
-            put_result = await self.put_element("hosts", host_id, "owner_id", owner_id)
-            results.append(put_result)
-
-            for result in results:
-                if isinstance(result, Exception) or not result:
-                    logger.error("There was something wrong setting Foreman host parameters.")
+            if not owner_id:
+                logger.warning(f"Cloud owner '{cloud}' not found in Foreman; skipping owner assignment")
+            else:
+                if not await self.put_element("hosts", host_id, "owner_id", owner_id):
+                    logger.error(f"Failed to set owner for '{host_name}' in Foreman")
                     return False
 
             return True
