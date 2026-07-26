@@ -238,7 +238,7 @@ _How many hosts and environments can a single QUADS instance use?_
 | Step | Documentation | Details |
 |------|---------------|---------|
 | General Architecture Overview | [docs](/docs/quads-workflow.md) | Architecture overview |
-| Install and Setup Foreman/Satellite | [docs](https://theforeman.org/manuals/nightly/#3.InstallingForeman) | Not covered here |
+| Install and Setup Foreman/Satellite | [docs](https://theforeman.org/manuals/nightly/#3.InstallingForeman) | User installed. Or use [Ansible Foreman Create](https://github.com/quadsproject/ansible-foreman-create) |
 | Setup Foreman/Satellite Validation Templates | [examples](/templates) | Templates for internal interface configs |
 | Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper Environments, IPMI, Foreman |
 | Install QUADS | [docs](#installing-quads) | Install via RPM |
