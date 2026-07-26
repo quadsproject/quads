@@ -913,3 +913,466 @@ class TestPrepareHostProvisioning(object):
         assert result is False
         assert "Error setting up Foreman for host01.example.com" in caplog.text
         assert "connection failed" in caplog.text
+
+
+class TestForemanRbac(object):
+    """Tests for the RBAC helper methods added to support foreman_setup.py."""
+
+    # ------------------------------------------------------------------
+    # delete()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @pytest.mark.asyncio
+    async def test_delete_returns_true_on_200(self, delete_session):
+        resp = AsyncMock()
+        resp.status = 200
+        delete_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert await foreman.delete("/filters/1")
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @pytest.mark.asyncio
+    async def test_delete_returns_true_on_204(self, delete_session):
+        resp = AsyncMock()
+        resp.status = 204
+        delete_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert await foreman.delete("/filters/1")
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @pytest.mark.asyncio
+    async def test_delete_returns_false_on_error_status(self, delete_session):
+        resp = AsyncMock()
+        resp.status = 404
+        delete_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert not await foreman.delete("/filters/99")
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @pytest.mark.asyncio
+    async def test_delete_returns_false_on_exception(self, delete_session):
+        delete_session.side_effect = Exception("network error")
+        foreman = Foreman("https://example.com", "username", "password")
+        assert not await foreman.delete("/filters/1")
+
+    # ------------------------------------------------------------------
+    # post()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @pytest.mark.asyncio
+    async def test_post_returns_result_and_status(self, post_session):
+        resp = AsyncMock()
+        resp.status = 201
+        resp.json.return_value = {"id": 42, "name": "testrole"}
+        post_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        result, status = await foreman.post("/roles", {"role": {"name": "testrole"}})
+        assert status == 201
+        assert result == {"id": 42, "name": "testrole"}
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @pytest.mark.asyncio
+    async def test_post_returns_empty_on_exception(self, post_session):
+        post_session.side_effect = Exception("connection refused")
+        foreman = Foreman("https://example.com", "username", "password")
+        result, status = await foreman.post("/roles", {})
+        assert result == {}
+        assert status == 0
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @pytest.mark.asyncio
+    async def test_post_redacts_password_in_debug_log(self, post_session, caplog):
+        resp = AsyncMock()
+        resp.status = 201
+        resp.json.return_value = {"id": 1}
+        post_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        with caplog.at_level(logging.DEBUG, logger="quads.tools.external.foreman"):
+            await foreman.post("/users", {"user": {"login": "cloud01", "password": "supersecret"}})
+        assert "supersecret" not in caplog.text
+        assert "POST: /users" in caplog.text
+
+    # ------------------------------------------------------------------
+    # get_permission_ids()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_permission_ids(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"name": "view_hosts", "id": 10}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        ids = await foreman.get_permission_ids(["view_hosts"])
+        assert ids == [10]
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_permission_ids_not_found(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"name": "other_perm", "id": 99}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        ids = await foreman.get_permission_ids(["view_hosts"])
+        assert ids == []
+
+    # ------------------------------------------------------------------
+    # get_or_create_role()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_role_existing(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"name": "clouduser_hosts", "id": 5}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        role_id = await foreman.get_or_create_role("clouduser_hosts")
+        assert role_id == 5
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_role_creates_new(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 201
+        post_resp.json.return_value = {"id": 7, "name": "clouduser_hosts"}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        role_id = await foreman.get_or_create_role("clouduser_hosts")
+        assert role_id == 7
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_role_returns_none_on_failure(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 500
+        post_resp.json.return_value = {}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        role_id = await foreman.get_or_create_role("clouduser_hosts")
+        assert role_id is None
+
+    # ------------------------------------------------------------------
+    # get_filters_for_role()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_filters_for_role(self, get_session):
+        filters = [{"id": 1, "permissions": [{"name": "view_hosts"}]}]
+        resp = AsyncMock()
+        resp.json.return_value = {"results": filters}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        result = await foreman.get_filters_for_role(role_id=5)
+        assert result == filters
+
+    # ------------------------------------------------------------------
+    # role_has_permission()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_role_has_permission_found(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"id": 1, "permissions": [{"name": "view_hosts"}]}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert await foreman.role_has_permission(role_id=5, permission_name="view_hosts")
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_role_has_permission_not_found(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"id": 1, "permissions": [{"name": "edit_hosts"}]}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert not await foreman.role_has_permission(role_id=5, permission_name="view_hosts")
+
+    # ------------------------------------------------------------------
+    # cleanup_duplicate_filters()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_cleanup_duplicate_filters_no_duplicates(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {
+            "results": [
+                {"id": 1, "permissions": [{"name": "view_hosts"}]},
+                {"id": 2, "permissions": [{"name": "edit_hosts"}]},
+            ]
+        }
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        removed = await foreman.cleanup_duplicate_filters(role_id=5)
+        assert removed == 0
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_cleanup_duplicate_filters_removes_duplicates(self, get_session, delete_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {
+            "results": [
+                {"id": 1, "permissions": [{"name": "view_hosts"}]},
+                {"id": 2, "permissions": [{"name": "view_hosts"}]},
+            ]
+        }
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        del_resp = AsyncMock()
+        del_resp.status = 200
+        delete_session.return_value.__aenter__.return_value = del_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        removed = await foreman.cleanup_duplicate_filters(role_id=5)
+        assert removed == 1
+
+    # ------------------------------------------------------------------
+    # ensure_filter()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_ensure_filter_already_exists(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"id": 1, "permissions": [{"name": "view_hosts"}]}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        result = await foreman.ensure_filter(5, ["view_hosts"])
+        assert result is True
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_ensure_filter_creates_new(self, get_session, post_session):
+        # No permission → no filter → GET permission id → POST filter
+        get_resp = AsyncMock()
+        get_resp.json.side_effect = [
+            {"results": []},  # get_filters_for_role (role_has_permission check)
+            {"results": [{"name": "view_hosts", "id": 10}]},  # get_permission_ids
+        ]
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 201
+        post_resp.json.return_value = {"id": 99}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        result = await foreman.ensure_filter(5, ["view_hosts"], search="user.login = current_user")
+        assert result is True
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_ensure_filter_fails(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.side_effect = [
+            {"results": []},
+            {"results": [{"name": "view_hosts", "id": 10}]},
+        ]
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 500
+        post_resp.json.return_value = {}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        result = await foreman.ensure_filter(5, ["view_hosts"])
+        assert result is False
+
+    # ------------------------------------------------------------------
+    # get_usergroup_id()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_usergroup_id_found(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"name": "cloudusers", "id": 3}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        group_id = await foreman.get_usergroup_id("cloudusers")
+        assert group_id == 3
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_usergroup_id_not_found(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        group_id = await foreman.get_usergroup_id("cloudusers")
+        assert group_id is None
+
+    # ------------------------------------------------------------------
+    # get_or_create_usergroup()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_usergroup_existing(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"name": "cloudusers", "id": 3}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        group_id = await foreman.get_or_create_usergroup("cloudusers", [1, 2])
+        assert group_id == 3
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_usergroup_creates_new(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 201
+        post_resp.json.return_value = {"id": 8}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        group_id = await foreman.get_or_create_usergroup("cloudusers", [1, 2])
+        assert group_id == 8
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_usergroup_returns_none_on_failure(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 500
+        post_resp.json.return_value = {}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        group_id = await foreman.get_or_create_usergroup("cloudusers", [1, 2])
+        assert group_id is None
+
+    # ------------------------------------------------------------------
+    # add_user_to_usergroup()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_add_user_to_usergroup_already_member(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"users": [{"id": 20}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        assert await foreman.add_user_to_usergroup(group_id=3, user_id=20)
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_add_user_to_usergroup_new_member(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"users": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 201
+        post_resp.json.return_value = {}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        assert await foreman.add_user_to_usergroup(group_id=3, user_id=20)
+
+    # ------------------------------------------------------------------
+    # cleanup_duplicate_memberships()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_cleanup_duplicate_memberships_no_duplicates(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"users": [{"id": 10}, {"id": 20}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        removed = await foreman.cleanup_duplicate_memberships(group_id=3)
+        assert removed == 0
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.delete")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_cleanup_duplicate_memberships_removes_duplicates(self, get_session, delete_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"users": [{"id": 10}, {"id": 10}]}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        del_resp = AsyncMock()
+        del_resp.status = 200
+        delete_session.return_value.__aenter__.return_value = del_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        removed = await foreman.cleanup_duplicate_memberships(group_id=3)
+        assert removed == 1
+
+    # ------------------------------------------------------------------
+    # get_or_create_cloud_user()
+    # ------------------------------------------------------------------
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_cloud_user_existing(self, get_session):
+        resp = AsyncMock()
+        resp.json.return_value = {"results": [{"login": "cloud01", "id": 55}]}
+        get_session.return_value.__aenter__.return_value = resp
+        foreman = Foreman("https://example.com", "username", "password")
+        user_id = await foreman.get_or_create_cloud_user("cloud01", "pw", "q@example.com")
+        assert user_id == 55
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_cloud_user_creates_new(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 201
+        post_resp.json.return_value = {"id": 66}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        user_id = await foreman.get_or_create_cloud_user("cloud01", "pw", "q@example.com")
+        assert user_id == 66
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.post")
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
+    @pytest.mark.asyncio
+    async def test_get_or_create_cloud_user_returns_none_on_failure(self, get_session, post_session):
+        get_resp = AsyncMock()
+        get_resp.json.return_value = {"results": []}
+        get_session.return_value.__aenter__.return_value = get_resp
+
+        post_resp = AsyncMock()
+        post_resp.status = 500
+        post_resp.json.return_value = {}
+        post_session.return_value.__aenter__.return_value = post_resp
+
+        foreman = Foreman("https://example.com", "username", "password")
+        user_id = await foreman.get_or_create_cloud_user("cloud01", "pw", "q@example.com")
+        assert user_id is None
