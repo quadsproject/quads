@@ -190,6 +190,16 @@ MaxKeepAliveRequests 200
 ```
 
 #### Create Foreman Roles and Filters
+
+> [!NOTE]
+> As of QUADS 3.x, the RBAC setup below is performed **automatically** on
+> `quads-server` startup when the Foreman plugin is enabled
+> (`plugins.yml: foreman.enabled: true`).  The roles, filters, usergroup,
+> and per-cloud user accounts are created idempotently by
+> `src/quads/tools/foreman_setup.py` — no manual `hammer` commands are
+> needed for new installations.  The commands below are retained for
+> reference and for environments that prefer manual control.
+
    * This is Foreman-specific so if you want another provisioning backend you can ignore it.
    * We use RBAC roles and filters to allow per-cloud Foreman views into subsets of machines, QUADS will manage this for you once created.
       * Foreman views are based on system ownership of cloud users (generic users per environment)
