@@ -73,6 +73,11 @@ plugins:
     # variable to pass cloud names to be excluded from foreman_heal
     # with values separated by pipes 'cloud32|cloud04' or singularly 'cloud02'
     rbac_exclude:
+    # Email used when creating new QUADS cloud users in Foreman.
+    # Defaults to email.from_address if not set.
+    rbac_user_mail:
+    # Foreman auth-source ID for new cloud users (1 = built-in internal auth).
+    rbac_auth_source_id: 1
 
   standard:
     enabled: true
