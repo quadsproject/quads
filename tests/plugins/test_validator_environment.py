@@ -1123,7 +1123,6 @@ class TestEnvironmentValidatorPlugin:
             patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
             patch("quads.plugins.builtin.validators.environment.asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
         ):
-            mock_ssh_fail = MagicMock()
             mock_ssh_success = MagicMock()
             mock_ssh_success.distribute_ssh_keys.return_value = True
             mock_ssh_class.side_effect = [

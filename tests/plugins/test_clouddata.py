@@ -319,7 +319,6 @@ class TestCloudDataPluginExecute:
         assert data["bmc_pass"] == "lab1@JIRA-7890"
         assert data["foreman_password"] == "lab1@JIRA-7890"
 
-
     @patch("quads.plugins.builtin.dayzero.clouddata.SSHHelper")
     @patch("quads.plugins.builtin.dayzero.clouddata.Config", {
         "ipmi_cloud_username": "quads",
