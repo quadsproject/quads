@@ -12,7 +12,7 @@ from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
 from quads.plugins.manager import get_plugin_manager
-
+from quads.tools.foreman_setup import start_foreman_rbac_thread
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
@@ -46,6 +46,8 @@ def create_app(test_config=None) -> Flask:
     register_extensions(flask_app)
     register_blueprints(flask_app)
     register_plugin_dispatchers(flask_app)
+
+    start_foreman_rbac_thread(flask_app)
 
     @flask_app.errorhandler(401)
     def error_401(ex) -> Response:
