@@ -13,7 +13,6 @@ from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
 from quads.plugins.manager import get_plugin_manager
 
-
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
 
@@ -27,6 +26,8 @@ def verify_password(email, password):
 
 
 def create_app(test_config=None) -> Flask:
+    from quads.config import Config
+
     # create and configure the app
     flask_app = Flask(__name__, instance_relative_config=True)
     flask_app.url_map.strict_slashes = False
@@ -46,6 +47,11 @@ def create_app(test_config=None) -> Flask:
     register_extensions(flask_app)
     register_blueprints(flask_app)
     register_plugin_dispatchers(flask_app)
+
+    if Config.plugins.get("foreman", {}).get("enabled", False) and not flask_app.config.get("TESTING", False):
+        from quads.tools.foreman_setup import start_foreman_rbac_thread
+
+        start_foreman_rbac_thread(flask_app)
 
     @flask_app.errorhandler(401)
     def error_401(ex) -> Response:
