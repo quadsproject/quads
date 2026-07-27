@@ -168,34 +168,6 @@ class Foreman(object):
         result = await self.put_elements("hosts", _host_id, params)
         return result
 
-    async def put_parameters_by_name(self, host, params):
-        logger.debug("PUT param: %s" % params)
-        data = {}
-        for param in params:
-            param_name = param.get("name")
-            param_value = param.get("value")
-            param_identifier = param.get("identifier", "name")
-
-            param_id = None
-            if param_name == "media":
-                put_name = "medium"
-            else:
-                put_name = param_name[:-1]
-            endpoint = "/%s" % param_name
-            result = await self.get(endpoint)
-            if result.get("results", False):
-                for item in result["results"]:
-                    if item.get(param_identifier, None) == param_value:
-                        param_id = item["id"]
-                        break
-            else:
-                return False
-            if param_id:
-                data["%s_id" % put_name] = param_id
-                data["%s_name" % put_name] = param_value
-        success = await self.put_parameters(host, data)
-        return success
-
     async def put_parameter_by_name(self, host, name, value, identifier="name"):
         logger.debug("PUT param: {%s:%s}" % (name, value))
         param_id = None
@@ -394,12 +366,28 @@ class Foreman(object):
     async def get_mediums(self, os_id):
         endpoint = f"/operatingsystems/{os_id}/media"
         result = await self.get(endpoint)
-        return result.get("results", {})
+        return result.get("results", [])
 
     async def get_ptables(self, os_id):
         endpoint = f"/operatingsystems/{os_id}/ptables"
         result = await self.get(endpoint)
-        return result.get("results", {})
+        return result.get("results", [])
+
+    async def _select_os_resource(self, fetch_fn, os_id, label, os_type, host_name):
+        items = await fetch_fn(os_id)
+        if not items:
+            logger.error(f"No {label} found for OS '{os_type}' (id={os_id})")
+            return None
+        selected = items[0]
+        if len(items) > 1:
+            logger.warning(
+                f"OS '{os_type}' has {len(items)} {label}, "
+                f"defaulting to first: '{selected['name']}'. "
+                f"Available: {[i['name'] for i in items]}"
+            )
+        else:
+            logger.info(f"Selected {label} '{selected['name']}' for OS '{os_type}' on {host_name}")
+        return selected
 
     async def mark_for_build(self, host_name):
         put_result = await self.put_parameter(host_name, "build", 1)
@@ -417,18 +405,27 @@ class Foreman(object):
                 logger.error(f"OS type {os_type} not found in Foreman")
                 return False
 
-            params = [{"name": "operatingsystems", "value": os_type, "identifier": "title"}]
+            medium = await self._select_os_resource(self.get_mediums, os_id, "medium", os_type, host_name)
+            if not medium:
+                return False
 
-            available_mediums = await self.get_mediums(os_id)
-            params.append({"name": "media", "value": available_mediums[0]["name"]})
+            ptable = await self._select_os_resource(self.get_ptables, os_id, "ptable", os_type, host_name)
+            if not ptable:
+                return False
 
-            available_ptables = await self.get_ptables(os_id)
-            params.append({"name": "ptables", "value": available_ptables[0]["name"]})
+            data = {
+                "operatingsystem_id": os_id,
+                "operatingsystem_name": os_type,
+                "medium_id": medium["id"],
+                "medium_name": medium["name"],
+                "ptable_id": ptable["id"],
+                "ptable_name": ptable["name"],
+            }
 
             mark_for_build_result = await self.mark_for_build(host_name)
             results.append(mark_for_build_result)
 
-            put_param_result = await self.put_parameters_by_name(host_name, params)
+            put_param_result = await self.put_parameters(host_name, data)
             results.append(put_param_result)
 
             owner_id = await self.get_user_id(cloud)
@@ -443,5 +440,5 @@ class Foreman(object):
 
             return True
         except Exception as ex:
-            self.logger.error(f"Error setting up Foreman for {host_name}: {ex}")
+            logger.error(f"Error setting up Foreman for {host_name}: {ex}")
             return False
