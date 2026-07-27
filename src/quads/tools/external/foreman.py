@@ -169,30 +169,26 @@ class Foreman(object):
         return result
 
     async def put_parameters_by_name(self, host, params):
-        logger.debug("PUT param: %s" % params)
+        logger.debug(f"PUT param: {params}")
         data = {}
         for param in params:
             param_name = param.get("name")
             param_value = param.get("value")
             param_identifier = param.get("identifier", "name")
 
-            param_id = None
             if param_name == "media":
                 put_name = "medium"
             else:
                 put_name = param_name[:-1]
-            endpoint = "/%s" % param_name
+            endpoint = f'/{param_name}?search={param_identifier}="{param_value}"'
             result = await self.get(endpoint)
-            if result.get("results", False):
-                for item in result["results"]:
-                    if item.get(param_identifier, None) == param_value:
-                        param_id = item["id"]
-                        break
-            else:
+            results = result.get("results", [])
+            if not results:
+                logger.warning(f"Could not resolve {put_name} '{param_value}' in Foreman")
                 return False
-            if param_id:
-                data["%s_id" % put_name] = param_id
-                data["%s_name" % put_name] = param_value
+            param_id = results[0]["id"]
+            data[f"{put_name}_id"] = param_id
+            data[f"{put_name}_name"] = param_value
         success = await self.put_parameters(host, data)
         return success
 
@@ -394,18 +390,18 @@ class Foreman(object):
     async def get_mediums(self, os_id):
         endpoint = f"/operatingsystems/{os_id}/media"
         result = await self.get(endpoint)
-        return result.get("results", {})
+        return result.get("results", [])
 
     async def get_ptables(self, os_id):
         endpoint = f"/operatingsystems/{os_id}/ptables"
         result = await self.get(endpoint)
-        return result.get("results", {})
+        return result.get("results", [])
 
     async def mark_for_build(self, host_name):
         put_result = await self.put_parameter(host_name, "build", 1)
         return put_result
 
-    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
+    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str, ptable: str = None) -> bool:
 
         results = []
 
@@ -420,10 +416,39 @@ class Foreman(object):
             params = [{"name": "operatingsystems", "value": os_type, "identifier": "title"}]
 
             available_mediums = await self.get_mediums(os_id)
-            params.append({"name": "media", "value": available_mediums[0]["name"]})
+            if not available_mediums:
+                logger.error(f"No installation media found for OS '{os_type}' (id={os_id})")
+                return False
+            medium_name = available_mediums[0]["name"]
+            logger.info(f"Selected medium '{medium_name}' for OS '{os_type}' on {host_name}")
+            params.append({"name": "media", "value": medium_name})
 
             available_ptables = await self.get_ptables(os_id)
-            params.append({"name": "ptables", "value": available_ptables[0]["name"]})
+            if not available_ptables:
+                logger.error(f"No partition tables found for OS '{os_type}' (id={os_id})")
+                return False
+
+            if ptable:
+                match = next((p for p in available_ptables if p["name"] == ptable), None)
+                if not match:
+                    logger.error(
+                        f"Partition table '{ptable}' not associated with OS '{os_type}'. "
+                        f"Available: {[p['name'] for p in available_ptables]}"
+                    )
+                    return False
+                ptable_name = match["name"]
+                logger.info(f"Using requested ptable '{ptable_name}' for {host_name}")
+            else:
+                ptable_name = available_ptables[0]["name"]
+                if len(available_ptables) > 1:
+                    logger.warning(
+                        f"OS '{os_type}' has {len(available_ptables)} ptables, "
+                        f"defaulting to first: '{ptable_name}'. "
+                        f"Available: {[p['name'] for p in available_ptables]}"
+                    )
+                else:
+                    logger.info(f"Selected ptable '{ptable_name}' for {host_name}")
+            params.append({"name": "ptables", "value": ptable_name})
 
             mark_for_build_result = await self.mark_for_build(host_name)
             results.append(mark_for_build_result)
@@ -443,5 +468,5 @@ class Foreman(object):
 
             return True
         except Exception as ex:
-            self.logger.error(f"Error setting up Foreman for {host_name}: {ex}")
+            logger.error(f"Error setting up Foreman for {host_name}: {ex}")
             return False

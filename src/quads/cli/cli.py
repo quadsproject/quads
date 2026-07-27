@@ -1080,6 +1080,9 @@ class QuadsCli:
         if not data.get("boot_order"):
             data["boot_order"] = conf.plugins["foreman"]["default_boot_order"]
 
+        if self.cli_args.get("ptable"):
+            data["ptable"] = self.cli_args.get("ptable")
+
         cloud_reservation_lock = int(conf["cloud_reservation_lock"])
         try:
             cloud = self.quads.get_cloud(self.cli_args.get("cloud"))
@@ -1173,6 +1176,9 @@ class QuadsCli:
                 clean_data["ostype"] = os_type
             else:
                 raise CliException(f"Could not parse os {os_type}, please check available os --os-list.")
+
+        if self.cli_args.get("ptable"):
+            clean_data["ptable"] = self.cli_args.get("ptable")
 
         if "wipe" in self.cli_args:
             clean_data["wipe"] = self.cli_args.get("wipe")

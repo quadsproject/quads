@@ -900,6 +900,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--ptable",
+    dest="ptable",
+    type=str,
+    default=None,
+    help="Partition table for provisioning, must be associated with the chosen OS in Foreman",
+)
+
+parser.add_argument(
     "--rm-host-metadata",
     dest="rm_host_metadata",
     type=str,

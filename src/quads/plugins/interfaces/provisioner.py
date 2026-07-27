@@ -7,7 +7,7 @@ class ProvisionerPlugin(BasePlugin):
     """Interface for provisioning backend plugins"""
 
     @abstractmethod
-    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
+    async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str, ptable: str = None) -> bool:
         pass
 
     @abstractmethod

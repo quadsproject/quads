@@ -217,6 +217,7 @@ def create_assignment() -> Response:
     is_self_schedule = data.get("is_self_schedule")
     ostype = data.get("ostype")
     boot_order = data.get("boot_order")
+    ptable = data.get("ptable")
 
     required_fields = [
         "description",
@@ -275,6 +276,7 @@ def create_assignment() -> Response:
         "is_self_schedule": str(is_self_schedule).lower() in ["true", "y", 1, "yes"],
         "ostype": ostype,
         "boot_order": boot_order,
+        "ptable": ptable,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
@@ -306,9 +308,7 @@ def create_self_assignment() -> Response:
 
     owner = g.current_user.email.split("@")[0]
 
-    active_ass = AssignmentDao.filter_assignments(
-        {"active": True, "is_self_schedule": True, "owner": owner}
-    )
+    active_ass = AssignmentDao.filter_assignments({"active": True, "is_self_schedule": True, "owner": owner})
     if len(active_ass) >= Config.get("ssm_user_cloud_limit", 1):
         response = {
             "status_code": 403,
@@ -328,6 +328,7 @@ def create_self_assignment() -> Response:
     cc_user = data.get("cc_user")
     ostype = data.get("ostype")
     boot_order = data.get("boot_order")
+    ptable = data.get("ptable")
     required_fields = [
         "description",
     ]
@@ -403,6 +404,7 @@ def create_self_assignment() -> Response:
         "cloud": _cloud.name,
         "ostype": ostype,
         "boot_order": boot_order,
+        "ptable": ptable,
     }
     if _vlan:
         kwargs["vlan_id"] = int(vlan)

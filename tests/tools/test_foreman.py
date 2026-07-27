@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
+import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -846,3 +847,155 @@ class TestForeman(object):
         foreman = Foreman("https://example.com", "username", "password")
         response1 = await foreman.get_available_os()
         assert len(response1) == 1
+
+
+class TestPrepareHostProvisioning(object):
+    def _make_foreman(self):
+        return Foreman(
+            "https://example.com",
+            "username",
+            "password",
+            semaphore=asyncio.Semaphore(5),
+        )
+
+    @pytest.mark.asyncio
+    async def test_success_single_ptable(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(return_value=[{"id": 20, "name": "generic-rhel"}])
+        foreman.mark_for_build = AsyncMock(return_value=True)
+        foreman.put_parameters_by_name = AsyncMock(return_value=True)
+        foreman.get_user_id = AsyncMock(return_value=100)
+        foreman.get_host_id = AsyncMock(return_value=200)
+        foreman.put_element = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.INFO):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is True
+        assert "Selected ptable 'generic-rhel'" in caplog.text
+        assert "Selected medium 'RHEL Local'" in caplog.text
+        foreman.put_parameters_by_name.assert_called_once()
+        params = foreman.put_parameters_by_name.call_args[0][1]
+        ptable_param = next(p for p in params if p["name"] == "ptables")
+        assert ptable_param["value"] == "generic-rhel"
+
+    @pytest.mark.asyncio
+    async def test_os_not_found(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "NonExistent OS")
+
+        assert result is False
+        assert "OS type NonExistent OS not found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_no_ptables(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(return_value=[])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "No partition tables found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_no_mediums(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "No installation media found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_explicit_ptable(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(
+            return_value=[
+                {"id": 20, "name": "generic-bios"},
+                {"id": 21, "name": "generic-uefi"},
+            ]
+        )
+        foreman.mark_for_build = AsyncMock(return_value=True)
+        foreman.put_parameters_by_name = AsyncMock(return_value=True)
+        foreman.get_user_id = AsyncMock(return_value=100)
+        foreman.get_host_id = AsyncMock(return_value=200)
+        foreman.put_element = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.INFO):
+            result = await foreman.prepare_host_provisioning(
+                "host01.example.com", "cloud01", "RHEL 9.2", ptable="generic-uefi"
+            )
+
+        assert result is True
+        assert "Using requested ptable 'generic-uefi'" in caplog.text
+        params = foreman.put_parameters_by_name.call_args[0][1]
+        ptable_param = next(p for p in params if p["name"] == "ptables")
+        assert ptable_param["value"] == "generic-uefi"
+
+    @pytest.mark.asyncio
+    async def test_explicit_ptable_not_found(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(return_value=[{"id": 20, "name": "generic-bios"}])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning(
+                "host01.example.com", "cloud01", "RHEL 9.2", ptable="nonexistent"
+            )
+
+        assert result is False
+        assert "not associated with OS" in caplog.text
+        assert "generic-bios" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_multiple_ptables_warning(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(return_value=[{"id": 1, "title": "RHEL 9.2"}])
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(
+            return_value=[
+                {"id": 20, "name": "generic-bios"},
+                {"id": 21, "name": "generic-uefi"},
+            ]
+        )
+        foreman.mark_for_build = AsyncMock(return_value=True)
+        foreman.put_parameters_by_name = AsyncMock(return_value=True)
+        foreman.get_user_id = AsyncMock(return_value=100)
+        foreman.get_host_id = AsyncMock(return_value=200)
+        foreman.put_element = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.WARNING):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is True
+        assert "has 2 ptables" in caplog.text
+        assert "defaulting to first: 'generic-bios'" in caplog.text
+        params = foreman.put_parameters_by_name.call_args[0][1]
+        ptable_param = next(p for p in params if p["name"] == "ptables")
+        assert ptable_param["value"] == "generic-bios"
+
+    @pytest.mark.asyncio
+    async def test_exception_uses_module_logger(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_available_os = AsyncMock(side_effect=Exception("connection failed"))
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "Error setting up Foreman for host01.example.com" in caplog.text
+        assert "connection failed" in caplog.text

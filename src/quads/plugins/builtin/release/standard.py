@@ -97,11 +97,14 @@ class StandardReleasePlugin(ReleasePlugin):
             if _is_supermicro:
                 # No Badfish for Supermicro -- use raw ipmitool
                 os_type = Config.plugins["foreman"]["default_os"]
-                if _assignment and _assignment.ostype:
-                    os_type = _assignment.ostype
+                ptable = None
+                if _assignment:
+                    if _assignment.ostype:
+                        os_type = _assignment.ostype
+                    ptable = getattr(_assignment, "ptable", None)
 
                 await self._report_progress(schedule_id, "provisioning", "Preparing provisioner")
-                if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
+                if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type, ptable):
                     self._update_host_on_failure(
                         host_obj, schedule_id=schedule_id, error_message="Failed at provisioning"
                     )
@@ -139,10 +142,15 @@ class StandardReleasePlugin(ReleasePlugin):
                         vendor = self.hardware_dispatcher.get_vendor()
 
                     os_type = Config.plugins["foreman"]["default_os"]
-                    if _assignment and _assignment.ostype:
-                        os_type = _assignment.ostype
+                    ptable = None
+                    if _assignment:
+                        if _assignment.ostype:
+                            os_type = _assignment.ostype
+                        ptable = getattr(_assignment, "ptable", None)
 
-                    if not await self.provisioner_dispatcher.prepare_host_provisioning(host, new_cloud, os_type):
+                    if not await self.provisioner_dispatcher.prepare_host_provisioning(
+                        host, new_cloud, os_type, ptable
+                    ):
                         self._update_host_on_failure(
                             host_obj, schedule_id=schedule_id, error_message="Failed at provisioning"
                         )
