@@ -25,9 +25,9 @@ class ForemanProvisionerPlugin(ProvisionerPlugin):
         self.foreman = Foreman(self.url, self.username, self.password, self.token)
         return True
 
-    async def prepare_host_provisioning(self, hostname: str, build: bool, os_type: str) -> bool:
+    async def prepare_host_provisioning(self, hostname: str, cloud: str, os_type: str) -> bool:
         """Prepare host for provisioning"""
-        return await self.foreman.prepare_host_provisioning(hostname, build, os_type)
+        return await self.foreman.prepare_host_provisioning(hostname, cloud, os_type)
 
     async def get_all_hosts(self) -> List[str]:
         """Get all hosts"""
