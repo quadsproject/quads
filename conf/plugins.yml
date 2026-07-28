@@ -76,6 +76,10 @@ plugins:
 
   standard:
     enabled: true
+    # Number of retry attempts for IPMI credential set + verify
+    ipmi_credential_retries: 3
+    # Delay in seconds between retry attempts (per-host, runs in parallel)
+    ipmi_credential_retry_delay: 10
 
   juniper:
     enabled: true  
