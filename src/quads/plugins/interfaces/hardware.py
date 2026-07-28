@@ -108,6 +108,15 @@ class HardwarePlugin(BasePlugin):
         """
         pass
 
+    async def get_bios_attribute(self, attribute: str) -> Optional[str]:
+        """
+        Read a single BIOS attribute value from the hardware.
+
+        Returns:
+            The attribute value, or None if not found.
+        """
+        return None
+
     def get_vendor(self) -> Optional[str]:
         """Return the hardware vendor string after init(), or None if unavailable.
 

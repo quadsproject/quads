@@ -113,6 +113,17 @@ class BadfishHardwarePlugin(HardwarePlugin):
             self.logger.error(f"Failed to reboot server: {e}")
             return False
 
+    async def get_bios_attribute(self, attribute: str):
+        if not self.badfish:
+            self.logger.error("Badfish not initialized")
+            return None
+
+        try:
+            return await self.badfish.get_bios_attribute(attribute)
+        except BadfishException as e:
+            self.logger.error(f"Failed to get BIOS attribute {attribute}: {e}")
+            return None
+
     async def set_next_boot_pxe(self) -> None:
         """Set the next boot to PXE"""
         if not self.badfish:
