@@ -418,9 +418,11 @@ class TestEnvironmentValidatorPlugin:
 
     @pytest.mark.asyncio
     async def test_verify_hardware_creds_success(self, plugin, mock_config):
-        """Test verify_hardware_creds succeeds"""
-        with patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg:
-            # Add ipmi_cloud_username to mock_config
+        """Test verify_hardware_creds succeeds for non-Supermicro hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=False),
+        ):
             test_config = mock_config.copy()
             test_config["ipmi_cloud_username"] = "clouduser"
 
@@ -435,19 +437,23 @@ class TestEnvironmentValidatorPlugin:
 
             result = await plugin.verify_hardware_creds(host, password)
 
-            # Returns False on success (no exception raised)
             assert result is False
             assert plugin.hardware_dispatcher.username == "clouduser"
             assert plugin.hardware_dispatcher.password == password
 
     @pytest.mark.asyncio
     async def test_verify_hardware_creds_failure(self, plugin, mock_config):
-        """Test verify_hardware_creds handles exceptions"""
-        with patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg:
-            mock_cfg.__getitem__ = lambda self, key: mock_config[key]
-            for key, value in mock_config.items():
+        """Test verify_hardware_creds handles exceptions for non-Supermicro hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=False),
+        ):
+            test_config = mock_config.copy()
+            test_config["ipmi_cloud_username"] = "clouduser"
+
+            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
+            for key, value in test_config.items():
                 setattr(mock_cfg, key, value)
-            mock_cfg["ipmi_cloud_username"] = "clouduser"
 
             host = MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")
             password = "testpassword"
@@ -457,7 +463,55 @@ class TestEnvironmentValidatorPlugin:
 
             result = await plugin.verify_hardware_creds(host, password)
 
-            assert result is True  # Returns True on failure
+            assert result is True
+            plugin.logger.info.assert_called_once()
+            assert "Could not verify hardware credentials" in plugin.logger.info.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_verify_hardware_creds_supermicro_success(self, plugin, mock_config):
+        """Test verify_hardware_creds uses IPMI for Supermicro hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=True),
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
+        ):
+            test_config = mock_config.copy()
+            test_config["ipmi_cloud_username"] = "quads"
+            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
+
+            mock_ipmi = AsyncMock()
+            mock_ipmi.verify_credentials = AsyncMock(return_value=True)
+            mock_ipmi_class.return_value = mock_ipmi
+
+            host = MockHost("sm-host1.example.com", rack="rack1", uloc="u10", blade="blade1")
+            result = await plugin.verify_hardware_creds(host, "rdu2@TICKET123")
+
+            assert result is False
+            mock_ipmi_class.assert_called_once_with(
+                "sm-host1.example.com", "quads", "rdu2@TICKET123", logger=plugin.logger
+            )
+            mock_ipmi.verify_credentials.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_verify_hardware_creds_supermicro_failure(self, plugin, mock_config):
+        """Test verify_hardware_creds returns True (failure) for Supermicro auth failure"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=True),
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
+        ):
+            test_config = mock_config.copy()
+            test_config["ipmi_cloud_username"] = "quads"
+            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
+
+            mock_ipmi = AsyncMock()
+            mock_ipmi.verify_credentials = AsyncMock(return_value=False)
+            mock_ipmi_class.return_value = mock_ipmi
+
+            host = MockHost("sm-host1.example.com", rack="rack1", uloc="u10", blade="blade1")
+            result = await plugin.verify_hardware_creds(host, "rdu2@TICKET123")
+
+            assert result is True
             plugin.logger.info.assert_called_once()
             assert "Could not verify hardware credentials" in plugin.logger.info.call_args[0][0]
 

@@ -213,16 +213,26 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         """Verify hardware credentials for a host"""
         self.logger.debug(f"Verifying hardware credentials for: {host.name}")
         try:
-            # Override with cloud username/password for verification
-            self.hardware_dispatcher.username = str(Config["ipmi_cloud_username"])
-            self.hardware_dispatcher.password = password
-            # Re-initialize with new credentials
-            await self.hardware_dispatcher.init(
-                host.name,
-                host.rack,
-                host.uloc,
-                host.blade,
-            )
+            if is_supermicro(host.name):
+                ipmi = IPMI(
+                    host.name,
+                    str(Config["ipmi_cloud_username"]),
+                    password,
+                    logger=self.logger,
+                )
+                if not await ipmi.verify_credentials():
+                    self.logger.info(f"Could not verify hardware credentials for: {host.name}")
+                    return True
+                return False
+            else:
+                self.hardware_dispatcher.username = str(Config["ipmi_cloud_username"])
+                self.hardware_dispatcher.password = password
+                await self.hardware_dispatcher.init(
+                    host.name,
+                    host.rack,
+                    host.uloc,
+                    host.blade,
+                )
         except Exception:
             self.logger.info(f"Could not verify hardware credentials for: {host.name}")
             return True
@@ -419,8 +429,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                     break
                 except SSHHelperException as e:
                     self.logger.warning(
-                        f"SSH key distribution to {host.name} failed "
-                        f"(attempt {attempt}/{max_attempts}): {e}"
+                        f"SSH key distribution to {host.name} failed " f"(attempt {attempt}/{max_attempts}): {e}"
                     )
                     if attempt < max_attempts:
                         await asyncio.sleep(2)

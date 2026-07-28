@@ -46,6 +46,40 @@ class StandardReleasePlugin(ReleasePlugin):
         except Exception as e:
             self.logger.warning(f"Failed to report progress: {e}")
 
+    async def _configure_and_verify_ipmi(
+        self,
+        host: str,
+        admin_username: str,
+        admin_password: str,
+        new_password: str,
+    ) -> Optional[IPMI]:
+        """Set and verify IPMI credentials for the tenant user with retry.
+
+        Returns the admin-credential IPMI instance on success, None on failure.
+        """
+        config_standard = Config.plugins.get("standard", {})
+        max_retries = config_standard.get("ipmi_credential_retries", 3)
+        retry_delay = config_standard.get("ipmi_credential_retry_delay", 10)
+
+        for attempt in range(1, max_retries + 1):
+            ipmi = IPMI(host, admin_username, admin_password, logger=self.logger)
+            if not await ipmi.configure_user(Config["ipmi_cloud_username_id"], new_password):
+                self.logger.warning(f"IPMI credential set failed for {host} (attempt {attempt}/{max_retries})")
+                if attempt < max_retries:
+                    await asyncio.sleep(retry_delay)
+                continue
+
+            verify_ipmi = IPMI(host, Config["ipmi_cloud_username"], new_password, logger=self.logger)
+            if await verify_ipmi.verify_credentials():
+                return ipmi
+
+            self.logger.warning(f"IPMI credential verification failed for {host} (attempt {attempt}/{max_retries})")
+            if attempt < max_retries:
+                await asyncio.sleep(retry_delay)
+
+        self.logger.error(f"Failed to set and verify IPMI credentials for {host} after {max_retries} attempts")
+        return None
+
     async def move_and_rebuild(
         self,
         host: str,
@@ -76,15 +110,22 @@ class StandardReleasePlugin(ReleasePlugin):
             if _assignment.boot_order:
                 boot_order = _assignment.boot_order
 
-        # Configure IPMI
+        # Configure and verify IPMI credentials
         config_ipmi = Config["plugins"]["badfish"]
         ipmi_username = config_ipmi["ipmi_username"]
         ipmi_password = config_ipmi["ipmi_password"]
-
         ipmi_new_pass = f"{Config['infra_location']}@{ticket}" if ticket else ipmi_password
-        ipmi = IPMI(host, ipmi_username, ipmi_password, logger=self.logger)
-        await ipmi.configure_user(Config["ipmi_cloud_username_id"], ipmi_new_pass)
-        await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured")
+
+        ipmi = await self._configure_and_verify_ipmi(host, ipmi_username, ipmi_password, ipmi_new_pass)
+        if ipmi is None:
+            self._update_host_on_failure(
+                host_obj,
+                schedule_id=schedule_id,
+                error_message="Failed at ipmi_config",
+            )
+            return False
+
+        await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured and verified")
 
         _is_supermicro = is_supermicro(host)
 
