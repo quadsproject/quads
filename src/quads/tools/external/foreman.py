@@ -10,6 +10,8 @@ urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
 
+FOREMAN_MAX_PER_PAGE = 9999
+
 
 class Foreman(object):
     def __init__(self, url, username, password, semaphore=None):
@@ -256,7 +258,7 @@ class Foreman(object):
         return None
 
     async def get_all_hosts(self):
-        endpoint = "/hosts?per_page=9999"
+        endpoint = f"/hosts?per_page={FOREMAN_MAX_PER_PAGE}"
         return await self.get_obj_dict(endpoint)
 
     async def get_host(self, hostname):
@@ -264,15 +266,15 @@ class Foreman(object):
         return await self.get_obj_dict(endpoint)
 
     async def get_broken_hosts(self):
-        endpoint = "/hosts?search=params.broken_state=true"
+        endpoint = f"/hosts?search=params.broken_state=true&per_page={FOREMAN_MAX_PER_PAGE}"
         return await self.get_obj_dict(endpoint)
 
     async def get_build_hosts(self, build=True):
-        endpoint = "/hosts?search=build=%s" % str(build).lower()
+        endpoint = f"/hosts?search=build={str(build).lower()}&per_page={FOREMAN_MAX_PER_PAGE}"
         return await self.get_obj_dict(endpoint)
 
     async def get_parametrized(self, param, value):
-        endpoint = "/hosts?search=%s=%s" % (param, value)
+        endpoint = f"/hosts?search={param}={value}&per_page={FOREMAN_MAX_PER_PAGE}"
         return await self.get_obj_dict(endpoint)
 
     async def get_host_id(self, host_name):
