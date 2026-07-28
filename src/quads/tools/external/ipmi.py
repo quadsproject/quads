@@ -26,7 +26,7 @@ class IPMI:
         ipmi = cls(host, username, password)
         return ipmi
 
-    async def execute(self, arguments: List[str]) -> None:  # pragma: no cover
+    async def execute(self, arguments: List[str]) -> str:  # pragma: no cover
         ipmi_cmd = [
             "/usr/bin/ipmitool",
             "-I",
@@ -38,12 +38,22 @@ class IPMI:
             "-P",
             self.password,
         ]
-        self.logger.debug(f"Executing IPMI with argmuents: {arguments}")
+        self.logger.debug(f"Executing IPMI with arguments: {arguments}")
         cmd = ipmi_cmd + arguments
         async with self.semaphore:
-            process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
-            stdout, _ = await process.communicate()
-            self.logger.debug(f"{stdout.decode().strip()}")
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await process.communicate()
+            stdout_str = stdout.decode().strip()
+            stderr_str = stderr.decode().strip()
+            self.logger.debug(stdout_str)
+            if process.returncode != 0:
+                error_detail = stderr_str or stdout_str
+                raise RuntimeError(f"IPMI command failed for {self.host} (rc={process.returncode}): {error_detail}")
+            return stdout_str
 
     async def reset(self) -> None:  # pragma: no cover
         ipmi_off = [
@@ -59,6 +69,14 @@ class IPMI:
             "on",
         ]
         await self.execute(ipmi_on)
+
+    async def verify_credentials(self) -> bool:
+        try:
+            await self.execute(["chassis", "power", "status"])
+            return True
+        except Exception as ex:
+            self.logger.error(f"IPMI credential verification failed for {self.host}: {ex}")
+            return False
 
     async def configure_user(self, user_id: int, password: str) -> bool:
         try:
