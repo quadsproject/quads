@@ -92,6 +92,18 @@ class HardwareDispatcher(SinglePluginDispatcher[HardwarePlugin]):
             logger.error(f"Failed to detach remote image: {e}")
             return False
 
+    async def get_bios_attribute(self, attribute: str) -> Optional[str]:
+        plugin = self._get_active_plugin()
+        if not plugin:
+            logger.error("No hardware plugin enabled")
+            return None
+
+        try:
+            return await plugin.get_bios_attribute(attribute)
+        except Exception as e:
+            logger.error(f"Failed to get BIOS attribute: {e}")
+            return None
+
     async def boot_to_type(self, host_type: str, interfaces_path: str) -> bool:
         plugin = self._get_active_plugin()
         if not plugin:
@@ -127,8 +139,7 @@ class HardwareDispatcher(SinglePluginDispatcher[HardwarePlugin]):
 
         logger.info(f"Setting next boot to PXE via {plugin.name}")
         try:
-            await plugin.set_next_boot_pxe()
-            return True
+            return await plugin.set_next_boot_pxe()
         except Exception as e:
             logger.error(f"Failed to set next boot to PXE: {e}")
             return False

@@ -181,14 +181,20 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                             host.uloc,
                             host.blade,
                         ):
+                            boot_set = False
                             if self.hardware_dispatcher.get_vendor() == "Dell":
-                                await self.hardware_dispatcher.boot_to_type(
+                                boot_set = await self.hardware_dispatcher.boot_to_type(
                                     "foreman",
                                     "/opt/quads/conf/idrac_interfaces.yml",
                                 )
+                                if not boot_set:
+                                    self.logger.error(f"Failed to set boot target for {host.name}, skipping reboot.")
                             else:
-                                await self.hardware_dispatcher.set_next_boot_pxe()
-                            await self.hardware_dispatcher.reboot_server()
+                                boot_set = await self.hardware_dispatcher.set_next_boot_pxe()
+                                if not boot_set:
+                                    self.logger.error(f"Failed to set PXE boot for {host.name}, skipping reboot.")
+                            if boot_set:
+                                await self.hardware_dispatcher.reboot_server()
                         else:
                             self.logger.error(f"Could not initiate hardware for: {host.name}")
                     except Exception as ಥ﹏ಥ:

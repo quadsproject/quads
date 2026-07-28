@@ -93,8 +93,8 @@ class TestHardwareInterface:
         """Test that HardwarePlugin inherits from BasePlugin"""
         assert issubclass(HardwarePlugin, BasePlugin)
 
-    def test_hardware_plugin_has_required_methods(self):
-        """Test that HardwarePlugin has required abstract methods"""
+    def test_hardware_plugin_complete_implementation(self):
+        """Test that HardwarePlugin works with all methods overridden"""
 
         class CompleteHardwarePlugin(HardwarePlugin):
             name = "complete"
@@ -120,8 +120,8 @@ class TestHardwareInterface:
             async def reboot_server(self, graceful: bool = False) -> bool:
                 return True
 
-            async def set_next_boot_pxe(self) -> None:
-                pass
+            async def set_next_boot_pxe(self) -> bool:
+                return True
 
             async def get_power_state(self) -> str:
                 return "on"
@@ -129,6 +129,114 @@ class TestHardwareInterface:
         config = {}
         plugin = CompleteHardwarePlugin(config)
         assert plugin is not None
+
+    def test_hardware_plugin_minimal_implementation(self):
+        """Test that a plugin implementing only core abstract methods can be instantiated"""
+
+        class MinimalHardwarePlugin(HardwarePlugin):
+            name = "minimal"
+
+            async def init(self, host: str, rack: str, uloc: str, blade: str) -> None:
+                pass
+
+            async def set_power_state(self, state: str) -> None:
+                pass
+
+            async def reboot_server(self, graceful: bool = False) -> bool:
+                return True
+
+            async def get_power_state(self) -> str:
+                return "on"
+
+        config = {}
+        plugin = MinimalHardwarePlugin(config)
+        assert plugin is not None
+
+    def test_hardware_plugin_default_values(self):
+        """Test that optional methods return safe default values"""
+
+        class MinimalHardwarePlugin(HardwarePlugin):
+            name = "minimal"
+
+            async def init(self, host: str, rack: str, uloc: str, blade: str) -> None:
+                pass
+
+            async def set_power_state(self, state: str) -> None:
+                pass
+
+            async def reboot_server(self, graceful: bool = False) -> bool:
+                return True
+
+            async def get_power_state(self) -> str:
+                return "on"
+
+        config = {}
+        plugin = MinimalHardwarePlugin(config)
+        import asyncio
+
+        assert asyncio.run(plugin.change_boot("director", "/tmp/test")) is False
+        assert asyncio.run(plugin.boot_to_type("foreman", "/tmp/test")) is False
+        assert asyncio.run(plugin.set_next_boot_pxe()) is False
+        assert asyncio.run(plugin.unmount_virtual_media()) is False
+        assert asyncio.run(plugin.detach_remote_image()) is False
+        assert asyncio.run(plugin.get_bios_attribute("BootMode")) is None
+        assert plugin.get_vendor() is None
+
+    def test_hardware_plugin_incomplete_raises(self):
+        """Test that missing core abstract methods raises TypeError"""
+
+        class MissingInit(HardwarePlugin):
+            name = "missing_init"
+
+            async def set_power_state(self, state: str) -> None:
+                pass
+
+            async def reboot_server(self, graceful: bool = False) -> bool:
+                return True
+
+            async def get_power_state(self) -> str:
+                return "on"
+
+        class MissingPowerState(HardwarePlugin):
+            name = "missing_power"
+
+            async def init(self, host: str, rack: str, uloc: str, blade: str) -> None:
+                pass
+
+            async def reboot_server(self, graceful: bool = False) -> bool:
+                return True
+
+            async def get_power_state(self) -> str:
+                return "on"
+
+        class MissingReboot(HardwarePlugin):
+            name = "missing_reboot"
+
+            async def init(self, host: str, rack: str, uloc: str, blade: str) -> None:
+                pass
+
+            async def set_power_state(self, state: str) -> None:
+                pass
+
+            async def get_power_state(self) -> str:
+                return "on"
+
+        class MissingGetPower(HardwarePlugin):
+            name = "missing_get_power"
+
+            async def init(self, host: str, rack: str, uloc: str, blade: str) -> None:
+                pass
+
+            async def set_power_state(self, state: str) -> None:
+                pass
+
+            async def reboot_server(self, graceful: bool = False) -> bool:
+                return True
+
+        config = {}
+        for cls in [MissingInit, MissingPowerState, MissingReboot, MissingGetPower]:
+            with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+                cls(config)
 
 
 class TestProvisionerInterface:

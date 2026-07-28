@@ -292,8 +292,8 @@ class TestEnvironmentValidatorPlugin:
 
             plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
             plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="Dell")
-            plugin.hardware_dispatcher.boot_to_type = AsyncMock()
-            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock()
+            plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock(return_value=True)
             plugin.hardware_dispatcher.reboot_server = AsyncMock()
 
             hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
@@ -328,8 +328,8 @@ class TestEnvironmentValidatorPlugin:
 
             plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
             plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="HPE")
-            plugin.hardware_dispatcher.boot_to_type = AsyncMock()
-            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock()
+            plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock(return_value=True)
             plugin.hardware_dispatcher.reboot_server = AsyncMock()
 
             hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
@@ -340,6 +340,72 @@ class TestEnvironmentValidatorPlugin:
             plugin.hardware_dispatcher.set_next_boot_pxe.assert_called_once()
             plugin.hardware_dispatcher.boot_to_type.assert_not_called()
             plugin.hardware_dispatcher.reboot_server.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_post_system_test_boot_to_type_failure_skips_reboot(self, plugin, mock_config):
+        """Test that reboot is skipped when boot_to_type fails for Dell hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_foreman = AsyncMock()
+            mock_foreman.verify_credentials.return_value = True
+            mock_foreman.get_build_hosts.return_value = ["host1.example.com"]
+            mock_foreman_class.return_value = mock_foreman
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="Dell")
+            plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=False)
+            plugin.hardware_dispatcher.reboot_server = AsyncMock()
+
+            hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
+            result, updated_report = await plugin.post_system_test("cloud01", "TICKET-123", hosts, "")
+
+            assert result is False
+            assert "host1.example.com" in updated_report
+            plugin.hardware_dispatcher.boot_to_type.assert_called_once()
+            plugin.hardware_dispatcher.reboot_server.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_post_system_test_set_next_boot_pxe_failure_skips_reboot(self, plugin, mock_config):
+        """Test that reboot is skipped when set_next_boot_pxe fails for non-Dell hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
+            patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
+        ):
+            for key, value in mock_config.items():
+                setattr(mock_cfg, key, value)
+
+            mock_foreman = AsyncMock()
+            mock_foreman.verify_credentials.return_value = True
+            mock_foreman.get_build_hosts.return_value = ["host1.example.com"]
+            mock_foreman_class.return_value = mock_foreman
+
+            mock_nc = AsyncMock()
+            mock_nc.health_check.return_value = True
+            mock_netcat_class.return_value = mock_nc
+
+            plugin.hardware_dispatcher.init = AsyncMock(return_value=True)
+            plugin.hardware_dispatcher.get_vendor = MagicMock(return_value="HPE")
+            plugin.hardware_dispatcher.set_next_boot_pxe = AsyncMock(return_value=False)
+            plugin.hardware_dispatcher.reboot_server = AsyncMock()
+
+            hosts = [MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")]
+            result, updated_report = await plugin.post_system_test("cloud01", "TICKET-123", hosts, "")
+
+            assert result is False
+            assert "host1.example.com" in updated_report
+            plugin.hardware_dispatcher.set_next_boot_pxe.assert_called_once()
+            plugin.hardware_dispatcher.reboot_server.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_post_system_test_hosts_in_build_mode_supermicro(self, plugin, mock_config):

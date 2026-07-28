@@ -14,7 +14,6 @@ class HardwarePlugin(BasePlugin):
         """
         pass
 
-    @abstractmethod
     async def change_boot(self, boot_order: str, interfaces_path: str) -> bool:
         """
         Change the boot order configuration.
@@ -26,7 +25,7 @@ class HardwarePlugin(BasePlugin):
         Returns:
             bool: True if boot order changed successfully, False otherwise
         """
-        pass
+        return False
 
     @abstractmethod
     async def set_power_state(self, state: str) -> None:
@@ -41,7 +40,6 @@ class HardwarePlugin(BasePlugin):
         """
         pass
 
-    @abstractmethod
     async def unmount_virtual_media(self) -> bool:
         """
         Unmount any mounted virtual media.
@@ -49,9 +47,8 @@ class HardwarePlugin(BasePlugin):
         Returns:
             bool: True if unmount successful, False otherwise
         """
-        pass
+        return False
 
-    @abstractmethod
     async def detach_remote_image(self) -> bool:
         """
         Detach remote ISO image.
@@ -59,9 +56,8 @@ class HardwarePlugin(BasePlugin):
         Returns:
             bool: True if detach successful, False otherwise
         """
-        pass
+        return False
 
-    @abstractmethod
     async def boot_to_type(self, host_type: str, interfaces_path: str) -> bool:
         """
         Boot to a specific host type configuration.
@@ -73,7 +69,7 @@ class HardwarePlugin(BasePlugin):
         Returns:
             bool: True if boot configuration successful, False otherwise
         """
-        pass
+        return False
 
     @abstractmethod
     async def reboot_server(self, graceful: bool = False) -> bool:
@@ -88,15 +84,14 @@ class HardwarePlugin(BasePlugin):
         """
         pass
 
-    @abstractmethod
-    async def set_next_boot_pxe(self) -> None:
+    async def set_next_boot_pxe(self) -> bool:
         """
         Set the next boot to PXE.
 
-        Raises:
-            Exception: If setting PXE boot fails
+        Returns:
+            bool: True if PXE boot set successfully, False otherwise
         """
-        pass
+        return False
 
     @abstractmethod
     async def get_power_state(self) -> str:
@@ -107,6 +102,15 @@ class HardwarePlugin(BasePlugin):
             str: Current power state ('On', 'Off', 'Down', etc.)
         """
         pass
+
+    async def get_bios_attribute(self, attribute: str) -> Optional[str]:
+        """
+        Read a single BIOS attribute value from the hardware.
+
+        Returns:
+            The attribute value, or None if not found.
+        """
+        return None
 
     def get_vendor(self) -> Optional[str]:
         """Return the hardware vendor string after init(), or None if unavailable.
