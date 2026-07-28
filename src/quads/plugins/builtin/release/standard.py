@@ -327,20 +327,17 @@ class StandardReleasePlugin(ReleasePlugin):
 
     async def reboot_for_rebuild(self, host_obj: Host, boot_order: str, interfaces_path: str) -> bool:
         """Reboot host for rebuild"""
-        # Set boot to default order if needed
         if not self.hardware_initialized:
             self.hardware_initialized = await self.hardware_dispatcher.init(
                 host_obj.name, host_obj.rack, host_obj.uloc, host_obj.blade
             )
-        if boot_order != Config.plugins["foreman"]["default_boot_order"]:
-            if not await self.hardware_dispatcher.boot_to_type(
-                Config.plugins["foreman"]["default_boot_order"],
-                interfaces_path,
-            ):
-                self.logger.error(f"Error setting PXE boot on {host_obj.name}.")
-                return False
+        if not await self.hardware_dispatcher.boot_to_type(
+            Config.plugins["foreman"]["default_boot_order"],
+            interfaces_path,
+        ):
+            self.logger.error(f"Error setting PXE boot on {host_obj.name}.")
+            return False
 
-        # Reboot
         if not await self.hardware_dispatcher.reboot_server(graceful=False):
             self.logger.error(f"Error rebooting server: {host_obj.name}")
             return False

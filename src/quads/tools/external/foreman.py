@@ -264,15 +264,15 @@ class Foreman(object):
         return await self.get_obj_dict(endpoint)
 
     async def get_broken_hosts(self):
-        endpoint = "/hosts?search=params.broken_state=true"
+        endpoint = "/hosts?search=params.broken_state=true&per_page=9999"
         return await self.get_obj_dict(endpoint)
 
     async def get_build_hosts(self, build=True):
-        endpoint = "/hosts?search=build=%s" % str(build).lower()
+        endpoint = "/hosts?search=build=%s&per_page=9999" % str(build).lower()
         return await self.get_obj_dict(endpoint)
 
     async def get_parametrized(self, param, value):
-        endpoint = "/hosts?search=%s=%s" % (param, value)
+        endpoint = "/hosts?search=%s=%s&per_page=9999" % (param, value)
         return await self.get_obj_dict(endpoint)
 
     async def get_host_id(self, host_name):
