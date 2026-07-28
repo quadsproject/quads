@@ -35,6 +35,62 @@ class TestSSHHelper(TestBase):
 
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_connect_no_identityfile(self, mock_client, mock_config):
+        mock_config.return_value.lookup.return_value = {"hostname": "newhost"}
+        transport = MagicMock()
+        mock_client.return_value.get_transport.return_value = transport
+        ssh_helper = SSHHelper("newhost", "user", "pass")
+        mock_client.return_value.connect.assert_called_once_with(
+            "newhost",
+            username="user",
+            password="pass",
+            key_filename=None,
+            allow_agent=False,
+            timeout=30,
+        )
+        assert ssh_helper.ssh is not None
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_connect_with_identityfile(self, mock_client, mock_config):
+        mock_config.return_value.lookup.return_value = {
+            "hostname": "myhost",
+            "identityfile": ["/home/quads/.ssh/id_rsa"],
+        }
+        transport = MagicMock()
+        mock_client.return_value.get_transport.return_value = transport
+        ssh_helper = SSHHelper("myhost", "user", "pass")
+        mock_client.return_value.connect.assert_called_once_with(
+            "myhost",
+            username="user",
+            password="pass",
+            key_filename="/home/quads/.ssh/id_rsa",
+            allow_agent=False,
+            timeout=30,
+        )
+        assert ssh_helper.ssh is not None
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_connect_empty_identityfile_list(self, mock_client, mock_config):
+        mock_config.return_value.lookup.return_value = {
+            "hostname": "myhost",
+            "identityfile": [],
+        }
+        transport = MagicMock()
+        mock_client.return_value.get_transport.return_value = transport
+        ssh_helper = SSHHelper("myhost", "user", "pass")
+        mock_client.return_value.connect.assert_called_once_with(
+            "myhost",
+            username="user",
+            password="pass",
+            key_filename=None,
+            allow_agent=False,
+            timeout=30,
+        )
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
     def test_run_cmd_with_error(self, mock_client, mock_config):
         mock_config.return_value = MagicMock()
         stderr_mock = MagicMock()
