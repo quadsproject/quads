@@ -865,6 +865,9 @@ class Badfish:
     async def reboot_server(self, graceful=False):
         logger.debug("Rebooting server: %s." % self.host)
         power_state = await self.get_power_state()
+        if power_state.lower() == "down":
+            logger.error("BMC unreachable for %s, cannot reboot." % self.host)
+            return False
         if power_state.lower() == "on":
             if graceful:
                 await self.send_reset("GracefulRestart")
@@ -879,8 +882,10 @@ class Badfish:
 
             host_not_down = await self.polling_host_state("Down", False)
 
-            if host_not_down:
-                await self.send_reset("On")
+            if not host_not_down:
+                logger.error("Host %s did not come back after ForceOff." % self.host)
+                return False
+            await self.send_reset("On")
 
         elif power_state.lower() == "off":
             await self.send_reset("On")
@@ -1006,7 +1011,7 @@ class Badfish:
                 break
             else:
                 logger.error("Command failed, error code is: %s." % status_code)
-                if status_code == 503 and i - 1 != self.retries:
+                if status_code == 503 and i + 1 != self.retries:
                     logger.info("Retrying to send one time boot.")
                     continue
                 elif status_code == 400 and insist:
