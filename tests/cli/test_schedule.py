@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -72,6 +72,74 @@ class TestSchedule(TestBase):
         cloud = CloudDao.get_cloud(CLOUD)
         schedule = ScheduleDao.get_current_schedule(host=host, cloud=cloud)
         assert schedule
+
+    def test_add_schedule_jira_disabled(self, monkeypatch, tmp_path):
+        today = datetime.now() + timedelta(days=7)
+        tomorrow = today + timedelta(days=1)
+        hostlist = tmp_path / "hosts"
+        hostlist.write_text(HOST2 + "\n")
+
+        self.cli_args["schedstart"] = today.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedend"] = tomorrow.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedcloud"] = CLOUD
+        self.cli_args["host"] = None
+        self.cli_args["host_list"] = str(hostlist)
+        self.cli_args["omitcloud"] = None
+
+        jira_cfg = dict(Config.plugins["jira"])
+        jira_cfg["enabled"] = False
+        monkeypatch.setattr(Config, "plugins", {**Config.plugins, "jira": jira_cfg})
+
+        with patch("quads.cli.cli.Jira") as mock_jira:
+            self.quads_cli_call("add_schedule")
+            mock_jira.assert_not_called()
+
+    def test_add_schedule_jira_enabled(self, monkeypatch, tmp_path):
+        today = datetime.now() + timedelta(days=8)
+        tomorrow = today + timedelta(days=1)
+        hostlist = tmp_path / "hosts"
+        hostlist.write_text(HOST2 + "\n")
+
+        self.cli_args["schedstart"] = today.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedend"] = tomorrow.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedcloud"] = CLOUD
+        self.cli_args["host"] = None
+        self.cli_args["host_list"] = str(hostlist)
+        self.cli_args["omitcloud"] = None
+
+        jira_cfg = dict(Config.plugins["jira"])
+        jira_cfg["enabled"] = True
+        monkeypatch.setattr(Config, "plugins", {**Config.plugins, "jira": jira_cfg})
+
+        with patch("quads.cli.cli.Jira") as mock_jira:
+            instance = mock_jira.return_value
+            instance.post_comment = AsyncMock(return_value=True)
+            instance.get_transitions = AsyncMock(return_value=[])
+            self.quads_cli_call("add_schedule")
+            mock_jira.assert_called_once()
+            instance.post_comment.assert_awaited_once()
+
+    def test_add_schedule_jira_missing_url(self, monkeypatch, tmp_path):
+        today = datetime.now() + timedelta(days=9)
+        tomorrow = today + timedelta(days=1)
+        hostlist = tmp_path / "hosts"
+        hostlist.write_text(HOST2 + "\n")
+
+        self.cli_args["schedstart"] = today.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedend"] = tomorrow.strftime("%Y-%m-%d %H:%M")
+        self.cli_args["schedcloud"] = CLOUD
+        self.cli_args["host"] = None
+        self.cli_args["host_list"] = str(hostlist)
+        self.cli_args["omitcloud"] = None
+
+        jira_cfg = dict(Config.plugins["jira"])
+        jira_cfg["enabled"] = True
+        jira_cfg.pop("url", None)
+        monkeypatch.setattr(Config, "plugins", {**Config.plugins, "jira": jira_cfg})
+
+        with pytest.raises(CliException) as ex:
+            self.quads_cli_call("add_schedule")
+        assert "url" in str(ex.value)
 
     def test_add_schedule_host_list_not_avail(self):
         today = datetime.now()
