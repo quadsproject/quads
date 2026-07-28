@@ -194,9 +194,7 @@ class StandardReleasePlugin(ReleasePlugin):
                     await self._report_progress(schedule_id, "cleanup", "Virtual media cleaned")
 
                     if vendor == "Dell":
-                        if not await self.reboot_for_rebuild(
-                            host_obj, boot_order, Config.get("badfish_interfaces_path")
-                        ):
+                        if not await self.reboot_for_rebuild(host_obj, Config.get("badfish_interfaces_path")):
                             self._update_host_on_failure(
                                 host_obj, schedule_id=schedule_id, error_message="Failed at reboot"
                             )
@@ -325,14 +323,35 @@ class StandardReleasePlugin(ReleasePlugin):
             "supports_pdu": Config.pdu_management,
         }
 
-    async def reboot_for_rebuild(self, host_obj: Host, boot_order: str, interfaces_path: str) -> bool:
+    async def _is_one_time_boot_set(self, host_obj: Host) -> bool:
+        try:
+            boot_mode = await self.hardware_dispatcher.get_bios_attribute("BootMode")
+            boot_seq = "UefiBootSeq" if boot_mode == "Uefi" else "BootSeq"
+
+            current_mode = await self.hardware_dispatcher.get_bios_attribute("OneTimeBootMode")
+            current_device = await self.hardware_dispatcher.get_bios_attribute(f"OneTime{boot_seq}Dev")
+
+            if current_mode == f"OneTime{boot_seq}" and current_device:
+                self.logger.info(
+                    "One-time boot already set to %s on %s, skipping."
+                    % (current_device, host_obj.name)
+                )
+                return True
+        except Exception:
+            self.logger.warning(
+                "Could not determine one-time boot state for %s, proceeding with set."
+                % host_obj.name
+            )
+        return False
+
+    async def reboot_for_rebuild(self, host_obj: Host, interfaces_path: str) -> bool:
         """Reboot host for rebuild"""
-        # Set boot to default order if needed
         if not self.hardware_initialized:
             self.hardware_initialized = await self.hardware_dispatcher.init(
                 host_obj.name, host_obj.rack, host_obj.uloc, host_obj.blade
             )
-        if boot_order != Config.plugins["foreman"]["default_boot_order"]:
+
+        if not await self._is_one_time_boot_set(host_obj):
             if not await self.hardware_dispatcher.boot_to_type(
                 Config.plugins["foreman"]["default_boot_order"],
                 interfaces_path,
@@ -340,7 +359,6 @@ class StandardReleasePlugin(ReleasePlugin):
                 self.logger.error(f"Error setting PXE boot on {host_obj.name}.")
                 return False
 
-        # Reboot
         if not await self.hardware_dispatcher.reboot_server(graceful=False):
             self.logger.error(f"Error rebooting server: {host_obj.name}")
             return False
