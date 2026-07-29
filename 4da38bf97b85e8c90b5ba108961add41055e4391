@@ -16,6 +16,24 @@
       "message": "why did we remove the existing boot order check here?",
       "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51e4cf6a_59a45986",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-29T14:02:15Z",
+      "side": 1,
+      "message": "The old code had one if check doing double duty for two unrelated things:\n\n  1. Persistent boot order -- which device the server boots from by default, every time it powers on (e.g. \"always boot from the director NIC\n  first\"). This is stored in BIOS NVRAM and sticks until something explicitly changes it.\n  2. One-time PXE boot -- a single-use override that says \"on your very next boot only, boot from this specific NIC to reach the kickstart server.\"\n  It fires once and auto-clears.\n\n  The old guard said: \"if the assignment wants the default boot order, skip setting the one-time PXE boot.\" But those are two separate questions.\n  The assignment\u0027s preferred persistent order has nothing to do with whether the host needs a one-time PXE kick right now to get kickstarted.\n\n  The practical result: a host that previously had a non-default persistent order (from an earlier tenant) would come back to the spare pool with\n  that stale order still baked into BIOS. When the next assignment used the default order, the guard skipped the one-time PXE override. The host\n  rebooted from whatever was left in BIOS (the old tenant\u0027s boot order), never hit PXE, never kickstarted, and nobody got an error.\n\n  Removing the guard means: \"always set the one-time PXE boot before the rebuild reboot, regardless of what the persistent order is.\" It\u0027s a few\n  extra seconds of iDRAC API calls, but it guarantees the host PXE boots every time.\n\n\n\nHOT DOG SLOP:\n\nThe guard conflated two independent BIOS mechanisms and caused a silent PXE boot failure.\n\n  The old guard checked whether the assignment\u0027s requested persistent boot order (boot_order) matched the default, and used that to decide whether\n  to set a one-time PXE boot override. These are independent concerns:\n\n  - change_boot() in prepare_host_hardware() -- modifies the persistent BootSeq in BIOS NVRAM. This is the assignment\u0027s preferred boot device order\n  for the lifetime of that assignment.\n  - boot_to_type() in reboot_for_rebuild() -- sets a one-time PXE override via OneTimeBootMode/OneTimeBootSeqDev. Consumed and auto-cleared after\n  one boot. This ensures the kickstart reboot lands on PXE regardless of persistent order.",
+      "parentUuid": "396d6a95_6ab4b1de",
+      "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
