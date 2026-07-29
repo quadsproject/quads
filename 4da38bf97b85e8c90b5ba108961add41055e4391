@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "396d6a95_6ab4b1de",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-29T12:45:03Z",
+      "side": 1,
+      "message": "why did we remove the existing boot order check here?",
+      "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
