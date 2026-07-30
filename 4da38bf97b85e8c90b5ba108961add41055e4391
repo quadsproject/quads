@@ -52,6 +52,24 @@
       "parentUuid": "51e4cf6a_59a45986",
       "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "859146f1_ecbfa16f",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-30T08:13:47Z",
+      "side": 1,
+      "message": "What we\u0027re doing isn\u0027t working.  We also still don\u0027t obsess over boot order and gate on it.  Let me think about this more but I think we need some hammer swinging in here, I\u0027m seeing real cases (like right now) where we\u0027re just not able to set boot order correctly - someone messed with it, added extra entries - it\u0027s just not working but if we set boot_to_type(foreman) in those cases it would have provisioned correctly and released.\n\nLet me see if I can make this at least conditional.",
+      "parentUuid": "776c5324_4c93b232",
+      "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
