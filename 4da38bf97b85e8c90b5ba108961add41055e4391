@@ -70,6 +70,24 @@
       "parentUuid": "776c5324_4c93b232",
       "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e327933d_a5bd72a1",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-07-30T11:34:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "859146f1_ecbfa16f",
+      "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
