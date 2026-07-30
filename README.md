@@ -33,6 +33,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
               * [Ordering Dynamic Wiki Content](#ordering-elements-in-the-dynamic-wiki-content)
          * [Installing other QUADS Components](#installing-other-quads-components)
             * [QUADS Move Command](#quads-move-command)
+            * [Google OAuth Setup](#google-oauth-setup)
          * [Making QUADS Run](#making-quads-run)
             * [Major Components](#major-components)
             * [External Services](#external-services)
@@ -243,6 +244,7 @@ _How many hosts and environments can a single QUADS instance use?_
 | Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper Environments, IPMI, Foreman |
 | Install QUADS | [docs](#installing-quads) | Install via RPM |
 | Enable SSL | [docs](#using-ssl-with-flask-api-and-quads) | Optionally enable SSL for API, Web |
+| Google OAuth Setup | [docs](/docs/google-oauth-setup.md) | Optionally setup Google OAuth for API, Web |
 | Configure your QUADS Move Command | [docs](#quads-move-command) | Configure your provisioning and move actions |
 | Configure QUADS Crons | [docs](#making-quads-run) |  Tell QUADS how to manage your infrastructure |
 | Add Clouds and Hosts | [docs](#adding-new-hosts-to-quads) | Configure your hosts and environments in QUADS |
@@ -408,6 +410,9 @@ systemctl restart nginx
 
 #### QUADS Move Command
    - QUADS relies on the plugin architecture to provision and manage machines. The release workflow is handled by the `standard` release plugin (configured in `/opt/quads/conf/plugins.yml`) which coordinates with provisioner, hardware, and switch plugins. Read more about this in the [move-host-command](#quads-move-host-command) section below and the [Plugin Architecture Documentation](/docs/quads-plugins.md).
+
+#### Google OAuth Setup
+   - For optionally integrating QUADS with Google OAuth SSO you can follow the instructions on [Google OAuth Setup](/docs/google-oauth-setup.md) docs.
 
 ### Making QUADS Run
    - QUADS is a passive service and does not do anything you do not tell it to do.  We control QUADS with [cron commands](/cron/quads).
