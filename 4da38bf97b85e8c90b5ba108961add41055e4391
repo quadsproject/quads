@@ -34,6 +34,24 @@
       "parentUuid": "396d6a95_6ab4b1de",
       "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "776c5324_4c93b232",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-30T08:10:49Z",
+      "side": 1,
+      "message": "so now we are always doing a `boot_to_type(foreman)` regardless if the boot order is already set to that, with the additional reboot followed up. Not sure how that solves anything other than making the release unnecessary slower.",
+      "parentUuid": "51e4cf6a_59a45986",
+      "revId": "4da38bf97b85e8c90b5ba108961add41055e4391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
