@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "886ffa5f_1ae35bb0",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-31T16:13:06Z",
+      "side": 1,
+      "message": "this interface forces the user to implement this method on new plugin declarations, if that plugin can\u0027t access the bios attributes then it can\u0027t be instantiated, afraid this might be more of a blocker than an enhancements and we can still define the method on the plugin without having to enforce it.",
+      "revId": "27357bb30569f2f2567c57442734ee42787af41a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
