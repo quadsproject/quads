@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "858a4d07_8d589c86",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-31T18:49:58Z",
+      "side": 1,
+      "message": "move import up with the rest of the imports\nhttps://www.flake8rules.com/rules/E402.html",
+      "revId": "539240037d40db975234561d9dbc870ea8abb691",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f239ad2_5b3effc2",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-31T18:49:58Z",
+      "side": 1,
+      "message": "doesn\u0027t matter if the plugin is enabled or not, your functionality is not part of the plugin as it is a standalone tool that uses the external/foreman.py which is essentially a wrapper for the foreman API that is also used by the foreman plugin. You can remove this whole if and just call the function.",
+      "revId": "539240037d40db975234561d9dbc870ea8abb691",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "08e37123_c4e3b3d7",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-07-31T18:49:58Z",
+      "side": 1,
+      "message": "https://www.flake8rules.com/rules/E402.html",
+      "revId": "539240037d40db975234561d9dbc870ea8abb691",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
