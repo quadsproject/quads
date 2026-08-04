@@ -16,6 +16,24 @@
       "message": "this interface forces the user to implement this method on new plugin declarations, if that plugin can\u0027t access the bios attributes then it can\u0027t be instantiated, afraid this might be more of a blocker than an enhancements and we can still define the method on the plugin without having to enforce it.",
       "revId": "27357bb30569f2f2567c57442734ee42787af41a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa5fc07a_6744819c",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-04T11:48:35Z",
+      "side": 1,
+      "message": "ok, got it.\n\n  get_bios_attribute and get_vendor both have non-abstract defaults returning None but there\u0027s other abstract method declarations that would have this problem.\n\nLet me rework this some.",
+      "parentUuid": "886ffa5f_1ae35bb0",
+      "revId": "27357bb30569f2f2567c57442734ee42787af41a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
