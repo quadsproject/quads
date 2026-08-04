@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6c1b30c7_bc1dd00d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-04T11:26:26Z",
+      "side": 1,
+      "message": "We need some docs here, especially in reference to new stuff proposed to be added by rc/quads/tools/foreman_setup.py and new foreman setup workflows\n\nsee:\n\nhttps://github.com/quadsproject/quads/blob/latest/docs/switch-host-setup.md#integration-into-foreman-or-a-provisioning-system\n\nreview and adjust:\n\nhttps://github.com/quadsproject/quads/blob/latest/docs/switch-host-setup.md#create-foreman-roles-and-filters\n\nWe also should entertain removing this if there\u0027s newer, easier automation to do this as not only are those templates very old I think they aren\u0027t all that useful to anyone now, especially since we use nmcli for the validation templates:\n\nhttps://github.com/quadsproject/quads/tree/latest/templates (perhaps nuke ../templates entirely?)\n\nAlso needs review / updates:\n\nhttps://github.com/quadsproject/quads/tree/latest#setup-overview\n\nThere is a setup docs table there, we state \"Not Covered here\" for Foreman.\nPerhaps you can reword that, adjust anything else there and also mention:\n\nhttps://github.com/quadsproject/ansible-foreman-create",
+      "revId": "539240037d40db975234561d9dbc870ea8abb691",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "858a4d07_8d589c86",
         "filename": "src/quads/server/app.py",
         "patchSetId": 2
