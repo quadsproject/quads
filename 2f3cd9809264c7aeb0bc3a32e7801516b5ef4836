@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "909a97f1_03f751a3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-04T11:44:31Z",
+      "side": 1,
+      "message": "Thanks for submitting this, let\u0027s work on getting it up to spec and good fit with the repo.\n\nI think the design needs to be fleshed out differently, we shouldn\u0027t be putting new tools into the legacy tools/* locations.\n\nTake a look at:\n\nhttps://github.com/quadsproject/quads/tree/development#writing-custom-plugins\n\nI think this actually fits best into the dayzero structure - we talked about this already, then you\u0027d just need a cloud-level or host-level hook so that it\u0027s enabled and runs for you.\n\nhttps://github.com/quadsproject/quads/blob/development/docs/quads-plugins.md#creating-custom-plugins\n\nIf there are workflows to run it ad-hoc it needs to be part of --modify-switch-conf, not a standalone tool.  Likely both applications are valid here:\n\n1)  set a future cloud to have roce (dayzero / plugin - develop a cloud define hook)\n2)  ad-hoc -\u003e integrate into --mod-switch-conf\n\nSync with Gonza on plugin design first",
+      "revId": "2f3cd9809264c7aeb0bc3a32e7801516b5ef4836",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "037dfffb_54cc2ace",
+        "filename": "docs/quads-roce-setup.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-04T11:44:31Z",
+      "side": 1,
+      "message": "This is not the right approach here, this walks backwards away from the plugin design.  We shouldn\u0027t be adding anything else to tools/external/* and such, this should really be plugin functionality.",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 197,
+        "endChar": 1
+      },
+      "revId": "2f3cd9809264c7aeb0bc3a32e7801516b5ef4836",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
