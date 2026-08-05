@@ -181,7 +181,8 @@ class Foreman(object):
                 put_name = "medium"
             else:
                 put_name = param_name[:-1]
-            endpoint = "/%s" % param_name
+            # Search by the specific value to avoid pagination truncation
+            endpoint = '/%s?search=%s="%s"' % (param_name, param_identifier, param_value)
             result = await self.get(endpoint)
             if result.get("results", False):
                 for item in result["results"]:
