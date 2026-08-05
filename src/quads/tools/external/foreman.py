@@ -6,6 +6,8 @@ import aiohttp
 import urllib3
 from aiohttp import BasicAuth
 
+from quads.config import Config
+
 urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
@@ -407,38 +409,57 @@ class Foreman(object):
 
     async def prepare_host_provisioning(self, host_name: str, cloud: str, os_type: str) -> bool:
 
-        results = []
-
         try:
             available_os = await self.get_available_os()
             os_id = next((os["id"] for os in available_os if os["title"] == os_type), None)
 
             if not os_id:
-                logger.error(f"OS type {os_type} not found in Foreman")
+                logger.error(f"OS type '{os_type}' not found in Foreman")
                 return False
 
             params = [{"name": "operatingsystems", "value": os_type, "identifier": "title"}]
 
             available_mediums = await self.get_mediums(os_id)
-            params.append({"name": "media", "value": available_mediums[0]["name"]})
+            if not available_mediums:
+                logger.error(f"No installation media found in Foreman for OS '{os_type}'")
+                return False
+            default_medium = Config.plugins.get("foreman", {}).get("default_medium", "")
+            medium = next(
+                (m["name"] for m in available_mediums if m["name"] == default_medium),
+                available_mediums[0]["name"],
+            )
+            params.append({"name": "media", "value": medium})
 
             available_ptables = await self.get_ptables(os_id)
-            params.append({"name": "ptables", "value": available_ptables[0]["name"]})
+            if not available_ptables:
+                logger.error(f"No partition tables found in Foreman for OS '{os_type}'")
+                return False
+            default_ptable = Config.plugins.get("foreman", {}).get("default_ptable", "")
+            ptable = next(
+                (p["name"] for p in available_ptables if p["name"] == default_ptable),
+                available_ptables[0]["name"],
+            )
+            params.append({"name": "ptables", "value": ptable})
 
-            mark_for_build_result = await self.mark_for_build(host_name)
-            results.append(mark_for_build_result)
+            host_id = await self.get_host_id(host_name)
+            if not host_id:
+                logger.error(f"Host '{host_name}' not found in Foreman")
+                return False
 
-            put_param_result = await self.put_parameters_by_name(host_name, params)
-            results.append(put_param_result)
+            if not await self.mark_for_build(host_name):
+                logger.error(f"Failed to mark '{host_name}' for build in Foreman")
+                return False
+
+            if not await self.put_parameters_by_name(host_name, params):
+                logger.error(f"Failed to set OS/media/ptable parameters for '{host_name}' in Foreman")
+                return False
 
             owner_id = await self.get_user_id(cloud)
-            host_id = await self.get_host_id(host_name)
-            put_result = await self.put_element("hosts", host_id, "owner_id", owner_id)
-            results.append(put_result)
-
-            for result in results:
-                if isinstance(result, Exception) or not result:
-                    logger.error("There was something wrong setting Foreman host parameters.")
+            if not owner_id:
+                logger.warning(f"Cloud owner '{cloud}' not found in Foreman; skipping owner assignment")
+            else:
+                if not await self.put_element("hosts", host_id, "owner_id", owner_id):
+                    logger.error(f"Failed to set owner for '{host_name}' in Foreman")
                     return False
 
             return True
