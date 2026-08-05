@@ -204,39 +204,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 report += f"{host.name}\n"
             return False, report
 
-        tasks = [self.verify_hardware_creds(host, password) for host in hosts]
-        results = await asyncio.gather(*tasks)
-
-        return not any(results), report
-
-    async def verify_hardware_creds(self, host, password):
-        """Verify hardware credentials for a host"""
-        self.logger.debug(f"Verifying hardware credentials for: {host.name}")
-        try:
-            if is_supermicro(host.name):
-                ipmi = IPMI(
-                    host.name,
-                    str(Config["ipmi_cloud_username"]),
-                    password,
-                    logger=self.logger,
-                )
-                if not await ipmi.verify_credentials():
-                    self.logger.info(f"Could not verify hardware credentials for: {host.name}")
-                    return True
-                return False
-            else:
-                self.hardware_dispatcher.username = str(Config["ipmi_cloud_username"])
-                self.hardware_dispatcher.password = password
-                await self.hardware_dispatcher.init(
-                    host.name,
-                    host.rack,
-                    host.uloc,
-                    host.blade,
-                )
-        except Exception:
-            self.logger.info(f"Could not verify hardware credentials for: {host.name}")
-            return True
-        return False
+        return True, report
 
     async def post_network_test(
         self,
@@ -406,6 +374,25 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         except Exception:
             pass
 
+    async def _ungate_ipmi_users(self, hosts: List) -> None:
+        config_ipmi = Config["plugins"]["badfish"]
+        semaphore = asyncio.Semaphore(20)
+
+        async def _enable_host(host):
+            async with semaphore:
+                ipmi = IPMI(
+                    host.name,
+                    config_ipmi["ipmi_username"],
+                    config_ipmi["ipmi_password"],
+                    logger=self.logger,
+                )
+                if await ipmi.enable_user(Config["ipmi_cloud_username_id"]):
+                    self.logger.info(f"IPMI user ungated for {host.name}")
+                else:
+                    self.logger.warning(f"Failed to ungate IPMI user for {host.name}")
+
+        await asyncio.gather(*[_enable_host(host) for host in hosts], return_exceptions=True)
+
     async def _distribute_ssh_keys(self, assignment, hosts):
         try:
             key_data = self.quads.get_ssh_keys_for_assignment(assignment.id)
@@ -469,6 +456,8 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
             # TODO: quads dell config report
 
             if not failed:
+                await self._ungate_ipmi_users(hosts)
+
                 if not assignment.notification.success:
                     await self.notify_success(cloud, assignment.owner, assignment.ticket)
                     try:

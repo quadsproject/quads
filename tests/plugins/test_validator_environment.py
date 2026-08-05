@@ -78,9 +78,11 @@ class TestEnvironmentValidatorPlugin:
                 "em1": ["172.16.0.0", "172.17.0.0"],
                 "em2": ["172.18.0.0", "172.19.0.0"],
             },
+            "ipmi_cloud_username_id": 4,
             "plugins": {
                 "email": {"report_cc": "admin@example.com,devops@example.com"},
                 "foreman": {"api_url": "https://foreman.example.com"},
+                "badfish": {"ipmi_username": "root", "ipmi_password": "password"},
             },
         }
         return config
@@ -390,7 +392,6 @@ class TestEnvironmentValidatorPlugin:
         with (
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
-            patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
         ):
             for key, value in mock_config.items():
                 setattr(mock_cfg, key, value)
@@ -401,12 +402,6 @@ class TestEnvironmentValidatorPlugin:
             mock_foreman.get_build_hosts.return_value = []  # No hosts in build mode
             mock_foreman_class.return_value = mock_foreman
 
-            # Mock asyncio.gather to return no failures as a coroutine
-            async def mock_gather(*args):
-                return [False, False]
-
-            mock_asyncio.gather = mock_gather
-
             cloud = "cloud01"
             ticket = "TICKET-123"
             hosts = [MockHost("host1.example.com"), MockHost("host2.example.com")]
@@ -415,105 +410,6 @@ class TestEnvironmentValidatorPlugin:
             result, updated_report = await plugin.post_system_test(cloud, ticket, hosts, report)
 
             assert result is True
-
-    @pytest.mark.asyncio
-    async def test_verify_hardware_creds_success(self, plugin, mock_config):
-        """Test verify_hardware_creds succeeds for non-Supermicro hosts"""
-        with (
-            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
-            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=False),
-        ):
-            test_config = mock_config.copy()
-            test_config["ipmi_cloud_username"] = "clouduser"
-
-            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
-            for key, value in test_config.items():
-                setattr(mock_cfg, key, value)
-
-            host = MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")
-            password = "testpassword"
-
-            plugin.hardware_dispatcher.init = AsyncMock()
-
-            result = await plugin.verify_hardware_creds(host, password)
-
-            assert result is False
-            assert plugin.hardware_dispatcher.username == "clouduser"
-            assert plugin.hardware_dispatcher.password == password
-
-    @pytest.mark.asyncio
-    async def test_verify_hardware_creds_failure(self, plugin, mock_config):
-        """Test verify_hardware_creds handles exceptions for non-Supermicro hosts"""
-        with (
-            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
-            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=False),
-        ):
-            test_config = mock_config.copy()
-            test_config["ipmi_cloud_username"] = "clouduser"
-
-            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
-            for key, value in test_config.items():
-                setattr(mock_cfg, key, value)
-
-            host = MockHost("host1.example.com", rack="rack1", uloc="u10", blade="blade1")
-            password = "testpassword"
-
-            plugin.hardware_dispatcher._runtime_plugin = MagicMock()
-            plugin.hardware_dispatcher._runtime_plugin.init = AsyncMock(side_effect=Exception("Connection failed"))
-
-            result = await plugin.verify_hardware_creds(host, password)
-
-            assert result is True
-            plugin.logger.info.assert_called_once()
-            assert "Could not verify hardware credentials" in plugin.logger.info.call_args[0][0]
-
-    @pytest.mark.asyncio
-    async def test_verify_hardware_creds_supermicro_success(self, plugin, mock_config):
-        """Test verify_hardware_creds uses IPMI for Supermicro hosts"""
-        with (
-            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
-            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=True),
-            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
-        ):
-            test_config = mock_config.copy()
-            test_config["ipmi_cloud_username"] = "quads"
-            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
-
-            mock_ipmi = AsyncMock()
-            mock_ipmi.verify_credentials = AsyncMock(return_value=True)
-            mock_ipmi_class.return_value = mock_ipmi
-
-            host = MockHost("sm-host1.example.com", rack="rack1", uloc="u10", blade="blade1")
-            result = await plugin.verify_hardware_creds(host, "rdu2@TICKET123")
-
-            assert result is False
-            mock_ipmi_class.assert_called_once_with(
-                "sm-host1.example.com", "quads", "rdu2@TICKET123", logger=plugin.logger
-            )
-            mock_ipmi.verify_credentials.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_verify_hardware_creds_supermicro_failure(self, plugin, mock_config):
-        """Test verify_hardware_creds returns True (failure) for Supermicro auth failure"""
-        with (
-            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
-            patch("quads.plugins.builtin.validators.environment.is_supermicro", return_value=True),
-            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
-        ):
-            test_config = mock_config.copy()
-            test_config["ipmi_cloud_username"] = "quads"
-            mock_cfg.__getitem__ = lambda self, key: test_config.get(key, "")
-
-            mock_ipmi = AsyncMock()
-            mock_ipmi.verify_credentials = AsyncMock(return_value=False)
-            mock_ipmi_class.return_value = mock_ipmi
-
-            host = MockHost("sm-host1.example.com", rack="rack1", uloc="u10", blade="blade1")
-            result = await plugin.verify_hardware_creds(host, "rdu2@TICKET123")
-
-            assert result is True
-            plugin.logger.info.assert_called_once()
-            assert "Could not verify hardware credentials" in plugin.logger.info.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_post_network_test_hosts_down(self, plugin):
@@ -654,8 +550,8 @@ class TestEnvironmentValidatorPlugin:
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
             patch("quads.plugins.builtin.validators.environment.Netcat") as mock_netcat_class,
             patch("quads.plugins.builtin.validators.environment.SSHHelper") as mock_ssh_class,
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
             patch("socket.gethostbyname") as mock_gethostbyname,
-            patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
             patch("builtins.open", mock_open(read_data="template")),
         ):
             mock_cfg.__getitem__ = lambda self, key: mock_config[key]
@@ -677,12 +573,11 @@ class TestEnvironmentValidatorPlugin:
             mock_ssh.disconnect = MagicMock()
             mock_ssh_class.return_value = mock_ssh
 
+            mock_ipmi_instance = AsyncMock()
+            mock_ipmi_instance.enable_user.return_value = True
+            mock_ipmi_class.return_value = mock_ipmi_instance
+
             mock_gethostbyname.return_value = "192.168.1.1"
-
-            async def mock_gather(*args):
-                return [False, False]
-
-            mock_asyncio.gather = mock_gather
 
             # Setup time exceeded
             old_start = datetime.now() - timedelta(minutes=120)
@@ -699,6 +594,7 @@ class TestEnvironmentValidatorPlugin:
             result, report = await plugin.validate(cloud, assignment, hosts, False, False, "")
 
             assert result is True
+            mock_ipmi_instance.enable_user.assert_called()
             plugin.quads.update_notification.assert_called()
             plugin.quads.update_host.assert_called()
             plugin.quads.update_assignment.assert_called()
@@ -774,7 +670,7 @@ class TestEnvironmentValidatorPlugin:
         with (
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
-            patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
             patch("quads.plugins.builtin.validators.environment.SSHHelper"),
             patch("builtins.open", mock_open(read_data="template")),
         ):
@@ -788,10 +684,9 @@ class TestEnvironmentValidatorPlugin:
             mock_foreman.get_build_hosts.return_value = []
             mock_foreman_class.return_value = mock_foreman
 
-            async def mock_gather(*args):
-                return [False, False]
-
-            mock_asyncio.gather = mock_gather
+            mock_ipmi_instance = AsyncMock()
+            mock_ipmi_instance.enable_user.return_value = True
+            mock_ipmi_class.return_value = mock_ipmi_instance
 
             # Setup time exceeded
             old_start = datetime.now() - timedelta(minutes=120)
@@ -817,7 +712,6 @@ class TestEnvironmentValidatorPlugin:
         with (
             patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
             patch("quads.plugins.builtin.validators.environment.Foreman") as mock_foreman_class,
-            patch("quads.plugins.builtin.validators.environment.asyncio") as mock_asyncio,
             patch("builtins.open", mock_open(read_data="template")),
         ):
             mock_cfg.__getitem__ = lambda self, key: mock_config[key]
@@ -828,11 +722,6 @@ class TestEnvironmentValidatorPlugin:
             mock_foreman = AsyncMock()
             mock_foreman.verify_credentials.return_value = False  # Force failure
             mock_foreman_class.return_value = mock_foreman
-
-            async def mock_gather(*args):
-                return [True, True]  # Force failure
-
-            mock_asyncio.gather = mock_gather
 
             # Setup time exceeded
             old_start = datetime.now() - timedelta(minutes=120)
@@ -1287,3 +1176,51 @@ class TestEnvironmentValidatorPlugin:
             assert "didn't pass the health check" in plugin.logger.warning.call_args[0][0]
             # Hardware dispatcher should not be called since health check failed
             plugin.hardware_dispatcher.init.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_ungate_ipmi_users_success(self, plugin, mock_config):
+        """Test _ungate_ipmi_users enables IPMI for all hosts"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
+        ):
+            mock_cfg.__getitem__ = lambda self, key: mock_config[key]
+
+            mock_ipmi = AsyncMock()
+            mock_ipmi.enable_user = AsyncMock(return_value=True)
+            mock_ipmi_class.return_value = mock_ipmi
+
+            hosts = [MockHost("host1.example.com"), MockHost("host2.example.com")]
+            await plugin._ungate_ipmi_users(hosts)
+
+            assert mock_ipmi_class.call_count == 2
+            assert mock_ipmi.enable_user.call_count == 2
+            mock_ipmi.enable_user.assert_called_with(mock_config["ipmi_cloud_username_id"])
+
+    @pytest.mark.asyncio
+    async def test_ungate_ipmi_users_partial_failure(self, plugin, mock_config):
+        """Test _ungate_ipmi_users logs warning on individual host failure"""
+        with (
+            patch("quads.plugins.builtin.validators.environment.Config") as mock_cfg,
+            patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class,
+        ):
+            mock_cfg.__getitem__ = lambda self, key: mock_config[key]
+
+            fail_ipmi = AsyncMock()
+            fail_ipmi.enable_user = AsyncMock(return_value=False)
+            ok_ipmi = AsyncMock()
+            ok_ipmi.enable_user = AsyncMock(return_value=True)
+            mock_ipmi_class.side_effect = [fail_ipmi, ok_ipmi]
+
+            hosts = [MockHost("host1.example.com"), MockHost("host2.example.com")]
+            await plugin._ungate_ipmi_users(hosts)
+
+            plugin.logger.warning.assert_called()
+            plugin.logger.info.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_ungate_ipmi_users_empty_list(self, plugin, mock_config):
+        """Test _ungate_ipmi_users handles empty host list"""
+        with patch("quads.plugins.builtin.validators.environment.IPMI") as mock_ipmi_class:
+            await plugin._ungate_ipmi_users([])
+            mock_ipmi_class.assert_not_called()
