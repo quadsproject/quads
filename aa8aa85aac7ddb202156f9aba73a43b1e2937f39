@@ -34,6 +34,24 @@
       "parentUuid": "ea38acc1_b5742a7a",
       "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aeb525db_0a1f01b3",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-08-06T17:27:57Z",
+      "side": 0,
+      "message": "where is _configure_and_verify_ipmi() I can\u0027t find it anywhere",
+      "parentUuid": "183b92d3_275f8e92",
+      "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
