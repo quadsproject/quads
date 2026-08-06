@@ -34,6 +34,24 @@
       "parentUuid": "886ffa5f_1ae35bb0",
       "revId": "27357bb30569f2f2567c57442734ee42787af41a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1a70566_c95569a3",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-08-06T15:10:49Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "aa5fc07a_6744819c",
+      "revId": "27357bb30569f2f2567c57442734ee42787af41a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
