@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea38acc1_b5742a7a",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-08-06T16:14:59Z",
+      "side": 0,
+      "message": "why are we removing this? I understand the user will be disabled but the password check can still be useful",
+      "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
