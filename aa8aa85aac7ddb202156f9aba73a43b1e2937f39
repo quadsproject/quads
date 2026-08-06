@@ -52,6 +52,24 @@
       "parentUuid": "183b92d3_275f8e92",
       "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "44afac0f_bd8618a2",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-06T23:09:53Z",
+      "side": 0,
+      "message": "_configure_and_verify_ipmi() at line 49 of src/quads/plugins/builtin/release/standard.py\n\nIt should set the tenant password via configure_user( then verifies with verify_credentials(), retrying up to 3 times.",
+      "parentUuid": "aeb525db_0a1f01b3",
+      "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
