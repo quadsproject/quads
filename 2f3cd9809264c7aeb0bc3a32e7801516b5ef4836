@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ebb7bcba_6629336b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-08-07T10:02:03Z",
+      "side": 1,
+      "message": "After talking about this the other day, it seems that implementing this in 3.x is much simpler than we thought based on your usage.  You stated you wouldn\u0027t want this done at the cloud level as it\u0027s really a per-host setting.\n\nI think a singular ad-hoc tool here is the right approach.  The only architectural change I think we should make here is to add the functionality to --modify-switch-conf.  This seems to be the best place for it.\n\nThat tool itself will get refactored to support other vendors anyway (like Arista) so you wouldn\u0027t even have to carry any other code paths or standalone tools, it would be abstracted via Python / libs to do the right respective thing depending on the vendor (which QUADS would know about based on interface metadata like \"vendor\").",
+      "parentUuid": "909a97f1_03f751a3",
+      "revId": "2f3cd9809264c7aeb0bc3a32e7801516b5ef4836",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "037dfffb_54cc2ace",
         "filename": "docs/quads-roce-setup.md",
         "patchSetId": 2
