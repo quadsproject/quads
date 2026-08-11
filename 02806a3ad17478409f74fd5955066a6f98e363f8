@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "318a92a4_16df00c0",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-08-11T21:17:08Z",
+      "side": 1,
+      "message": "https://www.flake8rules.com/rules/E402.html",
+      "revId": "02806a3ad17478409f74fd5955066a6f98e363f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
