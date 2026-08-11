@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a762c85b_0019eacb",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-08-11T21:21:11Z",
+      "side": 0,
+      "message": "I am not sure how is this going to be replaced with put_parameters() and still work, needs to be tested, otherwise LGTM",
+      "revId": "aa8aa85aac7ddb202156f9aba73a43b1e2937f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
