@@ -33,6 +33,24 @@
       "message": "https://www.flake8rules.com/rules/E402.html",
       "revId": "02806a3ad17478409f74fd5955066a6f98e363f8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9feab34_422fb94d",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-08-12T14:42:43Z",
+      "side": 1,
+      "message": "ok! Got it.",
+      "parentUuid": "318a92a4_16df00c0",
+      "revId": "02806a3ad17478409f74fd5955066a6f98e363f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
