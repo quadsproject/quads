@@ -91,6 +91,22 @@ class IPMI:
             self.logger.error(f"Failed to configure IPMI user for {self.host}: {ex}")
             return False
 
+    async def disable_user(self, user_id: int) -> bool:
+        try:
+            await self.execute(["user", "disable", str(user_id)])
+            return True
+        except Exception as ex:
+            self.logger.error(f"Failed to disable IPMI user {user_id} for {self.host}: {ex}")
+            return False
+
+    async def enable_user(self, user_id: int) -> bool:
+        try:
+            await self.execute(["user", "enable", str(user_id)])
+            return True
+        except Exception as ex:
+            self.logger.error(f"Failed to enable IPMI user {user_id} for {self.host}: {ex}")
+            return False
+
     async def pxe_persistent(self) -> bool:
         try:
             await self.execute(["chassis", "bootdev", "pxe", "options=persistent"])

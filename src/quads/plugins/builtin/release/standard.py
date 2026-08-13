@@ -127,6 +127,12 @@ class StandardReleasePlugin(ReleasePlugin):
 
         await self._report_progress(schedule_id, "ipmi_config", "IPMI credentials configured and verified")
 
+        if rebuild:
+            if not await ipmi.disable_user(Config["ipmi_cloud_username_id"]):
+                self.logger.warning(f"Failed to gate IPMI user for {host}, continuing")
+            else:
+                self.logger.info(f"IPMI user gated for {host} until validation completes")
+
         _is_supermicro = is_supermicro(host)
 
         if rebuild and target_cloud.name != host_obj.default_cloud.name:

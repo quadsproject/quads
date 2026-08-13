@@ -139,6 +139,42 @@ class TestIPMI:
 
     @pytest.mark.asyncio
     @patch.object(IPMI, "execute")
+    async def test_disable_user_success(self, mock_execute, ipmi_instance):
+        result = await ipmi_instance.disable_user(4)
+
+        assert result is True
+        mock_execute.assert_called_once_with(["user", "disable", "4"])
+
+    @pytest.mark.asyncio
+    @patch.object(IPMI, "execute")
+    async def test_disable_user_failure(self, mock_execute, ipmi_instance):
+        mock_execute.side_effect = Exception("IPMI error")
+
+        result = await ipmi_instance.disable_user(4)
+
+        assert result is False
+        ipmi_instance.logger.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch.object(IPMI, "execute")
+    async def test_enable_user_success(self, mock_execute, ipmi_instance):
+        result = await ipmi_instance.enable_user(4)
+
+        assert result is True
+        mock_execute.assert_called_once_with(["user", "enable", "4"])
+
+    @pytest.mark.asyncio
+    @patch.object(IPMI, "execute")
+    async def test_enable_user_failure(self, mock_execute, ipmi_instance):
+        mock_execute.side_effect = Exception("IPMI error")
+
+        result = await ipmi_instance.enable_user(4)
+
+        assert result is False
+        ipmi_instance.logger.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch.object(IPMI, "execute")
     async def test_verify_credentials_success(self, mock_execute, ipmi_instance):
         mock_execute.return_value = "Chassis Power is on"
 
