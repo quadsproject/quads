@@ -54,6 +54,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6c3c923b_cd1488b3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-08-18T15:21:48Z",
+      "side": 1,
+      "message": "Added test coverage. CI passes.",
+      "parentUuid": "c54c8d49_c530ad39",
+      "revId": "02806a3ad17478409f74fd5955066a6f98e363f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "318a92a4_16df00c0",
