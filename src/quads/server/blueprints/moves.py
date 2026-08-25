@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, make_response, request
 
+from quads.helpers.timeutil import format_iso_utc
 from quads.server.blueprints import check_access
 from quads.server.dao.baseDao import EntryNotFound
 from quads.server.dao.host import HostDao
@@ -21,8 +22,8 @@ def _progress_to_dict(schedule):
         "status": schedule.move_status or "pending",
         "message": schedule.move_message,
         "error_message": schedule.move_error,
-        "started_at": schedule.build_start.isoformat() if schedule.build_start else None,
-        "completed_at": schedule.build_end.isoformat() if schedule.build_end else None,
+        "started_at": format_iso_utc(schedule.build_start) if schedule.build_start else None,
+        "completed_at": format_iso_utc(schedule.build_end) if schedule.build_end else None,
     }
 
 

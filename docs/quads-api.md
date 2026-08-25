@@ -23,6 +23,9 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
 # Using the QUADS REST API
 * All QUADS actions under the covers uses the REST API v3
 * This is a gunicorn wsgi service on localhost/5000 managed via the `quads-server` systemd service reverse-proxied by nginx.
+* All timestamps returned by the API (e.g. `created_at`, `end`, `last_redefined`) are
+  UTC instants serialized in RFC 1123 format labeled `GMT` (e.g. `Mon, 30 Apr 2024
+  12:07:15 GMT`), regardless of the server's local timezone.
 
 ```bash
 systemctl enable quads-server.service

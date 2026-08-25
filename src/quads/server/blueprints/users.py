@@ -3,6 +3,7 @@ import re
 from flask import Blueprint, Response, jsonify, make_response, request
 
 from quads.config import Config
+from quads.helpers.timeutil import format_http_date
 from quads.server.blueprints import check_access, is_valid_domain
 from quads.server.dao.baseDao import EntryNotFound
 from quads.server.dao.user import UserDao
@@ -70,7 +71,7 @@ def _user_to_dict(user):
         "google_id": user.google_id,
         "profile_picture": user.profile_picture,
         "active": user.active,
-        "last_login": user.last_login.strftime("%a, %d %b %Y %H:%M:%S GMT") if user.last_login else None,
+        "last_login": format_http_date(user.last_login) if user.last_login else None,
         "roles": [role.name for role in user.roles],
         "ssh_key": user.ssh_key,
         "release_command": user.release_command,
