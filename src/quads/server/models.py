@@ -2,7 +2,7 @@ import enum
 import hashlib
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any
 
 from flask import current_app
@@ -28,6 +28,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, backref
+
+from quads.helpers.timeutil import parse_datetime
 
 try:
     from sqlalchemy.orm import declarative_base
@@ -245,7 +247,10 @@ class Serialize:
             if value is not None:
                 if type(attr.columns[0].type) is DateTime:
                     if not isinstance(value, datetime):
-                        value = datetime.strptime(value, "%a, %d %b %Y %H:%M:%S GMT")
+                        # API payloads carry RFC 1123 "GMT" strings (real UTC);
+                        # re-anchor them to the local wall clock so comparisons
+                        # against datetime.now() stay consistent.
+                        value = parse_datetime(value)
                 setattr(self, attr.key, value)
         return self
 

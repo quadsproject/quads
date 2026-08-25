@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from urllib.parse import urlparse
 
 from quads.config import Config
@@ -45,7 +45,7 @@ def get_or_create_oauth_user(quads_api, user_info):
                 }
             )
 
-    quads_api.update_user(email, {"last_login": datetime.now(timezone.utc).isoformat()})
+    quads_api.update_user(email, {"last_login": datetime.now().isoformat()})
 
     return quads_api.get_user(email=email)
 
