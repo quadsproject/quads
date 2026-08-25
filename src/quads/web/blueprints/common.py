@@ -1,6 +1,15 @@
 import os
+import re
 
 from quads.config import Config
+
+INSTACK_FILE_RE = re.compile(r"^(?P<cloud>.+?)_(?:instackenv|ocpinventory)\.json(?:_.+)?$")
+
+
+def extract_cloud_from_instack_file(filename: str):
+    match = INSTACK_FILE_RE.match(filename)
+    return match.group("cloud") if match else None
+
 
 WEB_CONTENT_PATH = Config.get("web_content_path")
 EXCLUDE_DIRS = Config.get("web_exclude_dirs")
