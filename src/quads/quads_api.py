@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 from requests import Response, Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import RequestException
 
 from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
 from quads.web.models import WebUser
@@ -482,6 +483,16 @@ class QuadsApi(QuadsBase):
 
     def delete_api_token(self, email, token_id):
         return self.delete(os.path.join("tokens", email, str(token_id)))
+
+    def get_authenticated_user(self, token: str) -> Optional[dict]:
+        url = os.path.join(self.base_url, "me")
+        try:
+            response = self.session.get(url, verify=False, headers={"Authorization": f"Bearer {token}"})
+        except RequestException:
+            return None
+        if response.status_code != 200:
+            return None
+        return response.json()
 
     # SSH Keys
     def update_ssh_key(self, email, ssh_key):

@@ -55,7 +55,9 @@ async def summary():
     username = None
     if current_user.is_authenticated:
         username = get_username_from_email(current_user.email)
-    clouds_summary = await cloud_operation.get_cloud_summary_report(username)
+    clouds_summary = await cloud_operation.get_cloud_summary_report(
+        username, current_user.roles if current_user.is_authenticated else None
+    )
     return jsonify(clouds_summary)
 
 
