@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
+from quads.helpers.timeutil import format_http_date
 from quads.server.blueprints import check_access
 from quads.server.dao.api_token import ApiTokenDao
 from quads.server.dao.baseDao import EntryNotFound, InvalidArgument
@@ -14,8 +15,8 @@ def _token_to_dict(token):
         "id": token.id,
         "name": token.name,
         "token_prefix": token.token_prefix,
-        "created_at": token.created_at.strftime("%a, %d %b %Y %H:%M:%S GMT") if token.created_at else None,
-        "last_used": token.last_used.strftime("%a, %d %b %Y %H:%M:%S GMT") if token.last_used else None,
+        "created_at": format_http_date(token.created_at) if token.created_at else None,
+        "last_used": format_http_date(token.last_used) if token.last_used else None,
     }
 
 

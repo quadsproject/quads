@@ -16,7 +16,7 @@ def _ensure_dayzero_log_handler():
     try:
         handler = logging.FileHandler(DAYZERO_LOG)
         handler.setFormatter(logging.Formatter(Config.LOGFMT))
-    except PermissionError:
+    except OSError:
         logger.warning(f"Cannot write to {DAYZERO_LOG}, dayzero logs will use standard logging only")
         return
 

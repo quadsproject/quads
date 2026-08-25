@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from quads.server.dao.baseDao import BaseDao, EntryNotFound, InvalidArgument
 from quads.server.models import ApiToken, User, db
@@ -46,6 +46,6 @@ class ApiTokenDao(BaseDao):
         token = db.session.query(ApiToken).filter(ApiToken.token_hash == token_hash).first()
         if not token:
             return None
-        token.last_used = datetime.now(timezone.utc)
+        token.last_used = datetime.now()
         cls.safe_commit()
         return db.session.query(User).filter(User.id == token.user_id).first()

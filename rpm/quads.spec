@@ -275,7 +275,11 @@ if [ -f /var/lib/rpm-state/%{name}/upgrade_pending ]; then
     if ! sudo -u postgres psql -d quads -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | grep -q .; then
         cd /opt/quads && flask --app quads.server.app db stamp head
     fi
-    cd /opt/quads && flask --app quads.server.app db upgrade
+    cd /opt/quads && TZ=UTC flask --app quads.server.app db upgrade
+    if ! TZ=UTC flask --app quads.server.app check-timezones; then
+        echo "WARNING: QUADS requires the application and database to both run in UTC." >&2
+        echo "         API timestamps will be mislabeled until this is corrected (issue #709)." >&2
+    fi
     /usr/bin/systemctl restart quads-server
     /usr/bin/systemctl restart quads-web
     rm -rf /var/lib/rpm-state/%{name}
@@ -293,6 +297,11 @@ fi;
 find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
+
+* Wed Sep 02 2026 Will Foster <wfoster@redhat.com>
+- fix: API timestamps are serialized as real UTC (issue #709)
+- require the application and database to both run in UTC
+- add "flask --app quads.server.app check-timezones" deploy verification
 
 * Thu Mar 05 2026 Will Foster <wfoster@redhat.com>
 - 2.2.6 release

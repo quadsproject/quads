@@ -18,6 +18,7 @@ from rich.table import Table as RichTable
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
+from quads.helpers.timeutil import parse_http_date_local
 from quads.helpers.utils import (
     first_day_month,
     last_day_month,
@@ -684,7 +685,7 @@ class QuadsCli:
             raise CliException(str(ex))
         for cloud in _clouds:
             cloud_reservation_lock = int(conf["cloud_reservation_lock"])
-            last_redefined = datetime.strptime(str(cloud.last_redefined), "%a, %d %b %Y %H:%M:%S %Z")
+            last_redefined = parse_http_date_local(cloud.last_redefined)
             lock_release = last_redefined + timedelta(hours=cloud_reservation_lock)
             cloud_string = f"{cloud.name}"
             if lock_release > datetime.now():
@@ -1093,7 +1094,7 @@ class QuadsCli:
                 raise CliException(str(ex))
 
             if assignment:
-                last_redefined = datetime.strptime(str(cloud.last_redefined), "%a, %d %b %Y %H:%M:%S GMT")
+                last_redefined = parse_http_date_local(cloud.last_redefined)
                 lock_release = last_redefined + timedelta(hours=cloud_reservation_lock)
                 cloud_string = f"{cloud.name}"
                 if lock_release > datetime.now():
