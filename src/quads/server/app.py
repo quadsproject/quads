@@ -2,16 +2,36 @@
 # encoding: utf-8
 
 import click
+from datetime import datetime
 from flask import Flask, Blueprint, jsonify, Response
+from flask.json.provider import DefaultJSONProvider
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
 from flask.cli import with_appcontext
+from werkzeug.http import http_date
 
+from quads.server.database import check_db_timezone_consistency
 from quads.server.database import create_user, modify_user, remove_user, populate, drop_all
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
+from quads.helpers.timeutil import ensure_utc
 from quads.plugins.manager import get_plugin_manager
+
+
+class UtcJSONProvider(DefaultJSONProvider):
+    """JSON provider that renders datetimes as real UTC RFC 1123 ``GMT`` strings.
+
+    QUADS stores naive datetimes in the server's local timezone.  Rather than
+    stamping those local values with a ``GMT`` label (which is wrong everywhere
+    the server is not running in UTC), convert them to actual UTC before
+    serialization so the label is accurate.  See issue #709.
+    """
+
+    def default(self, o):  # pylint: disable=method-hidden
+        if isinstance(o, datetime):
+            return http_date(ensure_utc(o))
+        return super().default(o)
 
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
@@ -38,6 +58,10 @@ def create_app(test_config=None) -> Flask:
     else:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
+
+    # Serialize datetimes as real UTC so the "GMT" label on API timestamps is
+    # accurate regardless of the server's local timezone (issue #709).
+    flask_app.json = UtcJSONProvider(flask_app)
 
     # Initialize plugin system
     plugin_manager = get_plugin_manager()
@@ -69,6 +93,12 @@ def create_app(test_config=None) -> Flask:
     def drop_db():
         """Drops the db tables."""
         drop_all(flask_app.config)
+
+    @flask_app.cli.command("check-timezones")
+    @with_appcontext
+    def check_timezones():
+        """Logs a warning when the app and database session timezones differ."""
+        check_db_timezone_consistency(db.engine)
 
     @flask_app.cli.command("add-user")
     @click.option("--username", required=True, help="The username/email of the user")
