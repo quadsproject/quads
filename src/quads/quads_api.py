@@ -7,10 +7,19 @@ from urllib.parse import urlencode
 
 from requests import Response, Session
 from requests.adapters import HTTPAdapter, Retry
-from requests.auth import HTTPBasicAuth
+from requests.auth import AuthBase, HTTPBasicAuth
+from requests.exceptions import RequestException
 
 from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
 from quads.web.models import WebUser
+
+
+class _NoAuth(AuthBase):
+    """Auth override that sends no credentials, bypassing the session-level
+    service-account Basic auth for a single request."""
+
+    def __call__(self, request):
+        return request
 
 
 class APIServerException(Exception):
@@ -482,6 +491,21 @@ class QuadsApi(QuadsBase):
 
     def delete_api_token(self, email, token_id):
         return self.delete(os.path.join("tokens", email, str(token_id)))
+
+    def get_authenticated_user(self, token: str) -> Optional[dict]:
+        url = os.path.join(self.base_url, "me")
+        try:
+            response = self.session.get(
+                url,
+                verify=False,
+                headers={"Authorization": f"Bearer {token}"},
+                auth=_NoAuth(),
+            )
+        except RequestException:
+            return None
+        if response.status_code != 200:
+            return None
+        return response.json()
 
     # SSH Keys
     def update_ssh_key(self, email, ssh_key):
