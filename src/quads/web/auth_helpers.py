@@ -65,3 +65,20 @@ def is_allowed_domain(email):
 
 def get_username_from_email(email):
     return email.split("@")[0] if email else None
+
+
+def is_cloud_owner(username, owner, ccuser, roles=None) -> bool:
+    if roles and "admin" in roles:
+        return True
+    if not username:
+        return False
+    username = username.lower()
+    if owner and owner.lower() == username:
+        return True
+    for entry in ccuser or []:
+        candidates = (
+            [entry] if not isinstance(entry, str) else ([entry] if "@" not in entry else [entry, entry.split("@")[0]])
+        )
+        if any(c.lower() == username for c in candidates):
+            return True
+    return False

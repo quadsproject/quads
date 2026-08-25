@@ -139,6 +139,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /me:
+    get:
+      summary: Returns the authenticated user identity and roles
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user identity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    example: quads@redhat.com
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example: ["user"]
+        '400':
+          description: Missing or malformed Authorization header
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /clouds/:
     get:
       summary: Returns a list with all the defined clouds

@@ -1,11 +1,11 @@
 import json
 
-from flask import Blueprint, Response, jsonify, make_response, request
+from flask import Blueprint, Response, g, jsonify, make_response, request
 from validators import email
 
 from quads.config import Config
 from quads.server.app import basic_auth, user_datastore
-from quads.server.blueprints import is_valid_domain
+from quads.server.blueprints import check_access, is_valid_domain
 from quads.server.models import Role, TokenBlackList, User, db
 
 auth_bp = Blueprint("auth", __name__)
@@ -168,3 +168,9 @@ def logout() -> Response:
             "message": "Provide a valid auth token.",
         }
         return make_response(jsonify(response), 403)
+
+
+@auth_bp.route("/me")
+@check_access(["admin", "user"])
+def me() -> Response:
+    return jsonify({"email": g.current_user.email, "roles": [role.name for role in g.current_user.roles]})

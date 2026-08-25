@@ -377,6 +377,74 @@ class TestLogin:
         assert payload["sub"] == "gonza@redhat.com"
 
 
+class TestMe:
+    def test_valid_jwt(self, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User tries to access /me with a valid JWT token
+        | THEN: Identity and roles should be returned
+        """
+        valid_credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+        login_response = unwrap_json(
+            test_client.post(
+                "/api/v3/login",
+                json=dict(),
+                headers={"Authorization": "Basic " + valid_credentials},
+            )
+        )
+        auth_token = login_response.json["auth_token"]
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/me",
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["email"] == "gonza@redhat.com"
+        assert "user" in response.json["roles"]
+
+    def test_valid_api_token(self, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User tries to access /me with a valid qat_ API token
+        | THEN: Identity and roles should be returned
+        """
+        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        login_response = unwrap_json(
+            test_client.post(
+                "/api/v3/login",
+                json=dict(),
+                headers={"Authorization": "Basic " + valid_credentials},
+            )
+        )
+        headers = {"Authorization": "Bearer " + login_response.json["auth_token"]}
+        create_response = unwrap_json(
+            test_client.post(
+                "/api/v3/tokens/grafuls@redhat.com/",
+                json={"name": "me-test"},
+                headers=headers,
+            )
+        )
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/me",
+                headers={"Authorization": f"Bearer {create_response.json['token']}"},
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["email"] == "grafuls@redhat.com"
+        assert "admin" in response.json["roles"]
+
+    def test_invalid_no_header(self, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User tries to access /me without passing the auth header
+        | THEN: Request should be rejected with status 400
+        """
+        response = unwrap_json(test_client.get("/api/v3/me"))
+        assert response.status_code == 400
+
+
 class TestLogout:
     def test_invalid_no_token(self, test_client):
         """

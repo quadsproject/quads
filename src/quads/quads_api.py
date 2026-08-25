@@ -483,6 +483,13 @@ class QuadsApi(QuadsBase):
     def delete_api_token(self, email, token_id):
         return self.delete(os.path.join("tokens", email, str(token_id)))
 
+    def get_authenticated_user(self, token: str) -> Optional[dict]:
+        url = os.path.join(self.base_url, "me")
+        response = self.session.get(url, verify=False, headers={"Authorization": f"Bearer {token}"})
+        if response.status_code != 200:
+            return None
+        return response.json()
+
     # SSH Keys
     def update_ssh_key(self, email, ssh_key):
         return self.patch(os.path.join("users", email), {"ssh_key": ssh_key})
