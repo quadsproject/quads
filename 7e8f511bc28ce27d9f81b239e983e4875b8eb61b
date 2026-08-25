@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "268b9ad5_a96b3efe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-08-25T14:40:42Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "a646e7a0_a5aa3bf4",
+      "revId": "7e8f511bc28ce27d9f81b239e983e4875b8eb61b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "701349c5_a8f39faa",
@@ -55,6 +73,30 @@
       "side": 1,
       "message": "The foreman-setup.py is run automatically by quads, and does not get run by the user.  This is not a setup script for building a foreman host.  Only a thread that runs behind the scenes when quads is started that interacts with foreman and ensures the RBAC configurations are complete.  But I will make the docs updates you suggested.  Thanks!",
       "parentUuid": "701349c5_a8f39faa",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 1
+      },
+      "revId": "7e8f511bc28ce27d9f81b239e983e4875b8eb61b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33fe06a0_6f366cd9",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-08-25T14:40:42Z",
+      "side": 1,
+      "message": "Acknowledged",
+      "parentUuid": "8b248680_e3fb3fea",
       "range": {
         "startLine": 192,
         "startChar": 0,
