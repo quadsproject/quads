@@ -1,6 +1,8 @@
 import os
 
 from flask import Blueprint, abort, render_template
+from jinja2 import TemplateNotFound
+from werkzeug.utils import safe_join
 
 from quads.web.blueprints.common import WEB_CONTENT_PATH, get_file_paths
 
@@ -19,7 +21,10 @@ async def dynamic_content(page):
     file_paths = get_file_paths()
     for file in file_paths:
         if page in file:
-            return render_template(file)
+            try:
+                return render_template(file)
+            except TemplateNotFound:
+                return abort(404)
     return abort(404)
 
 
@@ -28,5 +33,10 @@ async def dynamic_content_sub(directory, page):
     file_paths = get_file_paths()
     for file in file_paths:
         if page in file:
-            return render_template(os.path.join(directory, file))
+            if safe_join(WEB_CONTENT_PATH, directory) is None:
+                return abort(404)
+            try:
+                return render_template(os.path.join(directory, file))
+            except TemplateNotFound:
+                return abort(404)
     return abort(404)
