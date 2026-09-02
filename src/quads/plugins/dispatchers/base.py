@@ -8,6 +8,7 @@ Base Dispatcher Patterns - Two types of dispatchers for different use cases
 2. MultiPluginDispatcher: Calls ALL enabled plugins
    Use for: Notifiers, Ticketing (broadcast operations to multiple providers)
 """
+
 import asyncio
 import logging
 from typing import List, Optional, Type, TypeVar, Generic, Callable, Any, Dict, Awaitable
