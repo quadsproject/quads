@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9af9055c_37b56170",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-02T16:05:50Z",
+      "side": 1,
+      "message": "I don\u0027t think this 2 changes are correct",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9cf8a29_13f2dd40",
+        "filename": "docs/quads-host-metadata-search.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-02T16:05:50Z",
+      "side": 1,
+      "message": "not sure this is correct",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "437dc82f_b30fd92a",
+        "filename": "docs/quads-plugins.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-02T16:05:50Z",
+      "side": 1,
+      "message": "this is not implemented yet, would remove it",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e78d5d04_ad748b29",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-02T16:05:50Z",
+      "side": 1,
+      "message": "I wouldn\u0027t make these changes",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ee02216_77b3f15c",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-02T16:05:50Z",
+      "side": 1,
+      "message": "neither these ones",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
