@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "35731de4_d6dd6207",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T08:43:51Z",
+      "side": 1,
+      "message": "This has been reviewed already by Gonza, comments are satisified throughout the patchsets.",
+      "revId": "4c64bff873f40aee37bce8e71fa8fd354cb0577d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
