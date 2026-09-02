@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
+import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -648,52 +649,6 @@ class TestForeman(object):
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.put")
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
     @pytest.mark.asyncio
-    async def test_put_parameters_by_name(self, get_session, put_session):
-        get_resp = AsyncMock()
-        get_resp.json.return_value = {"results": [{"name": "host.example.com", "id": "host1"}]}
-        get_session.return_value.__aenter__.return_value = get_resp
-
-        put_resp = AsyncMock()
-        put_resp.status = 200
-        put_session.return_value.__aenter__.return_value = put_resp
-        params = [
-            {"name": "host.example.com", "value": "host.example.com"},
-            {"name": "host.example.com", "value": "host1"},
-            {"name": "media", "value": "host1"},
-        ]
-        foreman = Foreman(
-            "https://example.com",
-            "username",
-            "password",
-            asyncio.Semaphore(5),
-        )
-        response = await foreman.put_parameters_by_name(host="hosts", params=params)
-        assert response
-
-    @patch("quads.tools.external.foreman.aiohttp.ClientSession.put")
-    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
-    @pytest.mark.asyncio
-    async def test_put_parameters_by_name_false(self, get_session, put_session):
-        get_resp = AsyncMock()
-        get_resp.json.return_value = {}
-        get_session.return_value.__aenter__.return_value = get_resp
-
-        put_resp = AsyncMock()
-        put_resp.status = 200
-        put_session.return_value.__aenter__.return_value = put_resp
-        params = [{"name": "host.example.com", "value": "host1"}]
-        foreman = Foreman(
-            "https://example.com",
-            "username",
-            "password",
-            asyncio.Semaphore(5),
-        )
-        response = await foreman.put_parameters_by_name(host="hosts", params=params)
-        assert not response
-
-    @patch("quads.tools.external.foreman.aiohttp.ClientSession.put")
-    @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
-    @pytest.mark.asyncio
     async def test_put_parameter_by_name(self, get_session, put_session):
         get_resp = AsyncMock()
         get_resp.json.return_value = {"results": [{"name": "host.example.com", "id": "host1", "identifier": "name"}]}
@@ -846,3 +801,115 @@ class TestForeman(object):
         foreman = Foreman("https://example.com", "username", "password")
         response1 = await foreman.get_available_os()
         assert len(response1) == 1
+
+
+class TestPrepareHostProvisioning(object):
+    def _make_foreman(self):
+        return Foreman(
+            "https://example.com",
+            "username",
+            "password",
+            semaphore=asyncio.Semaphore(5),
+        )
+
+    @pytest.mark.asyncio
+    async def test_success_single_ptable(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(return_value=1)
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(return_value=[{"id": 20, "name": "generic-rhel"}])
+        foreman.mark_for_build = AsyncMock(return_value=True)
+        foreman.put_parameters = AsyncMock(return_value=True)
+        foreman.get_user_id = AsyncMock(return_value=100)
+        foreman.get_host_id = AsyncMock(return_value=200)
+        foreman.put_element = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.INFO):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is True
+        assert "Selected ptable 'generic-rhel'" in caplog.text
+        assert "Selected medium 'RHEL Local'" in caplog.text
+        foreman.put_parameters.assert_called_once()
+        data = foreman.put_parameters.call_args[0][1]
+        assert data["ptable_id"] == 20
+        assert data["medium_id"] == 10
+        assert data["operatingsystem_id"] == 1
+        foreman.mark_for_build.assert_called_once_with("host01.example.com")
+        foreman.get_user_id.assert_called_once_with("cloud01")
+        foreman.get_host_id.assert_called_once_with("host01.example.com")
+        foreman.put_element.assert_called_once_with("hosts", 200, "owner_id", 100)
+
+    @pytest.mark.asyncio
+    async def test_os_not_found(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(return_value=None)
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "NonExistent OS")
+
+        assert result is False
+        assert "OS type NonExistent OS not found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_no_ptables(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(return_value=1)
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(return_value=[])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "No ptable found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_no_mediums(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(return_value=1)
+        foreman.get_mediums = AsyncMock(return_value=[])
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "No medium found" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_multiple_ptables_warning(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(return_value=1)
+        foreman.get_mediums = AsyncMock(return_value=[{"id": 10, "name": "RHEL Local"}])
+        foreman.get_ptables = AsyncMock(
+            return_value=[
+                {"id": 20, "name": "generic-bios"},
+                {"id": 21, "name": "generic-uefi"},
+            ]
+        )
+        foreman.mark_for_build = AsyncMock(return_value=True)
+        foreman.put_parameters = AsyncMock(return_value=True)
+        foreman.get_user_id = AsyncMock(return_value=100)
+        foreman.get_host_id = AsyncMock(return_value=200)
+        foreman.put_element = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.WARNING):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is True
+        assert "has 2 ptable" in caplog.text
+        assert "defaulting to first: 'generic-bios'" in caplog.text
+        data = foreman.put_parameters.call_args[0][1]
+        assert data["ptable_id"] == 20
+
+    @pytest.mark.asyncio
+    async def test_exception_uses_module_logger(self, caplog):
+        foreman = self._make_foreman()
+        foreman.get_os_id = AsyncMock(side_effect=Exception("connection failed"))
+
+        with caplog.at_level(logging.ERROR):
+            result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
+
+        assert result is False
+        assert "Error setting up Foreman for host01.example.com" in caplog.text
+        assert "connection failed" in caplog.text
