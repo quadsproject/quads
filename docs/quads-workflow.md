@@ -2,7 +2,7 @@
 
 Below are common workflows, visualizations and features of QUADS.
 
-* [QUADS Workflow and Examples](#quads-workflow-and-visuals)
+* [QUADS Workflow and Examples](#quads-architecture-workflow-and-visuals)
     * [QUADS Architecture](#quads-architecture)
     * [QUADS Software Design](#quads-software-design)
     * [QUADS Data Structure](#quads-data-structure)
@@ -11,6 +11,7 @@ Below are common workflows, visualizations and features of QUADS.
     * [Example: Automated Scheduling](#example-automated-scheduling)
     * [Example: Systems Wiki](#example-systems-wiki)
     * [Example: Workload Assignments](#example-workload-assignments)
+    * [Example: Workload Assignments Readiness](#example-workload-assignments-readiness)
     * [Example: Systems Availability Search](#example-systems-availability-search)
     * [Example: Systems Visualization Map](#example-systems-visualization-map)
     * [Example: IRC, Webhook Chat and Email Notifications](#example-irc-webhook-chat-and-email-notifications)
@@ -31,7 +32,7 @@ This is how our scheduling data, collections and data model look like within Pos
 ![quads-erd](../image/quads-erd.jpg)
 
 ## QUADS Foreman Provisioning Workflow
-This is the workflow behind `quads/tools/move_and_rebuild.py`
+This is the provisioning workflow driven by the `standard` release plugin and the foreman provisioner plugin when hosts are built and moved.
 
 ![quadsforemanarch](../image/quads-foreman-workflow.png)
 
@@ -67,9 +68,9 @@ We color-code progress bars and status based on total amount of completion for a
 ![wiki](../image/quads-visual.png)
 
 ## Example: IRC, Webhook Chat and Email Notifications
-   - We can notify any Chat Platform webhook or IRC supybot plugin when new environments are released.
+   - We can notify any Chat Platform webhook or IRC channel when new environments are released.
    - We send email notifications when new environments are defined.
-   - We also send email notifications with the host list for the environment 7 days prior to activation.
+   - We also send email notifications with the host list for the environment when it becomes active.
    - Furthermore we send email notifications when new environments are provisioned.
 
 ```
