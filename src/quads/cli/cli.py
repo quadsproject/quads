@@ -1639,57 +1639,60 @@ class QuadsCli:
                 except ConnectionError:
                     raise CliException("Could not connect to the quads-server, verify service is up and running.")
 
-            template_file = "jira_ticket_assignment"
-            with open(os.path.join(conf.TEMPLATES_PATH, template_file)) as _file:
-                template = Template(_file.read())
+            jira_conf = conf.plugins.get("jira", {})
+            if jira_conf.get("enabled", False):
+                template_file = "jira_ticket_assignment"
+                with open(os.path.join(conf.TEMPLATES_PATH, template_file)) as _file:
+                    template = Template(_file.read())
 
-            try:
-                self.quads.get_cloud(self.cli_args.get("schedcloud"))
-            except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
-                raise CliException(str(ex))
-            jira_docs_links = conf["jira_docs_links"].split(",")
-            jira_vlans_docs_links = conf["jira_vlans_docs_links"].split(",")
-            ass = self.quads.get_active_cloud_assignment(self.cli_args.get("schedcloud"))
-            comment = template.render(
-                schedule_start=self.cli_args.get("schedstart"),
-                schedule_end=self.cli_args.get("schedend"),
-                cloud=self.cli_args.get("schedcloud"),
-                jira_docs_links=jira_docs_links,
-                jira_vlans_docs_links=jira_vlans_docs_links,
-                host_list=host_list_stream,
-                vlan=ass.vlan,
-            )
-
-            loop = get_or_create_event_loop()
-            try:
-                auth_type = conf.get("jira_auth", "basic")
-                jira = Jira(
-                    conf["jira_url"],
-                    username=conf.get("jira_username") if auth_type == "basic" else None,
-                    password=conf.get("jira_password") if auth_type == "basic" else None,
-                    token=conf.get("jira_token") if auth_type == "token" else None,
-                    ticket_queue=conf.get("ticket_queue"),
-                    auth_type=auth_type,
-                    loop=loop,
+                try:
+                    self.quads.get_cloud(self.cli_args.get("schedcloud"))
+                except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+                    raise CliException(str(ex))
+                jira_docs_links = conf.get("jira_docs_links", "").split(",")
+                jira_vlans_docs_links = conf.get("jira_vlans_docs_links", "").split(",")
+                ass = self.quads.get_active_cloud_assignment(self.cli_args.get("schedcloud"))
+                comment = template.render(
+                    schedule_start=self.cli_args.get("schedstart"),
+                    schedule_end=self.cli_args.get("schedend"),
+                    cloud=self.cli_args.get("schedcloud"),
+                    jira_docs_links=jira_docs_links,
+                    jira_vlans_docs_links=jira_vlans_docs_links,
+                    host_list=host_list_stream,
+                    vlan=ass.vlan,
                 )
-            except JiraException as ex:  # pragma: no cover
-                self.logger.error(ex)
-                exit(1)
-            result = loop.run_until_complete(jira.post_comment(ass.ticket, comment))
-            if not result:
-                self.logger.warning("Failed to update Jira ticket")
 
-            transitions = loop.run_until_complete(jira.get_transitions(ass.ticket))
-            transition_result = False
-            for transition in transitions:
-                t_name = transition.get("name")
-                if t_name and t_name.lower() == "scheduled":
-                    transition_id = transition.get("id")
-                    transition_result = loop.run_until_complete(jira.post_transition(ass.ticket, transition_id))
-                    break
+                if not jira_conf.get("url"):
+                    raise CliException("Jira plugin is enabled but url is not configured in plugins.yml")
+                loop = get_or_create_event_loop()
+                try:
+                    auth_type = jira_conf.get("auth_type", "basic")
+                    jira = Jira(
+                        jira_conf["url"],
+                        username=jira_conf.get("username") if auth_type == "basic" else None,
+                        password=jira_conf.get("password") if auth_type == "basic" else None,
+                        token=jira_conf.get("token") if auth_type == "token" else None,
+                        ticket_queue=jira_conf.get("ticket_queue"),
+                        auth_type=auth_type,
+                        loop=loop,
+                    )
+                except JiraException as ex:  # pragma: no cover
+                    raise CliException(str(ex))
+                result = loop.run_until_complete(jira.post_comment(ass.ticket, comment))
+                if not result:
+                    self.logger.warning("Failed to update Jira ticket")
 
-            if not transition_result:
-                self.logger.warning("Failed to update ticket status")
+                transitions = loop.run_until_complete(jira.get_transitions(ass.ticket))
+                transition_result = False
+                for transition in transitions:
+                    t_name = transition.get("name")
+                    if t_name and t_name.lower() == "scheduled":
+                        transition_id = transition.get("id")
+                        transition_result = loop.run_until_complete(jira.post_transition(ass.ticket, transition_id))
+                        break
+
+                if not transition_result:
+                    self.logger.warning("Failed to update ticket status")
 
         return 0
 
