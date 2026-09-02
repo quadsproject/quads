@@ -1,6 +1,6 @@
 # QUADS Self Scheduling
 
-On QUADS 2.2.0 we introduced a new feature called `self-scheduling` which allows users to schedule their own hosts without the need of a QUADS admin to do it for them. This feature is available via the QUADS REST API and is disabled by default.
+On QUADS 2.2.0 we introduced a new feature called `self-scheduling` which allows users to schedule their own hosts without the need of a QUADS admin to do it for them. This feature is available via the QUADS REST API and is controlled by the `ssm_enable` setting in `/opt/quads/conf/selfservice.yml` (the shipped configuration enables it).
 
 For more details on the API, please refer to our [Swagger Documentation](https://app.swaggerhub.com/apis-docs/RedHatScale/quads/3.0.0).
 
@@ -48,12 +48,10 @@ curl -s -k \
 ### Login via REST
 
 ```bash
-export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<< $(curl -s -k -X POST \
+export TOKEN=$(curl -s -k -X POST \
     -u "joe@example.com:a_password_here" \
     -H "Content-Type: application/json" \
-    https://quads.example.com/api/v3/login/ | awk -F\: '{print $2}' | awk -F\, '{print $1}'
-  )
-)
+    https://quads.example.com/api/v3/login/ | jq -r .auth_token)
 ```
 
 ### Get available hosts via REST
@@ -93,7 +91,7 @@ curl -s -k \
 >
 > Start and end dates are not required.
 >
-> Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/quadsproject/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
+> Start date is now. The end date is the next `ssm_deadline_day`/`ssm_deadline_hour` window if it falls within `ssm_default_lifetime` days, otherwise `ssm_default_lifetime` days from now, as set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/quadsproject/quads/blob/latest/conf/selfservice.yml#L6).
 
 > [!NOTE]
 > Replace `host01.example.com` with any desired free host from your previous available query

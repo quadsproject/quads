@@ -70,7 +70,7 @@ python3 /usr/lib/python3.12/site-packages/quads/tools/lshw2meta.py
   * Host metadata is not required unless you want to use it, **it is entirely optional**
 
 ### Add any Supporting Model Type
-  * We list some example model types of baremetal systems we use, you will also want to edit the `models:` value so it has any additional system models you might use in the [QUADS Conf](../conf/hosts_metadata.yml#L238)
+  * We list some example model types of baremetal systems we use, you will also want to edit the `models:` value so it has any additional system models you might use in the [QUADS Conf](../conf/quads.yml#L88)
   * To generate a YAML metadata file for importing QUADS-managed hosts you can use this command:
 
 ```bash
@@ -85,7 +85,7 @@ for h in $(quads --ls-hosts) ; do echo "- name: $h" ; echo "  model: $(echo $h |
 quads --define-host-details --metadata /tmp/hosts_metadata.yml
 ```
 
-  * Doing this again or modifying your `hosts_metadata.yml` file and re-importing will overwrite all values or remove ones that might have been removed from the QUADS database.
+  * Doing this again or modifying your `hosts_metadata.yml` file and re-importing will skip host fields that are already set unless you pass `--force`; it does not remove metadata from the QUADS database.  To remove metadata use `--rm-host-metadata` (see below).
 
 ### Removing Host Metadata
 
@@ -123,10 +123,10 @@ quads --mod-host --host server01.example.com --rm-host-metadata gpus,interfaces
 
 ## How to Export Host Metadata
   * To export the same formatted YAML key/value pair metadata data source from your hosts use the `--export-host-details` command.
-  * The file provided should be a new file, or overwrite an existing one and the path should be somewhere on the filesystem.
+  * The command writes a YAML metadata file to a temporary location and prints the path where it was written.
 
 ```bash
-quads --export-host-details /tmp/my_host_data.yml
+quads --export-host-details
 ```
 
 ## Querying Host Information
@@ -139,7 +139,7 @@ quads --export-host-details /tmp/my_host_data.yml
 | uloc                   |  string    | U location                   | ==,!=           |
 | blade                  |  string    | blade id                     | ==,!=           |
 | disks.size_gb          |  integer   | disk size in GB              | ==,!=,<,<=,>,>= |
-| disks.disks_type       |  string    | nvme,sata,ssd                | ==,!=           |
+| disks.disk_type        |  string    | nvme,sata,ssd                | ==,!=           |
 | disks.count            |  integer   | number of disks              | ==,!=,<,<=,>,>= |
 | interfaces.count       |  integer   | number of interfaces         | ==,!=,<,<=,>,>= |
 | interfaces.name        |  string    | name of interface            | ==,!=           |
@@ -229,12 +229,12 @@ curl https://quads.example.com/api/v3/available?start=2020-07-20T17:00&end=2020-
   * Search all systems by model and number of interfaces.
 
 ```bash
-quads --ls-hosts --filter "model==FC640,interfaces__size==5"
+quads --ls-hosts --filter "model==FC640,interfaces.count==5"
 ```
   * Via the API
 
 ```bash
-curl https://quads.example.com/api/v3/hosts?model=FC640&interfaces__size=5
+curl https://quads.example.com/api/v3/hosts?model=FC640&interfaces.count=5
 ```
 
 #### Example GPU Filter Searches
@@ -305,7 +305,7 @@ curl https://quads.example.com/api/v3/hosts?interfaces.mac_address=ac:1f:6b:2d:1
   * Shows all hosts connected to a particular switch
 
 ```bash
-quads --ls-host --filter "interfaces.switch_ip==10.1.34.216"
+quads --ls-hosts --filter "interfaces.switch_ip==10.1.34.216"
 ```
   * Via the API
 
@@ -317,7 +317,7 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216
   * Shows all hosts that have a specific physical switchport name
 
 ```bash
-quads --ls-host --filter "interfaces.switch_port==et-0/0/7:1"
+quads --ls-hosts --filter "interfaces.switch_port==et-0/0/7:1"
 ```
   * Via the API
 
@@ -340,8 +340,8 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216&int
 ```
 
 ## Querying Host Status
-* We will be adding features to query host status in addition to hardware metadata/details.
-* Functionality here may include retirement/decomission status and other useful attributes.
+* Host status can be queried in addition to hardware metadata/details.
+* This includes retirement/decommission status, broken, build and validation state.
 
 ### Example Status Filter Searches
 

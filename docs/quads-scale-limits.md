@@ -12,7 +12,7 @@ QUADS is designed to handle large amounts of hosts spread across independent, is
 
 QUADS is physically limited by the VLAN limit in the [IEEE 802.1Q](https://standards.ieee.org/ieee/802.1Q/6844/) spec which specifies **4090** usable VLANS per VLAN-tagged Layer 2 network.
 
-## Theoritical Limits per L2 Tagged VLAN Network
+## Theoretical Limits per L2 Tagged VLAN Network
 
 * In theory each QUADS instance can scale to the number of individual isolated **environments** equal to `4090 / highest number of internal interfaces in a host minus one (for your spare cloud)`
 * Each QUADS instance can scale to a number of **hosts** equal to `98,160 / highest number of internal interfaces in a host`
@@ -22,12 +22,12 @@ QUADS is physically limited by the VLAN limit in the [IEEE 802.1Q](https://stand
    > Our current implementation iterates VLAN assignments by 10 so that means the formula  is `4090 / 10 minus 10` for maximum available VLAN-tagged environments or _clouds_ which reduces the maximum amount of multi-tenant environments by 60% or more of this total.
 
    > [!TIP]
-   > In [RFE #589](https://github.com/quadsproject/quads/issues/589) we'll be removing this increment-by-10 approach from the codebase so that scale of usable VLAN-tagged environments will likely double to their theoritical limit for common deployments with 4 or less internal interfaces per host.
+   > In [RFE #589](https://github.com/quadsproject/quads/issues/589) we'll be removing this increment-by-10 approach from the codebase so that scale of usable VLAN-tagged environments will likely double to their theoretical limit for common deployments with 4 or less internal interfaces per host.
 
 For example, right now QUADS can support 399 individual environments with a combined host count of [24,540 servers.](https://gist.github.com/sadsfae/f932b6deecd2dcf4725d357803c6c806) or `98,160 vmembers / 4` per VLAN-tagged layer 2 network if the highest number of internal interfaces across your host fleet is 4.
 
    > [!TIP]
-   > It is assumed we are referring to limits in a single QUADS instance, limits could be vastly expanded once [multi-Forman](https://github.com/quadsproject/quads/issues/384) support is added which could potentially support multiple VLAN-tagged layer 2 networks.
+   > It is assumed we are referring to limits in a single QUADS instance, limits could be vastly expanded once [multi-Foreman](https://github.com/quadsproject/quads/issues/384) support is added which could potentially support multiple VLAN-tagged layer 2 networks.
 
 Consult the below chart on host and network scale limits:
 
