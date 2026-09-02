@@ -55,7 +55,6 @@ Host 10.12.67.247
    * Note: `python3-paramiko` wants your private key to contain the algo type in it, e.g. `BEGIN RSA PRIVATE KEY and END RSA PRIVATE KEY`
       * The following command will fix this for you:  `ssh-keygen -p -m PEM -f ~/.ssh/id_rsa` (don't set passphrase).
       * More details at [Stack Exchange](https://stackoverflow.com/questions/45829838/paramiko-connect-with-private-key-not-a-valid-openssh-private-public-key-fil#45844549)
-      * We will be moving to `libssh` in an upcoming release.
 
 ## Distribution Switch Configuration
    * Configure your switch ports for QUADS-managed hosts as follows, we are using ```et-0/0/12``` on both distribution switches for an example rack.
@@ -178,7 +177,7 @@ inet_interfaces = all
    * You can look at [Ansible Foreman Create](https://github.com/quadsproject/ansible-foreman-create) for ansible based automation to install a Foreman host from scratch.
 
 > [!IMPORTANT]
-> QUADS requires that each QUADS-managed internal host interface fits [a certain 172.x.x IP addressing scheme](https://github.com/quadsproject/quads/blob/latest/src/quads/config.py#L122) for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
+> QUADS requires that each QUADS-managed internal host interface fits [a certain 172.x.x IP addressing scheme](https://github.com/quadsproject/quads/blob/latest/src/quads/config.py#L141) for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
 > This requires Foreman templates suited to the models of your fleet systems
    * We provide some [example templates](/templates) for post-provisioning creation of system interface configs as an example, you'll need to tune and test this to accomodate for your own infrastructure.
 
@@ -278,7 +277,7 @@ for clouduser in $(seq 10 32); do hammer user-group add-user --name cloudusers -
    * Refer to your vendor out-of-band documentation for other system types if you want to add ssh keys.
 
 #### Create QUADS IPMI Credentials
-   * IPMI credentials are defined in [the QUADS configuration file](https://github.com/quadsproject/quads/blob/latest/conf/quads.yml#L113) so adjust accordingly to your environment and preference.
+   * IPMI credentials are defined in [the QUADS configuration file](https://github.com/quadsproject/quads/blob/latest/conf/quads.yml#L52) so adjust accordingly to your environment and preference.
    * Note: SuperMicro systems (and perhaps other vendors) do not have the `root` user by default, if not you'll need to create it.
    * Check if the `root` user exists first, Dell systems come with a `root` user by default so this step can be omitted.
 

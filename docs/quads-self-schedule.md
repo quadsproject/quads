@@ -1,6 +1,6 @@
 # QUADS Self Scheduling
 
-On QUADS 2.2.0 we introduced a new feature called `self-scheduling` which allows users to schedule their own hosts without the need of a QUADS admin to do it for them. This feature is available via the QUADS REST API and is disabled by default.
+On QUADS 2.2.0 we introduced a new feature called `self-scheduling` which allows users to schedule their own hosts without the need of a QUADS admin to do it for them. This feature is available via the QUADS REST API and is controlled by the `ssm_enable` setting in `/opt/quads/conf/selfservice.yml` (the shipped configuration enables it).
 
 For more details on the API, please refer to our [Swagger Documentation](https://app.swaggerhub.com/apis-docs/RedHatScale/quads/3.0.0).
 
@@ -48,12 +48,10 @@ curl -s -k \
 ### Login via REST
 
 ```bash
-export TOKEN=$(sed -e 's/^"//' -e 's/"$//' <<< $(curl -s -k -X POST \
+export TOKEN=$(curl -s -k -X POST \
     -u "joe@example.com:a_password_here" \
     -H "Content-Type: application/json" \
-    https://quads.example.com/api/v3/login/ | awk -F\: '{print $2}' | awk -F\, '{print $1}'
-  )
-)
+    https://quads.example.com/api/v3/login/ | jq -r .auth_token)
 ```
 
 ### Get available hosts via REST
@@ -67,11 +65,11 @@ curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 ### Create an assignment via REST
 
 > [!NOTE]
-> The `owner` field is the username as it is on the email address but without the domain part.
+> The owner is derived from your authenticated token's email address and must not be provided in the body.
 >
 > Passing no cloud will auto select the first available one.
 >
-> A JIRA ticket is created automatically if none is provided and if the service is enabled.
+> A `ticket` is required unless `ssm_jira_create_ticket` is set to `true` in `/opt/quads/conf/selfservice.yml`, in which case a JIRA ticket is created automatically when none is provided.
 >
 > There are other options as well like if your lab supports it like `"vlan": "620",` for an optional, routable VLAN.
 
@@ -80,7 +78,7 @@ curl -s -k \
   -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"description": "Short description here", "owner": "joe", "qinq": 0, "wipe": "true"}' \
+  -d '{"description": "Short description here", "ticket": "2122", "qinq": 0, "wipe": "true"}' \
   http://quads.example.com/api/v3/assignments/self | jq
 ```
 
@@ -93,7 +91,7 @@ curl -s -k \
 >
 > Start and end dates are not required.
 >
-> Start date is now and end date is whatever is set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/quadsproject/quads/blob/latest/conf/selfservice.yml#L6) for `ssm_default_lifetime`.
+> Start date is now. The end date is the next `ssm_deadline_day`/`ssm_deadline_hour` window when one is configured, otherwise `ssm_default_lifetime` days from now as set in your `/opt/quads/conf/selfservice.yml` [configuration](https://github.com/quadsproject/quads/blob/latest/conf/selfservice.yml#L6).
 
 > [!NOTE]
 > Replace `host01.example.com` with any desired free host from your previous available query
@@ -217,17 +215,17 @@ with QuadsApi(username, password, base_url) as quads:
 
 ### Create an assignment via Python
 > [!NOTE]
-> The `owner` field is the username minus the `@example.com` part of the email string, e.g. `joe`
+> The owner is derived from your authenticated token's email address and must not be provided in the payload.
 >
 ```python
 from quads_lib import QuadsApi
 
 description = "Short description here"
-owner = "joe"
+ticket = "2122"
 qinq = 0
 wipe = True
 payload = {
-  "description": description, "owner": owner, "qinq": qinq, "wipe": wipe}
+  "description": description, "ticket": ticket, "qinq": qinq, "wipe": wipe}
 
 with QuadsApi(username, password, base_url) as quads:
     assignment = quads.create_self_assignment(payload)

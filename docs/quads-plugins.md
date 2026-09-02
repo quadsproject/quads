@@ -33,19 +33,50 @@ QUADS supports the following plugin categories:
 Send notifications to chat/messaging platforms.
 
 **Interface**: `ChatPlugin`
-**Methods**: `send_message(message, channels, **kwargs)`
+**Methods**: `send_message(message, channels=None, **kwargs)` (async)
 
 **Built-in Plugins**:
 - `slack` - Slack webhook integration
 - `gchat` - Google Chat integration
 - `irc` - IRC channel notifications
 
+### Cloud Plugins
+
+Provision capacity from public clouds when local bare metal is exhausted.
+
+**Interface**: `CloudPlugin`
+**Methods** (async):
+- `get_available_capacity(instance_type=None, region=None)`
+- `create_instance(name, instance_type, image_id=None, region=None, tags=None, **kwargs)`
+- `start_instance(instance_id)`
+- `stop_instance(instance_id)`
+- `terminate_instance(instance_id)`
+- `get_instance(instance_id)`
+- `list_instances(tags=None, state=None)`
+- `get_instance_types(min_vcpus=None, min_memory_gb=None)`
+- `estimate_cost(instance_type, hours, region=None)`
+
+**Built-in Plugins**:
+- `aws` - AWS EC2 overflow (experimental, not yet wired into the CLI or server)
+- `ibm_cloud` - IBM Cloud VPC overflow (experimental, not yet wired into the CLI or server)
+
+### Dayzero Plugins
+
+Post-release plugins that run on the first host of a new cloud assignment after it is released.
+
+**Interface**: `DayzeroPlugin`
+**Methods**: `execute(cloud)` (async)
+
+**Built-in Plugins**:
+- `cloudcmd` - runs the owner's release command on the first host via tmux
+- `clouddata` - drops `/root/quads_env.yml` metadata on the first host
+
 ### Email Plugins
 
 Send email notifications for assignments and system events.
 
 **Interface**: `EmailPlugin`
-**Methods**: `send_email(recipients, subject, body, **kwargs)`
+**Methods**: `send_mail(subject, content, recipients, cc=None, **kwargs)` (async)
 
 **Built-in Plugins**:
 - `email` - SMTP email delivery
@@ -56,11 +87,12 @@ Manage bare metal hardware via IPMI/Redfish.
 
 **Interface**: `HardwarePlugin`
 **Methods**:
-- `power_on(host)`
-- `power_off(host)`
-- `power_cycle(host)`
-- `set_boot_order(host, boot_order)`
-- `get_power_state(host)`
+- `init(host, rack, uloc, blade)`
+- `change_boot(boot_order, interfaces_path)`
+- `set_power_state(state)`
+- `reboot_server(graceful=False)`
+- `get_power_state()`
+- `get_vendor()`
 
 **Built-in Plugins**:
 - `badfish` - Badfish IPMI/Redfish automation
@@ -71,9 +103,9 @@ Integrate with provisioning backends.
 
 **Interface**: `ProvisionerPlugin`
 **Methods**:
-- `build_host(host, os_type)`
-- `rebuild_host(host)`
-- `get_build_status(host)`
+- `prepare_host_provisioning(host_name, cloud, os_type)`
+- `get_all_hosts()`
+- `get_images()`
 
 **Built-in Plugins**:
 - `foreman` - Foreman/Satellite provisioning
@@ -83,7 +115,7 @@ Integrate with provisioning backends.
 Manage environment release and handoff processes.
 
 **Interface**: `ReleasePlugin`
-**Methods**: `release_environment(cloud, assignment)`
+**Methods**: `move_and_rebuild(host, new_cloud, semaphore, rebuild=False, schedule_id=None)`
 
 **Built-in Plugins**:
 - `standard` - Standard QUADS release workflow
@@ -94,9 +126,10 @@ Automate network switch VLAN configurations.
 
 **Interface**: `SwitchPlugin`
 **Methods**:
-- `set_vlan(host, interface, vlan_id)`
-- `get_vlan(host, interface)`
-- `verify_vlan(host, interface, expected_vlan)`
+- `configure(host, old_cloud, new_cloud)`
+- `modify(host, change=False, overrides=None)`
+- `verify(host=None, cloud=None, change=False)`
+- `ls_config(cloud, all=False)`
 
 **Built-in Plugins**:
 - `juniper` - Juniper switch automation (Q-in-Q VLANs)
@@ -107,10 +140,11 @@ Integrate with ticketing/issue tracking systems.
 
 **Interface**: `TicketingPlugin`
 **Methods**:
-- `create_ticket(summary, description, **kwargs)`
-- `update_ticket(ticket_id, **kwargs)`
-- `add_comment(ticket_id, comment)`
-- `close_ticket(ticket_id)`
+- `create_ticket(summary, description, labels=None)`
+- `post_comment(ticket_id, comment)`
+- `get_ticket(ticket_id)`
+- `get_transitions(ticket_id)`
+- `post_transition(ticket_id, transition_id)`
 
 **Built-in Plugins**:
 - `jira` - Atlassian JIRA integration
@@ -147,37 +181,12 @@ plugins:
     enabled: false
     server: irc.libera.chat
     port: 6667
-    ssl: false
     default_channel: "#quads"
-
-  # Cloud providers
-  aws_cloud:
-    enabled: false
-    region: us-east-1
-    access_key: ${AWS_ACCESS_KEY_ID}  # Environment variable
-    secret_key: ${AWS_SECRET_ACCESS_KEY}
-    default_ami: ami-0c55b159cbfafe1f0
-    subnet_id: subnet-xxxxx
-    security_group_ids:
-      - sg-xxxxx
-    key_name: quads-cloud-key
-    max_instances: 50
-
-  ibm_cloud:
-    enabled: false
-    api_key: ${IBM_CLOUD_API_KEY}
-    region: us-south
-    vpc_id: r006-xxxxx
-    subnet_id: 0717-xxxxx
-    resource_group_id: xxxxx
-    ssh_key_id: r006-xxxxx
-    default_image_id: r006-xxxxx
-    default_profile: cx2-2x4
-    max_instances: 50
 
   # Email
   email:
     enabled: true
+    mail_display_name: QUADS Scheduler
     smtp_host: mail.example.com
     smtp_port: 25
     from_address: quads@example.com
@@ -190,6 +199,9 @@ plugins:
     enabled: true
     ipmi_username: root
     ipmi_password: ${IPMI_PASSWORD}
+    # Comma-separated model/name fragments for Supermicro hosts that should
+    # skip Badfish and use the raw ipmitool path instead.
+    skip_for_supermicro_models: 6029p, 1028r, 1029u
 
   # Provisioning
   foreman:
@@ -200,14 +212,18 @@ plugins:
     password: ${FOREMAN_PASSWORD}
     token: ${FOREMAN_TOKEN}
     default_os: "RHEL 9"
-    default_ptable: "generic-rhel9"
-    default_medium: "RHEL Local"
     default_boot_order: "foreman"
     rbac_exclude: ""  # Exclude clouds from Foreman automation
+    rbac_user_mail: ""  # Email used when creating new QUADS cloud users in Foreman
+    rbac_auth_source_id: 1  # Foreman auth-source ID for new cloud users
 
   # Release management
   standard:
     enabled: true
+    # Number of retry attempts for IPMI credential set + verify
+    ipmi_credential_retries: 3
+    # Delay in seconds between retry attempts (per-host, runs in parallel)
+    ipmi_credential_retry_delay: 10
 
   # Switch automation
   juniper:
@@ -230,15 +246,11 @@ plugins:
     enabled: true
 ```
 
-### Environment Variable Substitution
+### Placeholder Values
 
-Configuration values can reference environment variables using `${VAR_NAME}` syntax:
-
-```yaml
-foreman:
-  password: ${FOREMAN_PASSWORD}  # Reads from environment
-  token: ${FOREMAN_TOKEN}
-```
+Values shown as `${VAR_NAME}`, for example `${FOREMAN_PASSWORD}` or `${JIRA_USERNAME}`,
+are placeholders from the shipped `plugins.yml` and must be replaced with real values.
+QUADS does not perform environment variable substitution, these strings are used literally.
 
 ### Enabling/Disabling Plugins
 
@@ -288,9 +300,7 @@ irc:
   enabled: true
   server: irc.libera.chat
   port: 6667
-  ssl: true
   default_channel: "#quads"
-  nickname: "quads-bot"
 ```
 
 ### Email Plugin
@@ -300,6 +310,7 @@ Send email notifications via SMTP.
 ```yaml
 email:
   enabled: true
+  mail_display_name: QUADS Scheduler
   smtp_host: mail.example.com
   smtp_port: 25
   from_address: quads@example.com
@@ -323,10 +334,13 @@ badfish:
   enabled: true
   ipmi_username: root
   ipmi_password: ${IPMI_PASSWORD}
+  # Comma-separated model/name fragments for Supermicro hosts that should
+  # skip Badfish and use the raw ipmitool path instead.
+  skip_for_supermicro_models: 6029p, 1028r, 1029u
 ```
 
 **Features**:
-- Power management (on/off/cycle)
+- Power management (on/off/cycle, reboot)
 - Boot order configuration
 - Hardware health monitoring
 
@@ -343,11 +357,16 @@ foreman:
   password: ${FOREMAN_PASSWORD}
   token: ${FOREMAN_TOKEN}
   default_os: "RHEL 9"
-  default_ptable: "generic-rhel9"
-  default_medium: "RHEL Local"
   default_boot_order: "foreman"
   rbac_exclude: "cloud32|cloud04"  # Exclude specific clouds
+  rbac_user_mail: ""  # Email used when creating new QUADS cloud users in Foreman
+  rbac_auth_source_id: 1  # Foreman auth-source ID for new cloud users
 ```
+
+**Features**:
+- OS provisioning and rebuild
+- Automatic Foreman RBAC bootstrap via `foreman_setup.py`
+- Cloud user creation and management
 
 ### Standard Release Plugin
 
@@ -356,6 +375,8 @@ Standard environment release workflow.
 ```yaml
 standard:
   enabled: true
+  ipmi_credential_retries: 3
+  ipmi_credential_retry_delay: 10
 ```
 
 **Workflow**:
@@ -479,10 +500,9 @@ custom_chat:
 
 ### Plugin Location
 
-Place custom plugins in one of these locations:
+Place custom plugins in:
 
 1. **External plugins directory**: `/opt/quads/plugins/` (recommended)
-2. **Source tree**: `src/quads/plugins/external/`
 
 Plugins are automatically discovered and loaded on startup.
 
@@ -493,6 +513,7 @@ Import the appropriate base class for your plugin type:
 ```python
 from quads.plugins.interfaces.chat import ChatPlugin
 from quads.plugins.interfaces.cloud import CloudPlugin
+from quads.plugins.interfaces.dayzero import DayzeroPlugin
 from quads.plugins.interfaces.email import EmailPlugin
 from quads.plugins.interfaces.hardware import HardwarePlugin
 from quads.plugins.interfaces.provisioner import ProvisionerPlugin
@@ -538,6 +559,7 @@ Plugins are discovered from:
 1. **Built-in plugins**: `quads.plugins.builtin.*`
    - `quads.plugins.builtin.chat`
    - `quads.plugins.builtin.cloud`
+   - `quads.plugins.builtin.dayzero`
    - `quads.plugins.builtin.email`
    - `quads.plugins.builtin.hardware`
    - `quads.plugins.builtin.provisioners`
@@ -553,7 +575,7 @@ Plugins are discovered from:
 1. Scan all discovery paths for Python modules
 2. Import each module
 3. Find classes inheriting from `BasePlugin`
-4. Register by plugin `name` attribute
+4. Register by plugin `name` attribute (for modules inside a builtin package the `name` must also match the module filename)
 5. Load enabled plugins from configuration
 
 ### Plugin Manager
@@ -633,7 +655,7 @@ from quads.plugins.manager import PluginManager
 # Loosely coupled, swappable implementations
 manager = PluginManager()
 provisioner = manager.get_plugin("foreman")
-await provisioner.build_host(hostname)
+await provisioner.prepare_host_provisioning("host01.example.com", "cloud04", "RHEL 9")
 ```
 
 ### Benefits of Plugin Architecture
