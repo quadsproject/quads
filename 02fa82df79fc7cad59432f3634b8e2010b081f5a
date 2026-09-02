@@ -35,6 +35,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f638c12_1ee4d123",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T03:07:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5640e17_43723d17",
+      "revId": "02fa82df79fc7cad59432f3634b8e2010b081f5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c5d176f8_2c9b68cc",
@@ -48,6 +66,30 @@
       "writtenOn": "2026-07-31T10:01:15Z",
       "side": 1,
       "message": "let\u0027s add a small TOC to the top of this page, I\u0027d put it under this header.  if you have the nvim markdown plugin it\u0027s just a single hotkey to make it.",
+      "range": {
+        "startLine": 1,
+        "startChar": 9,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "02fa82df79fc7cad59432f3634b8e2010b081f5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5ccf1065_0c974c69",
+        "filename": "docs/google-oauth-setup.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T03:07:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5d176f8_2c9b68cc",
       "range": {
         "startLine": 1,
         "startChar": 9,
