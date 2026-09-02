@@ -5,6 +5,7 @@ from quads.config import Config
 from quads.helpers.utils import time_remaining
 from quads.quads_api import APIBadRequest, APIServerException
 from quads.plugins.dispatchers import get_provisioner_dispatcher
+from quads.web.auth_helpers import is_cloud_owner
 
 
 class CloudOperations:
@@ -73,7 +74,7 @@ class CloudOperations:
             _daily_utilization = _schedules * 100 // _host_count
         return int(_daily_utilization)
 
-    async def get_cloud_summary_report(self, current_username=None) -> dict:
+    async def get_cloud_summary_report(self, current_username=None, current_roles=None) -> dict:
         """
         This method returns the cloud summary, optionally split by ownership.
 
@@ -99,7 +100,9 @@ class CloudOperations:
                     percent = (moved_hosts / scheduled_hosts) * 100 if scheduled_hosts else 0
                 cloud["is_valid"] = is_valid
                 cloud["percent"] = int(percent)
-                if cloud_name != "cloud01":
+                if cloud_name != "cloud01" and is_cloud_owner(
+                    current_username, cloud.get("owner", ""), cloud.get("ccuser") or [], current_roles
+                ):
                     if Config["openstack_management"]:
                         cloud["href_url_openstack"] = (
                             f"{Config['quads_url']}/instack/{cloud_name}_instackenv.json" if is_valid else "#"
@@ -119,8 +122,7 @@ class CloudOperations:
         my_assignments = []
         other_assignments = []
         for cloud in clouds_summary:
-            owner = cloud.get("owner", "").lower()
-            if owner == current_username.lower():
+            if is_cloud_owner(current_username, cloud.get("owner", ""), cloud.get("ccuser") or [], None):
                 my_assignments.append(cloud)
             else:
                 other_assignments.append(cloud)
