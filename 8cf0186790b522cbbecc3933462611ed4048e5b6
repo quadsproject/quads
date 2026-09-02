@@ -16,6 +16,24 @@
       "message": "Reviews picked up a few things to consider adding, here\u0027s a git patch:\n\n #1 — parse_datetime/format_iso_utc asymmetry (src/quads/helpers/timeutil.py)                                                                      \n - Adds %f variants to parse_datetime (%Y-%m-%dT%H:%M:%S.%f%z, plus T/space fractional forms), so the module\u0027s own serializer output               \n   (...58.284052+00:00) parses. Also tightens parse_http_date to accept trailing UTC instead of GMT (consolidated-review LOW-4, a latent crash in  \n   the function being touched).                                                                                                                    \n                                                                                                                                                   \n #2 — func.now()/DB-session-TZ coupling                                                                                                            \n - src/quads/server/models.py: the three default\u003dfunc.now() columns → default\u003ddatetime.now (TimestampMixin → assignments/hosts/schedules           \n   created_at, api_tokens.created_at, clouds.last_redefined). func becomes unused and is removed from the import. New writes now honor the \"naive  \n   \u003d\u003d app-local\" invariant unconditionally.                                                                                                        \n - src/quads/server/database.py: new check_db_timezone_consistency() — compares EXTRACT(TIMEZONE FROM now()) with the app\u0027s offset, logs ERROR on  \n   mismatch, returns True/False/None; called at the end of init_db.                                                                                \n - src/quads/server/app.py: new flask --app quads.server.app check-timezones command (uses app-configured engine).                                 \n - migrations/versions/5c9e3f71ad84_normalize_timestamps_to_local.py: alembic data migration (head b03922beaffb) shifting historical rows by (app  \n   offset − DB offset) for the uniform-provenance columns. clouds.last_redefined deliberately excluded — it\u0027s overwritten by datetime.now() on     \n   every assignment change, so its rows have mixed provenance a single shift can\u0027t fix. No-op on the standard all-UTC deployment; docstring        \n   requires running db upgrade before starting the new app.                                                                                        \n - docs/quads-api.md: deployment invariant note + check-timezones/db upgrade steps; fixes the \"all timestamps RFC 1123\" overclaim (moves is ISO    \n   +00:00). \n\n\nPATCH:\n\nhttps://gist.github.com/sadsfae/d785208269a1b13010aad871ef8b3151",
       "revId": "8cf0186790b522cbbecc3933462611ed4048e5b6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25c1e52d_b0b21d95",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T10:21:12Z",
+      "side": 1,
+      "message": "^^",
+      "parentUuid": "76db0569_839176ae",
+      "revId": "8cf0186790b522cbbecc3933462611ed4048e5b6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
