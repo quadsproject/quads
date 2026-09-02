@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc9c6b37_5cb47652",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T16:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9af9055c_37b56170",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9cf8a29_13f2dd40",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-09-02T16:05:50Z",
       "side": 1,
       "message": "not sure this is correct",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a0fa7de_2c5fd2b5",
+        "filename": "docs/quads-host-metadata-search.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T16:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9cf8a29_13f2dd40",
       "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -52,6 +88,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d22c7c7_d655157f",
+        "filename": "docs/quads-plugins.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T16:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "437dc82f_b30fd92a",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e78d5d04_ad748b29",
@@ -69,6 +123,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a3b38e5c_6a559e57",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T16:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e78d5d04_ad748b29",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ee02216_77b3f15c",
@@ -82,6 +154,24 @@
       "writtenOn": "2026-09-02T16:05:50Z",
       "side": 1,
       "message": "neither these ones",
+      "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3bb8f131_74084d83",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-02T16:31:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ee02216_77b3f15c",
       "revId": "3e3d94a8695f0dc790cbf6862a203ada1e4440cb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
