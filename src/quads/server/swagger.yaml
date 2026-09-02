@@ -14,8 +14,6 @@ info:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
 servers:
-  - url: 'https://quasd2-dev.rdu2.scalelab.redhat.com/api/v3/'
-  - url: 'https://quasd2-stage.rdu2.scalelab.redhat.com/api/v3/'
   - url: 'https://quads.example.com/api/v3/'
 
 tags:
@@ -210,12 +208,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Cloud'
+              type: object
+              required:
+                - cloud
+              properties:
+                cloud:
+                  type: string
+                  example: cloud12
           text/plain:
             schema:
               type: string
       responses:
-        '201':
+        '200':
           description: Created
         '400':
           description: Bad Request
@@ -404,7 +408,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Host'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Host'
         default:
           description: Unexpected error
           content:
@@ -421,15 +427,104 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Host'
+              type: object
+              required:
+                - name
+                - model
+                - host_type
+                - rack
+                - uloc
+              properties:
+                name:
+                  type: string
+                  example: host.example.com
+                model:
+                  type: string
+                  example: r640
+                host_type:
+                  type: string
+                  example: vendor
+                rack:
+                  type: string
+                  example: f01
+                uloc:
+                  type: string
+                  example: h01
+                blade:
+                  type: string
+                  example: b01
+                default_cloud:
+                  type: string
+                  example: cloud01
+                can_self_schedule:
+                  type: boolean
+                  example: false
+                overcloud:
+                  type: boolean
+                  example: false
+                bootmode:
+                  type: string
+                  example: Bios
           text/plain:
             schema:
               type: string
       responses:
-        '201':
+        '200':
           description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: [ ]
+
+  /hosts/availability_summary:
+    get:
+      summary: Returns host availability summary over two and four week windows
+      tags:
+        - Hosts
+      parameters:
+        - name: now
+          in: query
+          description: Current date reference point
+          required: true
+          schema:
+            type: string
+        - name: two_week_start
+          in: query
+          description: Start of the two week reporting window
+          required: true
+          schema:
+            type: string
+        - name: two_week_end
+          in: query
+          description: End of the two week reporting window
+          required: true
+          schema:
+            type: string
+        - name: four_week_end
+          in: query
+          description: End of the four week reporting window
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Host availability summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Host'
+        '400':
+          description: Bad Request - missing or invalid dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /hosts/{hostName}:
     get:
@@ -763,7 +858,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Disk'
+              type: object
+              required:
+                - disk_type
+                - size_gb
+                - count
+              properties:
+                disk_type:
+                  type: string
+                  example: nvme
+                size_gb:
+                  type: integer
+                  example: 2000
+                count:
+                  type: integer
+                  example: 10
           text/plain:
             schema:
               type: string
@@ -800,12 +909,27 @@ paths:
           schema:
             type: string
       requestBody:
-        description: Body request with *disk* details
+        description: Body request with *disk* details. The disk_id identifies which disk to update.
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Disk'
+              type: object
+              required:
+                - disk_id
+              properties:
+                disk_id:
+                  type: integer
+                  example: 1
+                disk_type:
+                  type: string
+                  example: nvme
+                size_gb:
+                  type: integer
+                  example: 2000
+                count:
+                  type: integer
+                  example: 10
           text/plain:
             schema:
               type: string
@@ -895,7 +1019,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Interface'
+              type: object
+              required:
+                - name
+                - mac_address
+                - switch_ip
+                - switch_port
+              properties:
+                name:
+                  type: string
+                  example: em1
+                mac_address:
+                  type: string
+                  example: aa:00:bb:11:cc:22
+                switch_ip:
+                  type: string
+                  example: 10.1.1.18
+                switch_port:
+                  type: string
+                  example: xt-0-0/1
+                bios_id:
+                  type: string
+                  example: nic1
+                speed:
+                  type: integer
+                  example: 1000
+                vendor:
+                  type: string
+                  example: Intel
+                pxe_boot:
+                  type: boolean
+                  example: true
+                maintenance:
+                  type: boolean
+                  example: false
           text/plain:
             schema:
               type: string
@@ -927,12 +1084,45 @@ paths:
           schema:
             type: string
       requestBody:
-        description: Body request with *interface* details
+        description: Body request with *interface* details. The id identifies which interface to update.
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Interface'
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: integer
+                  example: 12
+                name:
+                  type: string
+                  example: em1
+                mac_address:
+                  type: string
+                  example: aa:00:bb:11:cc:22
+                switch_ip:
+                  type: string
+                  example: 10.1.1.18
+                switch_port:
+                  type: string
+                  example: xt-0-0/1
+                bios_id:
+                  type: string
+                  example: nic1
+                speed:
+                  type: integer
+                  example: 1000
+                vendor:
+                  type: string
+                  example: Intel
+                pxe_boot:
+                  type: boolean
+                  example: true
+                maintenance:
+                  type: boolean
+                  example: false
           text/plain:
             schema:
               type: string
@@ -1059,7 +1249,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Memory'
+              type: object
+              required:
+                - handle
+                - size_gb
+              properties:
+                handle:
+                  type: string
+                  example: MMD
+                size_gb:
+                  type: integer
+                  example: 2000
           text/plain:
             schema:
               type: string
@@ -1159,7 +1359,31 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Processor'
+              type: object
+              required:
+                - handle
+                - vendor
+                - product
+                - processor_type
+              properties:
+                handle:
+                  type: string
+                  example: CoreI7
+                vendor:
+                  type: string
+                  example: Intel
+                product:
+                  type: string
+                  example: i7
+                processor_type:
+                  type: string
+                  example: x86
+                cores:
+                  type: integer
+                  example: 20
+                threads:
+                  type: integer
+                  example: 20
           text/plain:
             schema:
               type: string
@@ -1208,12 +1432,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Vlan'
+              type: object
+              required:
+                - gateway
+                - ip_free
+                - ip_range
+                - netmask
+                - vlan_id
+              properties:
+                gateway:
+                  type: string
+                  example: 10.1.18.8
+                ip_free:
+                  type: integer
+                  example: 256
+                ip_range:
+                  type: string
+                netmask:
+                  type: string
+                  example: 255.255.255.255
+                vlan_id:
+                  type: integer
+                  example: 601
           text/plain:
             schema:
               type: string
       responses:
-        '201':
+        '200':
           description: Created
         '400':
           description: Bad Request
@@ -1343,6 +1588,10 @@ paths:
                 $ref: '#/components/schemas/Error'
     post:
       summary: Add a new schedule
+      description: >
+        For administrative users start and end are optional. For the
+        self-scheduling flow the start time is set to now and the end time is
+        derived from selfservice.yml settings.
       tags:
         - Schedules
       requestBody:
@@ -1351,13 +1600,41 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Schedule'
+              type: object
+              required:
+                - hostname
+                - cloud
+              properties:
+                hostname:
+                  type: string
+                  example: host.example.com
+                cloud:
+                  type: string
+                  example: cloud04
+                start:
+                  type: string
+                  example: 2024-06-02 22:00
+                end:
+                  type: string
+                  example: 2024-07-02 22:00
           text/plain:
             schema:
               type: string
       responses:
-        '201':
+        '200':
           description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - host not available or assignment not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: [ ]
 
@@ -1562,6 +1839,142 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /schedules/stats/build_delta:
+    get:
+      summary: Returns build time delta statistics for schedules
+      tags:
+        - Schedules
+      responses:
+        '200':
+          description: Build delta statistics
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /schedules/stats/utilization:
+    get:
+      summary: Returns utilization statistics for a date range
+      tags:
+        - Schedules
+      parameters:
+        - name: start
+          in: query
+          description: Start date
+          required: true
+          schema:
+            type: string
+        - name: end
+          in: query
+          description: End date
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Utilization statistics
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Bad Request - start and end required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /schedules/batch:
+    post:
+      summary: Create multiple schedules at once with optional JIRA integration
+      description: >
+        Validates all hosts before creating any schedules; if any host is
+        unavailable the entire operation fails. Creates a new assignment when
+        assignment details are provided, otherwise reuses the existing active
+        assignment for the cloud.
+      tags:
+        - Schedules
+      requestBody:
+        description: Body request with *batch schedule* details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cloud
+                - hostnames
+                - start
+                - end
+              properties:
+                cloud:
+                  type: string
+                  example: cloud02
+                hostnames:
+                  type: array
+                  items:
+                    type: string
+                  example: [host01.example.com, host02.example.com]
+                start:
+                  type: string
+                  example: 2026-05-08 10:00
+                end:
+                  type: string
+                  example: 2026-05-09 22:00
+                description:
+                  type: string
+                  example: Testing environment
+                owner:
+                  type: string
+                  example: jdoe
+                ticket:
+                  type: string
+                  example: 5473
+                ccuser:
+                  type: string
+                  example: wfoster,kgodel
+                vlan:
+                  type: integer
+                  example: 1234
+                qinq:
+                  type: integer
+                  example: 0
+                wipe:
+                  type: boolean
+                  example: true
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: Schedules created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assignment_id:
+                    type: integer
+                  schedules_created:
+                    type: integer
+                  hostnames:
+                    type: array
+                    items:
+                      type: string
+                  jira_updated:
+                    type: boolean
+        '400':
+          description: Bad Request - one or more hosts unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /assignments/active/:
     get:
       summary: Returns a list with all active assignments
@@ -1611,6 +2024,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /assignments/expirations/:
+    get:
+      summary: Returns all assignments with upcoming expirations
+      tags:
+        - Assignments
+      responses:
+        '200':
+          description: List of assignments approaching expiration
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /assignments/:
     get:
       summary: Returns a list with all the defined assignments
@@ -1622,7 +2056,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Assignment'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
         default:
           description: Unexpected error
           content:
@@ -1639,18 +2075,70 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Assignment'
+              type: object
+              required:
+                - description
+                - owner
+                - ticket
+                - cloud
+              properties:
+                description:
+                  type: string
+                  example: Short description here
+                owner:
+                  type: string
+                  example: jsbach
+                ticket:
+                  type: string
+                  example: 2122
+                cloud:
+                  type: string
+                  example: cloud04
+                vlan:
+                  type: integer
+                  example: 601
+                qinq:
+                  type: integer
+                  example: 1
+                wipe:
+                  type: boolean
+                  example: true
+                ccuser:
+                  type: array
+                  items:
+                    type: string
+                  example: [edroste, kgodel]
+                is_self_schedule:
+                  type: boolean
+                  example: false
+                ostype:
+                  type: string
+                  example: rhel9
+                boot_order:
+                  type: string
+                  example: hdd,pxe
           text/plain:
             schema:
               type: string
       security:
         - BearerAuth: [ ]
       responses:
-        '201':
+        '200':
           description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /assignments/self/:
     post:
       summary: Create a new self assignment
+      description: >
+        The owner is derived from the authenticated token's email address and
+        must not be supplied in the body. If a ticket is not provided and
+        ssm_jira_create_ticket is disabled in selfservice.yml, the request is
+        rejected with a 400.
       tags:
         - Assignments
       requestBody:
@@ -1659,7 +2147,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Assignment'
+              type: object
+              required:
+                - description
+              properties:
+                description:
+                  type: string
+                  example: Short description here
+                cloud:
+                  type: string
+                  example: cloud04
+                vlan:
+                  type: integer
+                  example: 601
+                ticket:
+                  type: string
+                  example: 2122
+                cc_user:
+                  type: array
+                  items:
+                    type: string
+                  example: [edroste, kgodel]
+                qinq:
+                  type: integer
+                  example: 1
+                wipe:
+                  type: boolean
+                  example: true
+                ostype:
+                  type: string
+                  example: rhel9
+                boot_order:
+                  type: string
+                  example: hdd,pxe
           text/plain:
             schema:
               type: string
@@ -1668,6 +2188,18 @@ paths:
       responses:
         '201':
           description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - self scheduling disabled or limit reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /assignments/terminate/{assignment_id}/:
     post:
@@ -1686,6 +2218,48 @@ paths:
           description: Assignment terminated
       security:
         - BearerAuth: [ ]
+
+  /assignments/{assignment_id}/ssh-keys:
+    get:
+      summary: Returns the SSH keys for the users assigned to an assignment
+      tags:
+        - Assignments
+      parameters:
+        - name: assignment_id
+          in: path
+          description: Assignment ID
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: SSH keys for the assignment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      type: string
+                      example: user@example.com
+                    ssh_keys:
+                      type: array
+                      items:
+                        type: string
+        '403':
+          description: Forbidden - not a member of the assignment
+        '404':
+          description: Assignment not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /assignments/{assignment_id}/:
     get:
@@ -1741,8 +2315,8 @@ paths:
       security:
         - BearerAuth: [ ]
       responses:
-        '201':
-          description: Created
+        '200':
+          description: Updated assignment
     delete:
       summary: Delete assignment by id
       tags:
@@ -1825,8 +2399,8 @@ paths:
                 schema:
                   $ref: '#/components/schemas/Notification'
         responses:
-          '201':
-            description: Created
+          '200':
+            description: Updated notification
         security:
             - BearerAuth: [ ]
 
@@ -1949,6 +2523,294 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /moves/progress/:
+    get:
+      summary: Returns all active move progress records
+      tags:
+        - Moves
+      parameters:
+        - name: cloud
+          in: query
+          description: Filter by target cloud
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by move status
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Move progress list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MoveProgress'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moves/progress/{hostname}:
+    get:
+      summary: Returns move progress for a specific host
+      tags:
+        - Moves
+      parameters:
+        - name: hostname
+          in: path
+          description: Hostname
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Move progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveProgress'
+        '404':
+          description: No active move for the host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moves/progress/batch:
+    post:
+      summary: Start move tracking for a batch of hosts
+      tags:
+        - Moves
+      requestBody:
+        description: Body request with *hostnames* details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - hostnames
+              properties:
+                hostnames:
+                  type: array
+                  items:
+                    type: string
+                  example: [host01.example.com, host02.example.com]
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '201':
+          description: Move tracking started
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Bad Request - hostnames list required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /moves/progress/{schedule_id}:
+    patch:
+      summary: Update move status on a schedule
+      tags:
+        - Moves
+      parameters:
+        - name: schedule_id
+          in: path
+          description: Schedule ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Body request with *move progress* details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: New move status
+                message:
+                  type: string
+                error_message:
+                  type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: Updated move progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveProgress'
+        '400':
+          description: Bad Request - invalid status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/:
+    get:
+      summary: Returns the user matching the google_id query parameter
+      tags:
+        - Other
+      parameters:
+        - name: google_id
+          in: query
+          description: Google ID of the user
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request - google_id required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Register a new user (admin)
+      tags:
+        - Other
+      requestBody:
+        description: Body request with *user* details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                google_id:
+                  type: string
+                profile_picture:
+                  type: string
+                active:
+                  type: boolean
+                  example: true
+                fs_uniquifier:
+                  type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request - email required
+        '403':
+          description: Forbidden - admin role required
+
+  /users/{email}:
+    get:
+      summary: Returns a user by email (admin)
+      tags:
+        - Other
+      parameters:
+        - name: email
+          in: path
+          description: User email
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden - admin role required
+    patch:
+      summary: Update a user (admin)
+      tags:
+        - Other
+      parameters:
+        - name: email
+          in: path
+          description: User email
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Body request with *user* details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ssh_key:
+                  type: string
+                release_command:
+                  type: string
+                google_id:
+                  type: string
+                profile_picture:
+                  type: string
+                active:
+                  type: boolean
+      security:
+        - BearerAuth: [ ]
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Forbidden - admin role required
 
   /tokens/{email}/:
     get:
@@ -2463,6 +3325,39 @@ components:
         current:
           type: string
           example: cloud01
+    MoveProgress:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        host:
+          type: string
+          example: host.example.com
+        host_id:
+          type: integer
+          example: 15
+        source_cloud:
+          type: string
+          example: cloud01
+        target_cloud:
+          type: string
+          example: cloud02
+        status:
+          type: string
+          example: provisioning
+        message:
+          type: string
+          example: Provisioner ready
+        error_message:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          example: 2026-06-02T12:00:00
+        completed_at:
+          type: string
+          nullable: true
 
     Notification:
       type: object

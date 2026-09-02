@@ -36,7 +36,7 @@ email addresses from explicitly allowed domains are granted access.
    ```
    For local development, also add:
    ```
-   http://localhost:5000/auth/callback
+   http://localhost:5001/auth/callback
    ```
 7. Click **Create** and note the **Client ID** and **Client Secret**.
 > [!NOTE]
@@ -110,7 +110,7 @@ systemctl restart quads-web
 3. User authenticates with Google.
 4. Google redirects back to `/auth/callback` with an authorization code.
 5. QUADS exchanges the code for an access token and reads the user's email,
-   name, and profile picture from the ID token.
+   name, and profile picture from the OAuth userinfo.
 6. If the email domain is in `allowed_domains` and the email is verified, QUADS
    creates or updates the user record and starts a session.
 

@@ -30,7 +30,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
             * [Using SSL with Flask API and QUADS](#using-ssl-with-flask-api-and-quads)
          * [QUADS Wiki](#quads-wiki)
             * [Dynamic Wiki Content](#dynamic-wiki-content)
-              * [Ordering Dynamic Wiki Content](#ordering-elements-in-the-dynamic-wiki-content)
+              * [Ordering Elements in the Dynamic Wiki Content](#ordering-elements-in-the-dynamic-wiki-content)
          * [Installing other QUADS Components](#installing-other-quads-components)
             * [QUADS Move Command](#quads-move-command)
             * [Google OAuth Setup](#google-oauth-setup)
@@ -77,6 +77,8 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Shrinking the Schedule of an Existing Cloud](#shrinking-the-schedule-of-an-existing-cloud)
          * [Shrinking the Schedule of a Specific Host](#shrinking-the-schedule-of-a-specific-host)
          * [Terminating a Schedule](#terminating-a-schedule)
+         * [Get Host Details](#get-host-details)
+         * [Get Hosts in a Cloud](#get-hosts-in-a-cloud)
          * [Adding Hosts to an existing Cloud](#adding-hosts-to-an-existing-cloud)
          * [Removing a Schedule](#removing-a-schedule)
          * [Removing a Schedule across a large set of hosts](#removing-a-schedule-across-a-large-set-of-hosts)
@@ -92,9 +94,10 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
          * [Creating API Tokens via the Web UI](#creating-api-tokens-via-the-web-ui)
          * [Using API Tokens](#using-api-tokens)
          * [Managing API Tokens via the API](#managing-api-tokens-via-the-api)
-      * [QUADS Plugin Architecture](/docs/quads-plugins.md)
+      * [QUADS Plugin Architecture](#quads-plugin-architecture)
          * [Custom Post Validation Plugins](#custom-post-validation-plugins)
          * [Writing Custom Plugins](#writing-custom-plugins)
+      * [Self-Scheduling Hosts](#self-scheduling-hosts)
       * [Using the Self-Scheduling API](/docs/quads-self-schedule.md)
       * [Filtering Systems by Hardware Capability](#filtering-systems-by-hardware-capability)
       * [Additional Tools and Commands](#additional-tools-and-commands)
@@ -155,7 +158,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
    - Query scheduling data to determine future availability
    - Generates a per-month visualization map for per-machine allocations to assignments.
    - JIRA integration.
-   - Chat webhook and IRC notifications (via supybot/notify plugin) for system releases.
+   - Chat webhook and IRC notifications for system releases.
    - Email notifications to users for new future assignments, releases and expirations.
    - Flask-based Web UI for searching for available bare-metal systems in the future based on model and hardware.
    - Open, RESTful JSON API and RBAC for controlling access
@@ -249,7 +252,7 @@ _How many hosts and environments can a single QUADS instance use?_
 | Configure QUADS Crons | [docs](#making-quads-run) |  Tell QUADS how to manage your infrastructure |
 | Add Clouds and Hosts | [docs](#adding-new-hosts-to-quads) | Configure your hosts and environments in QUADS |
 | Host Metadata Model and Search | [docs](/docs/quads-host-metadata-search.md) | Host metadata info and filtering |
-| Using the JSON API | [docs](/quads-api.md) | Interacting with the RESTful JSON API |
+| Using the JSON API | [docs](/docs/quads-api.md) | Interacting with the RESTful JSON API |
 | Using the Self-Scheduling API | [docs](/docs/quads-self-schedule.md) | Full-featured API for self-service scheduling of systems/assignments |
 | Using JIRA with QUADS | [docs](/docs/using-jira-with-quads.md) | Optional JIRA tools and library for QUADS |
 
@@ -487,7 +490,7 @@ quads --define-cloud --cloud cloud03 --description "03 Cloud Environment"
 
 ##### Define your Server Models
 
-* Look for the `models:` [key/value pair](/conf/quads.yml#L184) and add ones that accurately describe your fleet.
+* Look for the `models:` [key/value pair](/conf/quads.yml#L88) and add ones that accurately describe your fleet.
 * This can be any identifiable string, we have added some stock ones we use for example but anything that makes sense to you to distinguish system models, sub-models etc that works for your needs e.g. R750-IL-XG might be a sub-model of a Dell R750.
 * Models are used for filtering search, availability and other useful features and it's a mandatory data element you need to provide.
 
@@ -655,18 +658,16 @@ INFO: Moving c08-h21-r630.example.com from cloud01 to cloud02 c08-h21-r630.examp
 
 ### How Provisioning Works
 #### QUADS Move Host Command
-In QUADS, a `move-command` is the actionable call that provisions and moves a set of systems from one cloud environment to the other.  Via cron, QUADS routinely queries the existing schedules and when it comes time for a set of systems to move to a new environment or be reclaimed and moved back to the spare pool it will run the appropriate varation of your `move-command`.
+In QUADS, the move workflow is the actionable process that provisions and moves a set of systems from one cloud environment to the other. Via cron, QUADS routinely queries the existing schedules and when it comes time for a set of systems to move to a new environment, or to be reclaimed and moved back to the spare pool, it runs the move workflow for each host.
 
-In the above example the default move command called ```/bin/echo``` for illustration purposes.  In order for this to do something more meaningful you should invoke a script with the ```--move-command``` option, which should be the path to a valid command or provisioning script/workflow.
+The move workflow is handled by the `standard` release plugin, which coordinates the provisioner (Foreman), hardware (Badfish) and switch (Juniper) plugins for each host.
 
-* Define your move command by pointing QUADS to an external command, trigger or script if not using ours.
-* This expects three arguments `hostname current-cloud new-cloud`.
 * Runs against all hosts according to the QUADS schedule.
 
 ```bash
 quads --move-hosts
 ```
-* The move workflow now uses the plugin architecture (release, provisioner, hardware, and switch plugins)
+* The move workflow uses the plugin architecture (release, provisioner, hardware, and switch plugins)
 * Plugins are configured in `/opt/quads/conf/plugins.yml`
 
 ##### Query a Host Cloud Membership
@@ -719,7 +720,7 @@ quads --show-progress --cloud cloud02
 ### Future Assignment Reporting
 
 As of QUADS `1.1.6` we now have the `--report-detailed` command which will list all upcoming future assignments that are scheduled.
-You can also specify custom start and end dates via `--schedule-start "YYYY-MM-DD HH:MM"` and `--schedule-stop "YYYY-MM-DD HH:MM"`
+You can also specify custom start and end dates via `--schedule-start "YYYY-MM-DD HH:MM"` and `--schedule-end "YYYY-MM-DD HH:MM"`
 
 ```bash
 quads --report-detailed
@@ -828,7 +829,7 @@ The `--export` flag can be combined with any time range arguments supported by t
 
 ## Customizing Environment Web Details
 ### Changing the Default Lab Name
-You can change the default QUADS environment name by modifying the `lab_name` variable in the [quads.yml](/conf/quads.yml#L11)
+You can change the default QUADS environment name by modifying the `lab_name` variable in the [quadsweb.yml](/conf/quadsweb.yml#L15)
 
 Restart `quads-web` to take effect.
 
@@ -895,10 +896,10 @@ QUADS supports two pre-defined BIOS boot orders for supported Dell systems based
 quads --define-cloud --cloud cloud03 --boot-order foreman
 ```
 
-You can change this at any time via `--mod-cloud`
+You can use the `--boot-order` argument with `--define-cloud` and any label defined in your `idrac_interfaces.yml`, for example `director`:
 
 ```
-quads --mod-cloud --cloud cloud03 --boot-order director
+quads --define-cloud --cloud cloud03 --boot-order director
 ```
 
 > [!TIP]
@@ -950,14 +951,14 @@ quads --cloud-only --cloud cloud03
 
 ### Managing Notifications
 QUADS notifications come in three forms:  Webhook/IRC, Jira and email, please see the below table.
-The types of notifications you send are configured in the QUADS [configuration file](conf/quads.yml)
+The notification delivery plugins (email, chat) are configured in [plugins.yml](conf/plugins.yml) while notification content settings such as `quads_notify_until_extended`, `quads_request_url` and the JIRA docs links live in the QUADS [configuration file](conf/quads.yml).
 
 | Event | Type | Delivery | Database Name | Template Name |
 |-------|------|----------|---------------|---------------|
 | New environment defined | scheduling | email | pre_initial | [future_initial_message](src/quads/templates/future_initial_message) |
 | New environment allocated | scheduling | email | initial | [initial_message](src/quads/templates/initial_message) |
 | New environment allocated | scheduling | webhook/IRC | initial | [called in notify](/src/quads/tools/notify.py#L75) |
-| New assignment scheduled | scheduling | Jira | N/A | [jira_ticket_assignment](src/quads/templates/jira_ticket_message) |
+| New assignment scheduled | scheduling | Jira | N/A | [jira_ticket_assignment](src/quads/templates/jira_ticket_assignment) |
 | Change in environment | assignment | email | pre | [future_message](src/quads/templates/future_message) |
 | Environment expiring | assignment | email | one_day, three_days, five_days, seven_days | [message](src/quads/templates/message) |
 | Validation failed (admin) | validation | email | fail | [validation_failed](src/quads/templates/validation_failed) |
@@ -978,7 +979,7 @@ cloud03  3931    False  False    True     True         True   False    False    
 ```
 
 #### Modifying Notifications
-You can use the `quads --modify-notification` command to reset notification values, valid arguments are the database names of the notification values e.g. `--one-day` and the environment with `--cloud`
+You can use the `quads --mod-notification` command to reset notification values, valid arguments are the database names of the notification values e.g. `--one-day` and the environment with `--cloud`
 
 ```bash
 # quads --mod-notification --cloud cloud02 --initial false
@@ -1010,7 +1011,7 @@ Host f18-h23-000-r620.example.com is now marked as repaired.
 
 ### Managing Retired Hosts
 
-* The quads commmands `--retire`, `--unretire` and `--ls-retire` features to manage decomissioning or reviving hosts.
+* The quads commmands `--retire`, `--unretire` and `--ls-retired` features to manage decomissioning or reviving hosts.
 * Hosts marked as retired will still retain their scheduling history and data, but will not show as available unless filtered.
    - To list retired hosts:
 
@@ -1035,7 +1036,7 @@ quads --unretire --host host01.example.com
 for host in $(cat /tmp/retired_hosts); do yes | quads --shrink --host $host --now; done
 ```
 
-* After this the defined `--move-host` command will want to move these back to your resource pool and power them off.
+* After this the next `quads --move-hosts` run will move these back to your resource pool and power them off.
 * `retired` hosts will remain officially in your resource pool but not show up in any visualizations or usage reporting, however their past usage history will all be available for record keeping and data requirements.
 
 ### Extending the Schedule of an Existing Cloud
@@ -1183,7 +1184,7 @@ for host in $(cat /tmp/452851); do quads --rm-schedule --schedule-id $(quads --l
 To remove a host entirely from QUADS management you can use the `--rm-host` command.
 
 ```bash
-quads --rm-host f03-h30-000-r720xd.rdu2.example.com
+quads --rm-host --host f03-h30-000-r720xd.rdu2.example.com
 Removed: {'host': 'f03-h30-000-r720xd.rdu2.example.com'}
 ```
 
@@ -1194,7 +1195,7 @@ Removed: {'host': 'f03-h30-000-r720xd.rdu2.example.com'}
 * Before using this, make sure it's not easier to simply use `--shrink` or `--extend` and sub-commands across the entire cloud/environments or even per-host first.
 
 ```bash
-quads --mod-schedule --host host01.example.com --mod-schedule --schedule-id 31 --schedule-start "2023-05-22 22 :00" --schedule-end "2023-06-22 22:00"
+quads --mod-schedule --host host01.example.com --schedule-id 31 --schedule-start "2023-05-22 22:00" --schedule-end "2023-06-22 22:00"
 ```
 
 #### Modifying a Host Schedule across a large set of hosts
@@ -1230,7 +1231,7 @@ quads --mod-host --host <hostname> --bootmode None
 You can change any of the properties of an interface (except its name) using --mod-interface:
 
 ```bash
-quads --mod-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com --no-pxe-boot
+quads --mod-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com --interface-speed 1000
 Interface successfully updated
 ```
 
@@ -1423,8 +1424,6 @@ class MyPlugin(DayzeroPlugin):
 # plugins.yml
   myplugin:
     enabled: true
-  summary:
-    enabled: true
 ```
 
 This pattern works for any plugin category. For example, a custom chat plugin goes in `/opt/quads/plugins/chat/`, a custom validator in `/opt/quads/plugins/validators/`, etc.
@@ -1487,24 +1486,6 @@ quads --verify-switch-conf --host host01.example.com
 quads --verify-switch-conf --host host01.example.com --change
 ```
 
-* To straddle clouds and place a single host into a cloud it does not belong in (rare use case):
-```bash
-quads --verify-switch-conf --host host01.example.com --cloud cloud10
-```
-
-Note, if host01.example.com is not in cloud10, but rather cloud20, you will see the following output:
-```
-WARNING - Both --cloud and --host have been specified.
-WARNING -
-WARNING - Host: host01.example.com
-WARNING - Cloud: cloud10
-WARNING -
-WARNING - However, host01.example.com is a member of cloud20
-WARNING -
-WARNING - !!!!! Be certain this is what you want to do. !!!!!
-WARNING -
-```
-
 ### Modify or check a specific Host Network Switch Settings
 * With the `quads --mod-switch-conf` tool you can set up each individual network interface to a specific vlan id.
 * Passing the `--change` argument will make the changes effective in the switch. Not passing this will only verify the configuration is set to the desired.
@@ -1516,7 +1497,7 @@ quads --mod-switch-conf --host host01.example.com --nic1 1400 --nic2 1401 --nic3
 * All `--nic*` arguments are optional so this can be also done individually for all nics.
 
 #### Mapping Interface to VLAN ID
-* An easy way to figure out what VLAN corresponds to what generic `em` interface in the QUADS `--ls-interfaces` information we now include the following tool:
+* An easy way to figure out what VLAN corresponds to what generic `em` interface in the QUADS `--ls-interface` information we now include the following tool:
 ```bash
 quads --ls-switch-conf --cloud cloud32
 INFO - Cloud qinq: 1
@@ -1728,7 +1709,7 @@ python3 $PYTHONDIR/site-packages/quads/tools/notify_tenant.py --message /tmp/mes
 
 ### List Available Foreman OS Types
 
-* The ` --os-list` functionality lets you search for available operating systems provided by your Foreman.
+* The `--os-list` functionality lets you search for available operating systems provided by your Foreman.
 
 ```bash
 quads --os-list
@@ -2116,10 +2097,10 @@ quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EX
 To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
 ```bash
 echo "select id,email from users;" | sudo -u postgres psql -d quads | grep user1@example.com
+```
 
 Above, we get the return here of `15 | user1@example.com`
 
-```
 Notice the `id` value of `15` for the user to delete.  First delete the `roles_users` entry:
 ```bash
 echo "delete from roles_users where user_id = 15;" | sudo -u postgres psql -d quads

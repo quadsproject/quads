@@ -29,7 +29,7 @@ systemctl enable quads-server.service
 systemctl start quads-server.service
 ```
 
-  - All the argparse and normal QUADS sub-commands are supported and will accept http `GET` and `POST` actions in a JSON response body.
+  - Every QUADS sub-command is backed by a REST endpoint; read actions map to http `GET` and write actions map to `POST`, `PATCH` or `DELETE` depending on the operation, all returning JSON response bodies.
     - Example: getting the equivalent of `quads --ls-hosts` via curl
 
 ```bash
@@ -81,8 +81,8 @@ curl http://localhost/api/v3/hosts | python -m json.tool
 ## Authentication
 * The QUADS API uses a simple token-based authentication mechanism.
 * You can generate a token doing a login with basic auth and then using the token for subsequent requests.
-* All GET requests are open with no authentication required.
-* All other requests require a valid token to be passed in the `Authorization` header.
+* Most GET requests are open with no authentication required with a few exceptions such as `/api/v3/me` and `/api/v3/users`, which require a valid token.
+* All state-changing requests (POST, PATCH, DELETE) require a valid token to be passed in the `Authorization` header.
 
 ### Example Login Request
 
@@ -105,29 +105,71 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
   * ```curl http://localhost/```
     - `/api/v3/version`             Obtain QUADS current version
     - `/api/v3/hosts`               Obtain a list of hosts managed by QUADS
+    - `/api/v3/hosts/availability_summary` Obtain host availability summary over two and four week windows
+    - `/api/v3/hosts/os_list`       List available operating systems in Foreman
+    - `/api/v3/hosts/<hostname>`    Obtain metadata for a specific host
+    - `/api/v3/hosts/<hostname>/memory`       List memory for a specific host
+    - `/api/v3/hosts/<hostname>/processors`   List processors for a specific host
+    - `/api/v3/hosts/<hostname>/disks`        List disks for a specific host
+    - `/api/v3/hosts/<hostname>/interfaces`   List interfaces for a specific host
     - `/api/v3/clouds`              Obtain list of cloud assignments
+    - `/api/v3/clouds/free`         Obtain a list of free clouds
+    - `/api/v3/clouds/summary`      Obtain a full summary of clouds, tickets, descriptions
     - `/api/v3/schedules`           Retrieve a list of all schedules
+    - `/api/v3/schedules/current`   Retrieve current schedules
+    - `/api/v3/schedules/future`    Retrieve future schedules
+    - `/api/v3/schedules/hosts_range` Retrieve schedules for a range of dates
+    - `/api/v3/schedules/stats/build_delta` Obtain build time delta statistics
+    - `/api/v3/schedules/stats/utilization` Obtain utilization statistics (`?start=` and `?end=` required)
     - `/api/v3/available`           List available hosts, usually used with `--schedule-start YYYY-MM-DD HH` and `--schedule-end YYYY-MM-DD HH`
+    - `/api/v3/available/<hostname>` Check availability of a specific host
     - `/api/v3/interfaces`          List interfaces of QUADS host(s)
+    - `/api/v3/disks` / `/api/v3/disks/types`  List disks / distinct disk types
+    - `/api/v3/memory`              List memory of QUADS host(s)
+    - `/api/v3/processors`          List processors of QUADS host(s)
     - `/api/v3/vlans`               Retrieve a list of all vlans
     - `/api/v3/vlans/free`          Retrieve a list of all available vlans
-    - `/api/v3/clouds/summary`      Obtain a full summary of clouds, tickets, descriptions
+    - `/api/v3/assignments`         Retrieve a list of all assignments
+    - `/api/v3/assignments/active`  Retrieve active assignments
+    - `/api/v3/assignments/active/<cloud>` Retrieve the active assignment for a cloud
+    - `/api/v3/assignments/expirations`     Retrieve assignments with upcoming expirations
+    - `/api/v3/assignments/<id>`    Retrieve a specific assignment
+    - `/api/v3/assignments/<id>/ssh-keys`   Retrieve SSH keys for an assignment (requires auth)
+    - `/api/v3/notifications`       Retrieve a list of notifications
+    - `/api/v3/notifications/<id>`  Retrieve a specific notification
     - `/api/v3/moves`               Obtain a list of hosts with their current and future clouds
     - `/api/v3/moves/progress/`     List all active move progress records (supports `?cloud=` and `?status=` filters)
     - `/api/v3/moves/progress/<hostname>` Get move progress for a specific host
+    - `/api/v3/me`                  Obtain the authenticated user identity and roles (requires auth)
 
 ## API POST Operations
 * The following construct can be used via http ```POST``` to receive more detailed data by providing granular criteria to return JSON body data:
   * You can combine one of many POST query types with multiple POST metadata objects.
   * There is limited support for data modification via POST as well documented below.
   * Valid POST URI queries
-    - ```/api/v3/hosts```        Same as `quads --define-host`, used for defining a new host.
-    - ```/api/v3/clouds```       Same as `quads --define-cloud` for creating/updating a cloud environment.
-    - ```/api/v3/schedules```    AKA _add host schedule_ used for adding a new host schedule.
-    - ```/api/v3/interfaces```   Add an interface to a QUADS-managed host
-    - ```/api/v3/moves/progress/batch```  Start move tracking for a batch of hosts (admin)
+    - `/api/v3/hosts`        Same as `quads --define-host`, used for defining a new host.
+    - `/api/v3/clouds`       Same as `quads --define-cloud` for creating/updating a cloud environment.
+    - `/api/v3/schedules`    AKA _add host schedule_ used for adding a new host schedule.
+    - `/api/v3/schedules/batch` Create multiple schedules at once (validates all hosts first)
+    - `/api/v3/interfaces/<hostname>`   Add an interface to a QUADS-managed host
+    - `/api/v3/disks/<hostname>`        Add a disk definition to a host
+    - `/api/v3/memory/<hostname>`       Add memory to a host
+    - `/api/v3/processors/<hostname>`   Add a processor to a host
+    - `/api/v3/vlans`        Add a new public VLAN definition
+    - `/api/v3/assignments`  Create a new assignment for a cloud
+    - `/api/v3/assignments/self`  Create a self-scheduled assignment (owner derived from token)
+    - `/api/v3/assignments/terminate/<id>`  Terminate an assignment
+    - `/api/v3/moves/progress/batch`  Start move tracking for a batch of hosts (admin)
   * Valid PATCH URI queries
-    - ```/api/v3/moves/progress/<id>```  Update move status on a schedule (admin)
+    - `/api/v3/hosts/<hostname>`    Update a host
+    - `/api/v3/clouds/<cloud>`      Update a cloud
+    - `/api/v3/schedules/<id>`      Update a schedule
+    - `/api/v3/assignments/<id>`    Update an assignment
+    - `/api/v3/notifications/<id>`  Update notification toggles
+    - `/api/v3/interfaces/<hostname>`  Update an interface (requires the interface `id` in the body)
+    - `/api/v3/disks/<hostname>`    Update a disk (requires `disk_id` in the body)
+    - `/api/v3/vlans/<vlan_id>`     Update a VLAN
+    - `/api/v3/moves/progress/<id>` Update move status on a schedule (admin)
 
 ## Working Examples
 
@@ -212,7 +254,6 @@ curl -X 'POST' \
   -H 'Authorization: Bearer $TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{
-      "active": true,
       "ccuser": [
         "edroste",
         "kgodel"
@@ -220,10 +261,8 @@ curl -X 'POST' \
       "cloud": "cloud04",
       "description": "Short description here",
       "owner": "jsbach",
-      "provisioned": true,
       "qinq": 1,
       "ticket": "3464",
-      "validated": true,
       "wipe": true
     }'
 ```
@@ -272,7 +311,6 @@ curl -X 'POST' \
   -H 'Authorization: Bearer $TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{
-  "assignment_id": 4,
   "start": "2024-06-02 22:00",
   "end": "2024-07-02 22:00",
   "hostname": "host01.example.com",
