@@ -56,7 +56,7 @@ paths:
       security:
         - BasicAuth: []
       responses:
-        '200':
+        '201':
           description: Successful user login
           content:
             application/json:
@@ -219,7 +219,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -469,7 +469,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -1458,7 +1458,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -1621,7 +1621,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -1951,7 +1951,7 @@ paths:
       security:
         - BearerAuth: [ ]
       responses:
-        '200':
+        '201':
           description: Schedules created
           content:
             application/json:
@@ -2123,7 +2123,7 @@ paths:
       security:
         - BearerAuth: [ ]
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request

@@ -327,7 +327,7 @@ class TestLogin:
                 headers={"Authorization": "Basic " + valid_credentials},
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json["status"] == "success"
         assert response.json["message"] == "Successful login"
         assert response.json["auth_token"] is not None
@@ -348,7 +348,7 @@ class TestLogin:
                 headers={"Authorization": "Basic " + valid_credentials},
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         auth_token = response.json["auth_token"]
         payload = decode(auth_token, options={"verify_signature": False})
         assert "role" in payload
@@ -369,7 +369,7 @@ class TestLogin:
                 headers={"Authorization": "Basic " + valid_credentials},
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         auth_token = response.json["auth_token"]
         payload = decode(auth_token, options={"verify_signature": False})
         assert "role" in payload

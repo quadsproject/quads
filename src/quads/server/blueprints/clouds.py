@@ -86,7 +86,7 @@ def create_cloud() -> Response:
         return Response(response=json.dumps(response), status=400)
 
     _cloud_obj = CloudDao.create_cloud(cloud_name)
-    return jsonify(_cloud_obj.as_dict())
+    return make_response(jsonify(_cloud_obj.as_dict()), 201)
 
 
 @cloud_bp.route("/<cloud>/", methods=["PATCH"])

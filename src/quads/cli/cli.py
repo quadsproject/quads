@@ -256,7 +256,7 @@ class QuadsCli:
             else:
                 js = request.json()
                 self.logger.debug("%s %s: %s" % (request.status_code, request.reason, data))
-                if request.request.method == "POST" and request.status_code == 200:
+                if request.request.method == "POST" and request.status_code in (200, 201):
                     self.logger.info("Successful request")
                 if js.get("result"):
                     for result in js["result"]:
@@ -1114,7 +1114,7 @@ class QuadsCli:
                     cloud_response = self.quads.insert_cloud(data)
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     raise CliException(str(ex))
-                if cloud_response.status_code == 200:
+                if cloud_response.status_code in (200, 201):
                     self.logger.info(f'Cloud {self.cli_args.get("cloud")} created.')
 
             if (
@@ -1126,7 +1126,7 @@ class QuadsCli:
                     response = self.quads.insert_assignment(data)
                 except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
                     raise CliException(str(ex))
-                if response.status_code == 200:
+                if response.status_code in (200, 201):
                     self.logger.info("Assignment created.")
                 if cloud:
                     try:
