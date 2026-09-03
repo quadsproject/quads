@@ -16,6 +16,24 @@
       "message": "mkay",
       "revId": "d87f2f6753d899a843a4b4a2d4c9ad5b7a63ccdb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10c03a59_7f4d7994",
+        "filename": "src/quads/server/swagger.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 2572,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-03T12:26:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb29819b_4bfc5641",
+      "revId": "d87f2f6753d899a843a4b4a2d4c9ad5b7a63ccdb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
