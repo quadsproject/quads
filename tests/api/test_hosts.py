@@ -153,7 +153,7 @@ class TestCreateHosts:
                     headers=auth_header,
                 )
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json["id"] == num
             assert response.json["name"] == req["name"]
             assert response.json["model"] == req["model"].upper()

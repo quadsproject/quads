@@ -256,7 +256,7 @@ class TestCreateSchedule:
             resp["start"] = response.json["start"]
             resp["end"] = response.json["end"]
             resp["id"] = response.json["id"]
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json == resp
 
     @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
@@ -283,7 +283,7 @@ class TestCreateSchedule:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
     @patch("quads.server.dao.schedule.datetime")
@@ -312,7 +312,7 @@ class TestCreateSchedule:
                     headers=auth_header,
                 )
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
 
     @pytest.mark.parametrize("prefill", prefill_self_non_schedule, indirect=True)
     def test_invalid_self_schedule_non(self, test_client, auth, prefill):
@@ -354,7 +354,7 @@ class TestCreateSchedule:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         from email.utils import parsedate_to_datetime
 
         start_time = parsedate_to_datetime(response.json["start"]).replace(tzinfo=None)
@@ -987,7 +987,7 @@ class TestCreateSchedulesBatch:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json["schedules_created"] == 2
         assert len(response.json["hostnames"]) == 2
         assert "host4.example.com" in response.json["hostnames"]
@@ -1017,7 +1017,7 @@ class TestCreateSchedulesBatch:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json["schedules_created"] == 2
         assert "assignment_id" in response.json
 
@@ -1042,7 +1042,7 @@ class TestCreateSchedulesBatch:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json["schedules_created"] == 1
 
     @pytest.mark.parametrize("prefill", ["clouds, vlans, hosts, assignments"], indirect=True)
@@ -1068,7 +1068,7 @@ class TestCreateSchedulesBatch:
                 headers=auth_header,
             )
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json["jira_updated"] is True
         mock_jira.assert_called_once()
 

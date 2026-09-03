@@ -101,7 +101,7 @@ def create_processor(hostname: str) -> Response:
     )
     db.session.add(_processor_obj)
     BaseDao.safe_commit()
-    return jsonify(_processor_obj.as_dict())
+    return make_response(jsonify(_processor_obj.as_dict()), 201)
 
 
 @processor_bp.route("/<processor_id>", methods=["DELETE"])

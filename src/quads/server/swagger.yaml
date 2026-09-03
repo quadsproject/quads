@@ -56,7 +56,7 @@ paths:
       security:
         - BasicAuth: []
       responses:
-        '200':
+        '201':
           description: Successful user login
           content:
             application/json:
@@ -113,7 +113,7 @@ paths:
                   type: string
                   example: 7h1515aV3rYkr1p71k70k3n
       responses:
-        '200':
+        '201':
           description: New user authentication token
           content:
             application/json:
@@ -219,7 +219,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -469,7 +469,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -877,7 +877,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Disk details
           headers:
             x-next:
@@ -1057,7 +1057,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Interface details list
           content:
             application/json:
@@ -1264,7 +1264,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Memory details list
           content:
             application/json:
@@ -1388,7 +1388,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Processor details list
           content:
             application/json:
@@ -1458,7 +1458,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -1621,7 +1621,7 @@ paths:
             schema:
               type: string
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request
@@ -1951,7 +1951,7 @@ paths:
       security:
         - BearerAuth: [ ]
       responses:
-        '200':
+        '201':
           description: Schedules created
           content:
             application/json:
@@ -2123,7 +2123,7 @@ paths:
       security:
         - BearerAuth: [ ]
       responses:
-        '200':
+        '201':
           description: Created
         '400':
           description: Bad Request

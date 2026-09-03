@@ -279,7 +279,7 @@ def create_assignment() -> Response:
     if _vlan:
         kwargs["vlan_id"] = int(vlan)
     _assignment_obj = AssignmentDao.create_assignment(**kwargs)
-    return jsonify(_assignment_obj.as_dict())
+    return make_response(jsonify(_assignment_obj.as_dict()), 201)
 
 
 @assignment_bp.route("/self/", methods=["POST"])

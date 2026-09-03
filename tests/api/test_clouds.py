@@ -20,7 +20,7 @@ class TestCreateClouds:
                     headers=auth_header,
                 )
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json["id"] == cloud_id
             assert response.json["name"] == cloud_name
             duration = datetime.utcnow() - datetime.strptime(

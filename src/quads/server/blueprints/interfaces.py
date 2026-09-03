@@ -90,7 +90,7 @@ def create_interface(hostname: str) -> Response:
     )
     db.session.add(_interface_obj)
     BaseDao.safe_commit()
-    return jsonify(_interface_obj.as_dict())
+    return make_response(jsonify(_interface_obj.as_dict()), 201)
 
 
 @interface_bp.route("/<hostname>", methods=["PATCH"])

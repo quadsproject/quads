@@ -82,7 +82,7 @@ def create_memory(hostname: str) -> Response:
     _memory_obj = Memory(handle=handle, size_gb=size_gb, host_id=_host.id)
     db.session.add(_memory_obj)
     BaseDao.safe_commit()
-    return jsonify(_memory_obj.as_dict())
+    return make_response(jsonify(_memory_obj.as_dict()), 201)
 
 
 @memory_bp.route("/<memory_id>", methods=["DELETE"])
