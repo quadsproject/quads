@@ -56,6 +56,23 @@ def mod_interface(request):
     )
 
 
+@pytest.fixture
+def mod_interface_enabled(request):
+    request.addfinalizer(finalizer)
+    InterfaceDao.create_interface(
+        HOST2,
+        IFNAME2,
+        IFBIOSID2,
+        IFMAC2,
+        IFIP2,
+        IFPORT2,
+        IFSPEED,
+        IFVENDOR2,
+        True,
+        True,
+    )
+
+
 class TestInterface(TestBase):
     def test_define_interface_no_params(self):
         try:
@@ -131,6 +148,86 @@ class TestInterface(TestBase):
             "\t--pxe-boot\n"
             "\t--maintenance"
         )
+
+    def test_mod_interface_pxe_only(self, mod_interface):
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifmac"] = None
+        self.cli_args["ifip"] = None
+        self.cli_args["ifport"] = None
+        self.cli_args["ifbiosid"] = None
+        self.cli_args["ifspeed"] = None
+        self.cli_args["ifvendor"] = None
+        self.cli_args["ifpxe"] = True
+
+        try:
+            self.quads_cli_call("modinterface")
+
+            host = HostDao.get_host(HOST2)
+            assert len(host.interfaces) == 1
+            assert host.interfaces[0].pxe_boot is True
+        finally:
+            self.cli_args.pop("ifpxe", None)
+
+    def test_mod_interface_maintenance_only(self, mod_interface):
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifmac"] = None
+        self.cli_args["ifip"] = None
+        self.cli_args["ifport"] = None
+        self.cli_args["ifbiosid"] = None
+        self.cli_args["ifspeed"] = None
+        self.cli_args["ifvendor"] = None
+        self.cli_args["ifmaintenance"] = True
+
+        try:
+            self.quads_cli_call("modinterface")
+
+            host = HostDao.get_host(HOST2)
+            assert len(host.interfaces) == 1
+            assert host.interfaces[0].maintenance is True
+        finally:
+            self.cli_args.pop("ifmaintenance", None)
+
+    def test_mod_interface_no_pxe_only(self, mod_interface_enabled):
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifmac"] = None
+        self.cli_args["ifip"] = None
+        self.cli_args["ifport"] = None
+        self.cli_args["ifbiosid"] = None
+        self.cli_args["ifspeed"] = None
+        self.cli_args["ifvendor"] = None
+        self.cli_args["ifpxe"] = False
+
+        try:
+            self.quads_cli_call("modinterface")
+
+            host = HostDao.get_host(HOST2)
+            assert len(host.interfaces) == 1
+            assert host.interfaces[0].pxe_boot is False
+        finally:
+            self.cli_args.pop("ifpxe", None)
+
+    def test_mod_interface_no_maintenance_only(self, mod_interface_enabled):
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifmac"] = None
+        self.cli_args["ifip"] = None
+        self.cli_args["ifport"] = None
+        self.cli_args["ifbiosid"] = None
+        self.cli_args["ifspeed"] = None
+        self.cli_args["ifvendor"] = None
+        self.cli_args["ifmaintenance"] = False
+
+        try:
+            self.quads_cli_call("modinterface")
+
+            host = HostDao.get_host(HOST2)
+            assert len(host.interfaces) == 1
+            assert host.interfaces[0].maintenance is False
+        finally:
+            self.cli_args.pop("ifmaintenance", None)
 
     def test_mod_interface_no_host(self, mod_interface):
         self.cli_args["host"] = None

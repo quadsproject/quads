@@ -136,13 +136,14 @@ def update_interface(hostname: str) -> Response:
         "pxe_boot",
         "maintenance",
     ]
+    boolean_keys = {"pxe_boot", "maintenance"}
     update_fields = {}
     for key in keys:
         value = data.get(key)
-        if value:
-            if isinstance(value, str):
-                if value.lower() in ["true", "false"]:
-                    value = eval(value.lower().capitalize())
+        if isinstance(value, str) and value.lower() in ["true", "false"]:
+            value = value.lower() == "true"
+        include = value is not None if key in boolean_keys else bool(value)
+        if include:
             update_fields[key] = value
 
     speed = update_fields.get("speed")

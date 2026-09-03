@@ -1857,8 +1857,8 @@ class QuadsCli:
             and _ifport is None
             and _ifspeed is None
             and _ifvendor is None
-            and not hasattr(self.cli_args, "ifpxe")
-            and not hasattr(self.cli_args, "ifmaintenance")
+            and "ifpxe" not in self.cli_args
+            and "ifmaintenance" not in self.cli_args
         ):
             raise CliException(
                 "Missing options. At least one of these options are required for --mod-interface:\n"
