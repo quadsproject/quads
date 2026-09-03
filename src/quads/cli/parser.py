@@ -1,7 +1,5 @@
 import argparse
 
-default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
-
 parser = argparse.ArgumentParser(description="Query current cloud for a given host")
 action_group = parser.add_mutually_exclusive_group()
 
@@ -684,13 +682,6 @@ parser.add_argument(
     action="store_const",
     const="show_progress",
     help="Show move/provisioning progress for a cloud or all clouds",
-)
-parser.add_argument(
-    "--move-command",
-    dest="movecommand",
-    type=str,
-    default=default_move_command,
-    help="External command to move a host",
 )
 
 parser.add_argument(

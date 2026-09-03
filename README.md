@@ -412,7 +412,7 @@ systemctl restart nginx
 ### Installing other QUADS Components
 
 #### QUADS Move Command
-   - QUADS relies on the plugin architecture to provision and manage machines. The release workflow is handled by the `standard` release plugin (configured in `/opt/quads/conf/plugins.yml`) which coordinates with provisioner, hardware, and switch plugins. Read more about this in the [move-host-command](#quads-move-host-command) section below and the [Plugin Architecture Documentation](/docs/quads-plugins.md).
+   - QUADS relies on the plugin architecture to provision and manage machines. The release workflow is handled by the `standard` release plugin (configured in `/opt/quads/conf/plugins.yml`), which coordinates the provisioner and hardware steps; switch VLAN configuration is applied by the move command. Read more about this in the [move-host-command](#quads-move-host-command) section below and the [Plugin Architecture Documentation](/docs/quads-plugins.md).
 
 #### Google OAuth Setup
    - For optionally integrating QUADS with Google OAuth SSO you can follow the instructions on [Google OAuth Setup](/docs/google-oauth-setup.md) docs.
@@ -707,13 +707,12 @@ quads --show-progress --cloud cloud02
 * The move workflow is now managed through the plugin architecture
 * To customize the release workflow:
   - Create a custom release plugin implementing the `ReleasePlugin` interface
-  - Configure it in `/opt/quads/conf/plugins.yml`
-  - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for details on creating custom plugins
-* The standard release plugin coordinates with:
+  - Release is a single-plugin category: disable `standard` and enable exactly one replacement in `/opt/quads/conf/plugins.yml`
+  - See the [Custom Release Plugin example](/docs/quads-plugins.md#example-custom-release-plugin) and [Dispatcher Model](/docs/quads-plugins.md#dispatcher-model) in the Plugin Architecture Documentation
+* The standard release plugin coordinates:
   - **Provisioner plugins** (e.g., Foreman) for OS deployment
   - **Hardware plugins** (e.g., Badfish) for power/boot management
-  - **Switch plugins** (e.g., Juniper) for network automation
-  - **Validator plugins** for pre-release checks
+* Switch VLAN configuration and pre-release validation run as separate steps in the move workflow, not within the release plugin
 
 ## QUADS Reporting
 
