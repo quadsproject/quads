@@ -23,7 +23,6 @@ def quads_cli_call(action):
         "filter": None,
         "force": "False",
         "dryrun": None,
-        "movecommand": "/quads/quads/tools/move_and_rebuild.py",
     }
     Config.load_from_yaml(DEFAULT_CONF_PATH)
     quads = QuadsApi(config=Config)

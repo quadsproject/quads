@@ -6,6 +6,7 @@ QUADS now features a flexible, extensible plugin architecture that allows you to
 
 - [Overview](#overview)
 - [Plugin Types](#plugin-types)
+- [Dispatcher Model](#dispatcher-model)
 - [Configuration](#configuration)
 - [Built-in Plugins](#built-in-plugins)
 - [Creating Custom Plugins](#creating-custom-plugins)
@@ -97,13 +98,15 @@ Integrate with provisioning backends.
 
 ### Release Plugins
 
-Manage environment release and handoff processes.
+Manage environment release and handoff (host move and rebuild) processes.
 
 **Interface**: `ReleasePlugin`
-**Methods**: `move_and_rebuild(host, new_cloud, semaphore, rebuild=False, schedule_id=None)`
+**Methods**: `move_and_rebuild(host, new_cloud, semaphore, rebuild=False, schedule_id=None)` (async, returns `bool`)
 
 **Built-in Plugins**:
 - `standard` - Standard QUADS release workflow
+
+Release is a single-plugin category (see [Dispatcher Model](#dispatcher-model)), so only one release plugin is active at a time. `standard` is the only supported and tested implementation; to run your own see [Example: Custom Release Plugin](#example-custom-release-plugin).
 
 ### Switch Plugins
 
@@ -143,6 +146,15 @@ Validate environment health and connectivity.
 
 **Built-in Plugins**:
 - `environment` - Comprehensive environment validation (replaces `validate_env.py`)
+
+## Dispatcher Model
+
+QUADS components never call a plugin class directly. Each plugin category is reached through a dispatcher that decides how the enabled plugins of that category are invoked. There are two kinds:
+
+- **Single-plugin** (first enabled wins): the dispatcher uses exactly one plugin, the first enabled plugin of that category in `plugins.yml` load order. Enabling a second plugin of the same category has no effect. Categories: Cloud, Hardware, Provisioner, Release, Switch, Ticketing, Validator.
+- **Multi-plugin** (broadcast): the dispatcher calls every enabled plugin of that category. Categories: Chat, Dayzero, Email.
+
+For a single-plugin category, enable exactly one plugin. To change the active implementation, disable the current one and enable your replacement. This is how you replace the built-in `standard` release plugin with your own (see [Example: Custom Release Plugin](#example-custom-release-plugin)).
 
 ## Configuration
 
@@ -534,6 +546,62 @@ chat_plugin = manager.get_plugin("custom_chat")
 # Test functionality
 await chat_plugin.send_message("Test message", ["#general"])
 ```
+
+### Example: Custom Release Plugin
+
+The release workflow (host move and rebuild) is a single-plugin category, so only one release plugin is active at a time. `standard` is the only supported and tested implementation; the `ReleasePlugin` interface is the supported extension point when you need different move/rebuild behavior for another environment.
+
+A release plugin implements one async method, `move_and_rebuild`, which returns `True` on success and `False` on failure. It receives an `asyncio.Semaphore` for concurrency control and an optional `schedule_id` used to report move progress back to QUADS.
+
+```python
+# /opt/quads/plugins/release/custom_release.py
+import asyncio
+from typing import Optional
+
+from quads.plugins.interfaces.release import ReleasePlugin
+from quads.plugins.manager import PluginManager
+
+
+class CustomReleasePlugin(ReleasePlugin):
+    """Custom host move/rebuild workflow"""
+
+    name = "custom_release"
+    version = "1.0.0"
+    description = "Custom release plugin"
+    author = "Your Name"
+
+    def initialize(self, plugin_manager: Optional[PluginManager] = None) -> bool:
+        return True
+
+    async def move_and_rebuild(
+        self,
+        host: str,
+        new_cloud: str,
+        semaphore: asyncio.Semaphore,
+        rebuild: bool = False,
+        schedule_id: Optional[int] = None,
+    ) -> bool:
+        async with semaphore:
+            try:
+                # Your move/rebuild implementation here
+                self.logger.info(f"Moving {host} to {new_cloud} (rebuild={rebuild})")
+                return True
+            except Exception as ex:
+                self.logger.error(f"Failed to move {host}: {ex}")
+                return False
+```
+
+Enable your plugin and disable the built-in so yours is the active release plugin:
+
+```yaml
+standard:
+  enabled: false
+
+custom_release:
+  enabled: true
+```
+
+The config block key must match the plugin `name`. Because release is single-plugin, leaving both enabled is unsupported: the first enabled release plugin in `plugins.yml` load order wins. For a reference implementation that coordinates the hardware and provisioner steps, see the built-in `standard` plugin (`quads.plugins.builtin.release.standard`). Switch VLAN configuration is applied separately by the move command, not by the release plugin.
 
 ## Plugin Discovery
 

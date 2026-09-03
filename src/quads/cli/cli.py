@@ -41,8 +41,6 @@ from quads.tools.conf_check import main as conf_check
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
 
-default_move_command = "/opt/quads/quads/tools/move_and_rebuild.py"
-
 
 class QuadsCli:
     ACTION_PREFIX = "action_"
