@@ -334,7 +334,7 @@ def create_schedule() -> Response:
             }
             return make_response(jsonify(response), 400)
 
-    return jsonify(_schedule_obj.as_dict())
+    return make_response(jsonify(_schedule_obj.as_dict()), 201)
 
 
 @schedule_bp.route("/<schedule_id>", methods=["PATCH"])
@@ -683,4 +683,4 @@ def create_schedules_batch() -> Response:
         "jira_updated": jira_updated,
     }
 
-    return jsonify(response_data)
+    return make_response(jsonify(response_data), 201)

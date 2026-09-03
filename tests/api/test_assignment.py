@@ -125,7 +125,7 @@ class TestCreateAssignments:
             assignment_response["cloud"]["last_redefined"] = response.json["cloud"]["last_redefined"]
             duration = datetime.utcnow() - datetime.strptime(response.json["created_at"], "%a, %d %b %Y %H:%M:%S GMT")
             assert duration.total_seconds() < 5
-            assert response.status_code == 200
+            assert response.status_code == 201
             assert response.json == assignment_response
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)

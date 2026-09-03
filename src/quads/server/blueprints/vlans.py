@@ -83,7 +83,7 @@ def create_vlan() -> Response:
     )
     db.session.add(_vlan_obj)
     BaseDao.safe_commit()
-    return jsonify(_vlan_obj.as_dict())
+    return make_response(jsonify(_vlan_obj.as_dict()), 201)
 
 
 @vlan_bp.route("/<vlan_id>", methods=["DELETE"])

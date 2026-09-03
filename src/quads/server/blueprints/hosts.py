@@ -292,7 +292,7 @@ def create_host() -> Response:
     )
     db.session.add(_host_obj)
     BaseDao.safe_commit()
-    return jsonify(_host_obj.as_dict())
+    return make_response(jsonify(_host_obj.as_dict()), 201)
 
 
 @host_bp.route("/<hostname>", methods=["DELETE"])

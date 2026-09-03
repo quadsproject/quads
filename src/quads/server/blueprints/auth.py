@@ -60,11 +60,11 @@ def register() -> Response:
             auth_token = User.encode_auth_token(user.email, role.name)
             response_object = {
                 "status": "success",
-                "status_code": 200,
+                "status_code": 201,
                 "message": "Successfully registered",
                 "auth_token": auth_token,
             }
-            return jsonify(response_object)
+            return make_response(jsonify(response_object), 201)
         except Exception:
             response = {
                 "status_code": 401,
@@ -115,7 +115,7 @@ def login() -> Response:
                 "message": "Successful login",
                 "auth_token": auth_token,
             }
-            return jsonify(response_object)
+            return make_response(jsonify(response_object), 201)
         else:
             response = {
                 "status_code": 401,
