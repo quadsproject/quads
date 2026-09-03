@@ -15,6 +15,10 @@ ExecStop = /usr/bin/pkill -f quads.web.app
 Restart = always
 StartLimitInterval = 60
 StartLimitBurst = 10
+# quads.web imports quads.server.models via quads.quads_api, and models reads
+# SQLALCHEMY_DATABASE_URI at import (defaulting to the docker host quads_db);
+# pin it here to match quads-server. quads-web's own data access is via the HTTP API.
+Environment="SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/quads"
 # QUADS requires the web frontend to run in UTC (issue #709).
 Environment="TZ=UTC"
 
