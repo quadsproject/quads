@@ -6,6 +6,7 @@ SHELL=/bin/bash
 #
 # * quads --move-hosts (checks for hosts to move/reclaim)
 # * quads --validate-env (checks clouds pending to be released for all enabled validation checks)
+# * quads --notify (sends future and expiration notifications)
 # * quads --regen-heatmap (keeps your usage visualization up to date)
 # * quads --regen-instack (keeps optional openshift/openstack inventory files regenerated)
 # * quads --foreman-rbac (manages Foreman host RBAC via the Foreman library/API)
