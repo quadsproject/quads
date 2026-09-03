@@ -1174,6 +1174,15 @@ class QuadsCli:
             else:
                 raise CliException(f"Could not parse os {os_type}, please check available os --os-list.")
 
+        if self.cli_args.get("boot_order"):
+            boot_order = self.cli_args.get("boot_order")
+            interfaces_path = conf.get("badfish_interfaces_path")
+            host_types = get_host_types_from_yaml(interfaces_path)
+            if boot_order in host_types:
+                clean_data["boot_order"] = boot_order
+            else:
+                raise CliException(f"Could not parse boot order {boot_order}, available boot orders: {host_types}")
+
         if "wipe" in self.cli_args:
             clean_data["wipe"] = self.cli_args.get("wipe")
         if "qinq" in self.cli_args:

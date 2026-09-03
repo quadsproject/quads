@@ -238,6 +238,46 @@ class TestCloud(TestBase):
         assert assignment
         assert assignment.vlan is None
 
+    @patch("quads.cli.cli.get_host_types_from_yaml", return_value=["director", "foreman"])
+    def test_mod_cloud_boot_order(self, mock_host_types):
+        self.cli_args["cloud"] = MOD_CLOUD
+        self.cli_args["description"] = "Modified description"
+        self.cli_args["cloudowner"] = None
+        self.cli_args["ccusers"] = None
+        self.cli_args["cloudticket"] = None
+        self.cli_args["vlan"] = None
+        self.cli_args["boot_order"] = "director"
+
+        try:
+            self.quads_cli_call("modcloud")
+
+            assert self._caplog.messages[0] == "Cloud modified successfully"
+            cloud = CloudDao.get_cloud(MOD_CLOUD)
+            assignment = AssignmentDao.get_active_cloud_assignment(cloud)
+            assert assignment
+            assert assignment.boot_order == "director"
+        finally:
+            self.cli_args.pop("boot_order", None)
+
+    @patch("quads.cli.cli.get_host_types_from_yaml", return_value=["director", "foreman"])
+    def test_mod_cloud_boot_order_invalid(self, mock_host_types):
+        self.cli_args["cloud"] = MOD_CLOUD
+        self.cli_args["description"] = "Modified description"
+        self.cli_args["cloudowner"] = None
+        self.cli_args["ccusers"] = None
+        self.cli_args["cloudticket"] = None
+        self.cli_args["vlan"] = None
+        self.cli_args["boot_order"] = "badorder"
+
+        try:
+            with pytest.raises(CliException) as ex:
+                self.quads_cli_call("modcloud")
+            assert str(ex.value) == (
+                "Could not parse boot order badorder, available boot orders: ['director', 'foreman']"
+            )
+        finally:
+            self.cli_args.pop("boot_order", None)
+
     @patch("quads.quads_api.Session.get")
     def test_ls_no_clouds(self, mock_get):
         mock_get.return_value.json.return_value = []
