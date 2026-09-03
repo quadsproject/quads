@@ -15,7 +15,7 @@ plugins:
     default_channel: "#quads"
 
   # Cloud Providers - Provision from cloud when local bare metal is exhausted
-  aws_cloud:
+  aws:
     enabled: false # Enable when you want cloud overflow capacity
     region: us-east-1
     access_key: ${AWS_ACCESS_KEY_ID}
@@ -64,10 +64,8 @@ plugins:
     username: admin
     password: ${FOREMAN_PASSWORD}
     token: ${FOREMAN_TOKEN}
-    # more foreman settings for your OS, medium, partition table
+    # more foreman settings for your OS and boot order
     default_os: "RHEL 7"
-    default_ptable: "generic-rhel7"
-    default_medium: "RHEL Local"
     default_boot_order: "foreman"
     # Foreman RBAC fix ignore
     # variable to pass cloud names to be excluded from foreman_heal
