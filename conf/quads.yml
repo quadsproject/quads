@@ -77,12 +77,6 @@ validation_grace_period: 120
 # this defaults to 1100 unless set otherwise.
 sw_vlan_first: 1100
 
-# default behavior is to change wipe back to true when all schedules expire
-# Use this carefully! Setting this to False will leave "wipe" behavior alone which
-# could cause issues unless you are certain what you are doing.
-# In most cases, leave it commented, or set to True
-default_wipe: True
-
 # If you're using metadata model / search you want to add any system models
 # here.  Please see docs/quads-host-metadata-search.md
 models: R620,R630,R640,R650,R660,R6625,R760,R930,R730XD,FC640,DL360,6018R,6048R,1029U-TRTP,1029U-TN10RT,1029P,5039MS,6049P
