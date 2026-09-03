@@ -2,7 +2,7 @@ import enum
 import hashlib
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any
 
 from flask import current_app
@@ -20,7 +20,6 @@ from sqlalchemy import (
     ForeignKey,
     PickleType,
     DateTime,
-    func,
     create_engine,
     inspect,
     MetaData,
@@ -28,6 +27,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship, backref
+
+from quads.helpers.timeutil import parse_datetime
 
 try:
     from sqlalchemy.orm import declarative_base
@@ -74,7 +75,7 @@ def engine_from_config(config):
 class TimestampMixin:
     @declared_attr.cascading
     def created_at(self):
-        return Column(DateTime, default=func.now())
+        return Column(DateTime, default=datetime.now)
 
 
 class Serialize:
@@ -245,7 +246,10 @@ class Serialize:
             if value is not None:
                 if type(attr.columns[0].type) is DateTime:
                     if not isinstance(value, datetime):
-                        value = datetime.strptime(value, "%a, %d %b %Y %H:%M:%S GMT")
+                        # API payloads carry RFC 1123 "GMT" strings (real UTC);
+                        # re-anchor them to the local wall clock so comparisons
+                        # against datetime.now() stay consistent.
+                        value = parse_datetime(value)
                 setattr(self, attr.key, value)
         return self
 
@@ -363,7 +367,7 @@ class ApiToken(Base):
     token_hash = Column(String(64), unique=True, nullable=False, index=True)
     token_prefix = Column(String(12), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
+    created_at = Column(DateTime, default=datetime.now, nullable=False)
     last_used = Column(DateTime, nullable=True)
 
     user = relationship("User", backref=backref("api_tokens", lazy="dynamic", cascade="all, delete-orphan"))
@@ -437,7 +441,7 @@ class Cloud(Serialize, Base):
     __tablename__ = "clouds"
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
-    last_redefined = Column(DateTime, default=func.now())
+    last_redefined = Column(DateTime, default=datetime.now)
 
     def __repr__(self):
         return "<Cloud(id='{}', name='{}', last_redefined='{}')>".format(self.id, self.name, self.last_redefined)

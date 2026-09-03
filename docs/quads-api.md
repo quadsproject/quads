@@ -23,6 +23,17 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
 # Using the QUADS REST API
 * All QUADS actions under the covers uses the REST API v3
 * This is a gunicorn wsgi service on localhost/5000 managed via the `quads-server` systemd service reverse-proxied by nginx.
+* All timestamps returned by the API (e.g. `created_at`, `end`, `last_redefined`) are
+  UTC instants serialized in RFC 1123 format labeled `GMT` (e.g. `Tue, 30 Apr 2024
+  12:07:15 GMT`), regardless of the server's local timezone. Move progress timestamps
+  (`started_at`, `completed_at`) are ISO 8601 with an explicit `+00:00` offset instead.
+* The database server and the application server must both run in UTC: every
+  timestamp written by the application (all `created_at` defaults, `last_redefined`,
+  `last_login`, `last_used`) is stored as naive UTC wall clock. Run
+  `flask --app quads.server.app check-timezones` after deploying to verify (it exits
+  non-zero when the application and database timezones differ), and run
+  `flask --app quads.server.app db upgrade` from `/opt/quads` at deploy time to apply
+  any pending schema migrations.
 
 ```bash
 systemctl enable quads-server.service
@@ -684,7 +695,7 @@ curl -s http://localhost/api/v3/moves/progress/host01.example.com | jq
   "status": "provisioning",
   "message": "Provisioner ready",
   "error_message": null,
-  "started_at": "2026-06-02T12:00:00",
+  "started_at": "2026-06-02T12:00:00+00:00",
   "completed_at": null
 }
 ```

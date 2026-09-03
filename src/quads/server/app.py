@@ -2,17 +2,56 @@
 # encoding: utf-8
 
 import click
+from datetime import datetime
 from flask import Flask, Blueprint, jsonify, Response
+from flask.json.provider import DefaultJSONProvider
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
 from flask.cli import with_appcontext
 
+from quads.server.database import check_db_timezone_consistency
 from quads.server.database import create_user, modify_user, remove_user, populate, drop_all
 from quads.server.database import init_db as db_init
 from quads.server.extensions import basic_auth, security, login_manager
 from quads.server.models import User, db, Role, migrate
+from quads.helpers.timeutil import format_http_date
 from quads.plugins.manager import get_plugin_manager
 from quads.tools.foreman_setup import start_foreman_rbac_thread
+
+
+class UtcJSONProvider(DefaultJSONProvider):
+    """JSON provider that renders datetimes as real UTC RFC 1123 ``GMT`` strings.
+
+    QUADS stores naive datetimes in the server's local timezone.  Rather than
+    stamping those local values with a ``GMT`` label (which is wrong everywhere
+    the server is not running in UTC), convert them to actual UTC before
+    serialization so the label is accurate.  See issue #709.
+
+    ``default`` must stay a ``staticmethod``: flask-security subclasses this
+    provider at ``init_app`` time with a staticmethod wrapper that calls
+    ``super().default(obj)`` with a single argument, matching Flask's own
+    ``DefaultJSONProvider.default``.
+    """
+
+    @staticmethod
+    def default(o):
+        if isinstance(o, datetime):
+            return format_http_date(o)
+        return super(UtcJSONProvider, UtcJSONProvider).default(o)
+
+
+def _ensure_utc_json_provider(app):
+    """Fail fast if ``app.json`` is not our UTC provider.
+
+    flask-security rebuilds ``app.json`` from ``json_provider_class`` during
+    ``security.init_app``; if that ever stops installing ``UtcJSONProvider`` the
+    API would silently go back to mislabeling timestamps (issue #709).
+    """
+    if not isinstance(app.json, UtcJSONProvider):
+        raise RuntimeError(
+            "UtcJSONProvider is not installed on app.json; API timestamps would be mislabeled (issue #709)"
+        )
+
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
@@ -39,11 +78,19 @@ def create_app(test_config=None) -> Flask:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
 
+    # Serialize datetimes as real UTC so the "GMT" label on API timestamps is
+    # accurate regardless of the server's local timezone (issue #709).
+    # Set the provider as the class, not an instance: flask-security re-builds
+    # ``app.json`` from ``json_provider_class`` at init_app time, so an instance
+    # assignment here would be silently discarded.
+    flask_app.json_provider_class = UtcJSONProvider
+
     # Initialize plugin system
     plugin_manager = get_plugin_manager()
     flask_app.extensions["plugin_manager"] = plugin_manager
 
     register_extensions(flask_app)
+    _ensure_utc_json_provider(flask_app)
     register_blueprints(flask_app)
     register_plugin_dispatchers(flask_app)
 
@@ -71,6 +118,17 @@ def create_app(test_config=None) -> Flask:
     def drop_db():
         """Drops the db tables."""
         drop_all(flask_app.config)
+
+    @flask_app.cli.command("check-timezones")
+    @with_appcontext
+    def check_timezones():
+        """Logs a warning when the app and database session timezones differ.
+
+        Exits non-zero when the timezones differ or the database cannot be
+        queried, so the command can gate a deployment.
+        """
+        if check_db_timezone_consistency(db.engine) is not True:
+            raise SystemExit(1)
 
     @flask_app.cli.command("add-user")
     @click.option("--username", required=True, help="The username/email of the user")

@@ -1,6 +1,58 @@
+import logging
+from datetime import datetime
+
 from sqlalchemy import text
 
 from quads.server.models import Base, Engine, Role, User, db, engine_from_config
+
+logger = logging.getLogger(__name__)
+
+
+def _utc_offset_label(offset_seconds):
+    """Format a UTC offset in seconds as ``UTC+5:30`` / ``UTC-2:30``."""
+    sign = "-" if offset_seconds < 0 else "+"
+    hours, minutes = divmod(abs(offset_seconds) // 60, 60)
+    return f"UTC{sign}{hours}:{minutes:02d}"
+
+
+def check_db_timezone_consistency(engine=None):
+    """Compare the application local timezone with the database session timezone.
+
+    The timestamp helpers in ``quads.helpers.timeutil`` treat every naive
+    datetime in the database as application-local wall clock time.  QUADS
+    requires the application and the database session to both run in UTC; this
+    check logs an error when they differ so the mislabeling described in issue
+    #709 is not silently reintroduced.
+
+    Returns ``True`` when the timezones match, ``False`` when they differ and
+    ``None`` when the database could not be queried.
+    """
+    engine = engine or Engine
+    try:
+        with engine.connect() as conn:
+            db_offset_seconds = conn.execute(text("SELECT EXTRACT(TIMEZONE FROM now())::int")).scalar()
+    except Exception as ex:
+        logger.warning(f"Could not read the database session timezone: {ex}")
+        return None
+
+    app_offset_seconds = int(datetime.now().astimezone().utcoffset().total_seconds())
+    if db_offset_seconds == app_offset_seconds:
+        logger.info(
+            "Database session timezone (%s) matches the application local timezone.",
+            _utc_offset_label(db_offset_seconds),
+        )
+        return True
+
+    db_label = _utc_offset_label(db_offset_seconds)
+    app_label = _utc_offset_label(app_offset_seconds)
+    logger.error(
+        f"Database session timezone ({db_label}) differs from the application local "
+        f"timezone ({app_label}). QUADS requires both to run in UTC; naive datetimes "
+        "stored by the database session (aware writes or any raw inserts) are read back "
+        "as application-local wall clock and would be mislabeled. Align the database "
+        "server and the application to UTC, then rerun this check."
+    )
+    return False
 
 
 def init_db(config=None):
@@ -29,6 +81,7 @@ def init_db(config=None):
         tmp_engine.dispose()
 
     Base.metadata.create_all(bind=engine)
+    check_db_timezone_consistency(engine)
 
 
 def drop_all(config=None):

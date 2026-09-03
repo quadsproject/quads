@@ -28,6 +28,9 @@ OOMScoreAdjust=-1000
 Environment=PG_OOM_ADJUST_FILE=/proc/self/oom_score_adj
 Environment=PG_OOM_ADJUST_VALUE=0
 Environment=PGDATA=/opt/quads/db/data
+# QUADS requires UTC; the session timezone is authoritative in postgresql.conf
+# and verified by 'flask --app quads.server.app check-timezones'.
+Environment=TZ=UTC
 
 ExecStartPre=/usr/libexec/postgresql-check-db-dir %N
 # Even though the $PGDATA variable is exported (postmaster would accept that)

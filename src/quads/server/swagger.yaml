@@ -2976,7 +2976,8 @@ components:
           example: cloud12
         last_redefined:
           type: string
-          example: 1984-02-02
+          description: Last cloud redefinition, serialized as RFC 1123 GMT (real UTC)
+          example: Tue, 19 May 2026 12:00:00 GMT
     CloudSummary:
       type: object
       properties:
@@ -3296,15 +3297,19 @@ components:
       properties:
         start:
           type: string
+          description: Accepted as naive input; responses serialize as RFC 1123 GMT (real UTC)
           example: 2022-02-02T22:00
         end:
           type: string
+          description: Accepted as naive input; responses serialize as RFC 1123 GMT (real UTC)
           example: 2022-04-02T22:00
         build_start:
           type: string
+          description: Accepted as naive input; responses serialize as RFC 1123 GMT (real UTC)
           example: 2022-02-02T22:00
         build_end:
           type: string
+          description: Accepted as naive input; responses serialize as RFC 1123 GMT (real UTC)
           example: 2022-04-02T22:00
         assignment_id:
           type: integer
@@ -3459,7 +3464,7 @@ components:
           example: qat_Ab3xKm9p
         created_at:
           type: string
-          example: Mon, 19 May 2026 12:00:00 GMT
+          example: Tue, 19 May 2026 12:00:00 GMT
         last_used:
           type: string
           nullable: true
