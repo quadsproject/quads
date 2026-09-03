@@ -95,14 +95,12 @@ async def available():
     return render_template("wiki/available.html", form=search, available_hosts=[], show_gpu=show_gpu)
 
 
-@wiki_bp.route("/results")
 async def search_results(search):
     show_gpu = Config.get("show_gpu")
     available_hosts_list = await available_hosts(search)
     return render_template("wiki/available.html", form=search, available_hosts=available_hosts_list, show_gpu=show_gpu)
 
 
-@wiki_bp.route("/available_hosts")
 async def available_hosts(search):
     models = search.data["model"]
     disk_types = search.data["disk_types"]
