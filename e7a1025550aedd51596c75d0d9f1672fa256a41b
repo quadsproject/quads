@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4af9e290_9291f887",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-09-04T17:23:38Z",
+      "side": 1,
+      "message": "LGTM (based on opus 4.8 analysis)\n\n  Verdict: effective and correct — fully resolves issue #715.\n\n  - The bug is real. search_results(search) (wiki.py:99) and available_hosts(search) (wiki.py:106) each take a required positional search, but their\n    route decorators supply no URL converter. A direct GET calls them with no argument → TypeError → 500. Matches the issue.\n  - The fix is the right one. Both are only ever called in-process: /available\u0027s POST handler calls search_results(), which calls available_hosts().\n    Dropping the decorators (the issue\u0027s recommended option) removes the broken endpoints while preserving the working /available flow.\n  - No collateral breakage (verified): no url_for to these endpoints, no JS/template hits /results or /available_hosts (the page\u0027s only AJAX call\n    goes to /api/v3/disks/types), and no tests reference them.\n  - The 3 deleted templates are genuinely dead: not included/imported anywhere; nav is now rendered by bootstrap_render.py. They\u0027re leftovers from\n    the wiki→quads-web migration (commit e642b43). The only other hit is auto-generated egg-info/SOURCES.txt.\n  - No coverage impact: quads.web isn\u0027t in the tox coverage scope.",
+      "revId": "e7a1025550aedd51596c75d0d9f1672fa256a41b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
