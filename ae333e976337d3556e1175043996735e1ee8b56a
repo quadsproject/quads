@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "797e9818_5d0ffc1e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-09-04T17:13:00Z",
+      "side": 1,
+      "message": "Is this change actually necessary?\n\nOpus 4.8 analysis:\n\nVerdict: Partial / largely ineffective on its primary claim\n\n Part 1 (systemd) does not fix a real defect\n\n The stated premise — \"add SQLALCHEMY_DATABASE_URI so both units point at the same DB\"\n — assumes the web app connects to the database. It does not.\n - src/quads/web/app.py:88 uses QuadsApi(Config) (HTTP client) for all data access.\n - src/quads/web/models.py WebUser is a plain flask_login.UserMixin, no ORM.\n - Nothing under src/quads/web/ imports quads.server.models, SQLAlchemy, or reads\n   SQLALCHEMY_DATABASE_URI. Only server/config.py and server/models.py read it.\n   Therefore the added env var is inert dead config. There was no \"silent failure risk\"\n   of the web app hitting a different DB, because the web app has no DB client. Both the\n   issue and the change rest on a misdiagnosis of the web tier (it is an API HTTP client).\n   Minor downside: the added line is misleading for maintainers.\n\n Part 2 (.env.example) is accurate documentation, with one gap\n\n .env is not loaded anywhere (no python-dotenv, no load_dotenv, no\n EnvironmentFile\u003d in systemd), so .env.example is purely a developer reference.\n Within that scope:\n - Dropped vars are genuinely unread by QUADS: FLASK_APP (autoapp.py does not exist),\n   FLASK_DEBUG, GUNICORN_WORKERS (workers hardcoded in ExecStart), LOG_LEVEL,\n   SECRET_KEY (server/config.py:5 hardcodes it as a class attr; not from env),\n   SEND_FILE_MAX_AGE_DEFAULT. Correct removals.\n - Added vars are genuinely read: QUADS_CONF_DIR (config.py:9),\n   QUADS_TEMPLATES_PATH (config.py:133-134). Correct.\n - DB URI password restored to match server unit / RPM. Reasonable.\n - GAP: issue #718 explicitly flagged FLASK_ENV\u003ddevelopment as disabling secure\n   cookies. FLASK_ENV IS read (web/app.py:80-81 -\u003e SESSION/REMEMBER_COOKIE_SECURE),\n   and the change LEAVES FLASK_ENV\u003ddevelopment in the example. That specific concern\n   from the issue is not addressed. Defensible for a local-dev example, but the\n   issue\u003c-\u003echange mismatch should be noted.\n\n Recommendation\n\n - Drop the systemd change, or if kept for uniformity, add a comment that the web tier\n   reaches the DB only via the API server and does not read this var.\n - Optionally address the FLASK_ENV\u003ddevelopment cookie note or state why dev mode is\n   intended for the local example.",
+      "revId": "ae333e976337d3556e1175043996735e1ee8b56a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
