@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e981d066_6e16928c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-14T05:43:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebb7bcba_6629336b",
+      "revId": "2f3cd9809264c7aeb0bc3a32e7801516b5ef4836",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "037dfffb_54cc2ace",
@@ -49,6 +67,30 @@
       "writtenOn": "2026-08-04T11:44:31Z",
       "side": 1,
       "message": "This is not the right approach here, this walks backwards away from the plugin design.  We shouldn\u0027t be adding anything else to tools/external/* and such, this should really be plugin functionality.",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 197,
+        "endChar": 1
+      },
+      "revId": "2f3cd9809264c7aeb0bc3a32e7801516b5ef4836",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f0d4001_d72f56b5",
+        "filename": "docs/quads-roce-setup.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-14T05:43:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "037dfffb_54cc2ace",
       "range": {
         "startLine": 190,
         "startChar": 1,
