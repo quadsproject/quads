@@ -24,7 +24,7 @@ from tests.helpers import unwrap_json
     ],
 )
 def test_update_user_normalizes_datetime_string(test_client, raw, expected):
-    user = UserDao.update_user("gonza@redhat.com", last_login=raw)
+    user = UserDao.update_user("regularuser@example.com", last_login=raw)
     assert isinstance(user.last_login, datetime)
     assert user.last_login == expected
 

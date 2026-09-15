@@ -44,9 +44,9 @@ plugins:
     mail_display_name: QUADS Scheduler
     smtp_host: mail.example.com
     smtp_port: 25
-    from_address: quads@redhat.com
-    reply_to: dev-null@redhat.com
-    user_agent: Rufus Postman 2.2.6
+    from_address: quads@example.com
+    reply_to: dev-null@example.com
+    user_agent: Rufus Postman 3.0.0
     report_cc: someuser@example.com, someuser@example.com, someuser@example.com, someuser@example.com
 
   badfish:

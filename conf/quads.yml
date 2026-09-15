@@ -23,7 +23,7 @@ quads_request_url:
 quads_request_deadline_day:
 
 # Quads API authentication
-quads_api_username: grafuls@redhat.com
+quads_api_username: apiuser@example.com
 quads_api_password: password
 
 badfish_interfaces_path: /opt/quads/conf/idrac_interfaces.yml

@@ -94,7 +94,7 @@ class _Config(_ConfigBase):
 
     FPING_TIMEOUT = 10000
 
-    QUADSVERSION = "2.2.6"
+    QUADSVERSION = "3.0.0"
     QUADSCODENAME = "maximilian"
 
     # Model/name fragments for Supermicro hosts that skip Badfish and use ipmitool.

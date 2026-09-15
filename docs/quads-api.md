@@ -203,7 +203,7 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
 ### Query a Specific Host and Details
 * This dumps all known metadata on a specific host.
 ```bash
-curl -s http://localhost/api/v3/hosts/f24-h22-000-r630.rdu2.scalelab.redhat.com | jq
+curl -s http://localhost/api/v3/hosts/f24-h22-000-r630.example.com | jq
 ```
 
 ### Query Hosts on a Specific Cloud

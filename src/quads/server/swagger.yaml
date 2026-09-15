@@ -108,7 +108,7 @@ paths:
               properties:
                 email:
                   type: string
-                  example: quads@redhat.com
+                  example: quads@example.com
                 password:
                   type: string
                   example: 7h1515aV3rYkr1p71k70k3n
@@ -154,7 +154,7 @@ paths:
                 properties:
                   email:
                     type: string
-                    example: quads@redhat.com
+                    example: quads@example.com
                   roles:
                     type: array
                     items:

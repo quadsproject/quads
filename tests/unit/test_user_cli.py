@@ -19,15 +19,17 @@ class TestModUserRole:
         | THEN: the user's role is replaced with admin
         """
         with app.app_context():
-            before = db.session.query(User).filter(User.email == "gonza@redhat.com").first()
+            before = db.session.query(User).filter(User.email == "regularuser@example.com").first()
             assert [role.name for role in before.roles] == ["user"]
 
-        result = app.test_cli_runner().invoke(args=["mod-user", "--username", "gonza@redhat.com", "--role", "admin"])
+        result = app.test_cli_runner().invoke(
+            args=["mod-user", "--username", "regularuser@example.com", "--role", "admin"]
+        )
         assert result.exit_code == 0
         assert "Role updated to admin" in result.output
 
         with app.app_context():
-            user = db.session.query(User).filter(User.email == "gonza@redhat.com").first()
+            user = db.session.query(User).filter(User.email == "regularuser@example.com").first()
             assert [role.name for role in user.roles] == ["admin"]
 
     def test_unknown_role_rejected(self, app):
@@ -37,11 +39,11 @@ class TestModUserRole:
         | THEN: the role is not changed and an error is printed
         """
         result = app.test_cli_runner().invoke(
-            args=["mod-user", "--username", "grafuls@redhat.com", "--role", "superuser"]
+            args=["mod-user", "--username", "apiuser@example.com", "--role", "superuser"]
         )
         assert result.exit_code == 0
         assert "Role superuser not found" in result.output
 
         with app.app_context():
-            user = db.session.query(User).filter(User.email == "grafuls@redhat.com").first()
+            user = db.session.query(User).filter(User.email == "apiuser@example.com").first()
             assert [role.name for role in user.roles] == ["admin"]

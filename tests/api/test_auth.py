@@ -28,7 +28,7 @@ def raise_exception_stub(ignore1=None):
 
 class UserClassStub:
     id = 0
-    email = "test@redhat.com"
+    email = "test@example.com"
     password = "12345"
     active = False
 
@@ -43,7 +43,7 @@ class UserClassStub:
 
     @staticmethod
     def decode_auth_token(ignore1=None):
-        return "test@redhat.com"
+        return "test@example.com"
 
 
 class SQLResultStub:
@@ -58,7 +58,7 @@ class SQLResultStub:
 
 
 def query_stub(ignore=None):
-    user = UserClassStub(1, "test@redhat.com", "password", False)
+    user = UserClassStub(1, "test@example.com", "password", False)
     return SQLResultStub([user])
 
 
@@ -120,7 +120,7 @@ class TestCheckAccess:
         | WHEN: User tries to access an endpoint with basic auth and wrong password
         | THEN: User should not be able to access the endpoint
         """
-        credentials = base64.b64encode(b"gonza@redhat.com:12345").decode("utf-8")
+        credentials = base64.b64encode(b"regularuser@example.com:12345").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/clouds",
@@ -138,7 +138,7 @@ class TestCheckAccess:
         | WHEN: User tries to access an endpoint with basic auth, but doesn't have the required role
         | THEN: User should not be able to access the endpoint
         """
-        credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+        credentials = base64.b64encode(b"regularuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/clouds",
@@ -177,7 +177,7 @@ class TestCheckAccess:
         | THEN: User should not be able to access the endpoint
         """
         db_session.query.return_value.filter.return_value.first.return_value = UserClassStub(
-            id=1, email="test@redhat.com", password="password", active=False
+            id=1, email="test@example.com", password="password", active=False
         )
         response = unwrap_json(
             test_client.post(
@@ -196,11 +196,11 @@ class TestCheckAccess:
         | WHEN: User tries to access an endpoint with basic auth
         | THEN: User should not be able to access the endpoint
         """
-        user = UserDao.get_user_by_email("gonza@redhat.com")
+        user = UserDao.get_user_by_email("regularuser@example.com")
         user.active = False
         UserDao.safe_commit()
         try:
-            credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+            credentials = base64.b64encode(b"regularuser@example.com:password").decode("utf-8")
             response = unwrap_json(
                 test_client.post(
                     "/api/v3/clouds",
@@ -309,7 +309,7 @@ class TestLogin:
         | WHEN: User tries to log in with invalid credentials.
         | THEN: User should not be able to log in due to failed basic auth
         """
-        invalid_credentials = base64.b64encode(b"none@redhat.com:wrong_password").decode("utf-8")
+        invalid_credentials = base64.b64encode(b"none@example.com:wrong_password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -326,11 +326,11 @@ class TestLogin:
         | WHEN: User tries to log in with their valid password
         | THEN: login is refused with a distinct disabled-account signal
         """
-        user = UserDao.get_user_by_email("gonza@redhat.com")
+        user = UserDao.get_user_by_email("regularuser@example.com")
         user.active = False
         UserDao.safe_commit()
         try:
-            credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+            credentials = base64.b64encode(b"regularuser@example.com:password").decode("utf-8")
             response = unwrap_json(
                 test_client.post(
                     "/api/v3/login",
@@ -352,7 +352,7 @@ class TestLogin:
         | WHEN: User tries to log in with valid credentials.
         | THEN: User should not be able to log in due unexpected exception
         """
-        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"apiuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -370,7 +370,7 @@ class TestLogin:
         | WHEN: User tries to log in with valid email and password
         | THEN: User should be able to log in
         """
-        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"apiuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -391,7 +391,7 @@ class TestLogin:
         | WHEN: Admin user logs in
         | THEN: JWT token should contain role field with value "admin"
         """
-        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"apiuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -404,7 +404,7 @@ class TestLogin:
         payload = decode(auth_token, options={"verify_signature": False})
         assert "role" in payload
         assert payload["role"] == "admin"
-        assert payload["sub"] == "grafuls@redhat.com"
+        assert payload["sub"] == "apiuser@example.com"
 
     def test_user_jwt_contains_role(self, test_client):
         """
@@ -412,7 +412,7 @@ class TestLogin:
         | WHEN: Regular user logs in
         | THEN: JWT token should contain role field with value "user"
         """
-        valid_credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"regularuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -425,7 +425,7 @@ class TestLogin:
         payload = decode(auth_token, options={"verify_signature": False})
         assert "role" in payload
         assert payload["role"] == "user"
-        assert payload["sub"] == "gonza@redhat.com"
+        assert payload["sub"] == "regularuser@example.com"
 
 
 class TestMe:
@@ -435,7 +435,7 @@ class TestMe:
         | WHEN: User tries to access /me with a valid JWT token
         | THEN: Identity and roles should be returned
         """
-        valid_credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"regularuser@example.com:password").decode("utf-8")
         login_response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -451,7 +451,7 @@ class TestMe:
             )
         )
         assert response.status_code == 200
-        assert response.json["email"] == "gonza@redhat.com"
+        assert response.json["email"] == "regularuser@example.com"
         assert "user" in response.json["roles"]
 
     def test_valid_api_token(self, test_client):
@@ -460,7 +460,7 @@ class TestMe:
         | WHEN: User tries to access /me with a valid qat_ API token
         | THEN: Identity and roles should be returned
         """
-        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"apiuser@example.com:password").decode("utf-8")
         login_response = unwrap_json(
             test_client.post(
                 "/api/v3/login",
@@ -471,7 +471,7 @@ class TestMe:
         headers = {"Authorization": "Bearer " + login_response.json["auth_token"]}
         create_response = unwrap_json(
             test_client.post(
-                "/api/v3/tokens/grafuls@redhat.com/",
+                "/api/v3/tokens/apiuser@example.com/",
                 json={"name": "me-test"},
                 headers=headers,
             )
@@ -483,7 +483,7 @@ class TestMe:
             )
         )
         assert response.status_code == 200
-        assert response.json["email"] == "grafuls@redhat.com"
+        assert response.json["email"] == "apiuser@example.com"
         assert "admin" in response.json["roles"]
 
     def test_invalid_no_header(self, test_client):
@@ -515,7 +515,7 @@ class TestMe:
         | WHEN: User tries to access /me with Basic auth credentials
         | THEN: Identity should be returned
         """
-        valid_credentials = base64.b64encode(b"grafuls@redhat.com:password").decode("utf-8")
+        valid_credentials = base64.b64encode(b"apiuser@example.com:password").decode("utf-8")
         response = unwrap_json(
             test_client.get(
                 "/api/v3/me",
@@ -523,7 +523,7 @@ class TestMe:
             )
         )
         assert response.status_code == 200
-        assert response.json["email"] == "grafuls@redhat.com"
+        assert response.json["email"] == "apiuser@example.com"
         assert "admin" in response.json["roles"]
 
 

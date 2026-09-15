@@ -15,7 +15,7 @@
 %define name quads-dev
 %define reponame quads
 %define branch development
-%define version 2.2.6
+%define version 3.0.0
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Summary: Automated future scheduling, documentation, end-to-end provisioning and assignment of servers and networks.
@@ -297,6 +297,14 @@ fi;
 find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
+
+* Tue Sep 15 2026 Will Foster <wfoster@redhat.com>
+* release 3.0.0
+* plugin architecture
+* SSO/oauth2
+* polling/status API
+* dayzero, cloud_command
+* too many features and fixes to mention
 
 * Wed Sep 02 2026 Will Foster <wfoster@redhat.com>
 - fix: API timestamps are serialized as real UTC (issue #709)

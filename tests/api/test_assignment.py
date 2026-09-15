@@ -452,7 +452,7 @@ class TestCreateSelfAssignment:
             "ssm_jira_create_ticket": False,
         }.get(key, default)
 
-        auth_header = auth.get_auth_header("grafuls@redhat.com")
+        auth_header = auth.get_auth_header("apiuser@example.com")
         assignment_request = {
             "description": "Test self assignment",
             "owner": "attacker",
@@ -467,7 +467,7 @@ class TestCreateSelfAssignment:
             )
         )
         assert response.status_code == 201
-        assert response.json["owner"] == "grafuls"
+        assert response.json["owner"] == "apiuser"
 
     @patch("quads.server.blueprints.assignments.Config.get")
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
@@ -485,7 +485,7 @@ class TestCreateSelfAssignment:
             "ssm_jira_create_ticket": False,
         }.get(key, default)
 
-        auth_header = auth.get_auth_header("grafuls@redhat.com")
+        auth_header = auth.get_auth_header("apiuser@example.com")
         assignment_request = {
             "description": "Test self assignment no owner",
             "cloud": "cloud04",
@@ -499,7 +499,7 @@ class TestCreateSelfAssignment:
             )
         )
         assert response.status_code == 201
-        assert response.json["owner"] == "grafuls"
+        assert response.json["owner"] == "apiuser"
 
 
 class TestExpirations:
