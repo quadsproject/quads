@@ -10,6 +10,7 @@
   - [Restart the Web Service](#restart-the-web-service)
 - [How It Works](#how-it-works)
 - [User Profile](#user-profile)
+  - [Using Cloud Command](#using-cloud-command)
 - [Security Notes](#security-notes)
 - [Troubleshooting](#troubleshooting)
 - [Authenticated User Calls](#authenticated-user-calls)
@@ -128,6 +129,20 @@ Authenticated users get a profile page at `/auth/profile` where they can:
 - Set an SSH public key
 - Set a release command
 - See their active cloud assignments
+
+### Using Cloud Command
+
+The Cloud Release Command card on your profile page is a free-form text box,
+saved to your user record in the QUADS database. It is limited to 1024
+characters.
+
+![Cloud Release Command](../image/cloud_command.png)
+
+When a new SSM or scheduled assignment is created and you are the cloud
+owner, the command runs on the first host of your allocation. It is
+executed via SSH as root inside a detached tmux session named
+`quads_release`, which stays open after the command finishes. Leave the
+field empty to disable it.
 
 ## Security Notes
 
