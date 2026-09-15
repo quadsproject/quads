@@ -40,6 +40,9 @@ class UserClassStub:
     def get_id(self):
         return self.id
 
+    def verify_password(self, password):
+        return self.password == password
+
     @staticmethod
     def decode_auth_token(ignore1=None):
         return "test@redhat.com"
@@ -189,6 +192,28 @@ class TestCheckAccess:
         assert response.json["error"] == "Forbidden"
         assert response.json["message"] == "You don't have the permission to access the requested resource"
 
+    @patch("quads.server.models.db.session")
+    def test_invalid_inactive_user_basic(self, db_session, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User tries to access an endpoint with basic auth while inactive
+        | THEN: User should not be able to access the endpoint
+        """
+        db_session.query.return_value.filter.return_value.first.return_value = UserClassStub(
+            id=1, email="test@redhat.com", password="password", active=False
+        )
+        credentials = base64.b64encode(b"test@redhat.com:password").decode("utf-8")
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/clouds",
+                json=dict(),
+                headers={"Authorization": "Basic " + credentials},
+            )
+        )
+        assert response.status_code == 403
+        assert response.json["error"] == "Forbidden"
+        assert response.json["message"] == "You don't have the permission to access the requested resource"
+
 
 class TestRegistration:
     def test_invalid_missing(self, test_client):
@@ -289,6 +314,27 @@ class TestLogin:
                 "/api/v3/login",
                 json=dict(),
                 headers={"Authorization": "Basic " + invalid_credentials},
+            )
+        )
+        assert response.status_code == 401
+        assert response.text == "Unauthorized Access"
+
+    @patch("quads.server.app.User")
+    def test_invalid_inactive_user(self, mock_user, test_client):
+        """
+        | GIVEN: Client with defaults in database
+        | WHEN: User tries to log in while their account is inactive
+        | THEN: User should not be able to log in
+        """
+        mock_user.query.filter_by.return_value.first.return_value = UserClassStub(
+            id=1, email="test@redhat.com", password="password", active=False
+        )
+        credentials = base64.b64encode(b"test@redhat.com:password").decode("utf-8")
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/login",
+                json=dict(),
+                headers={"Authorization": "Basic " + credentials},
             )
         )
         assert response.status_code == 401
