@@ -12,6 +12,7 @@
 - [User Profile](#user-profile)
 - [Security Notes](#security-notes)
 - [Troubleshooting](#troubleshooting)
+- [Authenticated User Calls](#authenticated-user-calls)
 
 QUADS supports Google OAuth2/OpenID Connect for single sign-on. Users click
 "SSO Login" on the web UI and authenticate via their Google account. Only
@@ -148,3 +149,35 @@ Authenticated users get a profile page at `/auth/profile` where they can:
 | `RuntimeError` on startup about missing secret key | `flask_secret_key` is blank or missing | Set a random value in `oauth.yml` |
 | Redirect URI mismatch error from Google | Callback URL not registered | Add `https://<host>/auth/callback` to the Google Cloud Console |
 | Cookies not persisting | Not using HTTPS in production | Deploy behind HTTPS or set `FLASK_ENV=development` for local testing |
+
+### Authenticated User Calls
+
+The instack metadata files (`<cloud>_instackenv.json` and
+`<cloud>_ocpinventory.json`, 404 other names) are guarded by Google SSO. Only
+the cloud owner, a cc-user of the cloud, or an admin can download them; anyone
+else gets HTTP 403.
+
+Authenticated SSO users create a `qat_` API token on the
+[`/auth/profile`](#user-profile) page (or via
+`POST /api/v3/tokens/<email>/`) and pass it as a Bearer token:
+
+```bash
+curl -H "Authorization: Bearer qat_your_token_here" \
+     https://quads.example.com/instack/cloud1_instackenv.json
+```
+
+Service accounts with a local username and password cannot send Basic auth
+directly to the instack URL (`Authorization: Basic ...` is rejected with
+HTTP 401). They obtain a temporary token from the login endpoint first:
+
+```bash
+export TOKEN=$(curl -s -k -X POST \
+    -u "svc-account@example.com:password" \
+    https://quads.example.com/api/v3/login/ | jq -r .auth_token)
+
+curl -H "Authorization: Bearer $TOKEN" \
+     https://quads.example.com/instack/cloud1_ocpinventory.json
+```
+
+A logged-in browser session (SSO cookie) can also download the files directly
+from the download links on the Assignments page.
