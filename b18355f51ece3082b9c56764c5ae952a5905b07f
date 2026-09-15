@@ -16,6 +16,24 @@
       "message": "Same account, two codes: a disabled user gets 401 at /login (verify_password returns False -\u003e basic_auth 401) but 403 on check_access routes. Both reject, which is what matters. The snag is the login response is identical to a wrong password, so a disabled user just sees \u0027Unauthorized Access\u0027 with no hint the account is disabled. Suggest a distinct signal, or at least a README note that a disabled account surfaces as 401 at /login and 403 on the API.",
       "revId": "b18355f51ece3082b9c56764c5ae952a5905b07f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ee10a8c4_b4a75ca8",
+        "filename": "src/quads/server/blueprints/__init__.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-15T07:54:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3348c7b_6891ab8a",
+      "revId": "b18355f51ece3082b9c56764c5ae952a5905b07f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
