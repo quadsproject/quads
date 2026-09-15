@@ -65,7 +65,7 @@ def check_access(roles):
                                 return Response(response=json.dumps(response), status=401)
                         if not current_user.active:
                             response = {
-                                "message": "You don't have the permission to access the requested resource",
+                                "message": "Account is disabled",
                                 "error": "Forbidden",
                             }
                             return Response(response=json.dumps(response), status=403)
@@ -92,6 +92,12 @@ def check_access(roles):
                             "error": "Unauthorized",
                         }
                         return Response(response=json.dumps(response), status=401)
+                    if not current_user.active:
+                        response = {
+                            "message": "Account is disabled",
+                            "error": "Forbidden",
+                        }
+                        return Response(response=json.dumps(response), status=403)
 
                 has_role = False
                 for role in roles:

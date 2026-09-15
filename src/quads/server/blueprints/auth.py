@@ -106,6 +106,13 @@ def login() -> Response:
     try:
         current_user = basic_auth.username()
         user = db.session.query(User).filter(User.email == current_user).first()
+        if not user.active:
+            response = {
+                "status_code": 403,
+                "status": "fail",
+                "message": "Account is disabled",
+            }
+            return make_response(jsonify(response), 403)
         user_role = user.roles[0].name if user.roles else None
         auth_token = User.encode_auth_token(user.email, user_role)
         if auth_token:

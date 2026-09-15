@@ -4,6 +4,7 @@ from unittest.mock import patch
 from jwt import decode
 from sqlalchemy.exc import SQLAlchemyError
 
+from quads.server.dao.user import UserDao
 from tests.config import EXPIRED_TEST_TOKEN
 from tests.helpers import unwrap_json
 
@@ -187,7 +188,32 @@ class TestCheckAccess:
         )
         assert response.status_code == 403
         assert response.json["error"] == "Forbidden"
-        assert response.json["message"] == "You don't have the permission to access the requested resource"
+        assert response.json["message"] == "Account is disabled"
+
+    def test_invalid_inactive_user_basic(self, test_client):
+        """
+        | GIVEN: an existing user whose active flag is set to false
+        | WHEN: User tries to access an endpoint with basic auth
+        | THEN: User should not be able to access the endpoint
+        """
+        user = UserDao.get_user_by_email("gonza@redhat.com")
+        user.active = False
+        UserDao.safe_commit()
+        try:
+            credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+            response = unwrap_json(
+                test_client.post(
+                    "/api/v3/clouds",
+                    json=dict(),
+                    headers={"Authorization": "Basic " + credentials},
+                )
+            )
+        finally:
+            user.active = True
+            UserDao.safe_commit()
+        assert response.status_code == 403
+        assert response.json["error"] == "Forbidden"
+        assert response.json["message"] == "Account is disabled"
 
 
 class TestRegistration:
@@ -293,6 +319,31 @@ class TestLogin:
         )
         assert response.status_code == 401
         assert response.text == "Unauthorized Access"
+
+    def test_invalid_inactive_user(self, test_client):
+        """
+        | GIVEN: an existing user whose active flag is set to false
+        | WHEN: User tries to log in with their valid password
+        | THEN: login is refused with a distinct disabled-account signal
+        """
+        user = UserDao.get_user_by_email("gonza@redhat.com")
+        user.active = False
+        UserDao.safe_commit()
+        try:
+            credentials = base64.b64encode(b"gonza@redhat.com:password").decode("utf-8")
+            response = unwrap_json(
+                test_client.post(
+                    "/api/v3/login",
+                    json=dict(),
+                    headers={"Authorization": "Basic " + credentials},
+                )
+            )
+        finally:
+            user.active = True
+            UserDao.safe_commit()
+        assert response.status_code == 403
+        assert response.json["status"] == "fail"
+        assert response.json["message"] == "Account is disabled"
 
     @patch("quads.server.models.User.encode_auth_token", raise_exception_stub)
     def test_invalid_exception(self, test_client):

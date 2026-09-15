@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch, Mock
 
 import pytest
 
+from quads.server.models import User
+
 
 class TestJsonLoadsSafety:
     """Unit tests verifying json.loads is used instead of eval() for array parsing."""
@@ -148,3 +150,11 @@ class TestAssignmentPatchBooleanEval:
         assert boolean_eval_present and boolean_guard_present, (
             "Boolean eval should remain guarded by whitelist check (admin-only endpoint)"
         )
+
+
+class TestUserIsActive:
+    """Unit tests for the User.is_active property used by Flask-Login."""
+
+    def test_is_active_mirrors_active_column(self):
+        assert User(active=False).is_active is False
+        assert User(active=True).is_active is True
