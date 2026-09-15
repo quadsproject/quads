@@ -138,6 +138,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
                * [Finding Orphaned Assignments](#finding-orphaned-assignments)
                * [Removing Orphaned Active Assignments](#removing-orphaned-active-assignments)
                * [Finding and Inactivating All Orphaned Active Assignments](#finding-and-inactivating-all-orphaned-active-assignments)
+            * [Disabling a User](#disabling-a-user)
             * [Deleting Self Service Users](#deleting-self-service-users)
       * [Contact QUADS Developers](#contact-quads-developers)
       * [QUADS Talks and Media](#quads-talks-and-media)
@@ -301,7 +302,11 @@ Available roles:
 - `admin` - Administrative privileges with full access
 - `user` - Regular user with limited access
 
-**Change a user's password:**
+**Change a user's password (recommended, prompts securely):**
+```bash
+flask --app quads.server.app mod-user --username user@example.com
+```
+The command prompts for the new password without echoing it or exposing it in your shell history. To set it directly (for automation or scripting):
 ```bash
 flask --app quads.server.app mod-user --username user@example.com --password newsecurepassword
 ```
@@ -320,9 +325,10 @@ flask --app quads.server.app delete-user --username user@example.com
 
 **Important Notes:**
 - All user management operations use Flask-Security for proper password hashing and security
+- To temporarily block logins without deleting an account, see [Disabling a User](#disabling-a-user)
 - Username changes are not supported - create a new user and delete the old one if needed
 - User deletion is permanent and cannot be undone
-- These commands require database access and should be run from the QUADS server
+- These commands require SSH access to the QUADS server and are intended for administrators
 
    - Now you're ready to go and start configuring QUADS environments, hosts, and other components below.
    - You should be able to access `quads-web` here now: http://QUADSVM and your [QUADS API](docs/quads-api.md) will also be available.
@@ -2117,8 +2123,20 @@ The following query will find and inactivate all orphaned active assignments in 
 quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EXISTS (SELECT 1 FROM schedules s WHERE s.assignment_id = a.id);
 ```
 
+#### Disabling a User
+* To temporarily block a user from logging in without removing their account, set their `active` flag to `false`:
+```bash
+sudo -u postgres psql -d quads -c "UPDATE users SET active = false WHERE email = 'user1@example.com';"
+```
+* Re-enable the account with `active = true`:
+```bash
+sudo -u postgres psql -d quads -c "UPDATE users SET active = true WHERE email = 'user1@example.com';"
+```
+* A disabled user cannot log in to the QUADS API or web UI, but their account and data remain intact. Use [delete-user](#user-management) only when you want to remove the account permanently.
+
 #### Deleting Self Service Users
 * Ideally you should be using `flask` to [remove users](#user-management) but this can be done in the database too.
+* If a self-service user has a forgotten password, reset it with [mod-user](#user-management) instead of deleting the account. Deletion is only needed to remove the account.
 
 To delete a user, e.g. if `user1@example.com` has a forgotten password, delete user to allow re-registering.
 ```bash

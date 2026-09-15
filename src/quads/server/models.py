@@ -282,6 +282,11 @@ class User(Base, UserMixin):
     email = Column(String(256), unique=True, nullable=False)
     _password = Column("password", String(256), nullable=True)
     active = Column(Boolean(), default=True)
+
+    @property
+    def is_active(self):
+        return self.active
+
     confirmed_at = Column(DateTime())
     google_id = Column(String(256), unique=True, nullable=True, index=True)
     profile_picture = Column(String(512), nullable=True)

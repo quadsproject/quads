@@ -61,7 +61,7 @@ cors = CORS()
 @basic_auth.verify_password
 def verify_password(email, password):
     user = User.query.filter_by(email=email).first()
-    if not user or not user.verify_password(password):
+    if not user or not user.active or not user.verify_password(password):
         return False
     return True
 
