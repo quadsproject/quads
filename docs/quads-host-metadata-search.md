@@ -345,7 +345,7 @@ curl https://quads.example.com/api/v3/hosts?interfaces.switch_ip=10.1.34.216&int
 
 ### Example Status Filter Searches
 
-  * List all systems by retirement (decomission) status.
+  * List all systems by retirement (decommission) status.
 
 ```bash
 quads --ls-hosts --filter "retired==True"
