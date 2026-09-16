@@ -19,7 +19,7 @@ QUADS is physically limited by the VLAN limit in the [IEEE 802.1Q](https://stand
 
 ## Current Limits
    > [!NOTE]
-   > Our current implementation iterates VLAN assignments by 10 so that means the formula  is `4090 / 10 minus 10` for maximum available VLAN-tagged environments or _clouds_ which reduces the maximum amount of multi-tenant environments by 60% or more of this total.
+   > Our current implementation iterates VLAN assignments by 10 so that means the formula  is `4090 / 10 minus 10` for maximum available VLAN-tagged environments or _clouds_, which reduces the maximum amount of multi-tenant environments by 60% or more of this total.
 
    > [!TIP]
    > In [RFE #589](https://github.com/quadsproject/quads/issues/589) we'll be removing this increment-by-10 approach from the codebase so that scale of usable VLAN-tagged environments will likely double to their theoretical limit for common deployments with 4 or less internal interfaces per host.

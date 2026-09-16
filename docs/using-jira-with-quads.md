@@ -10,7 +10,7 @@ others.
    * [Requirements for JIRA QUADS Automation](#requirements-for-jira-quads-automation)
       * [JIRA Basic Authentication](#jira-basic-authentication)
       * [JIRA Token Authentication](#jira-token-authentication)
-   * [Perfoming API Activities with jira.py](#api-activities-with-jirapy)
+   * [Performing API Activities with jira.py](#api-activities-with-jirapy)
    * [Applying Labels and Adding Watchers](#applying-labels-and-adding-watchers)
    * [Common JIRA Labels](#common-jira-labels)
 

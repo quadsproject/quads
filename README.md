@@ -148,7 +148,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
    - Drive automated systems provisioning and network switch changes to deliver isolated, multi-tenant bare-metal environments
    - Automated network and provisioning validation prior to delivering sets of machines/networks to tenants
    - Automated allocation of optional, publicly routable VLANs
-   - Generates/maintains user-configurable [instackenv.json](https://docs.openstack.org/tripleo-docs/latest/install/environments/baremetal.html#instackenv-json) to accomodate ironic-based OpenStack/OpenShift deployments.
+   - Generates/maintains user-configurable [instackenv.json](https://docs.openstack.org/tripleo-docs/latest/install/environments/baremetal.html#instackenv-json) to accommodate ironic-based OpenStack/OpenShift deployments.
    - Generates/maintains user-configurable ocpinventory.json for OpenShift on Baremetal Deployments
    - Automatically generate/maintain documentation to illustrate current status
      * Current system details, infrastructure fleet inventory
@@ -338,7 +338,7 @@ flask --app quads.server.app delete-user --username user@example.com
 
 This step is optional but may be welcoming due to recent HSTS enforcement in most browsers.
 
-To enable TLS/SSL on QUADS (API, Web) you'll need to generate your own certificates, **if you're cool with self-signed cerificates** you can use this one-liner below, otherwise you should adapt this to signed TLS/SSL certificates from your IT department.
+To enable TLS/SSL on QUADS (API, Web) you'll need to generate your own certificates, **if you're cool with self-signed certificates** you can use this one-liner below, otherwise you should adapt this one-liner to signed TLS/SSL certificates from your IT department.
 
 ```bash
 servername=$(hostname)
@@ -379,7 +379,7 @@ systemctl restart nginx
 #### Dynamic Wiki Content
    - Additional content can be added dynamically to the wiki by adding content to the `/opt/quads/web` directory.
    - The way directory is to be structured is so that any directory is considered as a submenu of the `quads-web` navigation bar with the exception of `static` directories which are ignored by the navbar generation and which contain any static files for all the html files.
-   - Additionally, the "friendly" text on the links will match that of the file without undescores.
+   - Additionally, the "friendly" text on the links will match that of the file without underscores.
    - Any files without extensions will be considered direct links with the content of it being only the hyperlink in plain text.
    - The html files should be structured for the correct jinja templating that is expected like this:
 
@@ -998,7 +998,7 @@ You can use the `quads --mod-notification` command to reset notification values,
 ```
 
 ### Managing Faulty Hosts
-Starting with `1.1.4` QUADS can manage broken or faulty hosts for you and ensure they are ommitted from being added to a future schedule or listed as available.  Prior to `1.1.4` this is managed via the Foreman host parameter `broken_state` (true/false).
+Starting with `1.1.4` QUADS can manage broken or faulty hosts for you and ensure they are omitted from being added to a future schedule or listed as available.  Prior to `1.1.4` this is managed via the Foreman host parameter `broken_state` (true/false).
 
 * Listing all broken systems.
 ```bash
@@ -1018,12 +1018,12 @@ Host f18-h23-000-r620.example.com is now marked as broken
 Host f18-h23-000-r620.example.com is now marked as repaired.
 ```
 
-* Hosts marked as faulty will be ommitted from `--ls-available`
+* Hosts marked as faulty will be omitted from `--ls-available`
 * Hosts marked as faulty are not able to be scheduled until they are marked as repaired again.
 
 ### Managing Retired Hosts
 
-* The quads commmands `--retire`, `--unretire` and `--ls-retired` features to manage decomissioning or reviving hosts.
+* The quads commands `--retire`, `--unretire` and `--ls-retired` manage decommissioning or reviving hosts.
 * Hosts marked as retired will still retain their scheduling history and data, but will not show as available unless filtered.
    - To list retired hosts:
 
@@ -1258,7 +1258,7 @@ Resource properly removed
 
 ### QUADS Provided Metadata
 
-When a new cloud assignment is validated and released, QUADS automatically generates a `/root/quads_env.yml` metadata file on the first host of the allocation. This file provides the cloud owner with various metadata and environmment variables to assist with their automation.  Combining this with information from the QUADS API can empower tenants with a full range of post-release automation capabilities. 
+When a new cloud assignment is validated and released, QUADS automatically generates a `/root/quads_env.yml` metadata file on the first host of the allocation. This file provides the cloud owner with various metadata and environment variables to assist with their automation.  Combining this with information from the QUADS API can empower tenants with a full range of post-release automation capabilities. 
 
 The file is delivered once during the initial release notification via the built-in `clouddata` dayzero plugin and contains the following structure:
 
@@ -1553,7 +1553,7 @@ em4 is interface VLAN 1403 in cloud32
 ```
 
 * You can then use this information to map specific interfaces into other VLAN/clouds as required for more one-off or ad-hoc requirements beyond the standard VLAN modes that QUADS currently supports.
-* **Note** that this would be an example for the default `Q-in-Q 0 (isolated)` VLAN configuration.  The `Q-in-Q 1 (combined)` configuration would simple be `VLAN1400` for all interfaces above respectively.
+* **Note** that this would be an example for the default `Q-in-Q 0 (isolated)` VLAN configuration.  The `Q-in-Q 1 (combined)` configuration would simply be `VLAN1400` for all interfaces above respectively.
 
 
 ### Modifying Cloud-level Attributes
@@ -1776,7 +1776,7 @@ su - postgres -c "pg_dumpall --clean > /tmp/quadsdb.sql"
 
 
 ## Restoring QUADS from Backup
-* You can restore a QUADS databasea via Postgres [psql](https://www.postgresqltutorial.com/postgresql-administration/postgresql-restore-database/) and everything is in the database and `/opt/quads/conf` files.
+* You can restore a QUADS database via Postgres [psql](https://www.postgresqltutorial.com/postgresql-administration/postgresql-restore-database/) and everything is in the database and `/opt/quads/conf` files.
 * Restoring just the quads database:
 
 ```
@@ -1803,7 +1803,7 @@ All of these validations are run from `--validate-env` and we also ship a few us
 `--validate-env` is run from cron, see our [example cron entry](cron/quads)
 
 ### Troubleshooting Steps
-You should run through each of these steps manually to determine what systems/networks might need attention of automated validation does not pass in a reasonable timeframe.  Typically, `admin_cc:` will receieve email notifications of trouble hosts as well.
+You should run through each of these steps manually to determine what systems/networks might need attention of automated validation does not pass in a reasonable timeframe.  Typically, `admin_cc:` will receive email notifications of trouble hosts as well.
 
 
 * **General Availability** can be checked via a simple `fping` command, this should be run first.
@@ -1934,7 +1934,7 @@ The _first two octets_ here can be substituted by the _first two octets of your 
 
 ![validation_1](/image/troubleshoot_validation1.png?raw=true)
 
-* Above, we can run the `host` command to determine what these machines map to by substituting `10.1` for the first two octects:
+* Above, we can run the `host` command to determine what these machines map to by substituting `10.1` for the first two octets:
 
 ```
 # for host in 10.1.37.231 10.1.38.150; do host $host; done
@@ -2116,8 +2116,8 @@ quads=# update assignments set active = false where id = 59;
 UPDATE 1
 ```
 
-##### Finding and Inactivating All Orphaned Active Assignments
-The following query will find and inactivate all orphaned active assignments in one swoop.
+##### Finding and Deactivating All Orphaned Active Assignments
+The following query will find and deactivate all orphaned active assignments in one swoop.
 
 ```sql
 quads=# UPDATE assignments a SET active = FALSE WHERE a.active = TRUE AND NOT EXISTS (SELECT 1 FROM schedules s WHERE s.assignment_id = a.id);

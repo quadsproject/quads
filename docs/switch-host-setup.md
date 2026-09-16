@@ -179,10 +179,10 @@ inet_interfaces = all
 > [!IMPORTANT]
 > QUADS requires that each QUADS-managed internal host interface fits [a certain 172.x.x IP addressing scheme](https://github.com/quadsproject/quads/blob/latest/src/quads/config.py#L141) for our validation process to ensure that VLAN change automation is successful and traffic flows across all interfaces.
 > This requires Foreman templates suited to the models of your fleet systems
-   * We provide some [example templates](/templates) for post-provisioning creation of system interface configs as an example, you'll need to tune and test this to accomodate for your own infrastructure.
+   * We provide some [example templates](/templates) for post-provisioning creation of system interface configs as an example, you'll need to tune and test this to accommodate your own infrastructure.
 
 #### Foreman Tuning
-   * Because we use `asyncio` and make direct calls to the Foreman API you may want to adjust your `MaxKeepAliveRequests` in your Apache configuration for `mod_passenger` to accomodate more simultaneous connections.
+   * Because we use `asyncio` and make direct calls to the Foreman API you may want to adjust your `MaxKeepAliveRequests` in your Apache configuration for `mod_passenger` to accommodate more simultaneous connections.
    * In `/etc/httpd/conf.d/05-foreman.conf` and `/etc/httpd/conf.d/05-foreman-ssl.conf`
 
 ```
@@ -308,7 +308,7 @@ At this point you can **proceed with initializing QUADS** [from the main documen
 
 ## Define Optional Public VLANS
 
-Public VLANS are an optional feature that allow you to tag the 4th (or last) internal interface across a set of machines when you define an new cloud environment.  You must already have these sets of VLANS defined on each top-of-rack switch in your environment respectively.
+Public VLANS are an optional feature that allow you to tag the 4th (or last) internal interface across a set of machines when you define a new cloud environment.  You must already have these sets of VLANS defined on each top-of-rack switch in your environment respectively.
 
 The below examples are how we do this on Juniper QFX5X00 switches, adjust as necessary.
 
@@ -390,7 +390,7 @@ set vlans vlan601 l3-interface irb.601
 
 ### Generate a Skeleton VLANS YAML config
 
-We ship an example VLANS yaml configuration template you can use generate your public VLAN definitions and import them into the QUADS database.
+We ship an example VLANS yaml configuration template you can use to generate your public VLAN definitions and import them into the QUADS database.
 
    - First, edit the template to your liking to match your network setup.
 
