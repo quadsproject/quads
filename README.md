@@ -4,7 +4,7 @@ QUADS
 
 QUADS automates the future scheduling, end-to-end provisioning and delivery of bare-metal servers and networks.
 
-QUADS also provides a robust, RESTful API that enables end-to-end self service delivery and a [Python client library](https://github.com/quadsproject/python-quads-lib)
+QUADS also provides a robust, RESTful API that enables end-to-end self service delivery and a [Python client library](https://github.com/quadsproject/python-quads-lib) and [client](https://github.com/quadsproject/quads-client)
 
 * Visit the [QUADS development blog](https://quads.dev)
 * Please read our [contributing guide](/CONTRIBUTING.md) and use [Gerrit Review](https://review.gerrithub.io/q/project:quadsproject%252Fquads) to submit patches.
