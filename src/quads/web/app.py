@@ -4,6 +4,7 @@ from datetime import timedelta
 from flask import Flask
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from quads.config import Config
 from quads.quads_api import QuadsApi
@@ -57,6 +58,18 @@ def create_app() -> Flask:
     flask_app.url_map.strict_slashes = False
     google_oauth_conf = Config.get("google_oauth", {})
     oauth_settings = Config.get("oauth_settings", {})
+
+    # The web app is served behind an nginx reverse proxy that terminates TLS
+    # (see container/etc/nginx/conf.d/apiv3_ssl.conf.example and
+    # systemd/quads-web.service). Without ProxyFix, Werkzeug ignores the
+    # X-Forwarded-* headers and request.scheme is always "http", so
+    # url_for(..., _external=True) builds http:// URLs (e.g. the Google OAuth
+    # redirect_uri) even when the site is reached over https. Trust the proxy
+    # for proto/host/for headers (single hop by default). Set
+    # oauth_settings.proxy_fix_hops to 0 to disable.
+    proxy_hops = oauth_settings.get("proxy_fix_hops", 1)
+    if proxy_hops:
+        flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app, x_for=proxy_hops, x_proto=proxy_hops, x_host=proxy_hops)
 
     secret_key = oauth_settings.get("flask_secret_key")
     if not secret_key:
