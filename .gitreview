@@ -2,4 +2,4 @@
 host=review.gerrithub.io
 port=29418
 project=quadsproject/quads
-defaultbranch=development
+defaultbranch=stage

@@ -14,7 +14,7 @@
 
 %define name quads-dev
 %define reponame quads
-%define branch development
+%define branch stage
 %define version 3.0.0
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
