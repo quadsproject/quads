@@ -2,6 +2,12 @@
 ssm_enable: true
 # Set max limit per self-schedule
 ssm_host_limit: 10
+# Percentage of a model's fleet that may be used for self-scheduling at any time.
+# Per-model overrides; models not listed use ssm_model_limit_default.
+# Uncomment and set values to enable the per-model pool (default 100 = no limit):
+# ssm_model_limit:
+#   - r660: 60
+ssm_model_limit_default: 100
 # Set default lifetime in days for self-schedules
 ssm_default_lifetime: 5
 # How many clouds (and auth tokens, one per cloud) a unique user ID can have

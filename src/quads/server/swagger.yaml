@@ -2440,6 +2440,14 @@ paths:
           required: false
           schema:
             type: string
+        - name: can_self_schedule
+          in: query
+          description: |
+            Return only hosts eligible for self-scheduling. When true the response
+            honors the per-model percentage pool (ssm_model_limit/ssm_model_limit_default).
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: Hosts
