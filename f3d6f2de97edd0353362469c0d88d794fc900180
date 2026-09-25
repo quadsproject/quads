@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "917ee425_e7b5bad2",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:29:12Z",
+      "side": 1,
+      "message": "Minor accuracy point on the reword: \"undershoots ... whenever the fleet size is not a multiple of 100/pct\" isn\u0027t quite right for the max(1) case, where it overshoots (e.g. 10% of a 3-host fleet -\u003e 1 \u003d 33%). The preceding \"never below one\" already hints at it; could tweak to note the cap can exceed the percentage on small fleets. Optional.",
+      "revId": "f3d6f2de97edd0353362469c0d88d794fc900180",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "281f2f9c_678b5070",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:29:12Z",
+      "side": 1,
+      "message": "This test doesn\u0027t exercise what its docstring claims. The empty PATCH {} -\u003e 400 is the pre-existing missing-args path (update_schedule: \"Missing argument: start, end, build_start or build_end\"), not the model cap, and the message isn\u0027t asserted, so it can\u0027t distinguish the two 400s. The build-only PATCH -\u003e 200 also can\u0027t fail even if the `(start or end)` guard on the cap check were removed: the PATCH check excludes the current schedule, so remaining \u003e\u003d 1 for a window-preserving edit. The real cap-on-PATCH behavior is already covered by test_ssm_model_limit_patch_window_rejected. Suggest dropping this test, or at least asserting the empty-PATCH message so it documents the missing-args path.",
+      "revId": "f3d6f2de97edd0353362469c0d88d794fc900180",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
