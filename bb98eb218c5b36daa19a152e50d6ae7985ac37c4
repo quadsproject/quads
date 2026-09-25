@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1704173_ef5e205f",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-09-25T14:54:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e7c2371_7fcec6d2",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "72f04e06_f211e810",
