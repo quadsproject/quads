@@ -16,6 +16,74 @@
       "message": "Small nit: _find_resource probes each candidate with get_request and only checks _response.status \u003d\u003d 200. get_request swallows 4xx/5xx (it only raises on a network exception), so a 401/403 from a bad host credential here looks the same as \"endpoint not present\" and gets reported as \"X not supported by this host\" instead of surfacing the auth problem. The 36 tests cover the 404-then-200 path, but not a non-200 that\u0027s actually an auth/error response. Consider treating 4xx-from-upstream distinctly, or at least logging the status when it\u0027s not 200 so a misrouted host isn\u0027t silently diagnosed as unsupported.",
       "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "72f04e06_f211e810",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T14:41:27Z",
+      "side": 1,
+      "message": "The fallback fires whenever _boot_seq is empty, but _boot_seq \u003d\u003d \u0027BootSeq\u0027 also when BootMode was successfully read as \u0027Bios\u0027 (get_bios_boot_mode returns \u0027Bios\u0027 on KeyError and get_boot_seq returns \u0027BootSeq\u0027 for any non-Uefi BootMode). On a Legacy host with empty BootSeq and a stale populated UefiBootSeq, boot_seq_attr becomes \u0027UefiBootSeq\u0027 and patch_boot_seq PATCHes UefiBootSeq, which does not govern legacy boot order: silent no-op or 400. The comment above assumes empty BootSeq implies unreadable BootMode. Consider gating the fallback on the BootMode read actually failing (get_boot_seq conveying \u0027unknown\u0027), and test that alongside this test\u0027s case.",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d836aa45_8a7cc1b1",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T14:41:27Z",
+      "side": 1,
+      "message": "Behavior regression vs parent: parent\u0027s get_job_queue returned [] for any non-200 from {manager}/Jobs (the regex simply matched nothing), so clear_job_queue/change_boot proceeded. Now find_jobs_resource() raises BadfishException when neither candidate returns 200 and get_job_queue propagates it. Verified A/B: mocked 404 -\u003e parent returns [], patchset raises. Affects hosts with an inaccessible Jobs collection (401/403 restricted roles, special firmware) and list_job_queue; in the quads move flow change_boot is Dell-gated (release/standard.py prepare_host_hardware), so healthy iDRAC9/10 are unaffected. Suggest catching BadfishException here and returning [] (parent semantics), or making the resolver return a \u0027not supported\u0027 signal and deciding per caller. Also no test covers the rerouted callers (get_job_queue/get_job_status/delete_job_queue_force/clear_job_list/create_bios_config_job), which is why this slipped; add one with an OEM_JOBS mock.",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e8526f83_3c0f94d2",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T14:41:27Z",
+      "side": 1,
+      "message": "except BadfishException is broader than the \u0027unsupported\u0027 case: get_request raises BadfishException on transport failures, so a BMC outage is now reported as \u0027iDRAC version installed does not support DellJobService\u0027 and returns False. Verified A/B: get_request raising -\u003e parent propagates, patchset returns False. If the goal is \u0027returns False instead of raising\u0027 for an unsupported host, raise a distinct exception (e.g. ResourceNotFound) from _find_resource and map only that to False, so \u0027unreachable\u0027 stays distinguishable.",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2ece5c93_bc8b64a2",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T14:41:27Z",
+      "side": 1,
+      "message": "This test passes on the parent unchanged: the asserted URL is byte-identical to the pre-patch formula built from root_uri, so it exercises none of the new OEM resolution (the \u0027//Actions\u0027 check is tautological here). Please retarget to the OEM candidate (router({url(OEM_DELL_JOB_SERVICE): make_response()}), post_request 200, assert action_url \u003d\u003d \u0027%s/Actions/DellJobService.DeleteJobQueue\u0027 % url(OEM_DELL_JOB_SERVICE)).",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
