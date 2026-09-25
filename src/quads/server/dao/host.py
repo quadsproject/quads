@@ -26,7 +26,7 @@ class HostDao(BaseDao):
         host_type: str,
         default_cloud: str,
         can_self_schedule: bool = False,
-        overcloud: bool = False,
+        overcloud: bool = True,
         rack: str = None,
         uloc: str = None,
         blade: str = None,

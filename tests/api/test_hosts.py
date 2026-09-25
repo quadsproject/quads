@@ -158,6 +158,7 @@ class TestCreateHosts:
             assert response.json["name"] == req["name"]
             assert response.json["model"] == req["model"].upper()
             assert response.json["host_type"] == req["host_type"]
+            assert response.json["overcloud"] is True
             assert response.json["default_cloud_id"] == response.json["cloud_id"]
             duration = datetime.utcnow() - datetime.strptime(response.json["created_at"], "%a, %d %b %Y %H:%M:%S GMT")
             assert duration.total_seconds() < 5

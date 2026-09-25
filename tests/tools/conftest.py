@@ -64,8 +64,8 @@ def populate_db():
     default_cloud = CloudDao.create_cloud(DEFAULT_CLOUD)
     remove_cloud = CloudDao.create_cloud(REMOVE_CLOUD)
     mod_cloud = CloudDao.create_cloud(MOD_CLOUD)
-    host1 = HostDao.create_host(HOST1, MODEL1, HOST_TYPE, CLOUD)
-    host2 = HostDao.create_host(HOST2, MODEL2, HOST_TYPE, CLOUD, rack="track", bootmode="Bios")
+    host1 = HostDao.create_host(HOST1, MODEL1, HOST_TYPE, CLOUD, overcloud=False)
+    host2 = HostDao.create_host(HOST2, MODEL2, HOST_TYPE, CLOUD, rack="track", bootmode="Bios", overcloud=False)
     HostDao.create_host(HOST_E20, MODEL1, HOST_TYPE, CLOUD, overcloud=True)
     InterfaceDao.create_interface(
         HOST1,

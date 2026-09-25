@@ -193,7 +193,7 @@ def create_host() -> Response:
     default_cloud = data.get("default_cloud")
     host_type = data.get("host_type")
     can_self_schedule = data.get("can_self_schedule")
-    overcloud = data.get("overcloud")
+    overcloud = data.get("overcloud", True)
     rack = data.get("rack")
     uloc = data.get("uloc")
     blade = data.get("blade")
