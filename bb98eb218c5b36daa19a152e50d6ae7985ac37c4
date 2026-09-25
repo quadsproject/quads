@@ -1,6 +1,24 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef071ce2_5b67b182",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-25T14:53:34Z",
+      "side": 1,
+      "message": "Resolved in patchset 2: _find_resource now raises BadfishException on a 401/403 (logged as an authorization error) and on a 5xx (logged as a server error), and debug-logs other non-200s. Two new tests cover the 403 and 500 paths. No further change needed.",
+      "parentUuid": "2e7c2371_7fcec6d2",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e7c2371_7fcec6d2",
