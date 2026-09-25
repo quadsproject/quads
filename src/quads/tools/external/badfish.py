@@ -407,10 +407,10 @@ class Badfish:
                 return candidate
             if _response and _response.status in (401, 403):
                 logger.error("Authorization error probing %s (status %s).", candidate, _response.status)
-                raise BadfishException
+                raise BadfishException(f"Authorization error probing {candidate} (status {_response.status}).")
             if _response and _response.status >= 500:
                 logger.error("Server error probing %s (status %s).", candidate, _response.status)
-                raise BadfishException
+                raise BadfishException(f"Server error probing {candidate} (status {_response.status}).")
             if _response:
                 logger.debug("Probing %s returned status %s.", candidate, _response.status)
 
@@ -1718,7 +1718,7 @@ class Badfish:
         try:
             await self.find_network_adapters_resource()
             na_supported = True
-        except BadfishException:
+        except ResourceNotFound:
             na_supported = False
         if na_supported:
             logger.debug("Getting Network Adapters")
