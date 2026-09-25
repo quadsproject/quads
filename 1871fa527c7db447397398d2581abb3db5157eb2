@@ -67,6 +67,24 @@
       "message": "This test has no assertions, and test_patches_oem_settings_resource (line 368) never asserts patch_request was called exactly once. If the retry-loop condition in patch_boot_seq regresses to accept only 200 while the final success check still accepts 204, the iDRAC receives RETRIES\u003d15 duplicate PATCHes and the suite stays green (probe-verified). Recommend `assert badfish_instance.patch_request.await_count \u003d\u003d 1` (+ success log assertion) in both tests, matching the assert_awaited_once convention already used at line 297.",
       "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "191f67a6_fae520f1",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T12:45:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9713567b_71fd6062",
+      "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
