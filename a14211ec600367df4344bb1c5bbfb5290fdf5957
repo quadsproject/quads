@@ -1,6 +1,24 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc1518cb_602f43cf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Done in PS3: subject is now \u0027feat: per-model self-scheduling percentage pool\u0027 (WIP dropped) and the trailer is the left-aligned `Fixes #633` for GitHub auto-close; Gerrit Change-Id preserved.",
+      "parentUuid": "1bc80e3c_bb38c728",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1bc80e3c_bb38c728",
@@ -14,6 +32,42 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Subject still says \"WIP\" - not merge-ready as worded. Drop WIP once final (e.g. \"feat: per-model self-scheduling percentage pool\"). Also the `fixes:` trailer is indented and uses the full URL; a left-aligned `Fixes #633` is what GitHub parses to auto-close the issue.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db048bcb_118c1d26",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - reworded to \u0027approximately the advertised percentage, rounded down to whole hosts but never below one for a non-zero percentage\u0027, and both spellings corrected to \u0027self-schedulable\u0027.",
+      "parentUuid": "28a6d6be_b6e8c853",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20b57b60_edc6a6fb",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - TOC entry added for the new section.",
+      "parentUuid": "d7dac078_51fea23f",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -54,6 +108,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "63c97460_c204a72f",
+        "filename": "src/quads/helpers/selfservice.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - Optional[int] in helpers/selfservice.py and dao/schedule.py.",
+      "parentUuid": "3fce9aa1_3532e278",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "3fce9aa1_3532e278",
         "filename": "src/quads/helpers/selfservice.py",
         "patchSetId": 2
@@ -71,6 +143,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "7fa311a9_7051aaeb",
+        "filename": "src/quads/server/blueprints/available.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Agreed it is a real gap; intentionally out of scope here. The RFE scopes the calculation to the API (\u0027the lifting and calculation should be done via the API\u0027) and the deciding team called this doc-only for this change. Kept the docs caveat; a separate follow-up to route --ls-available and the wiki Available page through the capped view.",
+      "parentUuid": "121c1512_02318cf8",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "121c1512_02318cf8",
         "filename": "src/quads/server/blueprints/available.py",
         "patchSetId": 2
@@ -82,6 +172,42 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Follow-up (design): the cap only applies when the caller passes can_self_schedule\u003dtrue. `quads --ls-available` (cli/cli.py action_available) and the web wiki Available page (web/blueprints/wiki.py available_hosts) don\u0027t pass it, so they list uncapped hosts. A user sees a host as free, POSTs a self-schedule, and gets a 400 - the exact surprise the RFE tries to avoid. The doc caveat is honest, but consider having the SS entry points query the capped view (or annotate capped models).",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c482737d_ca8f0d36",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - a model at 0% now returns \u0027Model X does not allow self-scheduling\u0027 via a shared _ssm_limit_message(); tests updated.",
+      "parentUuid": "9ec592cb_192f2059",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01db5e54_90160b97",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Agreed check-then-act is not atomic across clouds - same ceiling as the existing ssm_host_limit check and not a regression. PS3 adds a ponytail note at the shared helper naming the ceiling and upgrade path (pg_advisory_xact_lock(hashtext(model))). Chose best-effort parity over a new lock for this RFE.",
+      "parentUuid": "e6465e2f_28615cea",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -120,6 +246,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "85c83908_538eda36",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - the active count now filters Host.retired/broken to match count_hosts_by_model, plus a characterization test (scheduled host marked broken frees its slot).",
+      "parentUuid": "af29a750_ca263e8b",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "af29a750_ca263e8b",
@@ -139,6 +283,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "e3254e06_7eb36853",
+        "filename": "src/quads/server/swagger.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - swagger description notes accepted string values (true/y/yes).",
+      "parentUuid": "d87b8b3b_6551f45d",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "d87b8b3b_6551f45d",
         "filename": "src/quads/server/swagger.yaml",
         "patchSetId": 2
@@ -150,6 +312,78 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Nit: `_is_ss_view` also accepts \"y\"/\"yes\" (not just boolean true/false). `true` works fine as documented; optionally note the accepted string values in the description.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3da43a0f_568dc2e5",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - debug print removed.",
+      "parentUuid": "9cafd8bc_ead3401f",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d559310f_62098c3f",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Refuted with evidence: removing both blocks makes the two deadline-window tests fail with 400 in this checkout. The cap intentionally counts the model\u0027s existing self-schedule, so a second overlapping create on the same model is rejected; the monkeypatch is the same kind of harness guard as the is_host_available patch already there. Kept.",
+      "parentUuid": "4ffb437c_6f18beb4",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49701e6e_d9e1f428",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Addressed in PS3: floor\u003e\u003d2 create test (4x R730XD @50% -\u003e 2 succeed, 3rd/4th rejected), direct helper test (model_limit floor/min-1/disabled + ssm_remaining_capacity), multi-model batch overflow test, retired/broken characterization test, and no-date PATCH test.",
+      "parentUuid": "966f890f_7934cb6b",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "11ca6f04_30c594f7",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:10:11Z",
+      "side": 1,
+      "message": "Fixed in PS3 - debug print removed.",
+      "parentUuid": "d966c808_7df0ebee",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
