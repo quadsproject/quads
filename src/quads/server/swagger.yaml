@@ -461,7 +461,7 @@ paths:
                   example: false
                 overcloud:
                   type: boolean
-                  example: false
+                  example: true
                 bootmode:
                   type: string
                   example: Bios
@@ -3142,7 +3142,7 @@ components:
           example: false
         overcloud:
           type: boolean
-          example: false
+          example: true
         rack:
           type: string
           example: A1
@@ -3199,7 +3199,7 @@ components:
           example: false
         overcloud:
           type: boolean
-          example: false
+          example: true
         rack:
           type: string
           example: A1
