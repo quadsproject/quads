@@ -37,6 +37,23 @@ prefill_self_schedule = ["clouds, vlans, hosts, self_assignments"]
 prefill_self_non_schedule = ["clouds, vlans, non_self_hosts, self_assignments"]
 
 
+def _create_host(test_client, auth_header, name, model="r660"):
+    return unwrap_json(
+        test_client.post(
+            "/api/v3/hosts",
+            json={
+                "name": name,
+                "default_cloud": "cloud04",
+                "model": model,
+                "rack": "h99",
+                "uloc": "u99",
+                "host_type": "scalelab",
+            },
+            headers=auth_header,
+        )
+    )
+
+
 class TestCreateSchedule:
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_missing_cloud(self, test_client, auth, prefill):
@@ -491,6 +508,10 @@ class TestCreateSchedule:
         monkeypatch.setattr(Config, "ssm_default_lifetime", "5")
         monkeypatch.setattr(Config, "ssm_host_limit", 1000)
         monkeypatch.setattr("quads.server.dao.schedule.ScheduleDao.is_host_available", lambda *a, **k: True)
+        monkeypatch.setattr(
+            "quads.server.dao.schedule.ScheduleDao.count_ss_schedules_by_model_overlap",
+            lambda *a, **k: 0,
+        )
         auth_header = auth.get_auth_header()
         req = SELF_SCHEDULE_1_REQUEST.copy()
         req["hostname"] = "host3.example.com"
@@ -527,6 +548,10 @@ class TestCreateSchedule:
         monkeypatch.setattr(Config, "ssm_default_lifetime", 1.5)
         monkeypatch.setattr(Config, "ssm_host_limit", 1000)
         monkeypatch.setattr("quads.server.dao.schedule.ScheduleDao.is_host_available", lambda *a, **k: True)
+        monkeypatch.setattr(
+            "quads.server.dao.schedule.ScheduleDao.count_ss_schedules_by_model_overlap",
+            lambda *a, **k: 0,
+        )
         auth_header = auth.get_auth_header()
         req = SELF_SCHEDULE_1_REQUEST.copy()
         req["hostname"] = "host4.example.com"
@@ -595,6 +620,287 @@ class TestCreateSchedule:
         start_time = parsedate_to_datetime(response.json["start"]).replace(tzinfo=None)
         now = datetime.now()
         assert abs((start_time - now).total_seconds()) < 60
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    @patch("quads.server.dao.schedule.datetime")
+    @patch("quads.server.blueprints.schedules.datetime")
+    def test_ssm_model_limit_first_create_ok_second_rejected(
+        self, mock_datetime_schedules, mock_datetime_dao, test_client, auth, prefill, monkeypatch
+    ):
+        """
+        | GIVEN: Two new same-model hosts and a 50% per-model limit (N=2, L=1)
+        | WHEN: A user self-schedules both hosts
+        | THEN: The first is created and the second is rejected by the model limit
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R660": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host101.example.com")
+        _create_host(test_client, auth_header, "host102.example.com")
+        now = datetime(2080, 7, 1, 12, 0, 0)
+        mock_datetime_schedules.now.return_value = now
+        mock_datetime_dao.now.return_value = now
+
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host101.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
+
+        req["hostname"] = "host102.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R660 has reached its self-scheduling limit"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_zero_disables_model(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A model with a 0% self-scheduling limit
+        | WHEN: A user tries to self-schedule a host of that model
+        | THEN: The request is rejected before availability is considered
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R650": 0}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host201.example.com", model="r650")
+
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host201.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R650 does not allow self-scheduling"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_default_hundred_unlimited(self, test_client, auth, prefill):
+        """
+        | GIVEN: No per-model limit configured (default 100)
+        | WHEN: A user self-schedules two hosts of the same model
+        | THEN: Both are created (no regression)
+        """
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host301.example.com", model="r630")
+        _create_host(test_client, auth_header, "host302.example.com", model="r630")
+
+        for hostname in ("host301.example.com", "host302.example.com"):
+            req = SELF_SCHEDULE_1_REQUEST.copy()
+            req["hostname"] = hostname
+            response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+            assert response.status_code == 201
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_batch_rejects_overflow(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A self-schedule assignment with a 50% per-model limit (L=1)
+        | WHEN: An admin batch-schedules two same-model hosts
+        | THEN: The whole batch is rejected with the model limit message
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R760": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host401.example.com", model="r760")
+        _create_host(test_client, auth_header, "host402.example.com", model="r760")
+
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json={
+                    "cloud": "cloud04",
+                    "hostnames": ["host401.example.com", "host402.example.com"],
+                    "start": "2080-07-20 12:00",
+                    "end": "2080-07-27 12:00",
+                },
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R760 has reached its self-scheduling limit"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    @patch("quads.server.dao.schedule.datetime")
+    @patch("quads.server.blueprints.schedules.datetime")
+    def test_ssm_model_limit_patch_window_rejected(
+        self, mock_datetime_schedules, mock_datetime_dao, test_client, auth, prefill, monkeypatch
+    ):
+        """
+        | GIVEN: Two same-model hosts self-scheduled in non-overlapping windows (L=1)
+        | WHEN: The first schedule's end is pushed to overlap the second
+        | THEN: The PATCH is rejected by the model limit
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R620": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host501.example.com", model="r620")
+        _create_host(test_client, auth_header, "host502.example.com", model="r620")
+
+        mock_datetime_schedules.now.return_value = datetime(2080, 7, 1, 12, 0, 0)
+        mock_datetime_dao.now.return_value = datetime(2080, 7, 1, 12, 0, 0)
+        mock_datetime_schedules.strptime.side_effect = datetime.strptime
+        mock_datetime_dao.strptime.side_effect = datetime.strptime
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host501.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
+        schedule_id = response.json["id"]
+
+        mock_datetime_schedules.now.return_value = datetime(2080, 7, 7, 12, 0, 0)
+        mock_datetime_dao.now.return_value = datetime(2080, 7, 7, 12, 0, 0)
+        req["hostname"] = "host502.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
+
+        response = unwrap_json(
+            test_client.patch(
+                f"/api/v3/schedules/{schedule_id}",
+                json={"end": "2080-07-13T12:00"},
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R620 has reached its self-scheduling limit"
+
+        response = unwrap_json(
+            test_client.patch(
+                f"/api/v3/schedules/{schedule_id}",
+                json={"end": "2080-07-02T12:00"},
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_tiny_fleet_min_one(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A one-host model with a 50% limit (floor=0, min-1 applies -> L=1)
+        | WHEN: A user self-schedules that host
+        | THEN: The first create succeeds and a second is rejected by the limit
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R6625": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host601.example.com", model="r6625")
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host601.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
+
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R6625 has reached its self-scheduling limit"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_floor_ge_two(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A four-host model with a 50% limit (floor=2)
+        | WHEN: A user self-schedules all four hosts
+        | THEN: Two succeed and the third and fourth are rejected
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R730XD": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        for name in (
+            "host701.example.com",
+            "host702.example.com",
+            "host703.example.com",
+            "host704.example.com",
+        ):
+            _create_host(test_client, auth_header, name, model="r730xd")
+
+        for name, expected in (
+            ("host701.example.com", 201),
+            ("host702.example.com", 201),
+            ("host703.example.com", 400),
+        ):
+            req = SELF_SCHEDULE_1_REQUEST.copy()
+            req["hostname"] = name
+            response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+            assert response.status_code == expected
+
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host704.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 400
+        assert response.json["message"] == "Model R730XD has reached its self-scheduling limit"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_helper_arithmetic(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: Three hosts of one model
+        | WHEN: The pool helper is queried at 50%, 100% and 0%
+        | THEN: Floor round-down, no-cap and disabled values are returned
+        """
+        from quads.helpers.selfservice import model_limit, ssm_remaining_capacity
+
+        monkeypatch.setattr(Config, "ssm_model_limit", {"DL360": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        for name in ("host801.example.com", "host802.example.com", "host803.example.com"):
+            _create_host(test_client, auth_header, name, model="dl360")
+
+        assert model_limit("DL360") == 1  # floor(50% * 3) = 1
+
+        monkeypatch.setattr(Config, "ssm_model_limit", {"DL360": 100}, raising=False)
+        assert model_limit("DL360") == 3
+
+        monkeypatch.setattr(Config, "ssm_model_limit", {"DL360": 0}, raising=False)
+        assert model_limit("DL360") == 0
+
+        monkeypatch.setattr(Config, "ssm_model_limit", {"DL360": 50}, raising=False)
+        assert ssm_remaining_capacity("DL360", datetime.now(), datetime.now()) == 1
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_batch_multi_model_overflow(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A batch with one model that fits (L=1, one host) and one that
+        |       overflows (L=1, two hosts)
+        | WHEN: An admin submits the batch
+        | THEN: The whole batch is rejected naming the overflowing model
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"5039MS": 50, "6049P": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host901.example.com", model="5039ms")
+        _create_host(test_client, auth_header, "host902.example.com", model="6049p")
+        _create_host(test_client, auth_header, "host903.example.com", model="6049p")
+
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json={
+                    "cloud": "cloud04",
+                    "hostnames": [
+                        "host901.example.com",
+                        "host902.example.com",
+                        "host903.example.com",
+                    ],
+                    "start": "2080-07-20 12:00",
+                    "end": "2080-07-27 12:00",
+                },
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 400
+        assert response.json["message"] == "Model 6049P has reached its self-scheduling limit"
+
+    @pytest.mark.parametrize("prefill", prefill_self_schedule, indirect=True)
+    def test_ssm_model_limit_broken_host_frees_slot(self, test_client, auth, prefill, monkeypatch):
+        """
+        | GIVEN: A two-host model at 50% with the first host scheduled then broken
+        | WHEN: A second host is self-scheduled
+        | THEN: The broken host no longer holds a pool slot, so it succeeds
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"1029U-TN10RT": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        _create_host(test_client, auth_header, "host1001.example.com", model="1029u-tn10rt")
+        _create_host(test_client, auth_header, "host1002.example.com", model="1029u-tn10rt")
+
+        req = SELF_SCHEDULE_1_REQUEST.copy()
+        req["hostname"] = "host1001.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
+
+        response = unwrap_json(
+            test_client.patch(
+                "/api/v3/hosts/host1001.example.com",
+                json={"broken": True},
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+
+        req["hostname"] = "host1002.example.com"
+        response = unwrap_json(test_client.post("/api/v3/schedules", json=req, headers=auth_header))
+        assert response.status_code == 201
 
 
 class TestGetSchedules:

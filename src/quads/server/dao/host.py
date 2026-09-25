@@ -124,6 +124,15 @@ class HostDao(BaseDao):
         return host_models
 
     @staticmethod
+    def count_hosts_by_model(model: str) -> int:
+        count = (
+            db.session.query(func.count(Host.id))
+            .filter(Host.model == model, Host.retired.is_(False), Host.broken.is_(False))
+            .scalar()
+        )
+        return int(count or 0)
+
+    @staticmethod
     def get_availability_summary(
         now: datetime,
         two_week_start: datetime,
