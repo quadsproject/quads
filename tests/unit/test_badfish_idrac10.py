@@ -29,6 +29,12 @@ UEFI_BOOT_SEQ = [
     {"Index": 2, "Name": "NIC.PxeDevice.2-1", "Enabled": True, "Id": "id-3"},
 ]
 BOOT_SOURCES_RESP = {"Attributes": {"UefiBootSeq": UEFI_BOOT_SEQ}}
+JOBS = "%s/Jobs" % MANAGER_RESOURCE
+OEM_JOBS = "%s/Oem/Dell/Jobs" % MANAGER_RESOURCE
+DELL_JOB_SERVICE_LEGACY = "%s/Dell/Managers/iDRAC.Embedded.1/DellJobService" % REDFISH_URI
+OEM_DELL_JOB_SERVICE = "%s/Oem/Dell/DellJobService" % MANAGER_RESOURCE
+NA_SYSTEM = "%s/NetworkAdapters" % SYSTEM_RESOURCE
+NA_CHASSIS = "%s/Chassis/System.Embedded.1/NetworkAdapters" % REDFISH_URI
 
 
 def url(path):
@@ -396,3 +402,213 @@ class TestPatchBootSeqIdrac10:
 
         assert badfish_instance.patch_request.await_count == 1
         badfish_instance.error_handler.assert_not_called()
+
+
+class TestFindJobsResource:
+    @pytest.mark.asyncio
+    async def test_idrac9_jobs(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(JOBS): make_response()}))
+
+        assert await badfish_instance.find_jobs_resource() == JOBS
+
+    @pytest.mark.asyncio
+    async def test_idrac10_falls_back_to_oem(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(OEM_JOBS): make_response()}))
+
+        assert await badfish_instance.find_jobs_resource() == OEM_JOBS
+
+    @pytest.mark.asyncio
+    async def test_cached_resource(self, badfish_instance):
+        badfish_instance.jobs_resource = OEM_JOBS
+        badfish_instance.get_request = AsyncMock()
+
+        assert await badfish_instance.find_jobs_resource() == OEM_JOBS
+        badfish_instance.get_request.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_no_resource_found(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.find_jobs_resource()
+
+
+class TestFindDellJobServiceResource:
+    @pytest.mark.asyncio
+    async def test_idrac9_legacy(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(DELL_JOB_SERVICE_LEGACY): make_response()}))
+
+        assert await badfish_instance.find_dell_job_service_resource() == DELL_JOB_SERVICE_LEGACY
+
+    @pytest.mark.asyncio
+    async def test_idrac10_oem(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(OEM_DELL_JOB_SERVICE): make_response()}))
+
+        assert await badfish_instance.find_dell_job_service_resource() == OEM_DELL_JOB_SERVICE
+
+    @pytest.mark.asyncio
+    async def test_no_resource_found(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.find_dell_job_service_resource()
+
+
+class TestFindNetworkAdaptersResource:
+    @pytest.mark.asyncio
+    async def test_idrac9_system(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(NA_SYSTEM): make_response()}))
+
+        assert await badfish_instance.find_network_adapters_resource() == NA_SYSTEM
+
+    @pytest.mark.asyncio
+    async def test_idrac10_chassis(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(NA_CHASSIS): make_response()}))
+
+        assert await badfish_instance.find_network_adapters_resource() == NA_CHASSIS
+
+    @pytest.mark.asyncio
+    async def test_cached_resource(self, badfish_instance):
+        badfish_instance.network_adapters_resource = NA_CHASSIS
+        badfish_instance.get_request = AsyncMock()
+
+        assert await badfish_instance.find_network_adapters_resource() == NA_CHASSIS
+        badfish_instance.get_request.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_no_resource_found(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.find_network_adapters_resource()
+
+    @pytest.mark.asyncio
+    async def test_raises_on_auth_error(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(NA_SYSTEM): make_response(status=403)}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.find_network_adapters_resource()
+        badfish_instance.get_request.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_raises_on_server_error(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(NA_SYSTEM): make_response(status=500)}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.find_network_adapters_resource()
+        badfish_instance.get_request.assert_awaited_once()
+
+
+class TestCheckSupportedIdracVersion:
+    @pytest.mark.asyncio
+    async def test_returns_false_when_dell_job_service_unsupported(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({}))
+
+        assert await badfish_instance.check_supported_idrac_version() is False
+
+    @pytest.mark.asyncio
+    async def test_returns_true_when_service_supported(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(DELL_JOB_SERVICE_LEGACY): make_response()}))
+
+        assert await badfish_instance.check_supported_idrac_version() is True
+
+
+class TestDeleteJobQueueDell:
+    @pytest.mark.asyncio
+    async def test_legacy_candidate_uses_single_slash_action_url(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(DELL_JOB_SERVICE_LEGACY): make_response()}))
+        badfish_instance.post_request = AsyncMock(return_value=make_response(status=200))
+
+        await badfish_instance.delete_job_queue_dell()
+
+        action_url = badfish_instance.post_request.call_args[0][0]
+        assert action_url == "%s/Actions/DellJobService.DeleteJobQueue" % url(DELL_JOB_SERVICE_LEGACY)
+        assert "//Actions" not in action_url
+
+    @pytest.mark.asyncio
+    async def test_oem_candidate_uses_single_slash_action_url(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(OEM_DELL_JOB_SERVICE): make_response()}))
+        badfish_instance.post_request = AsyncMock(return_value=make_response(status=200))
+
+        await badfish_instance.delete_job_queue_dell()
+
+        action_url = badfish_instance.post_request.call_args[0][0]
+        assert action_url == "%s/Actions/DellJobService.DeleteJobQueue" % url(OEM_DELL_JOB_SERVICE)
+        assert "//Actions" not in action_url
+
+
+class TestBootSeqFallback:
+    @pytest.mark.asyncio
+    async def test_falls_back_to_uefi_boot_seq_when_bootseq_empty(self, badfish_instance):
+        # Simulate the BootMode read failing (badfish assumed Bios), so the
+        # fallback may switch to the populated UefiBootSeq.
+        badfish_instance.boot_mode_readable = False
+        badfish_instance.get_boot_seq = AsyncMock(return_value="BootSeq")
+        badfish_instance.get_request = AsyncMock(
+            side_effect=router(
+                {
+                    url(OEM_BOOT_SOURCES): make_response(
+                        payload={"Attributes": {"BootSeq": [], "UefiBootSeq": UEFI_BOOT_SEQ}}
+                    )
+                }
+            )
+        )
+
+        await badfish_instance.get_boot_devices()
+
+        assert badfish_instance.boot_seq_attr == "UefiBootSeq"
+        assert badfish_instance.boot_devices == UEFI_BOOT_SEQ
+
+    @pytest.mark.asyncio
+    async def test_does_not_fall_back_to_uefi_when_boot_mode_readable(self, badfish_instance):
+        # A genuine Bios host (BootMode read successfully) with an empty BootSeq
+        # must not be retargeted to UefiBootSeq (which does not govern legacy
+        # boot order); it should error instead.
+        badfish_instance.boot_mode_readable = True
+        badfish_instance.get_boot_seq = AsyncMock(return_value="BootSeq")
+        badfish_instance.get_request = AsyncMock(
+            side_effect=router(
+                {
+                    url(OEM_BOOT_SOURCES): make_response(
+                        payload={"Attributes": {"BootSeq": [], "UefiBootSeq": UEFI_BOOT_SEQ}}
+                    )
+                }
+            )
+        )
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.get_boot_devices()
+
+    @pytest.mark.asyncio
+    async def test_patch_boot_seq_uses_resolved_boot_seq_attr(self, badfish_instance):
+        badfish_instance.boot_seq_attr = "UefiBootSeq"
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(OEM_BOOT_SOURCES): make_response()}))
+        badfish_instance.get_boot_seq = AsyncMock(return_value="BootSeq")
+        badfish_instance.boot_devices = UEFI_BOOT_SEQ
+        badfish_instance.patch_request = AsyncMock(return_value=make_response(status=200))
+
+        await badfish_instance.patch_boot_seq()
+
+        assert badfish_instance.patch_request.call_args[0][1] == {"Attributes": {"UefiBootSeq": UEFI_BOOT_SEQ}}
+        badfish_instance.get_boot_seq.assert_not_awaited()
+
+
+class TestCreateJobAccepts201:
+    @pytest.mark.asyncio
+    async def test_accepts_201_created(self, badfish_instance):
+        with patch("quads.tools.external.badfish.logger") as mock_logger:
+            badfish_instance.post_request = AsyncMock(return_value=make_response(status=201))
+
+            await badfish_instance.create_job(url("%s/Oem/Dell/Jobs" % MANAGER_RESOURCE), {}, {})
+
+            mock_logger.info.assert_any_call("POST command passed to create target config job.")
+
+
+class TestGetJobQueueWhenJobsUnsupported:
+    @pytest.mark.asyncio
+    async def test_returns_empty_when_jobs_not_supported(self, badfish_instance):
+        # A host without an accessible Jobs collection should degrade to an
+        # empty queue (parent semantics) rather than raising.
+        badfish_instance.get_request = AsyncMock(side_effect=router({}))
+
+        assert await badfish_instance.get_job_queue() == []
