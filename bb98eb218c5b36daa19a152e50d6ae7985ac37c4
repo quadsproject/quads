@@ -19,6 +19,60 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "afe5d765_9e10dc61",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T15:19:54Z",
+      "side": 1,
+      "message": "Fixed in PS3: get_job_queue catches ResourceNotFound and returns [], parent semantics restored; TestGetJobQueueWhenJobsUnsupported covers it (fails on PS1, passes on PS3). Resolving.",
+      "parentUuid": "d836aa45_8a7cc1b1",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cc4d40a_684df8c4",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T15:19:54Z",
+      "side": 1,
+      "message": "Fixed in PS3: fallback now gated on boot_mode_readable (get_bios_boot_mode sets it), with tests for both the unreadable and the readable path. Verified; resolving.",
+      "parentUuid": "72f04e06_f211e810",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0a8d1c20_d49d7a1f",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T15:19:54Z",
+      "side": 1,
+      "message": "Fixed in PS3: ResourceNotFound(BadfishException) raised by _find_resource for a missing candidate, check_supported_idrac_version catches only that, transport errors propagate again. Resolving.",
+      "parentUuid": "e8526f83_3c0f94d2",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e7c2371_7fcec6d2",
