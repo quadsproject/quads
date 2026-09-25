@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eef25b38_bc23e30f",
+        "filename": "requirements.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T11:57:55Z",
+      "side": 1,
+      "message": "Process note: the SQLAlchemy\u003c2.1 cap is the only PS1-\u003ePS2 delta and is unrelated to the iDRAC10 fix (PS1 CI failed on SQLAlchemy 2.1.0\u0027s psycopg3 default driver). Cap is reasonable; consider splitting it out or mentioning it in the commit message.",
+      "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8f51f3a3_529497fe",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T11:57:55Z",
+      "side": 1,
+      "message": "Dead code: get_request with default _continue\u003dFalse raises BadfishException on failure and never returns None, so this guard is unreachable. Safe to drop.",
+      "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7bf93636_baa8bb8c",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T11:57:55Z",
+      "side": 1,
+      "message": "Follow-up (pre-existing, not introduced here): a 202 Accepted response re-PATCHes up to RETRIES\u003d15 then raises BadfishException. Reproduced identically on parent; R670 returns 204 per the issue, so fine now. If firmware variants return 202, accept it as success.",
+      "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9713567b_71fd6062",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T11:57:55Z",
+      "side": 1,
+      "message": "This test has no assertions, and test_patches_oem_settings_resource (line 368) never asserts patch_request was called exactly once. If the retry-loop condition in patch_boot_seq regresses to accept only 200 while the final success check still accepts 204, the iDRAC receives RETRIES\u003d15 duplicate PATCHes and the suite stays green (probe-verified). Recommend `assert badfish_instance.patch_request.await_count \u003d\u003d 1` (+ success log assertion) in both tests, matching the assert_awaited_once convention already used at line 297.",
+      "revId": "1871fa527c7db447397398d2581abb3db5157eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
