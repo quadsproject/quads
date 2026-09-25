@@ -56,6 +56,7 @@ class Badfish:
         self.manager_resource = None
         self.bios_uri = None
         self.boot_devices = None
+        self.boot_sources_resource = None
         self.vendor = None
         self.virtual_media_resource = None
         self.os_deployment_resource = None
@@ -358,11 +359,40 @@ class Badfish:
         else:
             logger.info("No BIOS changes required.")
 
+    async def find_boot_sources_resource(self):
+        """Resolve the boot sources resource path.
+
+        iDRAC9 serves the boot order at ``{system}/BootSources``. iDRAC10
+        (Dell 17G hosts, e.g. R670) dropped that collection and serves it
+        under the OEM ``{system}/Oem/Dell/DellBootSources`` resource. Return
+        whichever the host exposes, caching the result.
+        """
+        if self.boot_sources_resource:
+            return self.boot_sources_resource
+
+        candidates = [
+            "%s/BootSources" % self.system_resource,
+            "%s/Oem/Dell/DellBootSources" % self.system_resource,
+        ]
+
+        for candidate in candidates:
+            _response = await self.get_request("%s%s" % (self.host_uri, candidate))
+            if _response and _response.status == 200:
+                self.boot_sources_resource = candidate
+                return candidate
+
+        logger.error("Boot order modification is not supported by this host.")
+        raise BadfishException
+
     async def get_boot_devices(self):
         if not self.boot_devices:
             _boot_seq = await self.get_boot_seq()
-            _uri = "%s%s/BootSources" % (self.host_uri, self.system_resource)
+            _uri = "%s%s" % (self.host_uri, await self.find_boot_sources_resource())
             _response = await self.get_request(_uri)
+
+            if not _response:
+                logger.error("Boot order modification is not supported by this host.")
+                raise BadfishException
 
             raw = await _response.text("utf-8", "ignore")
             data = json.loads(raw.strip())
@@ -691,15 +721,15 @@ class Badfish:
 
     async def patch_boot_seq(self):
         _boot_seq = await self.get_boot_seq()
-        boot_sources_uri = "%s/BootSources/Settings" % self.system_resource
-        url = "%s%s" % (self.host_uri, boot_sources_uri)
+        boot_sources_resource = await self.find_boot_sources_resource()
+        url = "%s%s/Settings" % (self.host_uri, boot_sources_resource)
         payload = {"Attributes": {_boot_seq: self.boot_devices}}
         headers = {"content-type": "application/json"}
         response = None
         _status_code = 400
 
         for _ in range(self.retries):
-            if _status_code != 200:
+            if _status_code not in (200, 204):
                 response = await self.patch_request(url, payload, headers, True)
                 if response:
                     raw = await response.text("utf-8", "ignore")
@@ -708,7 +738,7 @@ class Badfish:
             else:
                 break
 
-        if _status_code == 200:
+        if _status_code in (200, 204):
             logger.info("PATCH command passed to update boot order.")
         else:
             logger.error("There was something wrong with your request.")
