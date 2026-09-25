@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import pytest
 
+from quads.config import Config
 from tests.helpers import unwrap_json
 
 prefill_settings = ["clouds, vlans, hosts, assignments, schedules"]
@@ -215,3 +217,50 @@ class TestAvailableInvalidInput:
         response = unwrap_json(test_client.get("/api/v3/available/host1.example.com?start=bogus"))
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
+
+
+class TestAvailableSsmModelLimit:
+    @pytest.mark.parametrize("prefill", ["clouds, vlans, hosts, self_assignments"], indirect=True)
+    @patch("quads.server.dao.schedule.datetime")
+    @patch("quads.server.blueprints.available.datetime")
+    def test_ssm_model_limit_caps_available(
+        self, mock_datetime_available, mock_datetime_dao, test_client, auth, prefill, monkeypatch
+    ):
+        """
+        | GIVEN: Two free same-model hosts and a 50% per-model limit (N=2, L=1)
+        | WHEN: Available hosts are queried with can_self_schedule=true
+        | THEN: Only one host of the capped model is listed; other views are uncapped
+        """
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R660": 50}, raising=False)
+        auth_header = auth.get_auth_header()
+        for name in ("host901.example.com", "host902.example.com"):
+            test_client.post(
+                "/api/v3/hosts",
+                json={
+                    "name": name,
+                    "default_cloud": "cloud04",
+                    "model": "r660",
+                    "rack": "h99",
+                    "uloc": "u99",
+                    "host_type": "scalelab",
+                },
+                headers=auth_header,
+            )
+
+        now = datetime(2080, 7, 1, 12, 0, 0)
+        mock_datetime_available.now.return_value = now
+        mock_datetime_dao.now.return_value = now
+
+        response = unwrap_json(test_client.get("/api/v3/available?can_self_schedule=true"))
+        assert response.status_code == 200
+        assert "host901.example.com" in response.json
+        assert "host902.example.com" not in response.json
+
+        response = unwrap_json(test_client.get("/api/v3/available"))
+        assert "host901.example.com" in response.json
+        assert "host902.example.com" in response.json
+
+        monkeypatch.setattr(Config, "ssm_model_limit", {"R660": 0}, raising=False)
+        response = unwrap_json(test_client.get("/api/v3/available?can_self_schedule=true"))
+        assert "host901.example.com" not in response.json
+        assert "host902.example.com" not in response.json
