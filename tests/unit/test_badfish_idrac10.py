@@ -499,6 +499,72 @@ class TestFindNetworkAdaptersResource:
         badfish_instance.get_request.assert_awaited_once()
 
 
+class TestListInterfaces:
+    @pytest.mark.asyncio
+    async def test_degrades_to_ethernet_interfaces_when_na_not_supported(self, badfish_instance):
+        ei = "%s/EthernetInterfaces" % SYSTEM_RESOURCE
+        ei_member = "%s/1" % ei
+        badfish_instance.get_request = AsyncMock(
+            side_effect=router(
+                {
+                    url(ei): make_response(status=200, payload={"Members": [{"@odata.id": ei_member}]}),
+                    url(ei_member): make_response(
+                        status=200,
+                        payload={
+                            "Id": "1",
+                            "Name": "eth0",
+                            "MACAddress": "aa:bb:cc:dd:ee:ff",
+                            "Status": {"State": "Enabled"},
+                            "LinkStatus": "LinkUp",
+                            "SpeedMbps": 1000,
+                        },
+                    ),
+                }
+            )
+        )
+
+        assert await badfish_instance.list_interfaces() is True
+
+    @pytest.mark.asyncio
+    async def test_propagates_transport_error(self, badfish_instance):
+        # A connection failure/timeout on the NetworkAdapters probe raises
+        # BadfishException from get_request; it is not a "resource not present"
+        # condition, so list_interfaces must propagate it instead of degrading
+        # to the Ethernet fallback. Ethernet probes answer 200 so parent
+        # behavior (degrade, returns True) is distinguishable from propagation.
+        ei = "%s/EthernetInterfaces" % SYSTEM_RESOURCE
+        ei_member = "%s/1" % ei
+
+        def probe(uri, *args, **kwargs):
+            if uri in (url(NA_SYSTEM), url(NA_CHASSIS)):
+                raise BadfishException("Failed to communicate with server.")
+            if uri == url(ei):
+                return make_response(status=200, payload={"Members": [{"@odata.id": ei_member}]})
+            return make_response(
+                status=200,
+                payload={
+                    "Id": "1",
+                    "Name": "eth0",
+                    "MACAddress": "aa:bb:cc:dd:ee:ff",
+                    "Status": {"State": "Enabled"},
+                    "LinkStatus": "LinkUp",
+                    "SpeedMbps": 1000,
+                },
+            )
+
+        badfish_instance.get_request = AsyncMock(side_effect=probe)
+
+        with pytest.raises(BadfishException, match="Failed to communicate with server."):
+            await badfish_instance.list_interfaces()
+
+    @pytest.mark.asyncio
+    async def test_propagates_auth_error(self, badfish_instance):
+        badfish_instance.get_request = AsyncMock(side_effect=router({url(NA_SYSTEM): make_response(status=403)}))
+
+        with pytest.raises(BadfishException, match="Authorization error probing"):
+            await badfish_instance.list_interfaces()
+
+
 class TestCheckSupportedIdracVersion:
     @pytest.mark.asyncio
     async def test_returns_false_when_dell_job_service_unsupported(self, badfish_instance):
