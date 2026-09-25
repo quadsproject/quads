@@ -34,6 +34,24 @@
       "parentUuid": "bd31f1c0_71dc97ce",
       "revId": "61fc18ab9da1938764d05c5e43c04d226a63f287",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f61232f1_03e14c1b",
+        "filename": "migrations/versions/3bd119370bb0_default_hosts_to_overcloud.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-25T20:09:08Z",
+      "side": 1,
+      "message": "Understood, that makes sense. Since overcloud\u003dfalse is not a valid state and the column is a legacy construct, keeping the data repair one-way and only reversing the default on downgrade is the right call. Resolving.",
+      "parentUuid": "bd31f1c0_71dc97ce",
+      "revId": "61fc18ab9da1938764d05c5e43c04d226a63f287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
