@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e181d67_55fe679c",
+        "filename": "src/quads/helpers/selfservice.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-25T20:30:13Z",
+      "side": 1,
+      "message": "model_limit uses integer floor (pct * fleet // 100), so a small fleet floors to 0 and disables self-scheduling entirely even when a non-zero percentage is configured. E.g. one host at 50% gives limit 0, so that model can never self-schedule; two hosts at 25% also floors to 0. The test pins this as intended, but it contradicts the operator\u0027s intent (50% of one host should allow that one host). Consider ceil, or rounding to nearest with a min of 1 when pct \u003e 0 and fleet \u003e 0.",
+      "revId": "99515c918decbeb53408fdf1703fb871f44815b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
