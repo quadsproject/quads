@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d996f2c_4708dee8",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:31:26Z",
+      "side": 1,
+      "message": "Fixed in PS4 - reworded: the cap can undershoot the percentage by up to one host, and on fleets too small to yield a whole host at that percentage it exceeds it (10% of 3 hosts allows 1 \u003d 33%).",
+      "parentUuid": "917ee425_e7b5bad2",
+      "revId": "f3d6f2de97edd0353362469c0d88d794fc900180",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "281f2f9c_678b5070",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-09-25T22:29:12Z",
       "side": 1,
       "message": "This test doesn\u0027t exercise what its docstring claims. The empty PATCH {} -\u003e 400 is the pre-existing missing-args path (update_schedule: \"Missing argument: start, end, build_start or build_end\"), not the model cap, and the message isn\u0027t asserted, so it can\u0027t distinguish the two 400s. The build-only PATCH -\u003e 200 also can\u0027t fail even if the `(start or end)` guard on the cap check were removed: the PATCH check excludes the current schedule, so remaining \u003e\u003d 1 for a window-preserving edit. The real cap-on-PATCH behavior is already covered by test_ssm_model_limit_patch_window_rejected. Suggest dropping this test, or at least asserting the empty-PATCH message so it documents the missing-args path.",
+      "revId": "f3d6f2de97edd0353362469c0d88d794fc900180",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "42c0fc0e_8f933809",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:31:26Z",
+      "side": 1,
+      "message": "Agreed - dropped test_ssm_model_limit_patch_no_dates in PS4. The build-only PATCH could not fail even with the (start or end) guard removed (window-preserving edit always has remaining \u003e\u003d 1 because the schedule itself is excluded), and the empty PATCH 400 is the pre-existing missing-args path. The real cap-on-PATCH behavior stays covered by test_ssm_model_limit_patch_window_rejected.",
+      "parentUuid": "281f2f9c_678b5070",
       "revId": "f3d6f2de97edd0353362469c0d88d794fc900180",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
