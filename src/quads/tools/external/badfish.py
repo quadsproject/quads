@@ -60,6 +60,10 @@ class Badfish:
         self.vendor = None
         self.virtual_media_resource = None
         self.os_deployment_resource = None
+        self.jobs_resource = None
+        self.dell_job_service_resource = None
+        self.network_adapters_resource = None
+        self.boot_seq_attr = None
 
     async def init(self):
         await self.validate_credentials()
@@ -367,22 +371,83 @@ class Badfish:
         under the OEM ``{system}/Oem/Dell/DellBootSources`` resource. Return
         whichever the host exposes, caching the result.
         """
-        if self.boot_sources_resource:
-            return self.boot_sources_resource
+        return await self._find_resource(
+            [
+                "%s/BootSources" % self.system_resource,
+                "%s/Oem/Dell/DellBootSources" % self.system_resource,
+            ],
+            "boot_sources_resource",
+            "Boot order modification is not supported by this host.",
+        )
 
-        candidates = [
-            "%s/BootSources" % self.system_resource,
-            "%s/Oem/Dell/DellBootSources" % self.system_resource,
-        ]
+    async def _find_resource(self, candidates, cache_attr, error_message):
+        """Return the first candidate that responds 200, caching it in ``cache_attr``.
+
+        Shared by the resolvers that handle iDRAC9/iDRAC10 endpoint moves.
+        """
+        if getattr(self, cache_attr):
+            return getattr(self, cache_attr)
 
         for candidate in candidates:
             _response = await self.get_request("%s%s" % (self.host_uri, candidate))
             if _response and _response.status == 200:
-                self.boot_sources_resource = candidate
+                setattr(self, cache_attr, candidate)
                 return candidate
+            if _response and _response.status in (401, 403):
+                logger.error("Authorization error probing %s (status %s).", candidate, _response.status)
+                raise BadfishException
+            if _response and _response.status >= 500:
+                logger.error("Server error probing %s (status %s).", candidate, _response.status)
+                raise BadfishException
+            if _response:
+                logger.debug("Probing %s returned status %s.", candidate, _response.status)
 
-        logger.error("Boot order modification is not supported by this host.")
+        logger.error(error_message)
         raise BadfishException
+
+    async def find_jobs_resource(self):
+        """Resolve the Dell job collection path.
+
+        iDRAC9 serves it at ``{manager}/Jobs``; iDRAC10 (Dell 17G hosts,
+        e.g. R670) moved it to ``{manager}/Oem/Dell/Jobs``. Cache the result.
+        """
+        return await self._find_resource(
+            ["%s/Jobs" % self.manager_resource, "%s/Oem/Dell/Jobs" % self.manager_resource],
+            "jobs_resource",
+            "Job collection not supported by this host.",
+        )
+
+    async def find_dell_job_service_resource(self):
+        """Resolve the DellJobService path.
+
+        iDRAC9 serves it under the legacy ``/redfish/v1/Dell/...`` namespace;
+        iDRAC10 serves it under ``{manager}/Oem/Dell/DellJobService``. Cache the
+        result.
+        """
+        return await self._find_resource(
+            [
+                "%s/Dell/Managers/iDRAC.Embedded.1/DellJobService" % self.redfish_uri,
+                "%s/Oem/Dell/DellJobService" % self.manager_resource,
+            ],
+            "dell_job_service_resource",
+            "DellJobService not supported by this host.",
+        )
+
+    async def find_network_adapters_resource(self):
+        """Resolve the network adapters collection path.
+
+        iDRAC9 serves it at ``{system}/NetworkAdapters``; iDRAC10 moved it to
+        ``{chassis}/NetworkAdapters``. Cache the result.
+        """
+        _system_id = self.system_resource.split("/")[-1]
+        return await self._find_resource(
+            [
+                "%s/NetworkAdapters" % self.system_resource,
+                "%s/Chassis/%s/NetworkAdapters" % (self.redfish_uri, _system_id),
+            ],
+            "network_adapters_resource",
+            "Network adapters not supported by this host.",
+        )
 
     async def get_boot_devices(self):
         if not self.boot_devices:
@@ -393,9 +458,18 @@ class Badfish:
             raw = await _response.text("utf-8", "ignore")
             data = json.loads(raw.strip())
             if "Attributes" in data:
-                try:
-                    self.boot_devices = data["Attributes"][_boot_seq]
-                except KeyError:
+                boot_seq = data["Attributes"].get(_boot_seq)
+                if not boot_seq:
+                    # The BIOS BootMode could not be read, so get_boot_seq()
+                    # assumed the legacy Bios BootSeq, which is empty on a UEFI
+                    # host. Fall back to the populated sequence.
+                    fallback = "UefiBootSeq" if _boot_seq == "BootSeq" else "BootSeq"
+                    boot_seq = data["Attributes"].get(fallback)
+                    _boot_seq = fallback
+                if boot_seq:
+                    self.boot_devices = boot_seq
+                    self.boot_seq_attr = _boot_seq
+                else:
                     logger.error("No boot devices found")
                     raise BadfishException
             else:
@@ -405,7 +479,7 @@ class Badfish:
 
     async def get_job_queue(self):
         logger.debug("Getting job queue.")
-        _url = "%s%s/Jobs" % (self.host_uri, self.manager_resource)
+        _url = "%s%s" % (self.host_uri, await self.find_jobs_resource())
         _response = await self.get_request(_url)
 
         data = await _response.text("utf-8", "ignore")
@@ -415,7 +489,7 @@ class Badfish:
 
     async def get_job_status(self, _job_id):
         logger.debug("Getting job status.")
-        _uri = "%s%s/Jobs/%s" % (self.host_uri, self.manager_resource, _job_id)
+        _uri = "%s%s/%s" % (self.host_uri, await self.find_jobs_resource(), _job_id)
 
         for _ in range(self.retries):
             _response = await self.get_request(_uri, _continue=True)
@@ -716,7 +790,7 @@ class Badfish:
             logger.warning("No changes were made since the boot order already matches the requested.")
 
     async def patch_boot_seq(self):
-        _boot_seq = await self.get_boot_seq()
+        _boot_seq = self.boot_seq_attr or await self.get_boot_seq()
         boot_sources_resource = await self.find_boot_sources_resource()
         url = "%s%s/Settings" % (self.host_uri, boot_sources_resource)
         payload = {"Attributes": {_boot_seq: self.boot_devices}}
@@ -763,7 +837,11 @@ class Badfish:
             await self.error_handler(_response)
 
     async def check_supported_idrac_version(self):
-        _url = "%s/Dell/Managers/iDRAC.Embedded.1/DellJobService/" % self.root_uri
+        try:
+            _url = "%s%s" % (self.host_uri, await self.find_dell_job_service_resource())
+        except BadfishException:
+            logger.warning("iDRAC version installed does not support DellJobService")
+            return False
         _response = await self.get_request(_url)
         if _response.status != 200:
             logger.warning("iDRAC version installed does not support DellJobService")
@@ -780,7 +858,10 @@ class Badfish:
         return True
 
     async def delete_job_queue_dell(self):
-        _url = "%s/Dell/Managers/iDRAC.Embedded.1/DellJobService/Actions/DellJobService.DeleteJobQueue" % self.root_uri
+        _url = "%s%s/Actions/DellJobService.DeleteJobQueue" % (
+            self.host_uri,
+            await self.find_dell_job_service_resource(),
+        )
         _payload = {"JobID": "JID_CLEARALL"}
         _headers = {"content-type": "application/json"}
         response = await self.post_request(_url, _payload, _headers)
@@ -796,7 +877,7 @@ class Badfish:
             raise BadfishException
 
     async def delete_job_queue_force(self):
-        _url = "%s%s/Jobs" % (self.host_uri, self.manager_resource)
+        _url = "%s%s" % (self.host_uri, await self.find_jobs_resource())
         _headers = {"content-type": "application/json"}
         url = "%s/JID_CLEARALL_FORCE" % _url
         try:
@@ -807,7 +888,7 @@ class Badfish:
         return _response
 
     async def clear_job_list(self, _job_queue):
-        _url = "%s%s/Jobs" % (self.host_uri, self.manager_resource)
+        _url = "%s%s" % (self.host_uri, await self.find_jobs_resource())
         _headers = {"content-type": "application/json"}
         logger.warning("Clearing job queue for job IDs: %s." % _job_queue)
         failed = False
@@ -852,7 +933,8 @@ class Badfish:
 
     async def create_job(self, _url, _payload, _headers, expected=None):
         if not expected:
-            expected = [200, 204]
+            # Dell Redfish returns 201 Created when a config job is accepted.
+            expected = [200, 201, 204]
         _response = await self.post_request(_url, _payload, _headers)
 
         status_code = _response.status
@@ -870,7 +952,7 @@ class Badfish:
             await self.error_handler(_response)
 
     async def create_bios_config_job(self, uri):
-        _url = "%s%s/Jobs" % (self.host_uri, self.manager_resource)
+        _url = "%s%s" % (self.host_uri, await self.find_jobs_resource())
         _payload = {"TargetSettingsURI": "%s%s" % (self.redfish_uri, uri)}
         _headers = {"content-type": "application/json"}
         await self.create_job(_url, _payload, _headers)
@@ -1490,7 +1572,7 @@ class Badfish:
         return False
 
     async def get_network_adapters(self):
-        _url = "%s%s/NetworkAdapters" % (self.host_uri, self.system_resource)
+        _url = "%s%s" % (self.host_uri, await self.find_network_adapters_resource())
         _response = await self.get_request(_url)
         try:
             raw = await _response.text("utf-8", "ignore")
@@ -1616,17 +1698,22 @@ class Badfish:
         return data
 
     async def list_interfaces(self):
-        na_supported = await self.check_supported_network_interfaces("NetworkAdapters")
-        ei_supported = await self.check_supported_network_interfaces("EthernetInterfaces")
+        try:
+            await self.find_network_adapters_resource()
+            na_supported = True
+        except BadfishException:
+            na_supported = False
         if na_supported:
             logger.debug("Getting Network Adapters")
             data = await self.get_network_adapters()
-        elif ei_supported:
-            logger.debug("Getting Ethernet interfaces")
-            data = await self.get_ethernet_interfaces()
         else:
-            logger.error("Server does not support this functionality")
-            return False
+            ei_supported = await self.check_supported_network_interfaces("EthernetInterfaces")
+            if ei_supported:
+                logger.debug("Getting Ethernet interfaces")
+                data = await self.get_ethernet_interfaces()
+            else:
+                logger.error("Server does not support this functionality")
+                return False
 
         for interface, properties in data.items():
             logger.info(f"{interface}:")
