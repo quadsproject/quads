@@ -132,7 +132,7 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
     - `/api/v3/schedules/hosts_range` Retrieve schedules for a range of dates
     - `/api/v3/schedules/stats/build_delta` Obtain build time delta statistics
     - `/api/v3/schedules/stats/utilization` Obtain utilization statistics (`?start=` and `?end=` required)
-    - `/api/v3/available`           List available hosts, usually used with `--schedule-start YYYY-MM-DD HH` and `--schedule-end YYYY-MM-DD HH`
+    - `/api/v3/available`           List available hosts, usually used with `--schedule-start YYYY-MM-DD HH` and `--schedule-end YYYY-MM-DD HH`; with `can_self_schedule=true` the per-model percentage pool (`ssm_model_limit` in selfservice.yml) applies
     - `/api/v3/available/<hostname>` Check availability of a specific host
     - `/api/v3/interfaces`          List interfaces of QUADS host(s)
     - `/api/v3/disks` / `/api/v3/disks/types`  List disks / distinct disk types

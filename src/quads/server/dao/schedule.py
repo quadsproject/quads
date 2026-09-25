@@ -368,6 +368,27 @@ class ScheduleDao(BaseDao):
         return hosts_schedules
 
     @staticmethod
+    def count_ss_schedules_by_model_overlap(
+        model: str, start: datetime, end: datetime, exclude_schedule_id: Optional[int] = None
+    ) -> int:
+        query = (
+            db.session.query(func.count(func.distinct(Schedule.host_id)))
+            .join(Host, Schedule.host_id == Host.id)
+            .join(Assignment, Schedule.assignment_id == Assignment.id)
+            .filter(
+                Host.model == model,
+                Host.retired.is_(False),
+                Host.broken.is_(False),
+                Assignment.is_self_schedule.is_(True),
+                Schedule.start < end,
+                Schedule.end > start,
+            )
+        )
+        if exclude_schedule_id is not None:
+            query = query.filter(Schedule.id != exclude_schedule_id)
+        return int(query.scalar() or 0)
+
+    @staticmethod
     def is_host_available(hostname, start, end, exclude=None) -> bool:
         _host = HostDao.get_host(hostname)
 

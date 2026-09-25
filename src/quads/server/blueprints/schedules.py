@@ -9,6 +9,7 @@ from jinja2 import Template
 from flask import Blueprint, Response, current_app, g, jsonify, make_response, request
 
 from quads.config import Config
+from quads.helpers.selfservice import model_limit, ssm_remaining_capacity
 from quads.helpers.timeutil import parse_datetime
 from quads.server.blueprints import check_access, parse_int_or_response
 from quads.server.dao.assignment import AssignmentDao
@@ -32,6 +33,12 @@ def _parse_datetime_with_now(date_str):
     if isinstance(date_str, str):
         return datetime.strptime(date_str, "%Y-%m-%d %H:%M")
     return date_str
+
+
+def _ssm_limit_message(model: str) -> str:
+    if model_limit(model) == 0:
+        return f"Model {model} does not allow self-scheduling"
+    return f"Model {model} has reached its self-scheduling limit"
 
 
 def _trigger_jira_notification(assignment, hostnames, start, end):
@@ -409,6 +416,15 @@ def create_schedule() -> Response:
             }
             return make_response(jsonify(response), 400)
 
+        if _assignment.is_self_schedule and ssm_remaining_capacity(_host.model, _start, _end) <= 0:
+            db.session.rollback()
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": _ssm_limit_message(_host.model),
+            }
+            return make_response(jsonify(response), 400)
+
         if not ScheduleDao.is_host_available(hostname, _start, _end):
             db.session.rollback()
             response = {
@@ -558,6 +574,17 @@ def update_schedule(schedule_id: int) -> Response:
             "message": "Invalid date range for end or build_end, build_end must be before end",
         }
         return make_response(jsonify(response), 400)
+
+    if schedule.assignment.is_self_schedule and (start or end):
+        _new_start = _start if start else schedule.start
+        _new_end = _end if end else schedule.end
+        if ssm_remaining_capacity(schedule.host.model, _new_start, _new_end, exclude_schedule_id=schedule.id) < 1:
+            response = {
+                "status_code": 400,
+                "error": "Bad Request",
+                "message": _ssm_limit_message(schedule.host.model),
+            }
+            return make_response(jsonify(response), 400)
 
     updated_schedule = ScheduleDao.update_schedule(int(schedule_id), **parsed_data)
 
@@ -797,6 +824,22 @@ def create_schedules_batch() -> Response:
             _assignment = AssignmentDao.create_assignment(commit=False, **kwargs)
         else:
             _assignment = existing_assignment
+
+        if _assignment.is_self_schedule:
+            model_hosts = {}
+            for hostname in hostnames:
+                _batch_host = _host_map.get(hostname)
+                if _batch_host:
+                    model_hosts.setdefault(_batch_host.model, set()).add(hostname)
+            for model, model_hostnames in model_hosts.items():
+                if ssm_remaining_capacity(model, _start, _end) < len(model_hostnames):
+                    db.session.rollback()
+                    response = {
+                        "status_code": 400,
+                        "error": "Bad Request",
+                        "message": _ssm_limit_message(model),
+                    }
+                    return make_response(jsonify(response), 400)
 
         schedule_inputs = [(_start, _end, _assignment, _host_map[hostname]) for hostname in hostnames]
         ScheduleDao.create_schedules(schedule_inputs, commit=False)

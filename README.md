@@ -1451,6 +1451,16 @@ quads --mod-host --host f03-h30-000-r650.example.com --can-self-schedule true
 ```bash
 quads --ls-hosts --filter "can_self_schedule==true"
 ```
+* You can mark your whole fleet self-schedule capable (see [Self-Scheduling Hosts](docs/quads-self-schedule.md)).
+  The per-model percentage pool bounds how many hosts of each model are available for
+  self-scheduling at any time via `ssm_model_limit` / `ssm_model_limit_default` in
+  `/opt/quads/conf/selfservice.yml`, default 100%:
+
+```bash
+for host in $(quads --ls-hosts | awk '{print $1}'); do
+  quads --mod-host --host "$host" --can-self-schedule true
+done
+```
 
 ## Filtering Systems by Hardware Capability
 * We provide a flexible host hardware [metadata and filtering model](/docs/quads-host-metadata-search.md) via the API.
