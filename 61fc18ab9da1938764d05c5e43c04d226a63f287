@@ -16,6 +16,24 @@
       "message": "The downgrade() flips the server_default back to false but never backfills the data, unlike upgrade() which does a `WHERE overcloud IS NOT TRUE` update. A rollback leaves every existing host still holding overcloud\u003dtrue in the data while a freshly-created host defaults to false, so the column default and the stored values disagree. Add the mirror backfill (e.g. `op.execute(\"UPDATE hosts SET overcloud \u003d false WHERE overcloud IS NOT FALSE\")`) before the alter_column so downgrade is the clean inverse.",
       "revId": "61fc18ab9da1938764d05c5e43c04d226a63f287",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "04a60f8e_0301edd9",
+        "filename": "migrations/versions/3bd119370bb0_default_hosts_to_overcloud.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T20:00:50Z",
+      "side": 1,
+      "message": "Thanks for pointing that out. We are deliberately not mirroring the backfill in downgrade: overcloud\u003dfalse is not a valid state in our deployment, no host should ever be false in the database, and this column is a legacy construct we plan to remove. A downgrade that flips stored hosts back to false would re-break instackenv/ocpinventory generation for anyone who rolls back, so we treat the data repair as one-way and only reverse the column default for schema symmetry.",
+      "parentUuid": "bd31f1c0_71dc97ce",
+      "revId": "61fc18ab9da1938764d05c5e43c04d226a63f287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
