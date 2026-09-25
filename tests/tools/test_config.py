@@ -22,6 +22,19 @@ def _make_config_with_badfish(badfish_cfg):
     return cfg
 
 
+def _make_config_with_ssm(ssm_model_limit=None, ssm_model_limit_default=None):
+    """Instantiate _Config without file I/O, inject ssm settings, apply extensions."""
+    cfg = _Config.__new__(_Config)
+    cfg.SUPERMICRO = []
+    cfg.plugins = {}
+    if ssm_model_limit is not None:
+        cfg.ssm_model_limit = ssm_model_limit
+    if ssm_model_limit_default is not None:
+        cfg.ssm_model_limit_default = ssm_model_limit_default
+    cfg._apply_yaml_extensions()
+    return cfg
+
+
 # noinspection PyUnresolvedReferences
 class TestConfig(unittest.TestCase):
     def test_getattr(self):
@@ -76,12 +89,66 @@ class TestConfigExtensions(unittest.TestCase):
         self.assertEqual(len(cfg.SUPERMICRO), 1)
 
     def test_new_key_takes_precedence_over_deprecated(self):
-        cfg = _make_config_with_badfish({
-            "skip_for_supermicro_models": "6029p",
-            "supported_supermicro": "1028r",
-        })
+        cfg = _make_config_with_badfish(
+            {
+                "skip_for_supermicro_models": "6029p",
+                "supported_supermicro": "1028r",
+            }
+        )
         self.assertIn("6029p", cfg.SUPERMICRO)
         self.assertNotIn("1028r", cfg.SUPERMICRO)
+
+
+class TestSsmModelLimitNormalization(unittest.TestCase):
+    def test_list_of_pairs_normalizes_to_dict(self):
+        cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": 60}, {"r650": 70}])
+        self.assertEqual(cfg.ssm_model_limit, {"R660": 60, "R650": 70})
+
+    def test_plain_dict_normalizes_to_dict(self):
+        cfg = _make_config_with_ssm(ssm_model_limit={"r660": 60})
+        self.assertEqual(cfg.ssm_model_limit, {"R660": 60})
+
+    def test_duplicate_model_key_warns_and_last_wins(self):
+        with self.assertLogs("quads.config", level="WARNING") as log:
+            cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": 60}, {"r660": 30}])
+        self.assertEqual(cfg.ssm_model_limit, {"R660": 30})
+        self.assertTrue(any("Duplicate ssm_model_limit" in msg for msg in log.output))
+
+    def test_values_coerced_and_clamped(self):
+        cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": 150}, {"r650": -5}, {"r640": "60"}])
+        self.assertEqual(cfg.ssm_model_limit, {"R660": 100, "R650": 0, "R640": 60})
+
+    def test_malformed_entries_warned_and_skipped(self):
+        with self.assertLogs("quads.config", level="WARNING"):
+            cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": "not-a-number"}, "garbage"])
+        self.assertEqual(cfg.ssm_model_limit, {})
+
+    def test_absent_keys_leave_no_limit(self):
+        cfg = _make_config_with_ssm()
+        self.assertFalse(hasattr(cfg, "ssm_model_limit"))
+
+
+class TestGetSsmModelLimit(unittest.TestCase):
+    def test_default_absent_returns_100(self):
+        cfg = _make_config_with_ssm()
+        self.assertEqual(cfg.get_ssm_model_limit("r640"), 100)
+
+    def test_explicit_zero_default_stays_zero(self):
+        cfg = _make_config_with_ssm(ssm_model_limit_default=0)
+        self.assertEqual(cfg.get_ssm_model_limit("r640"), 0)
+
+    def test_per_model_override_wins(self):
+        cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": 60}], ssm_model_limit_default=100)
+        self.assertEqual(cfg.get_ssm_model_limit("r660"), 60)
+        self.assertEqual(cfg.get_ssm_model_limit("r650"), 100)
+
+    def test_matching_is_case_insensitive(self):
+        cfg = _make_config_with_ssm(ssm_model_limit=[{"r660": 60}])
+        self.assertEqual(cfg.get_ssm_model_limit("R660"), 60)
+
+    def test_default_out_of_range_clamped(self):
+        cfg = _make_config_with_ssm(ssm_model_limit_default=250)
+        self.assertEqual(cfg.get_ssm_model_limit("r640"), 100)
 
 
 class TestIsSupermicro(unittest.TestCase):

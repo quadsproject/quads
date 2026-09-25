@@ -2,11 +2,17 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, Response, jsonify, make_response, request
 
+from quads.helpers.selfservice import ssm_remaining_capacity
 from quads.server.dao.baseDao import EntryNotFound, InvalidArgument
 from quads.server.dao.host import HostDao
 from quads.server.dao.schedule import ScheduleDao
 
 available_bp = Blueprint("available", __name__)
+
+
+def _is_ss_view(params) -> bool:
+    raw = params.get("can_self_schedule")
+    return raw is not None and str(raw).lower() in ("true", "y", "yes")
 
 
 @available_bp.route("/", methods=["GET"])
@@ -69,6 +75,21 @@ def get_available() -> Response:
                 if _cloud != _sched_cloud:
                     continue
             available.append(host.name)
+
+    if _is_ss_view(_params):
+        remaining_per_model = {}
+        available_set = set(available)
+        capped = []
+        for host in all_hosts:
+            if host.name not in available_set:
+                continue
+            model = host.model
+            if model not in remaining_per_model:
+                remaining_per_model[model] = max(0, ssm_remaining_capacity(model, _start, _end))
+            if remaining_per_model[model] > 0:
+                capped.append(host.name)
+                remaining_per_model[model] -= 1
+        return jsonify(capped)
     return jsonify(available)
 
 

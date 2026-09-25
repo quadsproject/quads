@@ -107,6 +107,7 @@ class _Config(_ConfigBase):
         self._apply_yaml_extensions()
 
     def _apply_yaml_extensions(self):
+        self._normalize_ssm_model_limit()
         badfish_cfg = getattr(self, "plugins", {}).get("badfish", {})
         raw = badfish_cfg.get("skip_for_supermicro_models")
         if raw is None:
@@ -128,6 +129,49 @@ class _Config(_ConfigBase):
                 self.SUPERMICRO.append(model)
                 existing_lower.add(model.lower())
         logger.debug("Extended SUPERMICRO from plugins.badfish.skip_for_supermicro_models")
+
+    def _normalize_ssm_model_limit(self):
+        raw = getattr(self, "ssm_model_limit", None)
+        if raw is None:
+            return
+        if isinstance(raw, dict):
+            items = list(raw.items())
+        elif isinstance(raw, (list, tuple)):
+            items = []
+            for entry in raw:
+                if isinstance(entry, dict):
+                    items.extend(entry.items())
+                else:
+                    logger.warning("Ignoring malformed ssm_model_limit entry: %r", entry)
+        else:
+            logger.warning("Ignoring malformed ssm_model_limit: %r", raw)
+            items = []
+        normalized = {}
+        for key, value in items:
+            model = str(key).upper()
+            if model in normalized:
+                logger.warning("Duplicate ssm_model_limit entry for model %s; using last value", model)
+            try:
+                pct = int(value)
+            except (TypeError, ValueError):
+                logger.warning("Ignoring malformed ssm_model_limit value for %s: %r", model, value)
+                continue
+            normalized[model] = max(0, min(100, pct))
+        self.ssm_model_limit = normalized
+
+    def get_ssm_model_limit(self, model: str) -> int:
+        model = str(model).upper()
+        per_model = getattr(self, "ssm_model_limit", None) or {}
+        if model in per_model:
+            return per_model[model]
+        default = getattr(self, "ssm_model_limit_default", None)
+        if default is None:
+            return 100
+        try:
+            pct = int(default)
+        except (TypeError, ValueError):
+            pct = 100
+        return max(0, min(100, pct))
 
     OFFSETS = {"em1": 0, "em2": 1, "em3": 2, "em4": 3, "em5": 4}
     TEMPLATES_PATH = os.environ.get(
