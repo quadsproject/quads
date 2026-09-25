@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e7c2371_7fcec6d2",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-25T14:25:33Z",
+      "side": 1,
+      "message": "Small nit: _find_resource probes each candidate with get_request and only checks _response.status \u003d\u003d 200. get_request swallows 4xx/5xx (it only raises on a network exception), so a 401/403 from a bad host credential here looks the same as \"endpoint not present\" and gets reported as \"X not supported by this host\" instead of surfacing the auth problem. The 36 tests cover the 404-then-200 path, but not a non-200 that\u0027s actually an auth/error response. Consider treating 4xx-from-upstream distinctly, or at least logging the status when it\u0027s not 200 so a misrouted host isn\u0027t silently diagnosed as unsupported.",
+      "revId": "bb98eb218c5b36daa19a152e50d6ae7985ac37c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
