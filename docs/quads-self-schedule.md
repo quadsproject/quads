@@ -24,6 +24,7 @@ For more details on the API, please refer to our [Swagger Documentation](https:/
     * [Wait for validation via Python](#wait-for-validation-via-python)
     * [Terminate assignment via Python](#terminate-assignment-via-python)
   * [Via Ansible](#via-ansible)
+  * [Self-Scheduling Pool by Percentage](#self-scheduling-pool-by-percentage-upgrade--rollback)
 
 # Self-Scheduling How-To
 
@@ -108,6 +109,16 @@ curl -s -k \
 > To add more than one host to your assignment run the schedule command for as many other hosts as you need.
 >
 > This is managed by the `ssm_host_limit` setting in `/opt/quads/conf/selfservice.yml`
+
+> [!NOTE]
+> Additionally, you can bound how many hosts of each model may be used for self-scheduling
+> at any time with `ssm_model_limit` (per-model percentage overrides) and
+> `ssm_model_limit_default` (default 100) in `/opt/quads/conf/selfservice.yml`. The API
+> computes the free pool per model in real time: at most `pct%` of a model's fleet can be
+> self-scheduled at once, and the available hosts query (`can_self_schedule=true`) lists only
+> what can still be grabbed. A model at 0% is never self-schedulable; 100% (the default)
+> keeps today's behavior. Note: `quads --ls-available` and the web wiki Available page do
+> not apply the per-model cap, the REST API is authoritative.
 
 ### Track move progress via REST
 
@@ -294,3 +305,20 @@ with QuadsApi(username, password, base_url) as quads:
 
 * You can use our QUADS self-scheduling [Ansible playbook here](https://github.com/quadsproject/ansible-quads-ssm)
 * Refer to the usage documentation there.
+
+## Self-Scheduling Pool by Percentage (Upgrade / Rollback)
+
+* Config: `ssm_model_limit` (per-model percentage overrides) and
+  `ssm_model_limit_default` (default 100) in `/opt/quads/conf/selfservice.yml`.
+* Upgrade: add the keys to `selfservice.yml` and restart `quads-server`. No database
+  migration is required. With the default (100%) behavior is unchanged from before.
+* Rollback: remove the keys and restart; absent keys mean 100% (no per-model pool).
+* Mark your whole fleet `can_self_schedule=true` (CLI `--mod-host` / API `PATCH /hosts`)
+  to let the pool pick hosts fluidly instead of a static subset.
+* Behavior notes: a model set to 0% is never self-schedulable. A non-zero percentage
+  always reserves at least one slot, so small fleets are never silently disabled. The
+  cap is approximately the advertised percentage, rounded down to whole hosts but never
+  below one for a non-zero percentage (`max(1, floor(pct/100 * fleet))`); it undershoots
+  the percentage whenever the fleet size is not a multiple of 100/pct. Admin batch
+  schedules on self-service clouds are capped too, so a batch that exceeds the remaining
+  pool is rejected as a whole.
