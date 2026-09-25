@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1bc80e3c_bb38c728",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Subject still says \"WIP\" - not merge-ready as worded. Drop WIP once final (e.g. \"feat: per-model self-scheduling percentage pool\"). Also the `fixes:` trailer is indented and uses the full URL; a left-aligned `Fixes #633` is what GitHub parses to auto-close the issue.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7dac078_51fea23f",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "The doc keeps a TOC of its H2 sections (this line lists `Via Ansible`). The new `## Self-Scheduling Pool by Percentage (Upgrade / Rollback)` (line 308) isn\u0027t in it - add `  * [Self-Scheduling Pool by Percentage](#self-scheduling-pool-by-percentage-upgrade--rollback)`.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "28a6d6be_b6e8c853",
+        "filename": "docs/quads-self-schedule.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "\"matches exactly the advertised percentage\" isn\u0027t accurate: cap \u003d max(1, floor(pct/100*fleet)), so it equals the % only when fleet*pct is a multiple of 100. It undershoots for most fleets (10 @25% -\u003e 2 \u003d 20%) and overshoots for tiny ones (3 @25% -\u003e 1 \u003d 33%). Suggest \"approximately the advertised percentage; rounded down to whole hosts but never below one for a non-zero percentage.\" (Also line 317/118: \"self-scheduleable\" -\u003e \"self-schedulable\".)",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3fce9aa1_3532e278",
+        "filename": "src/quads/helpers/selfservice.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Nit: `exclude_schedule_id: int \u003d None` should be `Optional[int]` (same at dao/schedule.py:372).",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "121c1512_02318cf8",
+        "filename": "src/quads/server/blueprints/available.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Follow-up (design): the cap only applies when the caller passes can_self_schedule\u003dtrue. `quads --ls-available` (cli/cli.py action_available) and the web wiki Available page (web/blueprints/wiki.py available_hosts) don\u0027t pass it, so they list uncapped hosts. A user sees a host as free, POSTs a self-schedule, and gets a 400 - the exact surprise the RFE tries to avoid. The doc caveat is honest, but consider having the SS entry points query the capped view (or annotate capped models).",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6465e2f_28615cea",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "TOCTOU: this capacity check and the create below are not atomic, and there\u0027s no model-level lock (get_hosts_for_update row-locks only the host) or unique constraint. Production runs gunicorn --workers\u003d17 -k gthread (systemd/quads-server.service:14), so two concurrent self-schedules of different hosts of the same model can both read remaining\u003e0 and both commit, pushing the model above N% - which contradicts the RFE\u0027s \"at most N% at any time.\" Same shape at :579 (PATCH) and :834 (batch). This mirrors the existing ssm_host_limit check, so not a regression, but given the RFE promises a hard bound please either serialize the check+insert (per-model advisory lock / with_for_update / in-txn re-check) or leave a `# ponytail:` note that the cap is best-effort under concurrency.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9ec592cb_192f2059",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Nit: for a model deliberately set to 0% this same \"has reached its self-scheduling limit\" wording is a bit misleading (it\u0027s disabled, not exhausted). Optional wording tweak.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af29a750_ca263e8b",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Population mismatch with the fleet denominator: count_hosts_by_model (host.py:130) excludes retired+broken, but this active count does not filter them. Concrete failure: 2x R660 @50% -\u003e L\u003d1; host A self-scheduled, then A marked broken. Now fleet\u003d1, model_limit\u003dmax(1,0)\u003d1, but A\u0027s live schedule still counts as active\u003d1 -\u003e remaining\u003d0, so the healthy host B is rejected even though 0 healthy R660s are actively self-scheduled. Direction is conservative w.r.t. the cap, but it wrongly rejects a valid self-schedule. Apply the same retired/broken filter here (or drop it from count_hosts_by_model) so numerator and denominator share a basis.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d87b8b3b_6551f45d",
+        "filename": "src/quads/server/swagger.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 2443,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Nit: `_is_ss_view` also accepts \"y\"/\"yes\" (not just boolean true/false). `true` works fine as documented; optionally note the accepted string values in the description.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ffb437c_6f18beb4",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "This monkeypatch (and the identical one at line 553) is a no-op: the model here uses the default 100% limit, so count_ss_schedules_by_model_overlap being 0 changes nothing - verified by removing both blocks and the two deadline tests still pass. It\u0027s dead cruft added to pre-existing tests; drop both.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9cafd8bc_ead3401f",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Leftover debug print - remove. (`.get(\"message\")` is None on the 201 path anyway, so it carries no signal.)",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d966c808_7df0ebee",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Same leftover debug print as line 530 - remove.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "966f890f_7934cb6b",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-25T22:05:00Z",
+      "side": 1,
+      "message": "Coverage gap on the core RFE arithmetic: every enforcement test uses limit L\u003d1 (N\u003d2 @50% or N\u003d1 @50%). Nothing asserts floor\u003e\u003d2 (e.g. a 4-host model @50% -\u003e allow 2, reject the 3rd), so a bug hardcoding limit\u003d1 would pass the whole suite even though helpers/selfservice shows 100% line coverage. Please add a floor\u003e\u003d2 create test plus a direct unit test for model_limit()/ssm_remaining_capacity() (floor round-down, max(1,.) min, negative clamp). Also missing: a multi-model batch where one model overflows and another fits, a retired/broken characterization test (see dao/schedule.py:371), and a no-date PATCH.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
