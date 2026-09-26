@@ -285,6 +285,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "34383833_445acd44",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e6465e2f_28615cea",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "9ec592cb_192f2059",
         "filename": "src/quads/server/blueprints/schedules.py",
         "patchSetId": 2
@@ -331,6 +349,24 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Population mismatch with the fleet denominator: count_hosts_by_model (host.py:130) excludes retired+broken, but this active count does not filter them. Concrete failure: 2x R660 @50% -\u003e L\u003d1; host A self-scheduled, then A marked broken. Now fleet\u003d1, model_limit\u003dmax(1,0)\u003d1, but A\u0027s live schedule still counts as active\u003d1 -\u003e remaining\u003d0, so the healthy host B is rejected even though 0 healthy R660s are actively self-scheduled. Direction is conservative w.r.t. the cap, but it wrongly rejects a valid self-schedule. Apply the same retired/broken filter here (or drop it from count_hosts_by_model) so numerator and denominator share a basis.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "98b2ecb9_64dd0f87",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af29a750_ca263e8b",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -459,6 +495,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ce0e260_c0678bd3",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ffb437c_6f18beb4",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9cafd8bc_ead3401f",
@@ -472,6 +526,24 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Leftover debug print - remove. (`.get(\"message\")` is None on the 201 path anyway, so it carries no signal.)",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "083eeefa_8ca1dfd4",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cafd8bc_ead3401f",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -493,6 +565,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bcd0b90a_dda313d1",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d966c808_7df0ebee",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "966f890f_7934cb6b",
@@ -506,6 +596,24 @@
       "writtenOn": "2026-09-25T22:05:00Z",
       "side": 1,
       "message": "Coverage gap on the core RFE arithmetic: every enforcement test uses limit L\u003d1 (N\u003d2 @50% or N\u003d1 @50%). Nothing asserts floor\u003e\u003d2 (e.g. a 4-host model @50% -\u003e allow 2, reject the 3rd), so a bug hardcoding limit\u003d1 would pass the whole suite even though helpers/selfservice shows 100% line coverage. Please add a floor\u003e\u003d2 create test plus a direct unit test for model_limit()/ssm_remaining_capacity() (floor round-down, max(1,.) min, negative clamp). Also missing: a multi-model batch where one model overflows and another fits, a retired/broken characterization test (see dao/schedule.py:371), and a no-date PATCH.",
+      "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "85490e2c_c5c45af8",
+        "filename": "tests/api/test_schedules.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:20:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "966f890f_7934cb6b",
       "revId": "a14211ec600367df4344bb1c5bbfb5290fdf5957",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
