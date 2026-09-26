@@ -16,6 +16,24 @@
       "message": "Minor (optional): `host.name not in available` scans the list for every host, so this SS-view loop is O(n^2) over the fleet. `available_set \u003d set(available)` before the loop makes it O(n). Harmless at current fleet sizes; only worth it if you care.",
       "revId": "7519e22cc77f467a852891d9580717150e6963bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "42aad0b1_1b176dc1",
+        "filename": "src/quads/server/blueprints/available.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-26T01:36:16Z",
+      "side": 1,
+      "message": "Fixed in PS5: `available_set \u003d set(available)` before the loop, membership is now O(n) over the fleet.",
+      "parentUuid": "5697a7bf_49b961ec",
+      "revId": "7519e22cc77f467a852891d9580717150e6963bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
