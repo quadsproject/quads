@@ -34,6 +34,24 @@
       "parentUuid": "b3d1bfc1_5379a919",
       "revId": "a6c3f148ae0841ba53cc71bea4c59b320fbc0d8c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79844353_ad2045d8",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2055,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-28T11:00:11Z",
+      "side": 1,
+      "message": "Done in PS2: dropped the `# pragma: no cover` from action_movehosts and expanded tests/unit/test_movehosts.py to drive the method through a mocked CLI across its branches (happy path, switch config failure/exception, omit_network_move, no-moves reconciliation, wipe vs non-wipe provisioning, old-cloud deactivation, batch/move failures). The remaining uncovered lines are defensive except: pass swallows. Thanks for the catch.",
+      "parentUuid": "b3d1bfc1_5379a919",
+      "revId": "a6c3f148ae0841ba53cc71bea4c59b320fbc0d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
