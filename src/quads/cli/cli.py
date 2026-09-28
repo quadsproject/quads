@@ -1897,7 +1897,7 @@ class QuadsCli:
             raise CliException(str(ex))
         return 0
 
-    def action_movehosts(self):  # pragma: no cover
+    def action_movehosts(self):
         if self.cli_args.get("datearg") and not self.cli_args.get("dryrun"):
             raise CliException("--move-hosts and --date are mutually exclusive unless using --dry-run.")
 
@@ -2052,7 +2052,7 @@ class QuadsCli:
                         if not host_obj.switch_config_applied:
                             self.logger.info(f"Running switch config for {hostname}")
                             try:
-                                result = task()
+                                result = get_or_create_event_loop().run_until_complete(task())
                             except Exception as exc:
                                 self.logger.exception(
                                     "There was something wrong configuring the switch.",
