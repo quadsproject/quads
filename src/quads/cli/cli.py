@@ -2052,7 +2052,7 @@ class QuadsCli:
                         if not host_obj.switch_config_applied:
                             self.logger.info(f"Running switch config for {hostname}")
                             try:
-                                result = task()
+                                result = get_or_create_event_loop().run_until_complete(task())
                             except Exception as exc:
                                 self.logger.exception(
                                     "There was something wrong configuring the switch.",
