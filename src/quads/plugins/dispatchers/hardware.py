@@ -104,6 +104,18 @@ class HardwareDispatcher(SinglePluginDispatcher[HardwarePlugin]):
             logger.error(f"Failed to get BIOS attribute: {e}")
             return None
 
+    async def set_bios_attribute(self, attributes: dict) -> bool:
+        plugin = self._get_active_plugin()
+        if not plugin:
+            logger.error("No hardware plugin enabled")
+            return False
+
+        try:
+            return await plugin.set_bios_attribute(attributes)
+        except Exception as e:
+            logger.error(f"Failed to set BIOS attribute: {e}")
+            return False
+
     async def boot_to_type(self, host_type: str, interfaces_path: str) -> bool:
         plugin = self._get_active_plugin()
         if not plugin:

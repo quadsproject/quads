@@ -112,6 +112,18 @@ class HardwarePlugin(BasePlugin):
         """
         return None
 
+    async def set_bios_attribute(self, attributes: dict) -> bool:
+        """
+        Set one or more BIOS attributes on the hardware.
+
+        Args:
+            attributes: Mapping of BIOS attribute name to desired value.
+
+        Returns:
+            bool: True if applied successfully, False otherwise.
+        """
+        return False
+
     def get_vendor(self) -> Optional[str]:
         """Return the hardware vendor string after init(), or None if unavailable.
 
