@@ -52,6 +52,24 @@
       "parentUuid": "b84f69b0_48f05070",
       "revId": "ebb35263472efcdb61977f41869c2637970740a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e62814e2_b688ae75",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-28T13:02:07Z",
+      "side": 1,
+      "message": "Tracking the three hardware-verification questions (iDRAC9 second-PATCH semantics, iDRAC10 config job, one-time boot vs mode switch) in https://github.com/quadsproject/quads/issues/737 with the full evidence from this review.",
+      "parentUuid": "b84f69b0_48f05070",
+      "revId": "ebb35263472efcdb61977f41869c2637970740a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
