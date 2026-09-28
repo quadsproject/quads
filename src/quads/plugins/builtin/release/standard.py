@@ -353,17 +353,34 @@ class StandardReleasePlugin(ReleasePlugin):
             current_device = await self.hardware_dispatcher.get_bios_attribute(f"OneTime{boot_seq}Dev")
 
             if current_mode == f"OneTime{boot_seq}" and current_device:
-                self.logger.info(
-                    "One-time boot already set to %s on %s, skipping."
-                    % (current_device, host_obj.name)
-                )
+                self.logger.info("One-time boot already set to %s on %s, skipping." % (current_device, host_obj.name))
                 return True
         except Exception as exc:
             self.logger.warning(
-                "Could not determine one-time boot state for %s, proceeding with set: %s"
-                % (host_obj.name, exc)
+                "Could not determine one-time boot state for %s, proceeding with set: %s" % (host_obj.name, exc)
             )
         return False
+
+    async def _apply_bootmode(self, host_obj: Host) -> bool:
+        """Set the BIOS boot mode to host_obj.bootmode when it differs.
+
+        No-op (returns True) when bootmode is unset or already matches the
+        current BootMode. Returns False only when the set is attempted and
+        fails, so the caller can abort the rebuild.
+        """
+        bootmode = host_obj.bootmode
+        if not bootmode:
+            return True
+
+        current = await self.hardware_dispatcher.get_bios_attribute("BootMode")
+        if current and bootmode.lower() != current.lower():
+            self.logger.warning(
+                "BootMode %s does not match desired %s for %s, setting it." % (current, bootmode, host_obj.name)
+            )
+            if not await self.hardware_dispatcher.set_bios_attribute({"BootMode": bootmode}):
+                self.logger.error(f"Failed to set boot mode on {host_obj.name}.")
+                return False
+        return True
 
     async def reboot_for_rebuild(self, host_obj: Host, interfaces_path: str) -> bool:
         """Reboot host for rebuild"""
@@ -382,6 +399,9 @@ class StandardReleasePlugin(ReleasePlugin):
             ):
                 self.logger.error(f"Error setting PXE boot on {host_obj.name}.")
                 return False
+
+        if not await self._apply_bootmode(host_obj):
+            return False
 
         if not await self.hardware_dispatcher.reboot_server(graceful=False):
             self.logger.error(f"Error rebooting server: {host_obj.name}")
