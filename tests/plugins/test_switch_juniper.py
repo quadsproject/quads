@@ -730,3 +730,137 @@ class TestJuniperSwitchPlugin:
         await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
 
         plugin.logger.error.assert_any_call("There was something wrong updating switch for em1")
+
+    @pytest.mark.asyncio
+    async def test_verify_no_args_returns_false(self, plugin):
+        """verify with neither host nor cloud returns False, not None."""
+        result = await plugin.verify()
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_verify_cloud_not_found_returns_false(self, plugin):
+        """verify returns False when the cloud does not exist."""
+        plugin.quads.get_cloud.return_value = None
+        result = await plugin.verify(cloud="cloud99")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_verify_host_not_found_returns_false(self, plugin):
+        """verify returns False when the host does not exist."""
+        plugin.quads.filter_hosts.return_value = []
+        result = await plugin.verify(host="nonexistent.example.com")
+        assert result is False
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_change_set_port_success_returns_true(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """A successful switch update during verify returns True."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=None)
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.verify(host="host1.example.com", change="cloud01")
+
+        assert result is True
+        assert mock_juniper.set_port.called
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_change_set_port_failure_returns_false(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """A failed switch update during verify returns False so validation holds."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=None)
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = False
+        mock_juniper_class.return_value = mock_juniper
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.verify(host="host1.example.com", change="cloud01")
+
+        assert result is False
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_change_convert_port_public_success_returns_true(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """A successful convert_port_public during verify returns True."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=MockVlan(vlan_id=200))
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.convert_port_public.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.verify(host="host1.example.com", change="cloud01")
+
+        assert result is True
+        assert mock_juniper.convert_port_public.called
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_change_convert_port_public_failure_returns_false(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """A failed convert_port_public during verify returns False."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=MockVlan(vlan_id=200))
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.convert_port_public.return_value = False
+        mock_juniper_class.return_value = mock_juniper
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.verify(host="host1.example.com", change="cloud01")
+
+        assert result is False
