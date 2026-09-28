@@ -192,30 +192,32 @@ class JuniperSwitchPlugin(SwitchPlugin):
         else:
             self.logger.error("The host has no interfaces defined")
 
-    async def verify(self, host=None, cloud=None, change=False):  # pragma: no cover
+    async def verify(self, host=None, cloud=None, change=False):
         Config.load_from_yaml(DEFAULT_CONF_PATH)
+
+        all_ok = True
 
         if not cloud and not host:
             self.logger.warning("At least one of --cloud or --host should be specified.")
-            return
+            return False
 
         _cloud_obj = None
         if cloud:
             _cloud = self.quads.get_cloud(cloud)
             if not _cloud:
                 self.logger.error("Cloud not found.")
-                return
+                return False
 
         if host:
             hosts = self.quads.filter_hosts({"name": host, "retired": False})
             if not hosts:
                 self.logger.error("Host not found.")
-                return
+                return False
         else:
             hosts = self.quads.filter_hosts({"cloud": cloud, "retired": False})
             if not hosts:
                 self.logger.error("No hosts found on cloud.")
-                return
+                return False
         first_host = hosts[0]
 
         if not _cloud_obj:
@@ -313,6 +315,17 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                 self.logger.info("Successfully updated switch settings.")
                             else:
                                 self.logger.error(f"There was something wrong updating switch for {interface.name}")
+                                all_ok = False
+                        else:
+                            self.logger.error(
+                                f"Interface {interface.switch_port} appears to be a member of VLAN {vlan_member}, should be {vlan}"
+                            )
+                            all_ok = False
+            else:
+                self.logger.error(f"Host {_host_obj.name} has no interfaces defined.")
+                all_ok = False
+
+        return all_ok
 
     async def ls_config(self, cloud, all=False):
         _assignment = self.quads.get_active_cloud_assignment(cloud)
