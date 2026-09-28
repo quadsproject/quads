@@ -371,7 +371,6 @@ class Badfish:
         if payload_attributes:
             _payload = {"Attributes": payload_attributes}
             await self.patch_bios(_payload, insist=False)
-            await self.reboot_server()
         else:
             logger.info("No BIOS changes required.")
 

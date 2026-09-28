@@ -124,6 +124,18 @@ class BadfishHardwarePlugin(HardwarePlugin):
             self.logger.error(f"Failed to get BIOS attribute {attribute}: {e}")
             return None
 
+    async def set_bios_attribute(self, attributes: dict) -> bool:
+        if not self.badfish:
+            self.logger.error("Badfish not initialized")
+            return False
+
+        try:
+            await self.badfish.set_bios_attribute(attributes)
+            return True
+        except BadfishException as e:
+            self.logger.error(f"Failed to set BIOS attributes {attributes}: {e}")
+            return False
+
     async def set_next_boot_pxe(self) -> bool:
         """Set the next boot to PXE"""
         if not self.badfish:
