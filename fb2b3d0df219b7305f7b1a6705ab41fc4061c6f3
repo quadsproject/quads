@@ -16,6 +16,24 @@
       "message": "Looks correct, and the validator now actually honors the result. Minor: the new tests only exercise the set_port branch (no active public vlan). The convert_port_public path a few lines up (when _assignment.vlan is set on the last nic) shares this all_ok wiring but has no dedicated success/failure test, so a regression there would slip past. Not blocking, just worth a follow-up case.",
       "revId": "fb2b3d0df219b7305f7b1a6705ab41fc4061c6f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "309bacd8_27f843bf",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-28T12:07:19Z",
+      "side": 1,
+      "message": "Added test_verify_change_convert_port_public_success_returns_true and test_verify_change_convert_port_public_failure_returns_false (PS2) covering the public-vlan branch on the last nic. Both fail on the parent (return None) and pass with the fix.",
+      "parentUuid": "cbf29d04_dcc6d74f",
+      "revId": "fb2b3d0df219b7305f7b1a6705ab41fc4061c6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
