@@ -678,3 +678,38 @@ class TestGetJobQueueWhenJobsUnsupported:
         badfish_instance.get_request = AsyncMock(side_effect=router({}))
 
         assert await badfish_instance.get_job_queue() == []
+
+
+class TestSetBiosAttribute:
+    """set_bios_attribute must not reboot: patch uses ApplyTime OnReset and
+    callers reboot explicitly, so an internal reboot was a double power cycle."""
+
+    REGISTRY = {
+        "RegistryEntries": {
+            "Attributes": [{"AttributeName": "BootMode", "Value": [{"ValueName": "Uefi"}, {"ValueName": "Bios"}]}]
+        }
+    }
+
+    @pytest.mark.asyncio
+    async def test_patches_mismatched_attribute_without_reboot(self, badfish_instance):
+        badfish_instance.get_bios_attributes_registry = AsyncMock(return_value=self.REGISTRY)
+        badfish_instance.get_bios_attributes = AsyncMock(return_value={"Attributes": {"BootMode": "Bios"}})
+        badfish_instance.patch_bios = AsyncMock()
+        badfish_instance.reboot_server = AsyncMock()
+
+        await badfish_instance.set_bios_attribute({"BootMode": "Uefi"})
+
+        badfish_instance.patch_bios.assert_awaited_once_with({"Attributes": {"BootMode": "Uefi"}}, insist=False)
+        badfish_instance.reboot_server.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_skips_patch_when_already_matching(self, badfish_instance):
+        badfish_instance.get_bios_attributes_registry = AsyncMock(return_value=self.REGISTRY)
+        badfish_instance.get_bios_attributes = AsyncMock(return_value={"Attributes": {"BootMode": "Uefi"}})
+        badfish_instance.patch_bios = AsyncMock()
+        badfish_instance.reboot_server = AsyncMock()
+
+        await badfish_instance.set_bios_attribute({"BootMode": "Uefi"})
+
+        badfish_instance.patch_bios.assert_not_awaited()
+        badfish_instance.reboot_server.assert_not_awaited()
