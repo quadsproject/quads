@@ -48,8 +48,7 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
         component = host if host else cloud
         logger.info(f"Verifying switch for {component} via {self._default_plugin.name}")
         try:
-            await self._default_plugin.verify(host, cloud, change)
-            return True
+            return await self._default_plugin.verify(host, cloud, change)
         except Exception as e:
             logger.error(f"Failed to verify switch: {e}")
             return False
