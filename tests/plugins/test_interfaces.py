@@ -180,6 +180,7 @@ class TestHardwareInterface:
         assert asyncio.run(plugin.unmount_virtual_media()) is False
         assert asyncio.run(plugin.detach_remote_image()) is False
         assert asyncio.run(plugin.get_bios_attribute("BootMode")) is None
+        assert asyncio.run(plugin.set_bios_attribute({"BootMode": "Uefi"})) is False
         assert plugin.get_vendor() is None
 
     def test_hardware_plugin_incomplete_raises(self):

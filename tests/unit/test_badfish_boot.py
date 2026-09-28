@@ -22,12 +22,13 @@ def plugin():
         return p
 
 
-def _mock_host(name="host01.example.com"):
+def _mock_host(name="host01.example.com", bootmode=None):
     host = MagicMock()
     host.name = name
     host.rack = "rack01"
     host.uloc = "u10"
     host.blade = "blade1"
+    host.bootmode = bootmode
     return host
 
 
@@ -113,9 +114,7 @@ class TestRebootForRebuildConditional:
 
     @pytest.mark.asyncio
     async def test_call_boot_to_type_when_query_raises(self, plugin):
-        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(
-            side_effect=Exception("BMC unreachable")
-        )
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(side_effect=Exception("BMC unreachable"))
         plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
         plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
 
@@ -155,3 +154,81 @@ class TestRebootForRebuildConditional:
         assert result is False
         plugin.hardware_dispatcher.boot_to_type.assert_called_once()
         plugin.logger.error.assert_called_once()
+
+
+class TestBootmodeApplication:
+
+    @pytest.mark.asyncio
+    async def test_sets_bootmode_when_mismatched(self, plugin):
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(
+            side_effect=lambda attr: {
+                "BootMode": "Bios",
+                "OneTimeBootMode": "Disabled",
+                "OneTimeBootSeqDev": None,
+            }.get(attr)
+        )
+        plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result = await plugin.reboot_for_rebuild(_mock_host(bootmode="Uefi"), "/path/interfaces.yml")
+
+        assert result is True
+        plugin.hardware_dispatcher.set_bios_attribute.assert_awaited_once_with({"BootMode": "Uefi"})
+        plugin.hardware_dispatcher.reboot_server.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_skips_bootmode_when_matching(self, plugin):
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(
+            side_effect=lambda attr: {
+                "BootMode": "Uefi",
+                "OneTimeBootMode": "Disabled",
+                "OneTimeUefiBootSeqDev": None,
+            }.get(attr)
+        )
+        plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result = await plugin.reboot_for_rebuild(_mock_host(bootmode="Uefi"), "/path/interfaces.yml")
+
+        assert result is True
+        plugin.hardware_dispatcher.set_bios_attribute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_skips_bootmode_when_unset(self, plugin):
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(return_value=None)
+        plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result = await plugin.reboot_for_rebuild(_mock_host(bootmode=None), "/path/interfaces.yml")
+
+        assert result is True
+        plugin.hardware_dispatcher.set_bios_attribute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_bootmode_set_failure_returns_false(self, plugin):
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(
+            side_effect=lambda attr: {
+                "BootMode": "Bios",
+                "OneTimeBootMode": "Disabled",
+                "OneTimeBootSeqDev": None,
+            }.get(attr)
+        )
+        plugin.hardware_dispatcher.boot_to_type = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=False)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result = await plugin.reboot_for_rebuild(_mock_host(bootmode="Uefi"), "/path/interfaces.yml")
+
+        assert result is False
+        plugin.hardware_dispatcher.reboot_server.assert_not_called()
