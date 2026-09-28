@@ -16,6 +16,24 @@
       "message": "Heads up: the badfish backend set_bios_attribute (tools/external/badfish.py:373-374) does a patch_bios then calls reboot_server() internally. So when the bootmode actually differs, this line sets the BIOS attribute and reboots the host, and then reboot_for_rebuild calls reboot_server(graceful\u003dFalse) again a few lines later. That\u0027s a double reboot on every rebuild where bootmode is mismatched. The mock tests won\u0027t catch it since they assert set_bios_attribute was awaited but not that it reboots. Consider either not calling reboot_server() again after a successful bootmode set, or calling a setter that doesn\u0027t reboot (e.g. patch_bios only), so the existing reboot at the end of reboot_for_rebuild stays the single one.",
       "revId": "ebb35263472efcdb61977f41869c2637970740a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6592c06_851e0c0e",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-28T11:58:02Z",
+      "side": 1,
+      "message": "Fixed in PS2: set_bios_attribute no longer reboots internally.",
+      "parentUuid": "b84f69b0_48f05070",
+      "revId": "ebb35263472efcdb61977f41869c2637970740a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
