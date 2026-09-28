@@ -34,6 +34,24 @@
       "parentUuid": "b84f69b0_48f05070",
       "revId": "ebb35263472efcdb61977f41869c2637970740a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "161b4f35_3770693b",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-28T12:32:07Z",
+      "side": 1,
+      "message": "Deep-dive verdict (expert review + refutation, 7 agents): keeping the fix. The internal reboot was a latent double-reboot from birth (ce5dcfc1\u0027s only caller, move_and_rebuild.py, rebooted again right after; return value ignored, no job wait) - not a required apply step. patch_bios sends SettingsApplyTime OnReset, so the job is scheduled by the PATCH (iDRAC9; see 7b26bcbe) and the existing reboot_server(graceful\u003dFalse) at the end of reboot_for_rebuild is the single apply point. PS1 was worse than a double reboot: the first cycle applies and consumes the one-time PXE boot, leaving the second without an override. Revert to PS1 rejected by all reviewers. Two hardware-behavior questions remain unverifiable from the repo (no iDRAC in CI, no web access) and pre-date this change: (1) iDRAC9 second ApplyTime PATCH merge-vs-SYS011 while pending - zero in-repo evidence of PATCH-time rejection, the \u0027already committed\u0027 400 is only observed on the create-job POST; (2) iDRAC10 (17G) whether OnReset alone schedules the config job or a DellJobService POST is required (set_bios_attribute creates no job; auto-schedule comment is explicitly iDRAC9-only; when _is_one_time_boot_set is True no job exists at all); plus (3) one-time boot seq/device derived from pre-switch BootMode (UefiBootSeq vs BootSeq, NIC.PxeDevice.* vs NIC.Integrated.*) may not fire after a same-reset mode switch. All three need one verification run on a mismatched host; tracking as a follow-up, not blocking this change.",
+      "parentUuid": "b84f69b0_48f05070",
+      "revId": "ebb35263472efcdb61977f41869c2637970740a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
