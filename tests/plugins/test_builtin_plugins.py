@@ -1,6 +1,8 @@
 """Tests for built-in plugins"""
 
-from unittest.mock import patch
+import asyncio
+from email.utils import getaddresses
+from unittest.mock import MagicMock, patch
 
 from quads.plugins.builtin.chat.slack import SlackPlugin
 from quads.plugins.builtin.chat.gchat import GoogleChatPlugin
@@ -10,6 +12,16 @@ from quads.plugins.builtin.hardware.badfish import BadfishHardwarePlugin
 from quads.plugins.builtin.provisioners.foreman import ForemanProvisionerPlugin
 from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
 from quads.plugins.builtin.ticketing.jira import JiraTicketingPlugin
+
+SMTP_PLUGIN_CONFIG = {
+    "enabled": True,
+    "smtp_host": "smtp.example.com",
+    "smtp_port": 25,
+    "from_address": "quads@example.com",
+    "mail_display_name": "QUADS",
+    "reply_to": "dev-null@example.com",
+    "user_agent": "quads",
+}
 
 
 class TestSlackPlugin:
@@ -157,6 +169,135 @@ class TestSMTPEmailPlugin:
 
         assert result is False
         assert "smtp_host not configured" in caplog.text
+
+    def test_email_plugin_cc_delivered_in_envelope(self):
+        """Regression: Cc recipients must reach the SMTP envelope (2.2.6 behavior)"""
+        plugin = SMTPEmailPlugin(SMTP_PLUGIN_CONFIG)
+        plugin.initialize()
+
+        recipients = ["dwilson@example.com", "other@example.com"]
+        cc = ["kambiz@example.com", "wfoster@example.com"]
+
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="QUADS upcoming expiration for cloud05 - 6124",
+                    content="body",
+                    recipients=recipients,
+                    cc=cc,
+                )
+            )
+
+        smtp_instance.send_message.assert_called_once()
+        call_args = smtp_instance.send_message.call_args
+        assert "to_addrs" not in call_args.kwargs
+        msg = call_args.args[0]
+        # Header addresses must be parseable so smtplib can derive the envelope.
+        parsed = getaddresses([msg["To"], msg["Cc"]])
+        assert {address.lower() for _, address in parsed} == {
+            "dwilson@example.com",
+            "other@example.com",
+            "kambiz@example.com",
+            "wfoster@example.com",
+        }
+
+    def test_email_plugin_empty_cc_omits_header(self):
+        """Regression: cc=[] must not emit an empty Cc header, which smtplib
+        turns into a bogus RCPT TO:<> envelope recipient."""
+        plugin = SMTPEmailPlugin(SMTP_PLUGIN_CONFIG)
+        plugin.initialize()
+
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="subject",
+                    content="body",
+                    recipients=["dwilson@example.com"],
+                    cc=[],
+                )
+            )
+
+        msg = smtp_instance.send_message.call_args.args[0]
+        assert msg["Cc"] is None
+        parsed = getaddresses([msg["To"]])
+        assert {address.lower() for _, address in parsed} == {"dwilson@example.com"}
+
+        # recipients=[] must not set an empty To header either.
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="subject",
+                    content="body",
+                    recipients=[],
+                    cc=[],
+                )
+            )
+
+        msg = smtp_instance.send_message.call_args.args[0]
+        assert msg["To"] is None
+        assert msg["Cc"] is None
+
+    def test_email_plugin_cc_normalized_at_boundary(self):
+        """Plugin boundary sanitization: cc=None is safe and bare usernames are
+        qualified with the configured domain, empties dropped."""
+        plugin = SMTPEmailPlugin(SMTP_PLUGIN_CONFIG)
+        plugin.initialize()
+
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="subject",
+                    content="body",
+                    recipients=["dwilson"],
+                    cc=None,
+                )
+            )
+
+        msg = smtp_instance.send_message.call_args.args[0]
+        assert msg["Cc"] is None
+        assert {address.lower() for _, address in getaddresses([msg["To"]])} == {"dwilson@example.com"}
+
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="subject",
+                    content="body",
+                    recipients=["dwilson@example.com"],
+                    cc=["bob", "", " carol@example.com "],
+                )
+            )
+
+        msg = smtp_instance.send_message.call_args.args[0]
+        parsed = getaddresses([msg["To"], msg["Cc"]])
+        assert {address.lower() for _, address in parsed} == {
+            "dwilson@example.com",
+            "bob@example.com",
+            "carol@example.com",
+        }
+
+        # CR/LF-carrying entries are dropped at the boundary (header injection).
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="subject",
+                    content="body",
+                    recipients=["dwilson@example.com"],
+                    cc=["good@example.com", "evil@example.com\nBcc: victim@example.com"],
+                )
+            )
+
+        msg = smtp_instance.send_message.call_args.args[0]
+        parsed = getaddresses([msg["To"], msg["Cc"]])
+        assert {address.lower() for _, address in parsed} == {
+            "dwilson@example.com",
+            "good@example.com",
+        }
 
 
 class TestBadfishPlugin:

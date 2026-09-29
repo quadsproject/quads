@@ -15,7 +15,7 @@ from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.tools.external.foreman import Foreman
 from quads.tools.external.netcat import Netcat
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
-from quads.helpers.utils import is_supermicro
+from quads.helpers.utils import build_cc_users, is_supermicro
 from quads.tools.external.ipmi import IPMI
 from quads.plugins.dispatchers import get_hardware_dispatcher, get_switch_dispatcher, get_email_dispatcher
 from quads.plugins.manager import PluginManager
@@ -61,7 +61,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         content = template.render(**parameters)
 
         subject = "Validation check failed for {cloud} / {owner} / {ticket}".format(**parameters)
-        _cc_users = Config.plugins["email"]["report_cc"].split(",")
+        _cc_users = build_cc_users()
 
         recipient = "%s@%s" % (owner, Config["domain"])
         await self.email_dispatcher.send_mail(
@@ -89,7 +89,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         content = template.render(**parameters)
 
         subject = "Validation check succeeded for {cloud} / {owner} / {ticket}".format(**parameters)
-        _cc_users = Config.plugins["email"]["report_cc"].split(",")
+        _cc_users = build_cc_users()
         recipient = "%s@%s" % (owner, Config["domain"])
         await self.email_dispatcher.send_mail(
             subject=subject,
