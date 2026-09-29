@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7a50e20_1e18fd3a",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T17:24:24Z",
+      "side": 1,
+      "message": "Agreed. Importing from quads.tools.notify won\u0027t work here: notify.py runs QuadsApi(Config) and basicConfig(RichHandler) at module import, and validator discovery imports every plugin module unconditionally, so this would raise AttributeError (not ImportError, so discovery\u0027s handler won\u0027t catch it) whenever Config isn\u0027t fully populated. PS4 instead hoists build_cc_users(cc\u003dNone) into quads.helpers.utils (import-clean, already used here for is_supermicro); notify, notify_tenant and this validator now share it and both local copies are gone.",
+      "parentUuid": "722bbd5b_e15b3fb7",
+      "revId": "b7cc495511e1c399e90b246df3a42fabed2367a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6899882c_db5bc2fa",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-09-29T17:00:29Z",
       "side": 1,
       "message": "we cc the submitter which is also the recipient???\nisn\u0027t this redundant?",
+      "revId": "b7cc495511e1c399e90b246df3a42fabed2367a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a6a7b42_6cf908ab",
+        "filename": "src/quads/tools/jira_watchers.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T17:24:24Z",
+      "side": 1,
+      "message": "You\u0027re right, it\u0027s redundant since the submitter is already the To recipient. Removed it in PS5 (cc\u003d[]); the submitter still receives the mail via To.",
+      "parentUuid": "6899882c_db5bc2fa",
       "revId": "b7cc495511e1c399e90b246df3a42fabed2367a9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
