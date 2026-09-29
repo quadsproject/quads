@@ -1,6 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from quads.helpers.utils import build_cc_users
 from quads.tools.notify import (
     create_future_initial_message,
     create_future_message,
@@ -109,3 +110,31 @@ class TestNotify:
         call_kwargs = mock_email_disp.send_mail_sync.call_args[1]
         assert "QUADS upcoming assignment notification" in call_kwargs["subject"]
         assert cloud in call_kwargs["subject"]
+
+    def test_build_cc_users_qualifies_bare_usernames(self):
+        """Bare usernames in report_cc/ccuser must be qualified with the domain"""
+        with patch("quads.helpers.utils.Config") as mock_cfg:
+            mock_cfg.plugins = {"email": {"report_cc": "admin1, kambiz@example.com, "}}
+            mock_cfg.__getitem__ = lambda self, key: "example.com" if key == "domain" else None
+
+            cc_users = build_cc_users(["bob"])
+
+        assert cc_users == [
+            "admin1@example.com",
+            "kambiz@example.com",
+            "bob@example.com",
+        ]
+
+    def test_build_cc_users_guards_ccuser(self):
+        """A ccuser already containing '@' is passed through (not double-qualified),
+        and empty ccuser entries are skipped, so the SMTP envelope stays parseable."""
+        with patch("quads.helpers.utils.Config") as mock_cfg:
+            mock_cfg.plugins = {"email": {"report_cc": ""}}
+            mock_cfg.__getitem__ = lambda self, key: "example.com" if key == "domain" else None
+
+            cc_users = build_cc_users(["carol@example.com", "wfoster", ""])
+
+        assert cc_users == [
+            "carol@example.com",
+            "wfoster@example.com",
+        ]

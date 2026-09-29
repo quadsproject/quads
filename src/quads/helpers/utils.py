@@ -6,6 +6,18 @@ from datetime import timedelta, datetime
 from quads.config import Config
 
 
+def build_cc_users(cc=None):
+    domain = Config["domain"]
+    entries = Config.plugins["email"]["report_cc"].split(",")
+    users = []
+    for entry in entries + list(cc or []):
+        entry = entry.strip()
+        if not entry:
+            continue
+        users.append(entry if "@" in entry else "%s@%s" % (entry, domain))
+    return users
+
+
 def is_supermicro(_host_name):
     host_lower = _host_name.lower()
     return any(host_type.lower() in host_lower for host_type in Config.SUPERMICRO)
