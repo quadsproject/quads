@@ -32,6 +32,23 @@ def get_notification(notification_id: int) -> Response:
     return jsonify(_notification.as_dict())
 
 
+@notification_bp.route("/assignment/<assignment_id>")
+def get_assignment_notification(assignment_id: int) -> Response:
+    assignment_id, error_response = parse_int_or_response(assignment_id, "assignment")
+    if error_response:
+        return error_response
+    _notification = NotificationDao.get_assignment_notification(assignment_id)
+    if not _notification:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Notification not found fo assignment: {assignment_id}",
+        }
+        return make_response(jsonify(response), 400)
+
+    return jsonify(_notification.as_dict())
+
+
 @notification_bp.route("/<notification_id>", methods=["PATCH"])
 @check_access(["admin"])
 def update_notification(notification_id: int) -> Response:

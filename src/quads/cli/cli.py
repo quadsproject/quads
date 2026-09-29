@@ -2611,11 +2611,11 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
         if assignment:
-            assignment_id = assignment.id
+            notification = self.quads.get_assignment_notification(assignment_id=assignment.id)
             payload = {}
             for arg in modify_notifications:
                 payload.update({arg: self.cli_args.get(arg)})
-            response = self.quads.update_notification(notification_id=assignment_id, data=payload)
+            response = self.quads.update_notification(notification_id=notification.id, data=payload)
             if response.status_code == 200:
                 self.logger.info(f"{cloud_name}, Notification updated successfully\n")
                 self.action_list_notifications()
