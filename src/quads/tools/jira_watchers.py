@@ -93,7 +93,7 @@ async def main():
                         subject=subject,
                         content=content,
                         recipients=[recipient],
-                        cc=[submitter],
+                        cc=[],
                     )
 
     return 0

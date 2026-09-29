@@ -6,6 +6,21 @@ from datetime import timedelta, datetime
 from quads.config import Config
 
 
+def qualify_addresses(entries):
+    users = []
+    for entry in entries or []:
+        entry = entry.strip()
+        if not entry or "\n" in entry or "\r" in entry:
+            continue
+        users.append(entry if "@" in entry else "%s@%s" % (entry, Config["domain"]))
+    return users
+
+
+def build_cc_users(cc=None):
+    entries = (Config.plugins["email"].get("report_cc") or "").split(",")
+    return qualify_addresses(list(entries) + list(cc or []))
+
+
 def is_supermicro(_host_name):
     host_lower = _host_name.lower()
     return any(host_type.lower() in host_lower for host_type in Config.SUPERMICRO)
