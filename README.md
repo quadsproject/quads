@@ -474,6 +474,7 @@ quads --conf-check
 |------|---------|---------------|
 | quads.yml | domain | example.com |
 | quads.yml | quads_url | https://quads.scalelab.example.com |
+| quads.yml | quads_api_secret_key | change-this-to-a-random-secret-key |
 | plugins.yml | plugins.foreman.url | http://foreman.example.com/hosts/ |
 | plugins.yml | plugins.foreman.api_url | https://foreman.example.com/api/v2 |
 | plugins.yml | plugins.email.smtp_host | mail.example.com |

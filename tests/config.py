@@ -8,8 +8,9 @@ from tests.cli.config import OS_TYPE
 # AUTH
 # --------------------
 EXPIRED_TEST_TOKEN = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzU3Njc4NDUsImlhdCI6MTY3NTc2MTg0NSwic3ViIjoi"
-    "Z3JhZnVsc0ByZWRoYXQuY29tIn0.lDTmUpY4b3sICYUcAriui6yTv-iki10fBm07x6fuayc"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzU3Njc4NDUsImlhdCI6MTY3NTc"
+    "2MTg0NSwic3ViIjoiZ3JhZnVsc0ByZWRoYXQuY29tIn0.Izrtt0NfHYupOxayGIvUmlbzouAsIEo"
+    "vaGMueboEmT4"
 )
 
 # --------------------
