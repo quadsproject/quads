@@ -125,7 +125,7 @@ class TestSelfAssignmentOwner:
 
         required_start = source.find("required_fields = [")
         required_end = source.find("]", required_start)
-        required_block = source[required_start:required_end + 1]
+        required_block = source[required_start : required_end + 1]
         assert '"owner"' not in required_block, "owner should not be in required_fields"
         assert "'owner'" not in required_block, "owner should not be in required_fields"
 
@@ -147,9 +147,9 @@ class TestAssignmentPatchBooleanEval:
 
         boolean_eval_present = "eval(_value.lower().capitalize())" in source
         boolean_guard_present = 'in ["true", "false"]' in source
-        assert boolean_eval_present and boolean_guard_present, (
-            "Boolean eval should remain guarded by whitelist check (admin-only endpoint)"
-        )
+        assert (
+            boolean_eval_present and boolean_guard_present
+        ), "Boolean eval should remain guarded by whitelist check (admin-only endpoint)"
 
 
 class TestUserIsActive:
@@ -158,3 +158,37 @@ class TestUserIsActive:
     def test_is_active_mirrors_active_column(self):
         assert User(active=False).is_active is False
         assert User(active=True).is_active is True
+
+
+class TestApiSecretKeyRequired:
+    """Unit tests for the quads_api_secret_key startup requirement (issue #732)."""
+
+    class _MissingConfig:
+        @staticmethod
+        def get(key, default=None):
+            return None
+
+    class _StubConfig:
+        @staticmethod
+        def get(key, default=None):
+            return "test-secret-key"
+
+    def test_create_app_fails_without_secret_key(self, monkeypatch):
+        from quads.server import app as server_app
+
+        monkeypatch.setattr(server_app, "Config", self._MissingConfig)
+        with pytest.raises(RuntimeError, match="quads_api_secret_key"):
+            server_app.create_app()
+
+    def test_create_app_uses_config_secret_key(self, monkeypatch):
+        from quads.server import app as server_app
+
+        monkeypatch.setattr(server_app, "Config", self._StubConfig)
+        flask_app = server_app.create_app()
+        assert flask_app.config["SECRET_KEY"] == "test-secret-key"
+
+    def test_test_config_keeps_its_own_secret_key(self):
+        from quads.server import app as server_app
+
+        flask_app = server_app.create_app("quads.server.config.TestingConfig")
+        assert flask_app.config["SECRET_KEY"] == "test-secret-key"
