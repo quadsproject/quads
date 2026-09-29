@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3ecc54ba_7a8af3a5",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2614,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-29T14:06:55Z",
+      "side": 1,
+      "message": "Right fix, but this call sits outside the try/except, and get_assignment_notification goes through QuadsBase.get which raises APIBadRequest on a 400. The new /notifications/assignment/\u003cid\u003e route returns 400 when the assignment has no notification row, so a cloud with an active assignment but no notification now dies with an uncaught APIBadRequest stack trace instead of the clean CliException the surrounding code intends. Also notification.id below is unguarded if the return is None. Wrap the get in the same try/except, or handle the empty case and raise CliException.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
