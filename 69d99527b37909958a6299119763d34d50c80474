@@ -16,6 +16,24 @@
       "message": "This is the right fix, but it makes the envelope depend on the headers, and compose (line 42) builds To with \"@\".join(recipients). With one recipient that\u0027s fine, but with a couple of to-recipients the header becomes a@example.com@b@example.com and email.utils.getaddresses returns no valid address, so send_message derives nothing for the envelope. That was masked before because to_addrs\u003drecipients overrode the header. Line 42 should be \",\".join(recipients) to match the Cc line below it.",
       "revId": "69d99527b37909958a6299119763d34d50c80474",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fac2daf0_476894d9",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T12:51:42Z",
+      "side": 1,
+      "message": "Addressed in PS2: the To header is now joined with \u0027, \u0027 so multiple recipients parse via getaddresses; the regression test now uses two recipients and asserts the full parsed address set.",
+      "parentUuid": "4f94a423_d9f20159",
+      "revId": "69d99527b37909958a6299119763d34d50c80474",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
