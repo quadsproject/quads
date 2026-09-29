@@ -11,6 +11,7 @@ from quads.config import Config
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.dispatchers.email import get_email_dispatcher
 from quads.plugins.dispatchers.ticketing import get_ticketing_dispatcher
+from quads.helpers.utils import build_cc_users
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -58,9 +59,7 @@ def send_message(args, owner, ccuser, ticket, description, cloud_name):
         + f"Subject = {args.subject}, owner = {owner}, ccuser = {ccuser}, "
         + f"ticket = {ticket}, description = {description}"
     )
-    cc_users = [_cc_user.strip() for _cc_user in Config.plugins["email"]["report_cc"].split(",")]
-    for user in ccuser:
-        cc_users.append("%s@%s" % (user, Config["domain"]))
+    cc_users = build_cc_users(ccuser)
     try:
         with open(os.path.join(args.message)) as _file:
             template = Template(_file.read())
