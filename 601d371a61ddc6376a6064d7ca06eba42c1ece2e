@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c9c6bbbf_bb663f8e",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-29T10:16:26Z",
+      "side": 1,
+      "message": "we are formatting the same string twice, we could put it on a variable to avoid boilerplate",
+      "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
