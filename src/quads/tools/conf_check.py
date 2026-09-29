@@ -22,6 +22,7 @@ EXPECTED_FILES = [
 DEFAULT_VALUE_CHECKS = [
     ("quads.yml", "domain", "example.com", "error"),
     ("quads.yml", "quads_url", "https://quads.scalelab.example.com", "error"),
+    ("quads.yml", "quads_api_secret_key", "change-this-to-a-random-secret-key", "error"),
     ("plugins.yml", "plugins.foreman.url", "http://foreman.example.com/hosts/", "error"),
     ("plugins.yml", "plugins.foreman.api_url", "https://foreman.example.com/api/v2", "error"),
     ("plugins.yml", "plugins.email.smtp_host", "mail.example.com", "error"),
@@ -157,7 +158,31 @@ def check_default_values(conf_dir):
             )
 
     findings.extend(_check_oauth_defaults(conf_dir, loaded))
+    findings.extend(_check_missing_api_secret_key(conf_dir, loaded))
     return findings
+
+
+def _check_missing_api_secret_key(conf_dir, loaded):
+    # %config(noreplace) hosts keep their old quads.yml across upgrades, so the
+    # key may not be present at all; startup refuses to run without it anyway.
+    data = loaded.get("quads.yml")
+    if not data:
+        return []
+    value, found = _resolve_dotted_path(data, "quads_api_secret_key")
+    if found and value:
+        return []
+    return [
+        CheckFinding(
+            file="quads.yml",
+            check_type="default_value",
+            severity="error",
+            key="quads_api_secret_key",
+            message=(
+                "'quads_api_secret_key' is not set in quads.yml; generate one with "
+                'python3 -c "import secrets; print(secrets.token_urlsafe(48))"'
+            ),
+        )
+    ]
 
 
 def _check_oauth_defaults(conf_dir, loaded):
