@@ -22,6 +22,16 @@ from quads.plugins.manager import PluginManager
 from quads.server.models import Assignment
 
 
+def _build_cc_users():
+    cc_users = []
+    for _cc_user in Config.plugins["email"]["report_cc"].split(","):
+        _cc_user = _cc_user.strip()
+        if not _cc_user:
+            continue
+        cc_users.append(_cc_user if "@" in _cc_user else "%s@%s" % (_cc_user, Config["domain"]))
+    return cc_users
+
+
 class EnvironmentValidatorPlugin(ValidatorPlugin):
     """
     Environment validator plugin implementing ValidatorPlugin interface.
@@ -61,7 +71,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         content = template.render(**parameters)
 
         subject = "Validation check failed for {cloud} / {owner} / {ticket}".format(**parameters)
-        _cc_users = Config.plugins["email"]["report_cc"].split(",")
+        _cc_users = _build_cc_users()
 
         recipient = "%s@%s" % (owner, Config["domain"])
         await self.email_dispatcher.send_mail(
@@ -89,7 +99,7 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         content = template.render(**parameters)
 
         subject = "Validation check succeeded for {cloud} / {owner} / {ticket}".format(**parameters)
-        _cc_users = Config.plugins["email"]["report_cc"].split(",")
+        _cc_users = _build_cc_users()
         recipient = "%s@%s" % (owner, Config["domain"])
         await self.email_dispatcher.send_mail(
             subject=subject,

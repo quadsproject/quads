@@ -93,7 +93,7 @@ async def main():
                         subject=subject,
                         content=content,
                         recipients=[recipient],
-                        cc=[submitter],
+                        cc=["%s@%s" % (submitter, Config["domain"])],
                     )
 
     return 0

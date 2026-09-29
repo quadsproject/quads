@@ -39,7 +39,7 @@ class EmailPlugin(EmailPlugin):
         msg = MIMEText(markdown.markdown(content, extensions=["tables"]), "html")
         msg["Subject"] = subject
         msg["From"] = f"{self.mail_display_name} <{self.from_address}>"
-        msg["To"] = "@".join(recipients)
+        msg["To"] = ", ".join(recipients)
         msg["Cc"] = ",".join(cc)
         msg.add_header("Reply-To", self.reply_to)
         msg.add_header("User-Agent", self.user_agent)
@@ -57,7 +57,7 @@ class EmailPlugin(EmailPlugin):
         try:
             msg = self.compose(content, subject, recipients, cc)
             with SMTP(self.smtp_host, self.smtp_port) as s:
-                s.send_message(msg, to_addrs=recipients)
+                s.send_message(msg)
 
             self.logger.info(f"Email sent to {len(recipients)} recipients: {subject}")
             return True

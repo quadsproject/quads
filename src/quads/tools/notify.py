@@ -50,12 +50,22 @@ class Days(Enum):
         return [day for day in cls if day.value <= max_days]
 
 
+def _build_cc_users(cc):
+    cc_users = []
+    for _cc_user in Config.plugins["email"]["report_cc"].split(","):
+        _cc_user = _cc_user.strip()
+        if not _cc_user:
+            continue
+        cc_users.append(_cc_user if "@" in _cc_user else "%s@%s" % (_cc_user, Config["domain"]))
+    for user in cc:
+        cc_users.append("%s@%s" % (user, Config["domain"]))
+    return cc_users
+
+
 async def create_initial_message(real_owner, cloud, cloud_info, ticket, cc, is_self_schedule=False):
     template_file = "initial_message"
     infra_location = Config["infra_location"]
-    cc_users = [_cc_user.strip() for _cc_user in Config.plugins["email"]["report_cc"].split(",")]
-    for user in cc:
-        cc_users.append("%s@%s" % (user, Config["domain"]))
+    cc_users = _build_cc_users(cc)
 
     if Config.plugins["email"]["enabled"]:
         with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
@@ -105,9 +115,7 @@ def create_message(
     ticket = assignment_obj.ticket
     cc = assignment_obj.ccuser
 
-    cc_users = [_cc_user.strip() for _cc_user in Config.plugins["email"]["report_cc"].split(",")]
-    for user in cc:
-        cc_users.append("%s@%s" % (user, Config["domain"]))
+    cc_users = _build_cc_users(cc)
     with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
         template = Template(_file.read())
     quads_request_url = Config.quads_request_url
@@ -135,9 +143,7 @@ def create_message(
 def create_future_initial_message(cloud, assignment_obj, cloud_info):
     template_file = "future_initial_message"
     ticket = assignment_obj.ticket
-    cc_users = [_cc_user.strip() for _cc_user in Config.plugins["email"]["report_cc"].split(",")]
-    for user in assignment_obj.ccuser:
-        cc_users.append("%s@%s" % (user, Config["domain"]))
+    cc_users = _build_cc_users(assignment_obj.ccuser)
     with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
         template = Template(_file.read())
     content = template.render(
@@ -164,9 +170,7 @@ def create_future_message(
     host_list_expire,
 ):
     ticket = assignment_obj.ticket
-    cc_users = [_cc_user.strip() for _cc_user in Config.plugins["email"]["report_cc"].split(",")]
-    for user in assignment_obj.ccuser:
-        cc_users.append("%s@%s" % (user, Config["domain"]))
+    cc_users = _build_cc_users(assignment_obj.ccuser)
     template_file = "future_message"
     with open(os.path.join(Config.TEMPLATES_PATH, template_file)) as _file:
         template = Template(_file.read())

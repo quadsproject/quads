@@ -2,6 +2,7 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from quads.tools.notify import (
+    _build_cc_users,
     create_future_initial_message,
     create_future_message,
     create_initial_message,
@@ -109,3 +110,17 @@ class TestNotify:
         call_kwargs = mock_email_disp.send_mail_sync.call_args[1]
         assert "QUADS upcoming assignment notification" in call_kwargs["subject"]
         assert cloud in call_kwargs["subject"]
+
+    def test_build_cc_users_qualifies_bare_usernames(self):
+        """Bare usernames in report_cc/ccuser must be qualified with the domain"""
+        with patch("quads.tools.notify.Config") as mock_cfg:
+            mock_cfg.plugins = {"email": {"report_cc": "admin1, kambiz@example.com, "}}
+            mock_cfg.__getitem__ = lambda self, key: "example.com" if key == "domain" else None
+
+            cc_users = _build_cc_users(["bob"])
+
+        assert cc_users == [
+            "admin1@example.com",
+            "kambiz@example.com",
+            "bob@example.com",
+        ]

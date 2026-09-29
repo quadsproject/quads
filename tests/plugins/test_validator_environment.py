@@ -160,6 +160,9 @@ class TestEnvironmentValidatorPlugin:
             for key, value in mock_config.items():
                 setattr(mock_cfg, key, value)
 
+            # Bare username in report_cc must be qualified with the domain.
+            mock_config["plugins"]["email"]["report_cc"] = "admin@example.com, noreply"
+
             cloud = "cloud01"
             owner = "testuser"
             ticket = "TICKET-123"
@@ -176,7 +179,7 @@ class TestEnvironmentValidatorPlugin:
             assert ticket in call_args.kwargs["subject"]
             assert call_args.kwargs["recipients"] == [f"{owner}@{mock_config['domain']}"]
             assert "admin@example.com" in call_args.kwargs["cc"]
-            assert "devops@example.com" in call_args.kwargs["cc"]
+            assert "noreply@example.com" in call_args.kwargs["cc"]
 
     @pytest.mark.asyncio
     async def test_notify_success(self, plugin, mock_config):
