@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "829ef940_65643a82",
+        "filename": "src/quads/helpers/utils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T17:48:52Z",
+      "side": 1,
+      "message": "Nit: `Config.plugins[\"email\"][\"report_cc\"].split(\",\")` raises KeyError if the email section lacks report_cc and AttributeError if it\u0027s null. Pre-existing at every old call site, but this is now the single choke point, so `(Config.plugins[\"email\"].get(\"report_cc\") or \"\").split(\",\")` is cheap hardening. Also `cc` passed as a plain string would iterate characters (all in-repo callers pass lists — assignment.ccuser is a MutableList and schedules.py normalizes inbound strings — so just noting the type contract).",
+      "revId": "c63e220b1a00a024dfff8453befead1b254309f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "eb158dc6_3aea99b7",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T17:48:52Z",
+      "side": 1,
+      "message": "Empty Cc now reaches the SMTP envelope as an invalid recipient. With cc\u003d[] (the jira_watchers value, and any deployment with an empty/blank report_cc since build_cc_users returns []), `\",\".join(cc)` sets an empty `Cc:` header. smtplib\u0027s send_message only skips headers that are None (`addr_fields \u003d [f for f in (msg[\u0027To\u0027], msg[\u0027Bcc\u0027], msg[\u0027Cc\u0027]) if f is not None]`); an empty string is included and `getaddresses([... , \u0027\u0027])` yields (\u0027\u0027, \u0027\u0027)`, so to_addrs gets \u0027\u0027 and the session issues `RCPT TO:\u003c\u003e`.\n\nVerified live with the real plugin against a local SMTP sink (cc\u003d[]): `mail from:\u003cquads@example.com\u003e` / `rcpt to:\u003cdwilson@example.com\u003e` / `rcpt to:\u003c\u003e` / `data`. Note the previous bspreston-esq review note: sendmail only raises SMTPRecipientsRefused when ALL recipients are refused, so a 501/553 on `\u003c\u003e` is tolerated (delivery still succeeds) — but a mail server that answers 421 or resets on the malformed RCPT makes the whole send fail (`close(); raise SMTPRecipientsRefused`), so send_mail returns False and the notification is silently lost; the payload also carries an empty `Cc:` header.\n\nSuggest: only set the header when non-empty — `if cc: msg[\"Cc\"] \u003d \",\".join(cc)` (and the same treatment for To) — and add a regression test with cc\u003d[] asserting no empty header and no \u0027\u0027 in the envelope; the current test only exercises a 2-entry Cc. jira_watchers.py:96 (cc\u003d[]) hits this on every failed-watchers email, i.e. exactly the path that should reliably reach the To recipient.",
+      "revId": "c63e220b1a00a024dfff8453befead1b254309f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "499fd134_f68c9f27",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T17:48:52Z",
+      "side": 1,
+      "message": "Sanitization currently lives only at the notify*/validator call sites, not at the plugin boundary. Now that send_message derives the envelope from the headers, this line trusts whatever `cc` a caller hands the dispatcher: `cc\u003dNone` breaks `compose` (`\",\".join(None)` → TypeError → send_mail returns False with \"Unexpected error\", and the dispatcher\u0027s own signature is `cc: Optional[List[str]] \u003d None`), and a bare username lands as `RCPT TO:\u003cbob\u003e` (getaddresses: (\u0027\u0027, \u0027bob\u0027)). build_cc_users is the right centralization for the notify family, but the EmailPlugin interface remains the choke point every future caller goes through. Suggest normalizing defensively here: `cc \u003d cc or []` and qualify/drop non-address entries (or at least `if cc:`) so the envelope is only ever built from parseable addresses.",
+      "revId": "c63e220b1a00a024dfff8453befead1b254309f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3a4ff68_3edd29e3",
+        "filename": "src/quads/tools/jira_watchers.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T17:48:52Z",
+      "side": 1,
+      "message": "Agree with grafuls that cc\u003d[submitter] was redundant — but note this call now exercises the empty-Cc envelope path: with cc\u003d[], the plugin emits an empty Cc header and smtplib adds `RCPT TO:\u003c\u003e` (see the comment on email.py:43). The fix there (only set the header when non-empty) covers this line too; consider a test for this exact call.",
+      "revId": "c63e220b1a00a024dfff8453befead1b254309f6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
