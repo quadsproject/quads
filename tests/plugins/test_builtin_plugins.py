@@ -1,6 +1,7 @@
 """Tests for built-in plugins"""
 
-from unittest.mock import patch
+import asyncio
+from unittest.mock import MagicMock, patch
 
 from quads.plugins.builtin.chat.slack import SlackPlugin
 from quads.plugins.builtin.chat.gchat import GoogleChatPlugin
@@ -157,6 +158,41 @@ class TestSMTPEmailPlugin:
 
         assert result is False
         assert "smtp_host not configured" in caplog.text
+
+    def test_email_plugin_cc_delivered_in_envelope(self):
+        """Regression: Cc recipients must reach the SMTP envelope (2.2.6 behavior)"""
+        config = {
+            "enabled": True,
+            "smtp_host": "smtp.example.com",
+            "smtp_port": 25,
+            "from_address": "quads@example.com",
+            "mail_display_name": "QUADS",
+            "reply_to": "dev-null@example.com",
+            "user_agent": "quads",
+        }
+        plugin = SMTPEmailPlugin(config)
+        plugin.initialize()
+
+        recipients = ["dwilson@example.com"]
+        cc = ["kambiz@example.com", "wfoster@example.com"]
+
+        with patch("quads.plugins.builtin.email.email.SMTP") as mock_smtp:
+            smtp_instance = mock_smtp.return_value.__enter__.return_value
+            asyncio.run(
+                plugin.send_mail(
+                    subject="QUADS upcoming expiration for cloud05 - 6124",
+                    content="body",
+                    recipients=recipients,
+                    cc=cc,
+                )
+            )
+
+        smtp_instance.send_message.assert_called_once()
+        call_args = smtp_instance.send_message.call_args
+        assert "to_addrs" not in call_args.kwargs
+        msg = call_args.args[0]
+        assert "kambiz@example.com" in msg["Cc"]
+        assert "wfoster@example.com" in msg["Cc"]
 
 
 class TestBadfishPlugin:

@@ -57,7 +57,7 @@ class EmailPlugin(EmailPlugin):
         try:
             msg = self.compose(content, subject, recipients, cc)
             with SMTP(self.smtp_host, self.smtp_port) as s:
-                s.send_message(msg, to_addrs=recipients)
+                s.send_message(msg)
 
             self.logger.info(f"Email sent to {len(recipients)} recipients: {subject}")
             return True
