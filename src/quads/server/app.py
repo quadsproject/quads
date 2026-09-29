@@ -9,6 +9,7 @@ from flask_security import SQLAlchemySessionUserDatastore
 from flask_cors import CORS
 from flask.cli import with_appcontext
 
+from quads.config import Config
 from quads.server.database import check_db_timezone_consistency
 from quads.server.database import create_user, modify_user, remove_user, populate, drop_all
 from quads.server.database import init_db as db_init
@@ -78,6 +79,15 @@ def create_app(test_config=None) -> Flask:
     else:
         # load the test config if passed in
         flask_app.config.from_object(test_config)
+
+    # JWT signing key comes from conf/quads.yml, not source (issue #732).
+    secret_key = Config.get("quads_api_secret_key")
+    if not secret_key:
+        raise RuntimeError(
+            "quads_api_secret_key must be set in conf/quads.yml "
+            '(generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(48))")'
+        )
+    flask_app.config["SECRET_KEY"] = secret_key
 
     # Serialize datetimes as real UTC so the "GMT" label on API timestamps is
     # accurate regardless of the server's local timezone (issue #709).
