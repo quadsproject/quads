@@ -10,7 +10,7 @@ from requests.adapters import HTTPAdapter, Retry
 from requests.auth import AuthBase, HTTPBasicAuth
 from requests.exceptions import RequestException
 
-from quads.server.models import Assignment, Cloud, Host, Interface, Schedule, Vlan
+from quads.server.models import Assignment, Cloud, Host, Interface, Notification, Schedule, Vlan
 from quads.web.models import WebUser
 
 
@@ -328,15 +328,16 @@ class QuadsApi(QuadsBase):
             hosts.append(Host().from_dict(host_resp))
         return hosts
 
+    # Notifications
+    def update_notification(self, notification_id, data) -> Response:
+        return self.patch(os.path.join("notifications", str(notification_id)), data)
+
     # Assignments
     def insert_assignment(self, data) -> Response:
         return self.post("assignments", data)
 
     def update_assignment(self, assignment_id, data) -> Response:
         return self.patch(os.path.join("assignments", str(assignment_id)), data)
-
-    def update_notification(self, notification_id, data) -> Response:
-        return self.patch(os.path.join("notifications", str(notification_id)), data)
 
     def get_active_cloud_assignment(self, cloud_name) -> Assignment:
         response = self.get(os.path.join("assignments/active", cloud_name))
