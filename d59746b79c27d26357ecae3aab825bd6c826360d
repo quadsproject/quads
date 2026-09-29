@@ -16,6 +16,58 @@
       "message": "Right fix, but this call sits outside the try/except, and get_assignment_notification goes through QuadsBase.get which raises APIBadRequest on a 400. The new /notifications/assignment/\u003cid\u003e route returns 400 when the assignment has no notification row, so a cloud with an active assignment but no notification now dies with an uncaught APIBadRequest stack trace instead of the clean CliException the surrounding code intends. Also notification.id below is unguarded if the return is None. Wrap the get in the same try/except, or handle the empty case and raise CliException.",
       "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "832fd74b_9e774104",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2614,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T14:36:37Z",
+      "side": 1,
+      "message": "Agree - verified live: QuadsBase.get raises APIBadRequest on the route\u0027s 400 and main.py logs a traceback (exit 1) instead of a CliException. Cheaper fix that removes this exposure entirely: /assignments/active/\u003ccloud\u003e already embeds the notification, and 7 existing callsites use assignment.notification.id (cli.py:907, cli.py:1750, notify.py:237/278/325/362, environment.py:470/504), so `notification_id\u003dassignment.notification.id` plus a CliException guard on a missing notification replaces the new endpoint and the second HTTP call. If the endpoint is kept, wrap the call in the existing try/except and keep a None guard.",
+      "parentUuid": "3ecc54ba_7a8af3a5",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c21639cd_fa32bb2b",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T14:36:37Z",
+      "side": 1,
+      "message": "get_notification is added with no callers (only get_assignment_notification is used, cli.py:2614). Drop it if unused. If the new endpoint stays, it needs swagger.yaml (2337-2361) + docs/quads-api.md (149-150,181) entries and a divergent-id regression test - the existing tests/cli/test_notifications.py passes on parent too, because a fresh DB keeps assignment.id \u003d\u003d notification.id in lockstep, so the suite cannot catch a regression of this bug today.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c41d6571_c4701be2",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-29T14:36:37Z",
+      "side": 1,
+      "message": "Typo in the new user-facing 400 message: \u0027fo assignment\u0027 -\u003e \u0027for assignment\u0027.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
