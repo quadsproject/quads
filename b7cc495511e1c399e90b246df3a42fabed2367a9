@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "722bbd5b_e15b3fb7",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-29T16:37:25Z",
+      "side": 1,
+      "message": "This duplicates the report_cc split/domain-qualify logic in quads.tools.notify\u0027s _build_cc_users (line 53). notify_tenant already imports that helper across modules, so the version here can drift from the one over there. Consider importing _build_cc_users from quads.tools.notify (passing ccuser if the validator should CC them too) instead of a second copy.",
+      "revId": "b7cc495511e1c399e90b246df3a42fabed2367a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
