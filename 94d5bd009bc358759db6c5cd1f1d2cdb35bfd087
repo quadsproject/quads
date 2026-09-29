@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d510799_cfb9942a",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-29T10:24:18Z",
+      "side": 1,
+      "message": "This runs in both branches of create_app, not just production. When test_config is passed (e.g. TestingConfig) the conf key still wins and overwrites any SECRET_KEY the test config set, or raises RuntimeError if conf/quads.yml has no quads_api_secret_key. The new tests here dodge it by monkeypatching Config, but a caller that hands a test config its own SECRET_KEY will get it silently replaced. Consider returning early with the test config\u0027s key when test_config is provided, or only reading the conf key on the production path.",
+      "revId": "94d5bd009bc358759db6c5cd1f1d2cdb35bfd087",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
