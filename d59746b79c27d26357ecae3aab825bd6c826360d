@@ -36,6 +36,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "67e4c01b_7c35eff4",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2614,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:38:34Z",
+      "side": 1,
+      "message": "Concern - required before merge: this call sits outside the try/except above. QuadsBase.get raises APIBadRequest on a 400 (quads_api.py:55-64), and the new route returns 400 when the assignment has no notification row; in cli/main.py only CliException is handled cleanly (main.py:68 -\u003e exit 2), anything else reaches logger.exception at main.py:80 -\u003e full traceback, exit 1. Agree with Ted and Will here.\n\nCheaper alternative: get_active_cloud_assignment already embeds the notification (Assignment.as_dict serializes it, models.py:108-111; create_assignment always attaches one, dao/assignment.py:31; 7 existing callsites use assignment.notification.id), so `notification_id \u003d assignment.notification.id` with a CliException guard for a missing notification removes the new endpoint and the second HTTP call entirely - and the 400 exposure with them. If the endpoint stays, wrap the call in the existing try/except and keep a None guard.\n\nEither way, please add a divergent-id regression test: tests/cli/test_notifications.py passes on parent too, because a fresh DB keeps assignment.id \u003d\u003d notification.id in lockstep, so the suite cannot catch a regression of this bug today. (Fix behavior verified live by Will: old code PATCHed the orphan notification; the new flow resolves the correct one.)",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "c21639cd_fa32bb2b",
@@ -55,6 +72,40 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "46ea771d_5458f18c",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:38:34Z",
+      "side": 1,
+      "message": "get_notification has no callers - only get_assignment_notification is used (cli.py:2614). Dead code; please drop it.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e925d1ae_b9451903",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:38:34Z",
+      "side": 1,
+      "message": "If the endpoint is kept: it needs swagger.yaml entries (only /notifications/ at 2337 and /notifications/{notification_id} at 2358 are documented) and docs/quads-api.md coverage (149-150, 181); and quads_api.py get_notification (line 332) is dead code with no callers - drop it. Simpler option: reuse assignment.notification.id in the CLI (see comment on cli.py:2614) and drop this endpoint. The DAO query itself is pre-existing and correct; note the no-notification 400 is exactly the path that crashes the unguarded call.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "c41d6571_c4701be2",
         "filename": "src/quads/server/blueprints/notifications.py",
         "patchSetId": 1
@@ -66,6 +117,23 @@
       "writtenOn": "2026-09-29T14:36:37Z",
       "side": 1,
       "message": "Typo in the new user-facing 400 message: \u0027fo assignment\u0027 -\u003e \u0027for assignment\u0027.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "85f9cf61_48670f67",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:38:34Z",
+      "side": 1,
+      "message": "Concern: user-facing typo - \"fo assignment\" should be \"for assignment\". This message surfaces to CLI users via APIBadRequest.",
       "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
