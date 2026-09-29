@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e69223d6_798a7963",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:19:52Z",
+      "side": 1,
+      "message": "Agree with Ted\u0027s PS1 comment and glad it\u0027s fixed: with the envelope now derived from headers this line is load-bearing. Verified: getaddresses([\u0027a@example.com@b@example.com\u0027]) -\u003e [(\u0027\u0027, \u0027\u0027)] (no valid address), while \u0027, \u0027.join parses both recipients. For reference, 2.2.6\u0027s \u0027@\u0027.join worked only because Postman composed a single user@domain address; here recipients are full addresses, so the comma join is the right call. The two-recipient case in the new test covers this.",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2d4bae84_71942b1e",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:19:52Z",
+      "side": 1,
+      "message": "Root cause confirmed. With to_addrs given, smtplib overrides the header-derived envelope; only when to_addrs is None does send_message build the envelope from getaddresses([To, Bcc, Cc]) (verified in CPython 3 smtplib source) - so the Cc header was present but no RCPT TO was issued for it, and report_cc admins silently received nothing. This restores 2.2.6 postman.py, which called send_message(msg) with a comma-joined Cc header.\n\nRecommended follow-up this change exposes: two callers pass bare usernames as Cc - plugins/builtin/validators/environment.py sends report_cc.split(\u0027,\u0027) unqualified, and tools/jira_watchers.py sends cc\u003d[submitter] (while qualifying the To recipient with @domain). getaddresses treats \u0027admin1\u0027 as an address, so the envelope will now attempt RCPT TO:\u003cadmin1\u003e - MTA-dependent mis-delivery or refusal. Note partial refusal does not fail the send (SMTPRecipientsRefused is only raised when ALL recipients are refused), so worst case stays the silent drop. Please qualify those with @domain like notify.py/notify_tenant.py do.",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "09af3903_b328ac56",
+        "filename": "tests/plugins/test_builtin_plugins.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-29T16:19:52Z",
+      "side": 1,
+      "message": "Solid regression test - each assertion anchors one bug: \u0027to_addrs\u0027 absent (envelope no longer overridden, Cc reaches RCPT TO again) and header parseability (the \u0027, \u0027 To join fixed). Two To + two Cc exercises the multi-recipient path beyond the single-address callers. Minor: send_message is mocked, so this asserts smtplib\u0027s inputs rather than exercising the envelope derivation itself (that part is stdlib; I verified it separately), and the bare-username Cc callers aren\u0027t covered. Nothing blocking.",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
