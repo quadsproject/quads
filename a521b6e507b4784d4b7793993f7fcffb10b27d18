@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40714abb_43229c73",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-29T10:22:55Z",
+      "side": 1,
+      "message": "here you could just return False",
+      "revId": "a521b6e507b4784d4b7793993f7fcffb10b27d18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f04d19d9_0cb87162",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-29T10:22:55Z",
+      "side": 1,
+      "message": "and here just return True and get rid of the all_ok variable",
+      "revId": "a521b6e507b4784d4b7793993f7fcffb10b27d18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
