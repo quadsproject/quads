@@ -26,6 +26,12 @@ quads_request_deadline_day:
 quads_api_username: apiuser@example.com
 quads_api_password: password
 
+# Secret key used to sign and verify API auth JWTs.
+# Generate one, e.g. python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+# `quads --conf-check` fails until this is changed from the default. Rotating
+# this value invalidates previously issued API tokens.
+quads_api_secret_key: "change-this-to-a-random-secret-key"
+
 badfish_interfaces_path: /opt/quads/conf/idrac_interfaces.yml
 
 # omit these hosts (used for wiki generation)

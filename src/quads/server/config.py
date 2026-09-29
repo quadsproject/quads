@@ -2,7 +2,6 @@ import os
 
 
 class BaseConfig(object):
-    SECRET_KEY = "makesure to set a very secret key"
     JOB_INDEX_PER_PAGE = 18
     COMPANY_INDEX_PER_PAGE = 20
     COMPANY_DETAIL_PER_PAGE = 10
@@ -30,6 +29,7 @@ class ProductionConfig(BaseConfig):
 
 class TestingConfig(BaseConfig):
     DEBUG = True
+    SECRET_KEY = "test-secret-key"
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "SQLALCHEMY_DATABASE_URI",
         "postgresql://postgres:postgres@quads_db:5432/quads",
