@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5c92a661_08430a32",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:15:25Z",
+      "side": 1,
+      "message": "Addressed in PS3: get_notification removed.",
+      "parentUuid": "1cdf56d2_3501d7c4",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1da36dba_4abb8e5d",
@@ -71,6 +89,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dea0d959_acd13d33",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:15:25Z",
+      "side": 1,
+      "message": "Addressed in PS3: get_assignment_notification removed.",
+      "parentUuid": "1da36dba_4abb8e5d",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9d8daf4f_b1de8fe7",
@@ -101,6 +137,24 @@
       "writtenOn": "2026-09-30T08:45:59Z",
       "side": 1,
       "message": "Done",
+      "parentUuid": "9d8daf4f_b1de8fe7",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e30efd81_d593d66e",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:15:25Z",
+      "side": 1,
+      "message": "Addressed in PS3: the /notifications/assignment endpoint was removed.",
       "parentUuid": "9d8daf4f_b1de8fe7",
       "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
