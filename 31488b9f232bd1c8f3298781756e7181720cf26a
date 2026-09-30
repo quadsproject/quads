@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "824655b0_4e41d707",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:34:54Z",
+      "side": 1,
+      "message": "P2 (test quality): this test passes on the parent too (A/B verified: on 35d19511 TestListInterfaces gives 1 failed/2 passed, this one passes). get_request raises on every call, so on the parent the Ethernet fallback probe raises the same transport error and it propagates anyway. It does not pin the propagate-vs-degrade boundary claimed in the PS1 reply. Minimal fix: let the NetworkAdapters probe raise BadfishException(\u0027Failed to communicate with server.\u0027) while the EthernetInterfaces probes return 200 - the parent then degrades (returns True), PS2 raises. Note the change itself is correct; this is about the regression test.",
+      "revId": "31488b9f232bd1c8f3298781756e7181720cf26a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
