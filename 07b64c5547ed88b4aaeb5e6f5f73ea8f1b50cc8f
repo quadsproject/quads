@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "1b4263f4_88f84f24",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T07:16:39Z",
+      "side": 1,
+      "message": "Confirmed; the \u0027, \u0027 To join remains in place in PS6 and the multi-recipient case stays covered by the envelope regression test.",
+      "parentUuid": "e69223d6_798a7963",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "2d4bae84_71942b1e",
         "filename": "src/quads/plugins/builtin/email/email.py",
         "patchSetId": 2
@@ -37,6 +55,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "f66bbb0b_785554cb",
+        "filename": "src/quads/plugins/builtin/email/email.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T07:16:39Z",
+      "side": 1,
+      "message": "Both call-site concerns are resolved: environment.py uses build_cc_users (domain-qualified), jira_watchers now passes cc\u003d[] (redundant self-CC removed in PS5), and PS6 additionally sanitizes at the plugin boundary, so a bare username can no longer reach the envelope as RCPT TO:\u003cname\u003e from any current or future caller.",
+      "parentUuid": "2d4bae84_71942b1e",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "09af3903_b328ac56",
         "filename": "tests/plugins/test_builtin_plugins.py",
         "patchSetId": 2
@@ -48,6 +84,24 @@
       "writtenOn": "2026-09-29T16:19:52Z",
       "side": 1,
       "message": "Solid regression test - each assertion anchors one bug: \u0027to_addrs\u0027 absent (envelope no longer overridden, Cc reaches RCPT TO again) and header parseability (the \u0027, \u0027 To join fixed). Two To + two Cc exercises the multi-recipient path beyond the single-address callers. Minor: send_message is mocked, so this asserts smtplib\u0027s inputs rather than exercising the envelope derivation itself (that part is stdlib; I verified it separately), and the bare-username Cc callers aren\u0027t covered. Nothing blocking.",
+      "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1e1dd89_a2d72b44",
+        "filename": "tests/plugins/test_builtin_plugins.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T07:16:39Z",
+      "side": 1,
+      "message": "Bare-username handling is now covered by test_email_plugin_cc_normalized_at_boundary (To \u0027dwilson\u0027 and cc [\u0027bob\u0027, \u0027\u0027, \u0027 carol@example.com \u0027] are qualified with the configured domain, empties dropped), plus a CR/LF-injection entry case. Since PS4/PS5 no caller passes a bare Cc username (build_cc_users qualifies; jira_watchers passes cc\u003d[]), the boundary test covers the remaining exposure.",
+      "parentUuid": "09af3903_b328ac56",
       "revId": "07b64c5547ed88b4aaeb5e6f5f73ea8f1b50cc8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
