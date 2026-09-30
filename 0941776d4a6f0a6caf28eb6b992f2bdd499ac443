@@ -54,6 +54,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "414897ea_a4703abf",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 2617,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:34:49Z",
+      "side": 1,
+      "message": "Addressed in PS4: update_notification is now wrapped in try/except (APIServerException, APIBadRequest) -\u003e CliException, matching the get above. Verified: 400/500 -\u003e CliException (exit 2); 403/404 -\u003e response as-is -\u003e pre-existing error log, no crash path.",
+      "parentUuid": "857ffbfa_5670412b",
+      "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e0d8f994_f8cd0023",
@@ -67,6 +85,24 @@
       "writtenOn": "2026-09-30T09:15:27Z",
       "side": 1,
       "message": "Nit: Notification is now imported but unused here (the methods that used it were removed in PS3). pyflakes flags it; .flake8 ignores F401 so CI won\u0027t fail. Drop Notification from this import.",
+      "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9105d691_95ff79cb",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:34:49Z",
+      "side": 1,
+      "message": "Addressed in PS4: Notification dropped from the models import.",
+      "parentUuid": "e0d8f994_f8cd0023",
       "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
