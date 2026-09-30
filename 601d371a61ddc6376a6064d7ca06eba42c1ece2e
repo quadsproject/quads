@@ -105,6 +105,24 @@
       "parentUuid": "c9981cdf_4362e262",
       "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c582407_006b9c11",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1721,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:34:52Z",
+      "side": 1,
+      "message": "The transport leg is not actually pinned: see the comment on tests/unit/test_badfish_idrac10.py:529 - test_propagates_transport_error also passes on the parent (the Ethernet fallback probe raises the same error there, so it propagates anyway). The auth and degrade legs are genuinely pinned.",
+      "parentUuid": "c9981cdf_4362e262",
+      "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
