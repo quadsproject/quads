@@ -34,6 +34,24 @@
       "parentUuid": "824655b0_4e41d707",
       "revId": "31488b9f232bd1c8f3298781756e7181720cf26a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d00eed2_a411a19a",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:47:24Z",
+      "side": 1,
+      "message": "Verified on PS3: A/B re-run - test now fails on the parent 35d19511 (DID NOT RAISE, degrades to the Ethernet fallback) and passes on PS3; full badfish suite 61 passed, black/flake8 clean. The transport leg genuinely pins the propagate-vs-degrade boundary now. Resolving.",
+      "parentUuid": "824655b0_4e41d707",
+      "revId": "31488b9f232bd1c8f3298781756e7181720cf26a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
