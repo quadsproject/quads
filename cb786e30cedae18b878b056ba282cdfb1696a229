@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1cdf56d2_3501d7c4",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T08:31:08Z",
+      "side": 1,
+      "message": "get_notification has no production callers (tests only). This was flagged on PS1 as well. Please drop it.",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1da36dba_4abb8e5d",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T08:31:08Z",
+      "side": 1,
+      "message": "get_assignment_notification is now orphaned: PS2\u0027s CLI fix reads assignment.notification.id directly, so nothing calls this client method anymore. Drop it (and the /assignment endpoint below) unless it is intended as public API.",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9d8daf4f_b1de8fe7",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T08:31:08Z",
+      "side": 1,
+      "message": "The /notifications/assignment/\u003cassignment_id\u003e endpoint has no consumer after the PS2 CLI change (it is the only caller of NotificationDao.get_assignment_notification). Either drop it, or if it should be public API add it to swagger.yaml (only /notifications and /notifications/{notification_id} are documented) and docs/quads-api.md (149-150, 181).",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
