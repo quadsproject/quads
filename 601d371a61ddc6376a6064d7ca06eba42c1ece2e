@@ -54,6 +54,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "361589b5_86f59716",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-09-30T12:06:06Z",
+      "side": 1,
+      "message": "Addressed in Patch Set 2: the probe message is now built once into a variable and reused for both logger.error and the BadfishException, so the string is no longer formatted twice.",
+      "parentUuid": "c9c6bbbf_bb663f8e",
+      "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c9981cdf_4362e262",
@@ -67,6 +85,24 @@
       "writtenOn": "2026-09-30T11:01:14Z",
       "side": 1,
       "message": "Narrowing to `except ResourceNotFound` also lets transport errors propagate, not just 401/403/5xx. `get_request` raises `BadfishException(\"Failed to communicate with server.\")` on a connection failure or timeout, and `_find_resource` does not catch it, so it is not a `ResourceNotFound`. A transient probe blip during `list_interfaces` now hard-fails the call where it used to degrade to the Ethernet-interface fallback. Commit only names auth/server errors, so this is worth a note. `list_interfaces` also has no test coverage, so the new degrade-vs-propagate boundary is unpinned.",
+      "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39972762_65e8bd39",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1721,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-09-30T12:06:06Z",
+      "side": 1,
+      "message": "Addressed in Patch Set 2: the commit message now notes that the narrowed catch also lets transport errors (\"Failed to communicate with server.\") propagate out of list_interfaces() instead of degrading to the EthernetInterfaces fallback; ResourceNotFound remains the only degradable condition. Added TestListInterfaces pinning the degrade-vs-propagate boundary (ResourceNotFound degrades to the Ethernet fallback; transport and 403 errors propagate).",
+      "parentUuid": "c9981cdf_4362e262",
       "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
