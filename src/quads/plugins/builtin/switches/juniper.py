@@ -255,16 +255,25 @@ class JuniperSwitchPlugin(SwitchPlugin):
                         )
                         vlan_member = vlan_member_out[0].split()[2][4:].strip(",")
                     except IndexError:
-                        if not _assignment.vlan and not last_nic:
-                            self.logger.warning(
-                                "Could not determine the previous VLAN member for %s, switch %s, switch port %s "
-                                % (
-                                    interface.name,
-                                    interface.switch_ip,
-                                    interface.switch_port,
+                        if _assignment and _assignment.vlan and last_nic:
+                            # Public VLAN ports hold membership under the interface
+                            # config (native-vlan-id), not in the vlans stanza.
+                            vlan_member = 0
+                            for _line in old_vlan_out or []:
+                                if _line.strip().startswith("native-vlan-id"):
+                                    vlan_member = _line.split()[1].rstrip(";")
+                                    break
+                        else:
+                            if not _assignment.vlan:
+                                self.logger.warning(
+                                    "Could not determine the previous VLAN member for %s, switch %s, switch port %s "
+                                    % (
+                                        interface.name,
+                                        interface.switch_ip,
+                                        interface.switch_port,
+                                    )
                                 )
-                            )
-                        vlan_member = 0
+                            vlan_member = 0
 
                     ssh_helper.disconnect()
 
