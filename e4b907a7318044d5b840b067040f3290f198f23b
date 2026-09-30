@@ -16,6 +16,24 @@
       "message": "Totally excellent dig, dudes - but I\u0027ve got one bogus scenario keeping me up at night. This stages `BootMode` with `@Redfish.SettingsApplyTime: OnReset` in the same pending BIOS settings set as the one-time PXE boot, and the one `reboot_server(graceful\u003dFalse)` applies both at once. The catch: both boot-leg keys come from the **current committed** BootMode, not the desired one. `send_one_time_boot` (badfish.py:1123) and `patch_boot_seq` (badfish.py:810) call `get_boot_seq()` -\u003e `get_bios_boot_mode()`, which reads pre-switch `Bios.Attributes.BootMode` (badfish.py:221-247). So on a Bios-\u003eUefi host the one-time target is `OneTimeBootSeq`/`OneTimeBootSeqDev` (legacy), and when a custom `boot_order` is used the persistent order was already written under `BootSeq` in `BootSources/Settings` even earlier, in `prepare_host_hardware` -\u003e `change_boot` - with its own config job and reboot. After that single reset, no new-mode key exists. If the firmware ignores old-mode keys after a mode switch, the host boots local disk on the only rebuild reboot: that\u0027s #734 all over again, and no repo test can see it since the mocks don\u0027t model the switch. #737 item 3 covers the one-time leg - I\u0027d add the persistent `BootSources` leg before merging, and pick one of: (a) two-phase - apply BootMode and reboot once, *then* configure boot order/one-time in the new mode and do the PXE reboot; or (b) derive the seq/device keys from desired `host_obj.bootmode` instead of the committed mode. Otherwise this is a most excellent fix for a mode that might never actually boot into. Be excellent to each other!",
       "revId": "e4b907a7318044d5b840b067040f3290f198f23b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "461f68e7_6f749a67",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T14:09:07Z",
+      "side": 1,
+      "message": "Verdict: hardware-verification note, effectively already tracked; no code change needed.\n\nYour code reading is right - send_one_time_boot (badfish.py:1123) and patch_boot_seq (badfish.py:810, seq cached by get_boot_devices) both key off the current committed BootMode (get_bios_boot_mode, badfish.py:228-247), so on a same-reset mode switch both legs carry old-mode keys. But the failure is conditional on one unverifiable firmware behavior (does iDRAC honor old-mode one-time/seq keys on the same-reset switch?), which is exactly #737 item 3, and item 3 already names both of your options: (a) two-phase, (b) derive from desired mode.\n\nThe new delta is the persistent BootSources leg. It is written and applied by change_boot (badfish.py:769-779) with its own config job and reboot while the host is still in the old mode, so it is correct at apply time; it only becomes stale because of the later mode switch. Same root cause, same conditional, and second-order: if the one-time leg fails, the rebuild is broken regardless of the persistent order.\n\nNeither remedy fits KISS: (a) two-phase does not fix the persistent leg (BootSources order is still configured pre-switch in prepare_host_hardware; moving it post-switch is a move-flow redesign) and leaves a mid-flow reboot with no PXE override; (b) is not expressible with the current data - idrac_interfaces.yml has one device-name list per model and names are mode-specific (NIC.PxeDevice.* vs NIC.Integrated.*), and check_device (badfish.py:1183-1191) validates against the current-mode sequence (why the deeper review rejected the merged-PATCH variant).\n\nIf the verification run shows the one-time leg failing, the mode-agnostic option already in tree is set_next_boot_pxe (System.BootSourceOverrideTarget: Pxe/Once; interfaces/hardware.py:87, dispatchers/hardware.py:229): one PATCH, no BootMode dependence, no yaml change.\n\nFolded the persistent leg into #737 so the single verification run covers it. Keeping the change as-is: minimal, fail-safe (aborts on read/set failure), and never-kickstarted hosts are already flagged post-rebuild (c9f60c34).",
+      "parentUuid": "64ddd5f3_2e37ad39",
+      "revId": "e4b907a7318044d5b840b067040f3290f198f23b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
