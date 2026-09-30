@@ -16,6 +16,23 @@
       "message": "The APIBadRequest exposure isn\u0027t fully gone. update_notification calls QuadsBase.patch, which raises APIBadRequest on a 400 (quads_api.py:90-92), and this call sits outside the try/except that only wraps get_active_cloud_assignment above. The /notifications/\u003cid\u003e PATCH returns 400 when the notification row is gone (blueprints/notifications.py), so a stale/deleted notification id raises here. main.py catches only CliException, so it escapes to the outer except Exception and prints a traceback (exit 1) instead of the clean error. Same class of issue as the PS1 thread, just on the patch call now. Suggest moving this into the try/except (or wrapping it) so it raises CliException like the get does.",
       "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0d8f994_f8cd0023",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:15:27Z",
+      "side": 1,
+      "message": "Nit: Notification is now imported but unused here (the methods that used it were removed in PS3). pyflakes flags it; .flake8 ignores F401 so CI won\u0027t fail. Drop Notification from this import.",
+      "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
