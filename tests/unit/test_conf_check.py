@@ -76,17 +76,46 @@ class TestCheckDefaultValues:
             (conf_dir / "selfservice.yml").write_text(selfservice)
 
     def test_default_domain_flagged(self, tmp_path):
-        self._write_configs(tmp_path, quads="domain: example.com\nquads_url: https://real.lab.com\n")
+        self._write_configs(
+            tmp_path,
+            quads="domain: example.com\nquads_url: https://real.lab.com\n" "quads_api_secret_key: a-real-key\n",
+        )
         results = check_default_values(str(tmp_path))
         domain_findings = [f for f in results if f.key == "domain"]
         assert len(domain_findings) == 1
         assert domain_findings[0].severity == "error"
 
     def test_changed_domain_passes(self, tmp_path):
-        self._write_configs(tmp_path, quads="domain: mylab.com\nquads_url: https://real.lab.com\n")
+        self._write_configs(
+            tmp_path,
+            quads="domain: mylab.com\nquads_url: https://real.lab.com\n" "quads_api_secret_key: a-real-key\n",
+        )
         results = check_default_values(str(tmp_path))
         domain_findings = [f for f in results if f.key == "domain"]
         assert len(domain_findings) == 0
+
+    def test_api_secret_key_default_flagged(self, tmp_path):
+        self._write_configs(
+            tmp_path,
+            quads="domain: mylab.com\nquads_api_secret_key: 'change-this-to-a-random-secret-key'\n",
+        )
+        results = check_default_values(str(tmp_path))
+        secret_findings = [f for f in results if f.key == "quads_api_secret_key"]
+        assert len(secret_findings) == 1
+        assert secret_findings[0].severity == "error"
+
+    def test_api_secret_key_missing_flagged(self, tmp_path):
+        self._write_configs(tmp_path, quads="domain: mylab.com\n")
+        results = check_default_values(str(tmp_path))
+        secret_findings = [f for f in results if f.key == "quads_api_secret_key"]
+        assert len(secret_findings) == 1
+        assert secret_findings[0].severity == "error"
+
+    def test_api_secret_key_changed_passes(self, tmp_path):
+        self._write_configs(tmp_path, quads="domain: mylab.com\nquads_api_secret_key: a-real-key\n")
+        results = check_default_values(str(tmp_path))
+        secret_findings = [f for f in results if f.key == "quads_api_secret_key"]
+        assert len(secret_findings) == 0
 
     def test_nested_plugin_path(self, tmp_path):
         plugins_content = (
@@ -170,7 +199,11 @@ class TestCheckMissingFiles:
 
 class TestRunConfCheck:
     def _write_all_defaults(self, conf_dir):
-        (conf_dir / "quads.yml").write_text("domain: example.com\n" "quads_url: https://quads.scalelab.example.com\n")
+        (conf_dir / "quads.yml").write_text(
+            "domain: example.com\n"
+            "quads_url: https://quads.scalelab.example.com\n"
+            "quads_api_secret_key: 'change-this-to-a-random-secret-key'\n"
+        )
         (conf_dir / "quadsweb.yml").write_text("lab_name: test\n")
         (conf_dir / "selfservice.yml").write_text("require_auth_provider: false\n")
         (conf_dir / "plugins.yml").write_text(
@@ -189,10 +222,12 @@ class TestRunConfCheck:
         assert not result.passed
         assert result.files_checked == 5
         default_findings = [f for f in result.findings if f.check_type == "default_value"]
-        assert len(default_findings) == 6
+        assert len(default_findings) == 7
 
     def test_clean_config_passes(self, tmp_path):
-        (tmp_path / "quads.yml").write_text("domain: mylab.com\nquads_url: https://quads.mylab.com\n")
+        (tmp_path / "quads.yml").write_text(
+            "domain: mylab.com\nquads_url: https://quads.mylab.com\nquads_api_secret_key: a-real-key\n"
+        )
         (tmp_path / "quadsweb.yml").write_text("lab_name: test\n")
         (tmp_path / "selfservice.yml").write_text("require_auth_provider: false\n")
         (tmp_path / "plugins.yml").write_text(
@@ -220,7 +255,9 @@ class TestRunConfCheck:
         assert syntax_findings[0].file == "quads.yml"
 
     def test_mixed_results(self, tmp_path):
-        (tmp_path / "quads.yml").write_text("domain: example.com\nquads_url: https://quads.mylab.com\n")
+        (tmp_path / "quads.yml").write_text(
+            "domain: example.com\nquads_url: https://quads.mylab.com\nquads_api_secret_key: a-real-key\n"
+        )
         (tmp_path / "quadsweb.yml").write_text("key: value\n")
         (tmp_path / "selfservice.yml").write_text("require_auth_provider: false\n")
         (tmp_path / "plugins.yml").write_text(
@@ -238,7 +275,9 @@ class TestRunConfCheck:
         assert result.findings[0].key == "domain"
 
     def test_duplicate_keys_detected_in_integration(self, tmp_path):
-        (tmp_path / "quads.yml").write_text("domain: mylab.com\ndomain: other.com\nquads_url: https://q.com\n")
+        (tmp_path / "quads.yml").write_text(
+            "domain: mylab.com\ndomain: other.com\nquads_url: https://q.com\nquads_api_secret_key: a-real-key\n"
+        )
         (tmp_path / "quadsweb.yml").write_text("key: value\n")
         (tmp_path / "selfservice.yml").write_text("key: value\n")
         (tmp_path / "plugins.yml").write_text(
