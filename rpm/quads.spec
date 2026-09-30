@@ -15,7 +15,7 @@
 %define name quads-dev
 %define reponame quads
 %define branch development
-%define version 3.0.0
+%define version 3.0.2
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Summary: Automated future scheduling, documentation, end-to-end provisioning and assignment of servers and networks.
@@ -297,6 +297,10 @@ fi;
 find /opt/quads/ | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | xargs rm -rf
 
 %changelog
+
+* Wed Sep 30 2026 Will Foster <wfoster@redhat.com>
+* release 3.0.2
+* Bugfix and maintenance release
 
 * Tue Sep 15 2026 Will Foster <wfoster@redhat.com>
 * release 3.0.0
