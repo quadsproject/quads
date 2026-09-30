@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2164fa86_7e4a0b47",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-30T13:26:59Z",
+      "side": 1,
+      "message": "When get_bios_attribute(\"BootMode\") returns None, this short-circuits and line 376 treats the bootmode as already matching, returning True. But None comes from three very different cases: not supported, plugin returns None, and a real BMC read failure (dispatcher and badfish plugin both catch the exception and return None). On a transient read failure the desired bootmode is silently never applied, yet reboot_for_rebuild proceeds as if it was. A host that needs Uefi but came up Bios rebuilds in the wrong mode with no surface. Consider returning False (or logging an error) when bootmode is set and current is None, so the rebuild aborts instead of skipping.",
+      "revId": "93ea0ae87a774217364910d962a776ab0aa1dec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
