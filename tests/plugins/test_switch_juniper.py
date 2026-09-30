@@ -932,3 +932,47 @@ class TestJuniperSwitchPlugin:
 
         assert result is False
         assert mock_juniper.set_port.call_count == 2
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_public_vlan_port_correct_returns_true(self, mock_get_vlan, mock_ssh_class, plugin):
+        """A last-NIC public VLAN port configured via native-vlan-id passes verify."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=MockVlan(vlan_id=200))
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["native-vlan-id 200;"]),
+            (True, []),  # Public VLAN membership is not in the vlans stanza
+        ]
+        mock_ssh_class.return_value = mock_ssh
+        mock_get_vlan.return_value = 200
+
+        result = await plugin.verify(host="host1.example.com", change=False)
+
+        assert result is True
+        plugin.logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_public_vlan_port_wrong_returns_false(self, mock_get_vlan, mock_ssh_class, plugin):
+        """A last-NIC public VLAN port still in QinQ mode fails verify."""
+        mock_host = MockHost("host1.example.com", interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")])
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=MockVlan(vlan_id=200))
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["apply-groups QinQ_vl10;"]),
+            (True, []),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+        mock_get_vlan.return_value = 200
+
+        result = await plugin.verify(host="host1.example.com", change=False)
+
+        assert result is False
+        plugin.logger.error.assert_called()
