@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2213eb3a_aa4ab6ab",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-30T10:15:11Z",
+      "side": 1,
+      "message": "In verify(), the cloud argument is silently dropped when host is also given. Line 206 fetches `_cloud` but never assigns it to `_cloud_obj`, so `_cloud_obj` always falls through to `first_host.cloud` (line 224). That makes the \"Both --cloud and --host specified\" block below dead code, and the assignment lookup runs against the host\u0027s own cloud instead of the cloud the caller passed. Pre-existing, but this method was just rewritten so it may be worth fixing here: assign `_cloud_obj \u003d _cloud` after the not-found guard.",
+      "revId": "45496268a3e78f422c9e82113e84d84c3f7ce8f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
