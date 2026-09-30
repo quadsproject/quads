@@ -55,6 +55,42 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "d477fa5d_425efb59",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2614,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T07:57:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "832fd74b_9e774104",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ca932e3_deb2a19b",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2614,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T07:57:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67e4c01b_7c35eff4",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "c21639cd_fa32bb2b",
         "filename": "src/quads/quads_api.py",
         "patchSetId": 1
@@ -134,6 +170,24 @@
       "writtenOn": "2026-09-29T16:38:34Z",
       "side": 1,
       "message": "Concern: user-facing typo - \"fo assignment\" should be \"for assignment\". This message surfaces to CLI users via APIBadRequest.",
+      "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0596d79e_a908513a",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T07:57:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "85f9cf61_48670f67",
       "revId": "d59746b79c27d26357ecae3aab825bd6c826360d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
