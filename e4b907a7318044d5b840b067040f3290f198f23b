@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "64ddd5f3_2e37ad39",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-09-30T13:58:13Z",
+      "side": 1,
+      "message": "Totally excellent dig, dudes - but I\u0027ve got one bogus scenario keeping me up at night. This stages `BootMode` with `@Redfish.SettingsApplyTime: OnReset` in the same pending BIOS settings set as the one-time PXE boot, and the one `reboot_server(graceful\u003dFalse)` applies both at once. The catch: both boot-leg keys come from the **current committed** BootMode, not the desired one. `send_one_time_boot` (badfish.py:1123) and `patch_boot_seq` (badfish.py:810) call `get_boot_seq()` -\u003e `get_bios_boot_mode()`, which reads pre-switch `Bios.Attributes.BootMode` (badfish.py:221-247). So on a Bios-\u003eUefi host the one-time target is `OneTimeBootSeq`/`OneTimeBootSeqDev` (legacy), and when a custom `boot_order` is used the persistent order was already written under `BootSeq` in `BootSources/Settings` even earlier, in `prepare_host_hardware` -\u003e `change_boot` - with its own config job and reboot. After that single reset, no new-mode key exists. If the firmware ignores old-mode keys after a mode switch, the host boots local disk on the only rebuild reboot: that\u0027s #734 all over again, and no repo test can see it since the mocks don\u0027t model the switch. #737 item 3 covers the one-time leg - I\u0027d add the persistent `BootSources` leg before merging, and pick one of: (a) two-phase - apply BootMode and reboot once, *then* configure boot order/one-time in the new mode and do the PXE reboot; or (b) derive the seq/device keys from desired `host_obj.bootmode` instead of the committed mode. Otherwise this is a most excellent fix for a mode that might never actually boot into. Be excellent to each other!",
+      "revId": "e4b907a7318044d5b840b067040f3290f198f23b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
