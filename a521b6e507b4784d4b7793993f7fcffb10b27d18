@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c267ab50_3bb43040",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:59:23Z",
+      "side": 1,
+      "message": "Thanks. Kept the flag on purpose: verify with --change is also the apply path and continues across every NIC and host so one run attempts and reports all fixable ports (README documents this as validate and correct, and the cloud-mode report depends on it). Early return would make it fail-fast and leave later NICs/hosts untouched after the first failure. PS3 pins the continue-after-failure behavior with a two-NIC test.",
+      "parentUuid": "40714abb_43229c73",
+      "revId": "a521b6e507b4784d4b7793993f7fcffb10b27d18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f04d19d9_0cb87162",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-09-29T10:22:55Z",
       "side": 1,
       "message": "and here just return True and get rid of the all_ok variable",
+      "revId": "a521b6e507b4784d4b7793993f7fcffb10b27d18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "af74117b_9485609f",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:59:23Z",
+      "side": 1,
+      "message": "Same call: return True works only as the companion of an early return False, which would turn verify fail-fast (remaining NICs/hosts skipped after the first failure, including in cloud-mode --change runs). all_ok stays so the aggregate verdict matches the work attempted. PS3 adds a two-NIC regression test that would catch a switch to early return.",
+      "parentUuid": "f04d19d9_0cb87162",
       "revId": "a521b6e507b4784d4b7793993f7fcffb10b27d18",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
