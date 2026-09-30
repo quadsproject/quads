@@ -16,6 +16,23 @@
       "message": "we are formatting the same string twice, we could put it on a variable to avoid boilerplate",
       "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c9981cdf_4362e262",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1721,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-30T11:01:14Z",
+      "side": 1,
+      "message": "Narrowing to `except ResourceNotFound` also lets transport errors propagate, not just 401/403/5xx. `get_request` raises `BadfishException(\"Failed to communicate with server.\")` on a connection failure or timeout, and `_find_resource` does not catch it, so it is not a `ResourceNotFound`. A transient probe blip during `list_interfaces` now hard-fails the call where it used to degrade to the Ethernet-interface fallback. Commit only names auth/server errors, so this is worth a note. `list_interfaces` also has no test coverage, so the new degrade-vs-propagate boundary is unpinned.",
+      "revId": "601d371a61ddc6376a6064d7ca06eba42c1ece2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
