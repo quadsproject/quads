@@ -427,7 +427,9 @@ class ScheduleDao(BaseDao):
                 raise EntryNotFound
             schedules = cls.get_current_schedule(host=host)
             if not schedules:
-                raise EntryNotFound
+                # Reclaim moves (host returning to its default cloud after the
+                # schedule ends) have no current schedule to track; skip.
+                continue
             schedule = schedules[0]
             schedule.move_status = "pending"
             schedule.move_message = None

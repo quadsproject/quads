@@ -140,6 +140,23 @@ class TestMoveStatus:
         assert "host3.example.com" in result
 
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_start_move_batch_skips_hosts_without_current_schedule(self, test_client, auth, prefill):
+        """Reclaim moves (host with no current schedule) are skipped, not a 500."""
+        auth_header = auth.get_auth_header()
+        data = {"hostnames": ["host1.example.com", "host2.example.com"]}
+        response = unwrap_json(
+            test_client.post(
+                "/api/v3/moves/progress/batch",
+                json=data,
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 201
+        result = response.json
+        assert "host2.example.com" in result
+        assert "host1.example.com" not in result
+
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_get_all_active_status(self, test_client, auth, prefill):
         auth_header = auth.get_auth_header()
         test_client.post(
