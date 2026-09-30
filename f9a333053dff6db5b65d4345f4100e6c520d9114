@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03dff935_da31fada",
+        "filename": "src/quads/server/dao/notification.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T12:34:51Z",
+      "side": 1,
+      "message": "P3 nit: get_assignment_notification has no production callers (only tests/api/test_notifications.py pins it; PS3 removed its only consumer). Drop it plus the pinning test, or keep explicitly as a DAO API. Not blocking.",
+      "revId": "f9a333053dff6db5b65d4345f4100e6c520d9114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
