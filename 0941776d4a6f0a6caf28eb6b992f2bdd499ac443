@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "52387a43_f80bf6c8",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 2617,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-09-30T09:17:55Z",
+      "side": 1,
+      "message": "Agree the exposure is real, but it is pre-existing, not introduced here: the parent (5ff07ed^) has the identical update_notification call in the same spot outside the try/except (it used assignment_id then; this change only swapped the id source to assignment.notification.id). So I read it as a follow-up rather than a blocker for this bugfix. That said the fix is cheap - move the call under the existing try and add it to the except (APIServerException, APIBadRequest) that already re-raises as CliException - so no objection if you\u0027d rather fold it in here. Leaving unresolved for the owner to decide scope.",
+      "parentUuid": "857ffbfa_5670412b",
+      "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e0d8f994_f8cd0023",
         "filename": "src/quads/quads_api.py",
         "patchSetId": 3
