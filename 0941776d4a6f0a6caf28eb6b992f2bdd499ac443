@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "370a68cd_c6a2c382",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 2617,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-09-30T12:07:26Z",
+      "side": 1,
+      "message": "Confirmed fixed in PS4. update_notification is now wrapped in try/except (APIServerException, APIBadRequest) -\u003e raise CliException(str(ex)). main.py catches CliException (line 68) and exits 2 with a clean log, so the APIBadRequest no longer escapes to the outer except Exception traceback + exit 1. Verified: CliException is imported in cli.py, and the new test_modify_notification_wraps_update_errors pins it for both error types.",
+      "parentUuid": "857ffbfa_5670412b",
+      "revId": "0941776d4a6f0a6caf28eb6b992f2bdd499ac443",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e0d8f994_f8cd0023",
