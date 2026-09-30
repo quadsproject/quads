@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c139d393_2b87d3ce",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T08:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1cdf56d2_3501d7c4",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1da36dba_4abb8e5d",
@@ -35,6 +53,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fac5f18_c7dac9a0",
+        "filename": "src/quads/quads_api.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T08:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1da36dba_4abb8e5d",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9d8daf4f_b1de8fe7",
@@ -48,6 +84,24 @@
       "writtenOn": "2026-09-30T08:31:08Z",
       "side": 1,
       "message": "The /notifications/assignment/\u003cassignment_id\u003e endpoint has no consumer after the PS2 CLI change (it is the only caller of NotificationDao.get_assignment_notification). Either drop it, or if it should be public API add it to swagger.yaml (only /notifications and /notifications/{notification_id} are documented) and docs/quads-api.md (149-150, 181).",
+      "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "84fbbdd5_1cf4a287",
+        "filename": "src/quads/server/blueprints/notifications.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-09-30T08:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d8daf4f_b1de8fe7",
       "revId": "cb786e30cedae18b878b056ba282cdfb1696a229",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
