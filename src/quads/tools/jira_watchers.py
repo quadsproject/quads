@@ -72,9 +72,9 @@ async def main():
                 watchers = await jira.get_watchers(p_ticket_key)
                 failed_watchers = []
                 for watcher in watchers["watchers"]:
-                    response = await jira.add_watcher(ticket_key, watcher["key"])
+                    response = await jira.add_watcher(ticket_key, watcher["accountId"])
                     if not response:
-                        failed_watchers.append(watcher["key"])
+                        failed_watchers.append(watcher["accountId"])
                 if len(failed_watchers) != 0 and "WATCHERS_MAP_FAIL_NOTIFIED" not in fields.get("labels"):
                     await jira.add_label(ticket_key, "WATCHERS_MAP_FAIL_NOTIFIED")
                     template_file = "watchers_fail"
