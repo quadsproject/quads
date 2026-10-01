@@ -65,7 +65,7 @@ class TestJiraWatchers(object):
             ]
         }
         mock_jira.add_label.return_value = True
-        mock_jira.get_watchers.return_value = {"watchers": [{"key": "1"}]}
+        mock_jira.get_watchers.return_value = {"watchers": [{"accountId": "1"}]}
         mock_jira.add_watcher.return_value = True
 
         mock_plugin = MagicMock()
@@ -133,7 +133,7 @@ class TestJiraWatchers(object):
             ]
         }
         mock_jira.add_label.return_value = False
-        mock_jira.get_watchers.return_value = {"watchers": [{"key": "1"}]}
+        mock_jira.get_watchers.return_value = {"watchers": [{"accountId": "1"}]}
         mock_jira.add_watcher.return_value = False
 
         mock_plugin = MagicMock()
