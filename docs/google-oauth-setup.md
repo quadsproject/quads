@@ -9,11 +9,14 @@
   - [Run the Config Checker](#run-the-config-checker)
   - [Restart the Web Service](#restart-the-web-service)
 - [How It Works](#how-it-works)
-- [User Profile](#user-profile)
-  - [Using Cloud Command](#using-cloud-command)
 - [Security Notes](#security-notes)
 - [Troubleshooting](#troubleshooting)
+- [User Profile](#user-profile)
+  - [Using Cloud Command](#using-cloud-command)
 - [Authenticated User Calls](#authenticated-user-calls)
+
+> [!TIP]
+> For User Tokens and info see [User Profile](#user-profile) below.
 
 QUADS supports Google OAuth2/OpenID Connect for single sign-on. Users click
 "SSO Login" on the web UI and authenticate via their Google account. Only
@@ -41,6 +44,7 @@ email addresses from explicitly allowed domains are granted access.
    http://localhost:5001/auth/callback
    ```
 7. Click **Create** and note the **Client ID** and **Client Secret**.
+
 > [!NOTE]
 > **Consent screen**: Under **APIs & Services > OAuth consent screen**, set the
 > user type to **Internal** (G Workspace) or **External** and add the
@@ -52,28 +56,28 @@ Edit `/opt/quads/conf/oauth.yml` (or `$QUADS_CONF_DIR/oauth.yml`):
 
 ```yaml
 google_oauth:
-  client_id: '<your-client-id>.apps.googleusercontent.com'
-  client_secret: '<your-client-secret>'
-  server_metadata_url: 'https://accounts.google.com/.well-known/openid-configuration'
+  client_id: "<your-client-id>.apps.googleusercontent.com"
+  client_secret: "<your-client-secret>"
+  server_metadata_url: "https://accounts.google.com/.well-known/openid-configuration"
   client_kwargs:
-    scope: 'openid email profile'
+    scope: "openid email profile"
 
 oauth_settings:
-  flask_secret_key: '<random-secret-key>'
+  flask_secret_key: "<random-secret-key>"
   allowed_domains:
-    - 'yourcompany.com'
+    - "yourcompany.com"
   session_lifetime_hours: 24
   remember_me_duration_days: 30
 ```
 
-| Key | Description |
-|-----|-------------|
-| `client_id` / `client_secret` | From step 1 |
-| `server_metadata_url` | Google's OIDC discovery endpoint (no need to change) |
-| `flask_secret_key` | Random string used to sign session cookies. Generate with: `python3 -c "import secrets; print(secrets.token_hex(32))"` |
-| `allowed_domains` | List of email domains permitted to log in. Users with emails outside these domains are denied. |
-| `session_lifetime_hours` | How long a session lasts (default: 24) |
-| `remember_me_duration_days` | Duration of the "remember me" cookie (default: 30) |
+| Key                           | Description                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `client_id` / `client_secret` | From step 1                                                                                                            |
+| `server_metadata_url`         | Google's OIDC discovery endpoint (no need to change)                                                                   |
+| `flask_secret_key`            | Random string used to sign session cookies. Generate with: `python3 -c "import secrets; print(secrets.token_hex(32))"` |
+| `allowed_domains`             | List of email domains permitted to log in. Users with emails outside these domains are denied.                         |
+| `session_lifetime_hours`      | How long a session lasts (default: 24)                                                                                 |
+| `remember_me_duration_days`   | Duration of the "remember me" cookie (default: 30)                                                                     |
 
 ### Optionally Disable Self-Registration
 
@@ -120,7 +124,31 @@ Users who authenticate via Google do not need a local password. Their account
 is linked by Google ID (`sub` claim), so email changes on the Google side are
 handled gracefully.
 
+## Security Notes
+
+- **HTTPS required in production.** Session and remember-me cookies are set with
+  `Secure=True` unless `FLASK_ENV=development`.
+- **Domain allowlist is deny-by-default.** If `allowed_domains` is empty or
+  missing, all logins are rejected.
+- **Profile pictures** are sanitized to only allow URLs from
+  `lh3-6.googleusercontent.com` over HTTPS.
+- **Session protection** is set to `strong` (Flask-Login regenerates the session
+  on IP/user-agent change).
+
+## Troubleshooting
+
+| Symptom                                            | Cause                                  | Fix                                                                  |
+| -------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------- |
+| "Access denied" after Google login                 | Email domain not in `allowed_domains`  | Add the domain to `oauth.yml`                                        |
+| "Email not verified" flash message                 | Google account has an unverified email | User must verify their email in Google                               |
+| `RuntimeError` on startup about missing secret key | `flask_secret_key` is blank or missing | Set a random value in `oauth.yml`                                    |
+| Redirect URI mismatch error from Google            | Callback URL not registered            | Add `https://<host>/auth/callback` to the Google Cloud Console       |
+| Cookies not persisting                             | Not using HTTPS in production          | Deploy behind HTTPS or set `FLASK_ENV=development` for local testing |
+
 ## User Profile
+
+> [!TIP]
+> This section pertains to QUADS users
 
 Authenticated users get a profile page at `/auth/profile` where they can:
 
@@ -144,28 +172,10 @@ executed via SSH as root inside a detached tmux session named
 `quads_release`, which stays open after the command finishes. Leave the
 field empty to disable it.
 
-## Security Notes
+## Authenticated User Calls
 
-- **HTTPS required in production.** Session and remember-me cookies are set with
-  `Secure=True` unless `FLASK_ENV=development`.
-- **Domain allowlist is deny-by-default.** If `allowed_domains` is empty or
-  missing, all logins are rejected.
-- **Profile pictures** are sanitized to only allow URLs from
-  `lh3-6.googleusercontent.com` over HTTPS.
-- **Session protection** is set to `strong` (Flask-Login regenerates the session
-  on IP/user-agent change).
-
-## Troubleshooting
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| "Access denied" after Google login | Email domain not in `allowed_domains` | Add the domain to `oauth.yml` |
-| "Email not verified" flash message | Google account has an unverified email | User must verify their email in Google |
-| `RuntimeError` on startup about missing secret key | `flask_secret_key` is blank or missing | Set a random value in `oauth.yml` |
-| Redirect URI mismatch error from Google | Callback URL not registered | Add `https://<host>/auth/callback` to the Google Cloud Console |
-| Cookies not persisting | Not using HTTPS in production | Deploy behind HTTPS or set `FLASK_ENV=development` for local testing |
-
-### Authenticated User Calls
+> [!TIP]
+> This section pertains to QUADS API users and tenants.
 
 The instack metadata files (`<cloud>_instackenv.json` and
 `<cloud>_ocpinventory.json`, 404 other names) are guarded by Google SSO auth
