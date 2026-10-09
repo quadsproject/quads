@@ -380,7 +380,7 @@ action_group.add_argument(
     dest="action",
     action="store_const",
     const="free_cloud",
-    help="List available hosts on a specific time frame",
+    help="List clouds without active assignments",
 )
 action_group.add_argument(
     "--report-available",
