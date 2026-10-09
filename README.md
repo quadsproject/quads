@@ -1620,7 +1620,7 @@ INFO: Moving c02-h26-r620.rdu.openstack.example.com from cloud01 to cloud03
 
 ### Find Free Cloud Environment
 
-* You can use `quads --find-free-cloud` to suggest a cloud environment to use that does not have any future hosts scheduled to use it.
+* You can use `quads --find-free-cloud` to suggest a cloud environment with no active assignment. The spare pool is excluded from the results; clouds with a current or future schedule generally have an active assignment and are not listed.
 
 ```bash
 quads --find-free-cloud
