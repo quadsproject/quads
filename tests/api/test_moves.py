@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 import pytest
@@ -422,3 +422,41 @@ class TestReadMovesInvalidInput:
         assert response.status_code == 400
         assert response.json["error"] == "Bad Request"
         assert response.json["message"] == "Invalid status: bogus"
+
+
+class TestMovesTerminatedAssignment:
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_no_moves_from_terminated_assignment_future_schedule(self, test_client, auth, prefill):
+        """
+        | GIVEN: Defaults, auth, clouds, vlans, hosts, assignments and schedules
+        | WHEN: Assignment has a future schedule for an unmoved host, then the
+        |       assignment is terminated
+        | THEN: The stale future schedule must not drive a move into the
+        |       terminated assignment's cloud
+        """
+        auth_header = auth.get_auth_header()
+        future_start = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d %H:%M")
+        future_end = (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d %H:%M")
+        batch_resp = unwrap_json(
+            test_client.post(
+                "/api/v3/schedules/batch",
+                json={
+                    "cloud": "cloud02",
+                    "hostnames": ["host4.example.com"],
+                    "start": future_start,
+                    "end": future_end,
+                },
+                headers=auth_header,
+            )
+        )
+        assert batch_resp.status_code == 201
+
+        query_date = (datetime.now() + timedelta(days=2, minutes=1)).strftime("%Y-%m-%dT%H:%M")
+        resp = unwrap_json(test_client.get(f"/api/v3/moves?date={query_date}", headers=auth_header))
+        assert any(m["host"] == "host4.example.com" and m["new"] == "cloud02" for m in resp.json)
+
+        term_resp = unwrap_json(test_client.post("/api/v3/assignments/terminate/1/", json={}, headers=auth_header))
+        assert term_resp.status_code == 200
+
+        resp = unwrap_json(test_client.get(f"/api/v3/moves?date={query_date}", headers=auth_header))
+        assert all(m["host"] != "host4.example.com" for m in resp.json)
