@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51fa2eb9_7e8bde8e",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-15T21:21:16Z",
+      "side": 1,
+      "message": "switch_vendor is now part of the interface API contract (create/update accept it at blueprint line 56, and GET serializes it through as_dict), but it\u0027s missing from swagger.yaml and docs/quads-api.md. A consumer reading the OpenAPI spec or the API doc has no way to know the field exists. Add `switch_vendor` to the interface schema in swagger.yaml (next to `vendor`) and to the example interface JSON in docs/quads-api.md.",
+      "revId": "06822b1795e549f81666825be0d33873d737acfa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
