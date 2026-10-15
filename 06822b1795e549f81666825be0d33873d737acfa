@@ -16,6 +16,24 @@
       "message": "switch_vendor is now part of the interface API contract (create/update accept it at blueprint line 56, and GET serializes it through as_dict), but it\u0027s missing from swagger.yaml and docs/quads-api.md. A consumer reading the OpenAPI spec or the API doc has no way to know the field exists. Add `switch_vendor` to the interface schema in swagger.yaml (next to `vendor`) and to the example interface JSON in docs/quads-api.md.",
       "revId": "06822b1795e549f81666825be0d33873d737acfa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f391178_6bb94544",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-15T21:48:45Z",
+      "side": 1,
+      "message": "Updated in PS6: `switch_vendor` (`type: string`, `example: juniper`) is now in the `Interface` component schema and in both the POST and PATCH `/interfaces/{hostName}` request bodies in `swagger.yaml`, since those bodies inline their schemas and adding it next to `vendor` in the component alone would not have covered create/update, and both example host JSON blocks in `docs/quads-api.md` now show the field.\n\nI also added an `interfaces.switch_vendor` row to the queryable-field table in `docs/quads-host-metadata-search.md`: slightly beyond the two files you named, but the nested filter (`?interfaces.switch_vendor\u003darista`) already resolves today, so it seemed worth documenting while the field is fresh.\n\nAccepted values are the enabled switch plugin names (`juniper`, `arista`), and a NULL value keeps the historical Juniper default for interfaces created before the field existed. Note the SwaggerHub page linked from `docs/quads-api.md` is a manual publication, so it needs a re-upload to pick this up.",
+      "parentUuid": "51fa2eb9_7e8bde8e",
+      "revId": "06822b1795e549f81666825be0d33873d737acfa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
