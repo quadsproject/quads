@@ -9,7 +9,8 @@
     size_gb: 4096
   host_type: scalelab
   interfaces:
-  - mac_address: A0:B1:C2:D3:E4:F5
+  - bios_id: Nic1.Interfaces.1
+    mac_address: A0:B1:C2:D3:E4:F5
     maintenance: false
     name: em1
     pxe_boot: true
