@@ -1478,6 +1478,7 @@ class QuadsCli:
             for interface in host.interfaces:
                 interface_dict = {
                     "name": interface.name,
+                    "bios_id": interface.bios_id,
                     "mac_address": interface.mac_address,
                     "switch_ip": interface.switch_ip,
                     "switch_port": interface.switch_port,
