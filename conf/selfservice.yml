@@ -15,6 +15,8 @@ ssm_deadline_hour: 21
 
 # Prefix for the description field of the self-schedulable resources
 ssm_description_prefix: "[SSM]"
+# Maximum length of the user supplied description for self-schedules, prefix does not count
+ssm_description_max: 48
 
 # Require an external authentication provider (e.g. Google OAuth/SSO) for new users.
 # When false (default): users can self-register via POST /api/v3/register/ with any
