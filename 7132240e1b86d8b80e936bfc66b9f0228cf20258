@@ -16,6 +16,24 @@
       "message": "Pool count omits an Assignment.active filter. terminate_assignment() sets active\u003dFalse but only rewinds current-window rows, leaving future-dated self-schedule rows (admin\nbatch with future dates, or PATCH moving a window forward) on the dead assignment.\n\nThose stale rows still count here, so a terminated assignment falsely consumes pool slots:\nfree hosts get rejected with \"reached its self-scheduling limit\" and capped out of the can_self_schedule\u003dtrue listing. Same omission ab3dc63 (#746) just fixed in\nget_current_schedule. Suggest .filter(Assignment.active.is_(True)).",
       "revId": "7132240e1b86d8b80e936bfc66b9f0228cf20258",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1c719e90_a33ee664",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T17:07:26Z",
+      "side": 1,
+      "message": "Confirmed, and thanks for the precise pointer - traced it end to end and reproduced it here.\n\nTerminate only rewinds rows current at that moment (`get_current_schedule`), and the admin batch/PATCH paths can leave future-dated rows on a self-schedule assignment. The counter has no cloud scope either, so a dead assignment keeps paying for itself out of the model pool for the whole fleet: a free same-model host is rejected with \"Model X has reached its self-scheduling limit\" and is capped out of the can_self_schedule\u003dtrue listing. A/B verified: adding the filter flips that 400 back to 201, and the same stale row on a still-active assignment correctly keeps the 400.\n\nNext patchset adds `Assignment.active.is_(True)` to `count_ss_schedules_by_model_overlap`, same form as ab3dc63 did for `get_current_schedule` (#746), with a regression test that fails on PS7 as it stands, and I will rebase onto development so #746 sits in the stack.\n\nThis does not touch precedence: admin bookings supersede self-scheduling and are never gated by the pool, which only applies to self-service assignments (including admin batch windows on them, per the docs). Once the self-service assignment is terminated, the pool needs to follow the supersede instead of charging the model for rows nobody owns.\n\nThe leftover-rows-still-lock-out-their-own-hosts part (`is_host_available` has no active filter) is pre-existing, out of scope for this one, and I will track it with the #746 follow-ups.",
+      "parentUuid": "4e270c20_070dd379",
+      "revId": "7132240e1b86d8b80e936bfc66b9f0228cf20258",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
