@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4e270c20_070dd379",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-16T14:47:23Z",
+      "side": 1,
+      "message": "Pool count omits an Assignment.active filter. terminate_assignment() sets active\u003dFalse but only rewinds current-window rows, leaving future-dated self-schedule rows (admin\nbatch with future dates, or PATCH moving a window forward) on the dead assignment.\n\nThose stale rows still count here, so a terminated assignment falsely consumes pool slots:\nfree hosts get rejected with \"reached its self-scheduling limit\" and capped out of the can_self_schedule\u003dtrue listing. Same omission ab3dc63 (#746) just fixed in\nget_current_schedule. Suggest .filter(Assignment.active.is_(True)).",
+      "revId": "7132240e1b86d8b80e936bfc66b9f0228cf20258",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
