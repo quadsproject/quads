@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c942e1c9_c5cf95a0",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-16T08:59:54Z",
+      "side": 1,
+      "message": "Whitespace-only description slips through. The required-field check runs on the pre-strip value, so `\"   \"` is truthy and passes, then `strip()` makes it `\"\"`, which is within the limit. That stores `[SSM] ` (just the prefix) as the assignment description. Re-check emptiness after the strip, e.g. `if not description:` return 400, so an all-space description is treated like a missing one.",
+      "revId": "4fa81cfc647f612ce0ff2bd93c9e71cdedd5f9f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
