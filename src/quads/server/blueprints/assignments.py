@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 assignment_bp = Blueprint("assignments", __name__)
 
+SSM_DESCRIPTION_MAX = 60
+
 
 def _get_ssh_keys_for_usernames(usernames, domain):
     keys = []
@@ -342,6 +344,30 @@ def create_self_assignment() -> Response:
             }
             return make_response(jsonify(response), 400)
 
+    if not isinstance(description, str):
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Invalid argument: description",
+        }
+        return make_response(jsonify(response), 400)
+
+    description = description.strip()
+    if not description:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Missing argument: description",
+        }
+        return make_response(jsonify(response), 400)
+
+    ssm_description_max = Config.get("ssm_description_max", SSM_DESCRIPTION_MAX)
+    if type(ssm_description_max) is not int or ssm_description_max < 1:
+        ssm_description_max = SSM_DESCRIPTION_MAX
+    truncated = len(description) > ssm_description_max
+    if truncated:
+        description = description[:ssm_description_max]
+
     if cc_user:
         cc_user = re.split(r"[, ]+", cc_user)
 
@@ -470,7 +496,10 @@ def create_self_assignment() -> Response:
             "message": f"Failed to commit assignment to database: {ex}",
         }
         return make_response(jsonify(response), 400)
-    return make_response(jsonify(_assignment_obj.as_dict()), 201)
+    assignment_dict = _assignment_obj.as_dict()
+    if truncated:
+        assignment_dict["warning"] = f"description truncated, maximum {ssm_description_max} characters"
+    return make_response(jsonify(assignment_dict), 201)
 
 
 @assignment_bp.route("/<assignment_id>/", methods=["PATCH"])
