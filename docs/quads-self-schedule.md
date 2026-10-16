@@ -72,6 +72,11 @@ curl -s https://quads.example.com/api/v3/available\?can_self_schedule\=true | jq
 > A JIRA ticket is created automatically if none is provided and if the service is enabled.
 >
 > There are other options as well like if your lab supports it like `"vlan": "620",` for an optional, routable VLAN.
+>
+> The `description` is limited by `ssm_description_max` (default 60) in
+> `/opt/quads/conf/selfservice.yml`. The `ssm_description_prefix` (default
+> `[SSM]`) is prepended server-side and does not count toward the limit.
+> Longer descriptions are rejected with HTTP 400 Bad Request.
 
 ```bash
 curl -s -k \
@@ -216,6 +221,11 @@ with QuadsApi(username, password, base_url) as quads:
 ### Create an assignment via Python
 > [!NOTE]
 > The `owner` field is the username minus the `@example.com` part of the email string, e.g. `joe`
+>
+> The `description` is limited by `ssm_description_max` (default 60) in
+> `/opt/quads/conf/selfservice.yml`. The `[SSM]` prefix is added server-side
+> and does not count toward the limit. Longer descriptions are rejected with
+> HTTP 400 Bad Request.
 >
 ```python
 from quads_lib import QuadsApi
