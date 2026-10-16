@@ -226,6 +226,24 @@
       "message": "I think this actually should be \"switchport mode dot1q-tunnel\"",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0562c5d4_cb7dad35",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T20:05:52Z",
+      "side": 1,
+      "message": "You are right, and it is worse than a parity issue: an EOS access port drops frames tagged with anything but its access VLAN (EOS 4.36 VLANs chapter: \"Access ports drop tagged frames that are not tagged with the access VLAN\"), while a dot1q-tunnel port accepts tagged and untagged ingress and pushes the cloud VLAN as the outer tag.\n\nQUADS hosts do tag: the Foreman network template builds an 802.1Q sub-interface per NIC (nmcli `type vlan`, `vlan.id` 101-105) carrying the 172.21-25.x addresses (templates/foreman/custom-generic-network-post.rb:88-105, config.py INTERFACES), and `--validate-env` fping\u0027s those tagged addresses (environment.py:292-307). So the access port was dropping half of every host\u0027s addressing on an Arista TOR, and the same cloud behaved differently on Juniper (`apply-groups QinQ_vl\u003cvlan\u003e`, tag-preserving) and on Arista.\n\nPS10: `set_port()` programs `switchport mode dot1q-tunnel`. That made `set_port()` and `set_port_qinq()` identical, so `set_port_qinq()` is gone and the plugin no longer selects a method from `qinq`, which keeps its Juniper meaning (VLAN numbering only; your 2017 `e1f17bd6` describes it the same way).\n\nReviewing that function turned up a second problem: `set_port_qinq()` sent `l2-protocol tunnel dot1q`, which is not an EOS command (only `l2-protocol encapsulation dot1q vlan` exists in three full-text EOS checks; that exact string belongs to H3C\u0027s L2PT CLI). Since PS9 the driver treats any output line starting with `%` as a rejection, so that line would have failed every qinq move closed instead of being silently ignored. Removed, and the docs now say the tunnel VLAN must pre-exist and that dot1q-tunnel needs no global command.\n\nAlso corrected in the same docs section: `mtu 9218` was wrong for EOS (`mtu` there is the IP MTU, 68-9214; the L2 frame limit is a fixed 9236 bytes, so tunnel-mode payload tops out at 9210), and dot1q-tunnel is not available on Petra platforms (DCS-7048).\n\nHardware checks I could not do: `show interfaces Ethernet1/1 switchport` after a move (mode dot1q-tunnel, access VLAN \u003d cloud VLAN) and a host\u0027s tagged 172.21.x address passing after a move.",
+      "parentUuid": "579abfbd_def689bd",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
