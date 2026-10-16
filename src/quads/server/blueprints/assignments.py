@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 assignment_bp = Blueprint("assignments", __name__)
 
+SSM_DESCRIPTION_MAX = 60
+
 
 def _get_ssh_keys_for_usernames(usernames, domain):
     keys = []
@@ -341,6 +343,24 @@ def create_self_assignment() -> Response:
                 "message": f"Missing argument: {field}",
             }
             return make_response(jsonify(response), 400)
+
+    if not isinstance(description, str):
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": "Invalid argument: description",
+        }
+        return make_response(jsonify(response), 400)
+
+    description = description.strip()
+    ssm_description_max = Config.get("ssm_description_max", SSM_DESCRIPTION_MAX)
+    if len(description) > ssm_description_max:
+        response = {
+            "status_code": 400,
+            "error": "Bad Request",
+            "message": f"Description must be {ssm_description_max} characters or less",
+        }
+        return make_response(jsonify(response), 400)
 
     if cc_user:
         cc_user = re.split(r"[, ]+", cc_user)
