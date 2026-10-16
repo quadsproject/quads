@@ -16,6 +16,24 @@
       "message": "iiuc the",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed0b16a4_ff737294",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-16T14:41:27Z",
+      "side": 1,
+      "message": "Disregard the above",
+      "parentUuid": "a8b88434_f65e85db",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
