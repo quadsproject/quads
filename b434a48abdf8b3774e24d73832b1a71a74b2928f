@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4373e892_3b46a8c2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T19:39:31Z",
+      "side": 1,
+      "message": "See my comment about dot1q-tunnel",
+      "revId": "b434a48abdf8b3774e24d73832b1a71a74b2928f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}

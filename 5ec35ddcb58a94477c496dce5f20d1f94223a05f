@@ -209,6 +209,23 @@
       "parentUuid": "f5d4ea80_f2ce77e5",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "579abfbd_def689bd",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T19:39:31Z",
+      "side": 1,
+      "message": "I think this actually should be \"switchport mode dot1q-tunnel\"",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
