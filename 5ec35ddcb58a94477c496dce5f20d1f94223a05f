@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "24ce6e72_140fb73b",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T19:25:26Z",
+      "side": 1,
+      "message": "Agreed, and the consequence was worse than the text said: because `configure()` returned `True` for a host it never touched, `--move-hosts` wrote `switch_config_applied: True` (cli.py:2082) and `--validate-env` then skipped that host for good (environment.py:227), so no fallback could see the skipped port.\n\nFixed in the plugins rather than at the API: `SwitchPlugin` now exposes `unclaimed_interfaces()` and `log_unclaimed()` (plugins/interfaces/switch.py:27,34), and `configure()`, `modify()` and `verify()` fail closed with a loud error naming the interfaces and the offending `switch_vendor` values when no enabled switch plugin claims them. The move is then recorded as failed and `switch_config_applied` stays false, so validation keeps reporting the host until the tag is fixed.\n\nNot added: validation at interface create/update. The API server\u0027s plugin configuration is not necessarily the mover\u0027s, and a hard reject also blocks the legitimate \"plugin disabled while we work on it\" case. The escape hatches are unchanged: fix the tag or enable the plugin (now spelled out at docs/switch-host-setup.md:162), or use `omit_network_move` (conf/quads.yml) or set `switch_config_applied` by hand (README) as before.\n\nTests: a typo\u0027d vendor fails closed in both plugins, and a correctly tagged mixed-vendor host still programs exactly the same ports as before.",
+      "parentUuid": "03958f44_e7e55333",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "1559219e_0ba06c05",
         "filename": "src/quads/plugins/builtin/switches/arista.py",
         "patchSetId": 8
@@ -37,6 +55,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9d677cd5_054ec52e",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T19:25:26Z",
+      "side": 1,
+      "message": "Confirmed and fixed in PS9. `modify()` now carries an `all_ok` flag: a failed `set_port()`/`set_port_qinq()` logs the error, sets `all_ok \u003d False` and `modify()` returns it (arista.py:205,210), so the dispatcher no longer counts the operation as successful. `test_modify_set_port_failure` now asserts `is False`.\n\nRelated: the rejection path was dead before, because the driver compared a bytes `child.before` against a str `\"%\"`, so every command raised `TypeError` and only a 120s pexpect timeout could ever return `False` (see the external/arista.py thread). Both had to be fixed together.\n\nOne thing to know: the CLI does not consume the dispatcher result today (`action_mod_switch_conf` discards it), so the operator-visible symptom was the plugin ERROR line rather than an exit code. I left that alone; happy to make `--mod-switch-conf` exit non-zero if you want it.",
+      "parentUuid": "1559219e_0ba06c05",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "4951fc8f_2c604cbc",
         "filename": "src/quads/plugins/builtin/switches/arista.py",
         "patchSetId": 8
@@ -48,6 +84,24 @@
       "writtenOn": "2026-10-16T18:18:33Z",
       "side": 1,
       "message": "verify() dead code: `_cloud` (fetched at line 210 via get_cloud(cloud)) is never assigned to `_cloud_obj`, so `_cloud_obj` is always first_host.cloud and the `if _cloud_obj !\u003d first_host.cloud:` warning at line 230 can never fire. When both host and cloud are passed (e.g. CLI `--verify-switch-conf --host X --cloud Y`), the cloud argument is silently ignored and verification runs against the host\u0027s own cloud. Fix: `_cloud_obj \u003d _cloud` when cloud is given. (Same pattern exists in juniper.py — worth fixing both.)",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3354e76d_43eabace",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T19:25:26Z",
+      "side": 1,
+      "message": "Confirmed in both plugins: `_cloud` was fetched and dropped, so the warning could never fire and `--cloud` was ignored whenever `--host` was also given.\n\nI did not apply `_cloud_obj \u003d _cloud`, because that comparison is identity based: `Cloud` and `Host` define no `__eq__`, and `filter_hosts` builds fresh objects per response, so a `Cloud` from `get_cloud()` never equals `first_host.cloud` even for the same cloud. Assigning it would fire the warning on every `--verify-switch-conf --cloud cloud0X` run with self-contradictory text, and `_assignment` would come from the other cloud, which under `--change` reprograms ports against a plan that does not apply to the host.\n\nInstead (arista.py:240-247 and the same block in juniper.py): the comparison is on cloud names, the warning fires only when they really differ, its text says which cloud is used, and `_assignment` still comes from the host\u0027s own cloud, as it effectively always did.",
+      "parentUuid": "4951fc8f_2c604cbc",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -106,6 +160,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6c72e4ab_2a3465ab",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T19:25:26Z",
+      "side": 1,
+      "message": "Taken as a cleanup rather than a bug: with the shipped conf/plugins.yml the `arista` section exists, and `PluginManager` only loads plugins listed in that same file, so the `KeyError` needs a hand-edited config.\n\nThe driver now takes `username` in its constructor and the plugin passes `self.username` at all five call sites, matching `SSHHelper`; `Config` is no longer imported by the driver. external/juniper.py:26 has the same pattern but is not part of this change, so I left it alone; happy to do both in a follow-up.",
+      "parentUuid": "2d307a10_e85ea5a2",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f5d4ea80_f2ce77e5",
         "filename": "src/quads/tools/external/arista.py",
         "patchSetId": 8
@@ -117,6 +189,24 @@
       "writtenOn": "2026-10-16T18:18:33Z",
       "side": 1,
       "message": "Unit question: this multiplies port_speed by 1000 (treating the stored value as Gbps), whereas the juniper driver emits `speed {port_speed}g` and README/CLI examples use `--interface-speed 1000` (reads as Mbps) while docs/quads-api.md examples use \"speed\": 10 (reads as Gbps). On EOS, `speed` takes Mbps — for a port stored as 1000, this yields `speed 1000000` (1 Tbps), which EOS rejects. Please pin down and document the unit (and validate at CLI/API boundary) so the README, API docs, and both drivers agree.",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79d0280e_f306d391",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T19:25:26Z",
+      "side": 1,
+      "message": "Answer: the stored unit is Gbps, and the Arista `*1000` is correct for EOS.\n\nEvidence: your speed feature commit e20a5b0b documents a stored 25 programming `speed 25g`; docs/quads-api.md examples use `\"speed\": 10`; the web UI labels it Gbps (web/forms.py:32, web/templates/wiki/available.html:105, connectivity_cloud.html:640); `Interface.speed` is an Integer column. EOS takes Mbps, so `N * 1000` is the same value expressed in EOS units, and both drivers agree.\n\nWhat was wrong was the documentation: README.md and the new docs/switch-host-setup.md example both said `--interface-speed 1000`, which is nonsense under the Gbps convention and programs `speed 1000000`. PS9 states the unit in docs/switch-host-setup.md:160 and in the driver, adds `description: Link speed in Gbps` plus `example: 10` to `speed` in swagger.yaml, and corrects the README examples to 10.\n\nOne thing to confirm on the hardware: the EOS 4.36 command reference only lists letter forms for `speed` (`speed 10gfull` and friends), so I could not verify from documentation that a bare Mbps integer is accepted. The unit question is settled; the accepted form is not, and the now-live `%` detection will fail the port loudly if EOS rejects `speed \u003cN*1000\u003e`.\n\nNot added: boundary validation. The API already answers 400 for a negative or non-integer speed (interfaces.py:75,156 plus the app-wide ValueError handler), and an upper bound would reject values that exist in databases today with no escape hatch. Note a port stored as 1000 fails on Juniper at `commit` (`speed 1000g`), so that data needs correcting rather than a driver change.",
+      "parentUuid": "f5d4ea80_f2ce77e5",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
