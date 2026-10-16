@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8b88434_f65e85db",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-16T13:56:21Z",
+      "side": 1,
+      "message": "iiuc the",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
