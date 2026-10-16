@@ -34,6 +34,24 @@
       "parentUuid": "4e270c20_070dd379",
       "revId": "7132240e1b86d8b80e936bfc66b9f0228cf20258",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2fcfba1c_f6cf9814",
+        "filename": "src/quads/server/dao/schedule.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-16T17:11:34Z",
+      "side": 1,
+      "message": "Fixed in PS8: `count_ss_schedules_by_model_overlap` now filters `Assignment.active`, with an API test that fails on PS7 and passes with the filter (leftover rows on a terminated self-schedule assignment hold no pool slot). Rebased onto development so ab3dc63 (#746) is in the stack. Thanks.",
+      "parentUuid": "4e270c20_070dd379",
+      "revId": "7132240e1b86d8b80e936bfc66b9f0228cf20258",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
