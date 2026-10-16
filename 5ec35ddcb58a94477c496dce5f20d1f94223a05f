@@ -1,6 +1,57 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "03958f44_e7e55333",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T18:18:33Z",
+      "side": 1,
+      "message": "Design concern: this fail-open behavior means a misspelled/disabled switch_vendor tag silently skips the port while move/validate/release all report success — the host keeps its old VLAN config in a production move. A case-sensitive typo like \"Arista\" or \"arista \" has the same effect. Consider validating switch_vendor against enabled plugin names at interface create/update time, or at minimum warn loudly in the dispatcher when a host\u0027s interfaces are claimed by no plugin.",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1559219e_0ba06c05",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T18:18:33Z",
+      "side": 1,
+      "message": "modify() returns True here even when `success` was False above (line 189-192): a failed set_port()/set_port_qinq() is only logged, then this return True makes the dispatcher treat the whole operation as successful. test_modify_set_port_failure asserts `result is True` for exactly this case. configure() and verify() fail closed — modify() should propagate the failure too (return False / all_ok flag), otherwise `--mod-interface --change` reports success while the port was never touched.",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4951fc8f_2c604cbc",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T18:18:33Z",
+      "side": 1,
+      "message": "verify() dead code: `_cloud` (fetched at line 210 via get_cloud(cloud)) is never assigned to `_cloud_obj`, so `_cloud_obj` is always first_host.cloud and the `if _cloud_obj !\u003d first_host.cloud:` warning at line 230 can never fire. When both host and cloud are passed (e.g. CLI `--verify-switch-conf --host X --cloud Y`), the cloud argument is silently ignored and verification runs against the host\u0027s own cloud. Fix: `_cloud_obj \u003d _cloud` when cloud is given. (Same pattern exists in juniper.py — worth fixing both.)",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a8b88434_f65e85db",
@@ -32,6 +83,40 @@
       "side": 1,
       "message": "Disregard the above",
       "parentUuid": "a8b88434_f65e85db",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2d307a10_e85ea5a2",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T18:18:33Z",
+      "side": 1,
+      "message": "Hard-coded access to Config.plugins[\"arista\"][\"username\"] raises KeyError if the global config lacks the arista section (e.g. alternate config path, or tests that don\u0027t load it) — that KeyError escapes set_port\u0027s `except AristaException` and surfaces as a generic dispatcher error. Consider passing the username in via the constructor from the plugin\u0027s own config (self.username), as SSHHelper does.",
+      "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f5d4ea80_f2ce77e5",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-16T18:18:33Z",
+      "side": 1,
+      "message": "Unit question: this multiplies port_speed by 1000 (treating the stored value as Gbps), whereas the juniper driver emits `speed {port_speed}g` and README/CLI examples use `--interface-speed 1000` (reads as Mbps) while docs/quads-api.md examples use \"speed\": 10 (reads as Gbps). On EOS, `speed` takes Mbps — for a port stored as 1000, this yields `speed 1000000` (1 Tbps), which EOS rejects. Please pin down and document the unit (and validate at CLI/API boundary) so the README, API docs, and both drivers agree.",
       "revId": "5ec35ddcb58a94477c496dce5f20d1f94223a05f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
