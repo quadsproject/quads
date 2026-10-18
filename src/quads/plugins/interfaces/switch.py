@@ -8,7 +8,7 @@ class SwitchPlugin(BasePlugin):
     """Interface for switch plugins"""
 
     @abstractmethod
-    def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
+    def configure(self, host: str, old_cloud: str, new_cloud: str, dry_run: bool = False) -> bool:
         """
         Configure the switch for the host.
 
@@ -16,6 +16,7 @@ class SwitchPlugin(BasePlugin):
             host: Hostname to configure
             old_cloud: Old cloud name
             new_cloud: New cloud name
+            dry_run: True to print the commands without executing them
 
         Returns:
             bool: True if configuration successful, False otherwise
@@ -28,6 +29,7 @@ class SwitchPlugin(BasePlugin):
         host: str,
         change: bool = False,
         overrides: Optional[dict] = None,
+        dry_run: bool = False,
     ) -> bool:
         """
         Modify the switch for the host.
@@ -36,6 +38,7 @@ class SwitchPlugin(BasePlugin):
             host: Hostname to modify
             change: True if change is requested, False otherwise
             overrides: Dict mapping interface index (int) to VLAN ID (str)
+            dry_run: True to print the commands without executing them
 
         Returns:
             bool: True if modification successful, False otherwise
@@ -43,7 +46,7 @@ class SwitchPlugin(BasePlugin):
         pass
 
     @abstractmethod
-    def verify(self, host: str = None, cloud: str = None, change: bool = False) -> bool:
+    def verify(self, host: str = None, cloud: str = None, change: bool = False, dry_run: bool = False) -> bool:
         """
         Verify the switch for the host.
 
@@ -51,6 +54,7 @@ class SwitchPlugin(BasePlugin):
             host: Hostname to verify
             cloud: Cloud name to verify
             change: True if change is requested, False otherwise
+            dry_run: True to verify without changing anything
 
         Returns:
             bool: True if verification successful, False otherwise
