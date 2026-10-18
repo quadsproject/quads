@@ -266,6 +266,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     self.log_unclaimed(_host_obj.name, unclaimed)
                     all_ok = False
                     continue
+                if any(self.owns_interface(interface) for interface in interfaces):
+                    self.logger.info("Skipping speed/FEC checks for juniper interfaces")
                 for i, interface in enumerate(interfaces):
                     if not self.owns_interface(interface):
                         continue
@@ -310,17 +312,15 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     ssh_helper.disconnect()
 
                     if int(old_vlan) != int(vlan):
-                        self.logger.warning("Interface %s not using QinQ_vl%s", interface.switch_port, vlan)
+                        self.logger.warning(
+                            "Interface %s (%s: %s) not using QinQ_vl%s",
+                            interface.switch_port,
+                            self.name,
+                            interface.switch_ip,
+                            vlan,
+                        )
 
                     if int(vlan_member) != int(vlan):
-                        if not last_nic:
-                            self.logger.warning(
-                                "Interface %s appears to be a member of VLAN %s, should be %s",
-                                interface.switch_port,
-                                vlan_member,
-                                vlan,
-                            )
-
                         if change:
                             if _assignment and _assignment.vlan and last_nic:
                                 if int(_assignment.vlan.vlan_id) != int(old_vlan):
@@ -361,7 +361,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                 all_ok = False
                         else:
                             self.logger.error(
-                                f"Interface {interface.switch_port} appears to be a member of VLAN {vlan_member}, should be {vlan}"
+                                f"Interface {interface.switch_port} ({self.name}: {interface.switch_ip}) "
+                                f"appears to be a member of VLAN {vlan_member}, should be {vlan}"
                             )
                             all_ok = False
             else:
