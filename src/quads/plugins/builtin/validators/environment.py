@@ -303,7 +303,16 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 last_nic = i == len(_host_obj.interfaces) - 1
                 if last_nic and has_vlan:
                     continue
-                for value in _interfaces:
+                _iface_obj = next((x for x in _host_obj.interfaces if x.name == interface), None)
+                _vendor = getattr(_iface_obj, "switch_vendor", None) if _iface_obj else None
+                _vendor_cfg = (getattr(Config, "vendors", None) or {}).get(_vendor) if _vendor else None
+                for vindex, value in enumerate(_interfaces):
+                    # Config.INTERFACES entries are [untagged, tagged] pairs
+                    # (172.16-172.20 / 172.21-172.25); the vendor recipe can
+                    # toggle verification for either traffic type.
+                    role = "verify_untagged" if vindex == 0 else "verify_tagged"
+                    if _vendor_cfg is not None and not _vendor_cfg.get(role, True):
+                        continue
                     ip_apart = host["ip"].split(".")
                     octets = value.split(".")
                     ip_apart[0] = octets[0]

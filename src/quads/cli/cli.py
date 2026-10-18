@@ -348,7 +348,7 @@ class QuadsCli:
                 overrides[index] = value
 
         switch_dispatcher = get_switch_dispatcher()
-        asyncio.run(switch_dispatcher.modify(_host, _change, overrides))
+        asyncio.run(switch_dispatcher.modify(_host, _change, overrides, bool(self.cli_args.get("dryrun"))))
 
     def action_verify_switch_conf(self):
         _host = self.cli_args.get("host")
@@ -356,7 +356,7 @@ class QuadsCli:
         _change = self.cli_args.get("change")
 
         switch_dispatcher = get_switch_dispatcher()
-        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
+        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change, bool(self.cli_args.get("dryrun"))))
 
     def _call_api_action(self, action: str):
         try:
@@ -1790,6 +1790,7 @@ class QuadsCli:
             "switch_port": _ifport,
             "speed": _ifspeed,
             "vendor": _ifvendor,
+            "switch_vendor": self.cli_args.get("ifswitchvendor"),
             "maintenance": _ifmaintenance,
             "pxe_boot": pxe_boot,
             "force": _force,
@@ -1832,6 +1833,7 @@ class QuadsCli:
             "ifbiosid": "bios_id",
             "ifspeed": "speed",
             "ifvendor": "vendor",
+            "ifswitchvendor": "switch_vendor",
             "ifmaintenance": "maintenance",
         }
         _ifmac = self.cli_args.get("ifmac", None)
@@ -1867,6 +1869,7 @@ class QuadsCli:
             and _ifport is None
             and _ifspeed is None
             and _ifvendor is None
+            and "ifswitchvendor" not in self.cli_args
             and "ifpxe" not in self.cli_args
             and "ifmaintenance" not in self.cli_args
         ):
@@ -1879,6 +1882,7 @@ class QuadsCli:
                 "\t--interface-port\n"
                 "\t--interface-speed\n"
                 "\t--interface-vendor\n"
+                "\t--interface-switch-vendor\n"
                 "\t--pxe-boot\n"
                 "\t--maintenance"
             )
