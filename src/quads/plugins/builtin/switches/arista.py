@@ -288,19 +288,13 @@ class AristaSwitchPlugin(SwitchPlugin):
                         speed_ok = speed_statement_matches(statement, lines) and (has_fec if is_100g else not has_fec)
                         if not speed_ok:
                             self.logger.warning(
-                                "Interface %s speed/FEC does not match quads speed %s Gbps",
+                                "Interface %s (%s: %s) speed/FEC does not match quads speed %s Gbps",
                                 interface.switch_port,
+                                self.name,
+                                interface.switch_ip,
                                 interface.speed,
                             )
                     if int(vlan_member) != int(vlan) or not speed_ok:
-                        if int(vlan_member) != int(vlan):
-                            self.logger.warning(
-                                "Interface %s appears to be a member of VLAN %s, should be %s",
-                                interface.switch_port,
-                                vlan_member,
-                                vlan,
-                            )
-
                         if change:
                             if _assignment and _assignment.vlan and last_nic:
                                 if int(_assignment.vlan.vlan_id) != int(old_vlan) or not speed_ok:
@@ -344,8 +338,8 @@ class AristaSwitchPlugin(SwitchPlugin):
                         else:
                             if int(vlan_member) != int(vlan):
                                 self.logger.error(
-                                    f"Interface {interface.switch_port} appears to be a member of "
-                                    f"VLAN {vlan_member}, should be {vlan}"
+                                    f"Interface {interface.switch_port} ({self.name}: {interface.switch_ip}) "
+                                    f"appears to be a member of VLAN {vlan_member}, should be {vlan}"
                                 )
                             all_ok = False
             else:
