@@ -19,6 +19,10 @@ class SwitchPlugin(BasePlugin):
     # Set by initialize() from PluginManager.load_plugin; None in bare unit tests.
     plugin_manager: Optional[PluginManager] = None
 
+    # Drivers that can print their exact command sequence without touching
+    # the switch set this True.  The dispatcher skips the others on --dry-run.
+    supports_dry_run = False
+
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         self.plugin_manager = plugin_manager
         return True

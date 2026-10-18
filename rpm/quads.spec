@@ -39,6 +39,7 @@ Requires: nginx >= 1.0
 Requires: python3-gunicorn >= 15.0
 Requires: python3-passlib >= 1.7
 Requires: python3-PyYAML >= 6.0
+Requires: python3-ruamel-yaml >= 0.17
 Requires: python3-requests >= 2.28.1
 Requires: python3-aiohttp >= 3.8.5
 Requires: python3-distlib >= 0.2
@@ -176,6 +177,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/quads/conf/selfservice.yml
 %config(noreplace) /opt/quads/conf/vlans.yml
 %config(noreplace) /opt/quads/conf/plugins.yml
+%config(noreplace) /opt/quads/conf/switch_commands.yml
 %config(noreplace) /opt/quads/conf/oauth.yml
 %config(noreplace) /opt/quads/conf/hosts_metadata.yml
 %config(noreplace) /opt/quads/conf/idrac_interfaces.yml
