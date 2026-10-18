@@ -1001,6 +1001,7 @@ class TestJuniperSwitchPlugin:
 
         assert result is True
         plugin.logger.error.assert_not_called()
+        plugin.logger.info.assert_any_call("Skipping speed/FEC checks for juniper interfaces")
 
     @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")

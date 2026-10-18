@@ -266,6 +266,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     self.log_unclaimed(_host_obj.name, unclaimed)
                     all_ok = False
                     continue
+                if any(self.owns_interface(interface) for interface in interfaces):
+                    self.logger.info("Skipping speed/FEC checks for juniper interfaces")
                 for i, interface in enumerate(interfaces):
                     if not self.owns_interface(interface):
                         continue
