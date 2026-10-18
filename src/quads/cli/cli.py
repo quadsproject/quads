@@ -348,7 +348,7 @@ class QuadsCli:
                 overrides[index] = value
 
         switch_dispatcher = get_switch_dispatcher()
-        asyncio.run(switch_dispatcher.modify(_host, _change, overrides))
+        asyncio.run(switch_dispatcher.modify(_host, _change, overrides, bool(self.cli_args.get("dryrun"))))
 
     def action_verify_switch_conf(self):
         _host = self.cli_args.get("host")
@@ -356,7 +356,7 @@ class QuadsCli:
         _change = self.cli_args.get("change")
 
         switch_dispatcher = get_switch_dispatcher()
-        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
+        asyncio.run(switch_dispatcher.verify(_host, _cloud, _change, bool(self.cli_args.get("dryrun"))))
 
     def _call_api_action(self, action: str):
         try:
@@ -404,6 +404,7 @@ class QuadsCli:
             table.add_column("MAC Address")
             table.add_column("Switch IP")
             table.add_column("Port")
+            table.add_column("Switch Vendor")
             table.add_column("Speed")
             table.add_column("Vendor")
             table.add_column("PXE Boot")
@@ -415,6 +416,7 @@ class QuadsCli:
                     str(interface.mac_address),
                     str(interface.switch_ip),
                     str(interface.switch_port),
+                    str(interface.switch_vendor),
                     str(interface.speed),
                     str(interface.vendor),
                     str(interface.pxe_boot),
@@ -1483,6 +1485,7 @@ class QuadsCli:
                     "switch_port": interface.switch_port,
                     "speed": interface.speed if interface.speed else 0,
                     "vendor": interface.vendor,
+                    "switch_vendor": interface.switch_vendor,
                     "pxe_boot": interface.pxe_boot,
                     "maintenance": interface.maintenance,
                 }
@@ -1790,6 +1793,7 @@ class QuadsCli:
             "switch_port": _ifport,
             "speed": _ifspeed,
             "vendor": _ifvendor,
+            "switch_vendor": self.cli_args.get("ifswitchvendor"),
             "maintenance": _ifmaintenance,
             "pxe_boot": pxe_boot,
             "force": _force,
@@ -1832,6 +1836,7 @@ class QuadsCli:
             "ifbiosid": "bios_id",
             "ifspeed": "speed",
             "ifvendor": "vendor",
+            "ifswitchvendor": "switch_vendor",
             "ifmaintenance": "maintenance",
         }
         _ifmac = self.cli_args.get("ifmac", None)
@@ -1867,6 +1872,7 @@ class QuadsCli:
             and _ifport is None
             and _ifspeed is None
             and _ifvendor is None
+            and self.cli_args.get("ifswitchvendor") is None
             and "ifpxe" not in self.cli_args
             and "ifmaintenance" not in self.cli_args
         ):
@@ -1879,6 +1885,7 @@ class QuadsCli:
                 "\t--interface-port\n"
                 "\t--interface-speed\n"
                 "\t--interface-vendor\n"
+                "\t--interface-switch-vendor\n"
                 "\t--pxe-boot\n"
                 "\t--maintenance"
             )
@@ -1978,6 +1985,23 @@ class QuadsCli:
                     wipe = target_assignment.wipe if target_assignment else False
 
                     self.logger.info(f"Moving {host} from {current} to {new}, wipe = {wipe}")
+                    omits = conf.get("omit_network_move")
+                    omit = False
+                    if omits:
+                        omits = omits.split(",")
+                        omit = [omit for omit in omits if omit in host or omit == new]
+                    if not omit:
+                        # Built before the dry-run guard so --move-hosts
+                        # --dry-run prints the exact switch commands.
+                        switch_tasks.append(
+                            functools.partial(
+                                switch_dispatcher.configure,
+                                host,
+                                current,
+                                new,
+                                bool(self.cli_args.get("dryrun")),
+                            )
+                        )
                     if not self.cli_args.get("dryrun"):
                         try:
                             self.quads.update_host(
@@ -2006,21 +2030,14 @@ class QuadsCli:
                                 raise CliException(str(ex))
                         try:
                             move_args.append({"host": host, "new": new, "semaphore": semaphore, "wipe": wipe})
-                            omits = conf.get("omit_network_move")
-                            omit = False
-                            if omits:
-                                omits = omits.split(",")
-                                omit = [omit for omit in omits if omit in host or omit == new]
-                            if not omit:
-                                switch_tasks.append(functools.partial(switch_dispatcher.configure, host, current, new))
 
                         except Exception as ex:
                             self.logger.debug(ex)
                             self.logger.exception("Move command failed for host: %s" % host)
                             provisioned = False
 
+                schedule_ids = {}
                 if not self.cli_args.get("dryrun"):
-                    schedule_ids = {}
                     hostnames = [r["host"] for r in results]
                     try:
                         resp = self.quads.start_move_batch(hostnames)
@@ -2028,6 +2045,7 @@ class QuadsCli:
                     except Exception as ex:
                         self.logger.warning(f"Failed to start move batch: {ex}")
 
+                if not self.cli_args.get("dryrun") or switch_tasks:
                     for task in switch_tasks:
                         hostname = task.args[0]
                         _schedule_id = schedule_ids.get(hostname)
@@ -2069,14 +2087,15 @@ class QuadsCli:
                                 continue
 
                             if result:
-                                try:
-                                    self.quads.update_host(hostname, {"switch_config_applied": True})
-                                except (
-                                    APIServerException,
-                                    APIBadRequest,
-                                ) as ex:  # pragma: no cover
-                                    self.logger.exception(str(ex))
-                                    continue
+                                if not self.cli_args.get("dryrun"):
+                                    try:
+                                        self.quads.update_host(hostname, {"switch_config_applied": True})
+                                    except (
+                                        APIServerException,
+                                        APIBadRequest,
+                                    ) as ex:  # pragma: no cover
+                                        self.logger.exception(str(ex))
+                                        continue
                             else:
                                 self.logger.exception("There was something wrong configuring the switch.")
                                 if _schedule_id:
