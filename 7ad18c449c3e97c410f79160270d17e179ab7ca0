@@ -1,0 +1,327 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a4d030f1_9ef49719",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required docs: the README still says switch automation is Juniper-only and lists Juniper as the core switch plugin (lines 456, 681, 1376). This change adds a configurable network plugin and Arista recipes but does not document switch_commands.yml, the recipe schema, switch_vendor, the Arista setup, or the upgrade path. 1238096 has the docs; port them in the rebase.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9fd77628_02c790ef",
+        "filename": "conf/plugins.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking upgrade: renaming the only switch plugin from juniper to network is not migrated. plugins.yml is %config(noreplace) (rpm/quads.spec:178), so an existing install keeps `juniper: enabled: true`; juniper.py is deleted, PluginManager loads no switch plugin, and every move reports \u0027No switch plugin enabled\u0027. Add a compatibility alias or upgrade migration, or keep the juniper plugin enabled alongside network.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0cc9eb84_738f7d6d",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required upgrade: the recipe reads its own `username`; the old `plugins.juniper.username` is no longer consulted. Existing installs keep their configured value in plugins.yml, but the recipe ships `switch_username`, so SSH fails. Fall back to Config.plugins[...] when the recipe value is unset, or migrate and document the value.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88df9e0d_dd01f687",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking: `SwitchCLI._command()` waits for `connection.login_prompt` after every command (switch_cli.py:74). JUNOS switches to `#` after `edit`, so every configure/modify times out on `edit`. Reproduced against a fake JUNOS CLI over pexpect; the parent driver succeeds on the same switch. The old driver used `\u003e` only on connect and `#` for command execution. Use `[\u003e#]` as issue #750 proposed, or add a per-command expect. Add a fake-channel test covering edit/commit.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a08438e9_01885227",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required: `verify_untagged: false` is a workaround for one POC fabric bug, shipped as the global Arista default. It silently disables untagged ping validation for every Arista deployment, and %config(noreplace) keeps it after the fabric fix. Ship true and keep the POC override in the site\u0027s local recipe; log when a recipe disables a validation role.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6c6a642_73a19298",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking: the save list runs `write memory` then `copy running-configuration startup-configuration`, with `save_wait: Copy completed` applied only to the last save (switch_cli.py:118-126). The comment says the role denies the copy; EOS prints `% ...` and the prompt, so the expect times out for 120 s and `_set_op` returns False even though `write memory` persisted the change. The EOS spelling is `copy running-config startup-config`, not `...-configuration...`, so an ACL grant would not fix it. Use `save: write memory` with `save_wait: Copy completed` as 1238096 does, or add per-save expects.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c440bba7_26cbc636",
+        "filename": "migrations/versions/c4a5e6b7d8e9_interface_switch_vendor.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking: the column is nullable with no backfill, and _vendor_cfg raises on NULL (network.py:31-44), so every pre-existing interface fails configure/modify/verify after upgrade. Backfill to the historical vendor (juniper) or implement legacy ownership like 1238096\u0027s _owns_legacy_interfaces. Also, this revision and 1238096\u0027s a1b2c3d4e5f6 both have down_revision \u003d 3bd119370bb0 and both add the column; a plain alembic merge still emits both ALTERs. Rebase after one lands, delete one migration, and add the retained revision to setup.cfg:55-68 for wheel installs.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f33f246_9697d397",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1482,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required: the metadata export dict omits switch_vendor. `--export-host-details` followed by `--define-host-details --force` clears and recreates interfaces from this dict, so the tag becomes NULL and the next switch operation fails closed. Add switch_vendor and a round-trip test. 1238096 already does this.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9dc59d36_49448c5a",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1874,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required: --interface-switch-vendor is declared with default\u003dNone (parser.py:639-645), so vars(parse_args()) always contains `ifswitchvendor` (main.py:39). The guard `\"ifswitchvendor\" not in self.cli_args` is therefore always false; `quads --mod-interface --host h --interface-name em1` no longer raises and reports success on an all-None update. Use `self.cli_args.get(\"ifswitchvendor\") is None` (as 1238096 does), or default\u003dargparse.SUPPRESS. Make the test use the real parser.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "76b8ebb3_2fae5a30",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking for non-qinq clouds: qinq only changes VLAN numbering (helpers/utils.py:40-47); the parent Juniper path always applies the QinQ group. Selecting `set_port_access` here programs `switchport mode access` (conf/switch_commands.yml:88), which drops the host\u0027s own 802.1Q tags (the 172.21-25 per-NIC addresses). 1238096 always uses `switchport mode dot1q-tunnel` and documents this. Use dot1q-tunnel for cloud moves, or make port mode an explicit operator decision.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ffd779d_f5095e75",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required: vendor/recipe validation happens inside the per-interface loop, after earlier interfaces have already been written. A typo/NULL on NIC 2 leaves NIC 1 moved and returns False. 1238096 preflights `unclaimed_interfaces(interfaces)` before any switch I/O; do the same for configure and modify.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13e88f71_397066f6",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required by issue #750: configure hardcodes dry_run\u003dFalse and the dispatcher/CLI never pass a dry-run through --move-hosts; cli.py:2028 skips switch tasks entirely on --dry-run. The issue asks the move path to print the exact command sequence. Thread dry_run through configure and --move-hosts.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fbc7a0e9_71b92673",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Follow-up: `_host_obj.cloud.name` raises AttributeError for a host with no cloud. QUADS normally assigns a cloud and parent modify did not need one; guard this or bind the assignment only when a cloud exists. The dispatcher converts the exception into a False result.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7697e5b7_633b1c45",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required: in dry-run, SwitchCLI._command() returns an empty string without contacting the switch, _run_get() returns None, and verify() converts that to VLAN 0 (lines 251-252). `--verify-switch-conf --dry-run` therefore reports every interface as a mismatch. Do the read for real and suppress only writes, or skip the comparison in dry-run and print the intended check.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ebcf6d99_8baba55d",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Follow-up: ls_config() warns and continues on a missing vendor/recipe, then returns True (line 336). A typo\u0027d vendor reports success with no output. Set an all_ok flag like verify/configure, or return False. The only caller discards the return today, so this is not blocking, but the contract is wrong.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6459dcc_38ed4ca9",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking for merge/extension: this passes a 4th positional `dry_run` to `_default_plugin.modify()` (and line 52 for verify), but SwitchPlugin.modify/verify still declare three arguments (interfaces/switch.py:26-52). 1238096\u0027s Juniper/Arista plugins and any third-party plugin raise TypeError, which the broad except converts to False. Add dry_run to the interface and every implementation, or pass it only by keyword to plugins that accept it.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c37f54fe_3467c75e",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Required for the generic direction: there is no schema validation. An empty operation returns True (line 127), a missing operation raises raw KeyError (network.py:82), a bad regex raises raw re.error, and .format() on the parse pattern breaks regex quantifiers (`\\d{1,3}` becomes a missing parameter). Validate required keys, operations, prompts, save markers, and compiled patterns at initialize, and make empty operations fail loudly. Issue #750 requires this.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e3581f4_ca401fd5",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Follow-up: _connect() runs before the try/finally, so a connect EOF or an init-command failure bypasses _close() and escapes as a raw pexpect exception. The parent had the same connect behavior; the new init_commands path is new. Move _connect() inside the try and catch pexpect.EOF/ExceptionPexpect as SwitchCLIException.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0aa93c37_f2e1364e",
+        "filename": "tests/plugins/test_switch_network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-18T14:28:42Z",
+      "side": 1,
+      "message": "Blocking: this patch deletes 978 lines/40 Juniper plugin tests and 92 lines/10 driver tests, and replaces them with 4 helper tests + 4 dry-run tests. Coverage of the replaced switch path drops from 90% to 23% (network.py 10%, switch_cli.py 57%). configure/modify/verify/ls_config, public VLAN, qinq/access, multi-NIC, fail-closed, save/error/timeout, and a real pexpect channel are untested; the Juniper prompt timeout passes all new tests. Restore the behavior tests and add a fake-channel harness before merge.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
