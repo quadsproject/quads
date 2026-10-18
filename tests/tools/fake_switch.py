@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Fake switch console for SwitchCLI tests.
+
+Emulates enough of a Junos/Arista session over a PTY to exercise the
+real pexpect runner: an operational '>' prompt, a config-mode '#'
+prompt after edit/configure terminal, commit/copy markers, a VLAN
+show reply, and EOS-style '%' error output.
+"""
+
+import os
+import sys
+
+
+def read_line():
+    buf = b""
+    while True:
+        chunk = os.read(0, 1)
+        if not chunk:
+            return None
+        buf += chunk
+        if chunk == b"\n":
+            return buf.decode()
+    return None
+
+
+def emit(text):
+    os.write(1, text.encode())
+
+
+def main():
+    # --enable: start in config/enable mode ('#'), like an arista
+    # scaleadmin session that drops straight into enable.
+    mode = "cfg" if "--enable" in sys.argv else "op"
+    prompt = {"op": "user@lab> ", "cfg": "user@lab# "}
+    emit(prompt[mode])
+    while True:
+        line = read_line()
+        if line is None:
+            return
+        line = line.strip()
+        if line == "edit":
+            mode = "cfg"
+        elif line == "configure terminal":
+            mode = "cfg"
+        elif line == "exit":
+            if mode == "cfg":
+                mode = "op"
+        elif line == "rollback":
+            pass
+        elif line.startswith(("delete ", "set ")):
+            pass
+        elif line.startswith("show configuration vlans"):
+            emit("set vlans vlan1110 interface et-0/0/0:0.0\n")
+        elif line.startswith("show running-config interfaces"):
+            emit("switchport access vlan 1110\nswitchport mode dot1q-tunnel\n")
+        elif line == "commit":
+            emit("commit complete\n")
+        elif line in ("write memory", "copy running-config startup-config"):
+            emit("Copy completed successfully.\n")
+        elif line.startswith("interface "):
+            pass
+        elif line.startswith("default interface"):
+            emit("% Authorization denied for command 'default interface Ethernet10/2'\n")
+        elif line == "terminal length 0":
+            pass
+        else:
+            emit(f"% Invalid input: {line}\n")
+        emit(prompt[mode])
+
+
+if __name__ == "__main__":
+    main()
