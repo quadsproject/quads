@@ -218,6 +218,41 @@ class TestInterface(TestBase):
             "\t--maintenance"
         )
 
+    def test_mod_interface_switch_vendor_only(self, mod_interface):
+        """--interface-switch-vendor alone must satisfy the mod guard."""
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifswitchvendor"] = "arista"
+
+        self.quads_cli_call("modinterface")
+
+        host = HostDao.get_host(HOST2)
+        assert host.interfaces[0].switch_vendor == "arista"
+
+    def test_export_host_details_round_trips_switch_vendor(self, mod_interface):
+        import yaml
+
+        self.cli_args["host"] = HOST2
+        self.cli_args["ifname"] = IFNAME2
+        self.cli_args["ifswitchvendor"] = "juniper"
+        self.quads_cli_call("modinterface")
+
+        self.quads_cli_call("host_metadata_export")
+        exported_path = None
+        for record in self._caplog.records:
+            if "Metadata successfully exported to" in record.getMessage():
+                exported_path = record.getMessage().split("to ")[1].strip(".")
+                break
+        assert exported_path
+
+        with open(exported_path) as handle:
+            data = yaml.safe_load(handle)
+        host_md = [h for h in data if h["name"] == HOST2][0]
+        assert any(
+            interface["name"] == IFNAME2 and interface["switch_vendor"] == "juniper"
+            for interface in host_md["interfaces"]
+        )
+
     def test_mod_interface_pxe_only(self, mod_interface):
         self.cli_args["host"] = HOST2
         self.cli_args["ifname"] = IFNAME2

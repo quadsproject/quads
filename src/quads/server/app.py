@@ -18,6 +18,12 @@ from quads.server.dao.baseDao import InvalidArgument
 from quads.server.models import User, db, Role, migrate
 from quads.helpers.timeutil import format_http_date
 from quads.plugins.manager import get_plugin_manager
+from quads.plugins.switch_drivers import (
+    SwitchDriverConfigError,
+    enabled_switch_drivers,
+    interface_vendor_counts_from_rows,
+    validate_switch_driver_selection,
+)
 from quads.tools.foreman_setup import start_foreman_rbac_thread
 
 
@@ -57,6 +63,26 @@ def _ensure_utc_json_provider(app):
 
 user_datastore = SQLAlchemySessionUserDatastore(db.session, User, Role)
 cors = CORS()
+
+
+def _validate_switch_driver_startup(flask_app: Flask, plugin_manager) -> None:
+    """Fail startup when the enabled switch drivers cannot cover defined interfaces."""
+    from sqlalchemy import func
+
+    from quads.server.models import Interface
+
+    with flask_app.app_context():
+        rows = (
+            db.session.query(Interface.switch_vendor, func.count(Interface.id)).group_by(Interface.switch_vendor).all()
+        )
+
+    vendors = interface_vendor_counts_from_rows(rows)
+
+    enabled = enabled_switch_drivers(plugin_manager.config.get("plugins", {}))
+    try:
+        validate_switch_driver_selection(enabled, vendors)
+    except SwitchDriverConfigError as exc:
+        raise RuntimeError(f"Switch driver configuration error: {exc}") from exc
 
 
 @basic_auth.verify_password
@@ -102,6 +128,8 @@ def create_app(test_config=None) -> Flask:
 
     register_extensions(flask_app)
     _ensure_utc_json_provider(flask_app)
+    if flask_app.config.get("VALIDATE_SWITCH_DRIVERS", True):
+        _validate_switch_driver_startup(flask_app, plugin_manager)
     register_blueprints(flask_app)
     register_plugin_dispatchers(flask_app)
 
