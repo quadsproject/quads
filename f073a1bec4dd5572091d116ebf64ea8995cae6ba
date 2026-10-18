@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b02b977_578eafbf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-18T12:58:34Z",
+      "side": 1,
+      "message": "Have a look at https://review.gerrithub.io/c/quadsproject/quads/+/1254951 as an alternative approach.  Rather than having to build a specific driver for each vendor, we allow for a configuration based approach making the switch driver vendor agnostic.",
+      "revId": "f073a1bec4dd5572091d116ebf64ea8995cae6ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
