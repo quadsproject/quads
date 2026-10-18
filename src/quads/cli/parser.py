@@ -460,6 +460,14 @@ action_group.add_argument(
     const="verify_switch_conf",
     help="Verify switch configuration",
 )
+action_group.add_argument(
+    "--network-plugin",
+    dest="network_plugin",
+    metavar="DRIVER[,DRIVER]",
+    type=str,
+    default=None,
+    help="Enable switch driver(s): juniper, arista, or network. Disables all other switch drivers.",
+)
 
 parser.add_argument(
     "--cloud-only",

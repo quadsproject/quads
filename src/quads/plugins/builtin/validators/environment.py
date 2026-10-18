@@ -36,10 +36,20 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         self.quads = QuadsApi(Config)
+        self.plugin_manager = plugin_manager
         self.hardware_dispatcher = get_hardware_dispatcher(plugin_manager)
-        self.switch_dispatcher = get_switch_dispatcher(plugin_manager)
+        # Resolve lazily: this plugin initializes while the plugin manager is
+        # still loading the other plugins, so creating the switch dispatcher
+        # here can snapshot only the switch plugins loaded so far.
+        self._switch_dispatcher = None
         self.email_dispatcher = get_email_dispatcher(plugin_manager)
         return True
+
+    @property
+    def switch_dispatcher(self):
+        if self._switch_dispatcher is None:
+            self._switch_dispatcher = get_switch_dispatcher(self.plugin_manager)
+        return self._switch_dispatcher
 
     async def notify_failure(
         self,
@@ -293,7 +303,24 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
                 last_nic = i == len(_host_obj.interfaces) - 1
                 if last_nic and has_vlan:
                     continue
-                for value in _interfaces:
+                _iface_obj = next((x for x in _host_obj.interfaces if x.name == interface), None)
+                _vendor = getattr(_iface_obj, "switch_vendor", None) if _iface_obj else None
+                _vendor_cfg = (getattr(Config, "vendors", None) or {}).get(_vendor) if _vendor else None
+                for vindex, value in enumerate(_interfaces):
+                    # Config.INTERFACES entries are [untagged, tagged] pairs
+                    # (172.16-172.20 / 172.21-172.25); the vendor recipe can
+                    # toggle verification for either traffic type.
+                    role = "verify_untagged" if vindex == 0 else "verify_tagged"
+                    if _vendor_cfg is not None and not _vendor_cfg.get(role, True):
+                        # A recipe that disables a validation role is a site
+                        # decision; make it visible instead of silent.
+                        self.logger.warning(
+                            "Skipping %s ping validation for %s (%s): the switch " "recipe disables it",
+                            role,
+                            _host_obj.name,
+                            interface,
+                        )
+                        continue
                     ip_apart = host["ip"].split(".")
                     octets = value.split(".")
                     ip_apart[0] = octets[0]
@@ -428,6 +455,10 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
     ) -> Tuple[bool, str]:
         """Validate an environment"""
         self.logger.info(f"Validating {cloud}")
+        # Force lazy resolution now that every plugin is loaded, so the
+        # Switch dispatcher log reports the complete enabled set.
+        switch_dispatcher = self.switch_dispatcher
+        self.logger.debug("Switch dispatcher ready: %s", switch_dispatcher)
         failed = False
 
         progress_map = self._get_progress_map(hosts)

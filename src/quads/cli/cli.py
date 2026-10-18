@@ -3,6 +3,7 @@ import functools
 import json
 import logging
 import os
+import subprocess
 import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -39,9 +40,36 @@ from quads.plugins.dispatchers import (
     get_switch_dispatcher,
     get_validator_dispatcher,
 )
+from quads.plugins.switch_drivers import (
+    SwitchDriverConfigError,
+    database_interface_vendor_counts,
+    parse_switch_driver_selection,
+    update_switch_driver_config,
+    validate_switch_driver_selection,
+)
 from quads.tools.conf_check import main as conf_check
 from quads.tools.helpers import get_host_types_from_yaml, get_or_create_event_loop
 from quads.helpers.utils import time_remaining
+
+
+QUADS_SERVER_SERVICE = "quads-server"
+
+
+def restart_quads_server():
+    try:
+        result = subprocess.run(
+            ["systemctl", "restart", QUADS_SERVER_SERVICE],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        raise CliException(f"failed to run systemctl: {exc}") from exc
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        raise CliException(
+            f"failed to restart {QUADS_SERVER_SERVICE}: {detail or f'systemctl exited {result.returncode}'}"
+        )
 
 
 class QuadsCli:
@@ -113,6 +141,9 @@ class QuadsCli:
                 raise CliException("--json requires one of the supported actions")
             if action not in self.JSON_ACTIONS:
                 raise CliException("--json is not supported for this action")
+
+        if self.cli_args.get("network_plugin") is not None:
+            return self.action_network_plugin()
 
         if action:
             # action method should always be available
@@ -423,6 +454,27 @@ class QuadsCli:
 
         switch_dispatcher = get_switch_dispatcher()
         asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
+
+    def action_network_plugin(self):
+        try:
+            selected = parse_switch_driver_selection(self.cli_args.get("network_plugin"))
+            validate_switch_driver_selection(selected, database_interface_vendor_counts())
+        except SwitchDriverConfigError as ex:
+            raise CliException(str(ex))
+
+        try:
+            update_switch_driver_config(selected)
+        except SwitchDriverConfigError as ex:
+            raise CliException(str(ex))
+
+        print("Enabled switch drivers: " + ", ".join(sorted(selected)), flush=True)
+        print("Restarting quads-server...", flush=True)
+        try:
+            restart_quads_server()
+        except CliException as ex:
+            raise CliException(f"Switch driver configuration was updated, but {ex}") from ex
+        print("quads-server restarted.", flush=True)
+        return 0
 
     def _call_api_action(self, action: str):
         try:

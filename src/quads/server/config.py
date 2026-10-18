@@ -2,6 +2,7 @@ import os
 
 
 class BaseConfig(object):
+    VALIDATE_SWITCH_DRIVERS = os.environ.get("QUADS_VALIDATE_SWITCH_DRIVERS", "0") == "1"
     JOB_INDEX_PER_PAGE = 18
     COMPANY_INDEX_PER_PAGE = 20
     COMPANY_DETAIL_PER_PAGE = 10
@@ -30,6 +31,8 @@ class ProductionConfig(BaseConfig):
 class TestingConfig(BaseConfig):
     DEBUG = True
     SECRET_KEY = "test-secret-key"
+    # Tests create the schema after the app factory; production validates it at startup.
+    VALIDATE_SWITCH_DRIVERS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "SQLALCHEMY_DATABASE_URI",
         "postgresql://postgres:postgres@quads_db:5432/quads",

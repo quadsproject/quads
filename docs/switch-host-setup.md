@@ -143,15 +143,28 @@ The switch plugins are configured in `/opt/quads/conf/plugins.yml`:
 
 ```yaml
 plugins:
+  # Enable juniper and/or arista, or network alone.
   juniper:
     enabled: true
     username: quads
   arista:
     enabled: false
     username: quads
+  network:
+    enabled: false
 ```
 
 The `arista.username` must be a privilege-15 EOS account: the driver enters `configure terminal` directly after login and does not run an `enable` step, so a lower-privilege user fails closed on the first configuration command.
+
+Change the selection with `quads --network-plugin` rather than editing the YAML by hand:
+
+```bash
+quads --network-plugin juniper
+quads --network-plugin arista,juniper
+quads --network-plugin network
+```
+
+The argument is a comma-separated list of `juniper`, `arista`, and `network`; `network` cannot be combined with a vendor driver. Run the command on the quads-server host. QUADS checks every host interface's `switch_vendor` before applying the change, so a Juniper-only selection is rejected when Arista interfaces are defined. On success the command updates `plugins.yml`, prints the enabled drivers to standard output, and restarts `quads-server`. The restart requires permission to manage the systemd service.
 
 Each interface is tagged with its switch vendor when it is added, e.g.:
 
@@ -159,9 +172,31 @@ Each interface is tagged with its switch vendor when it is added, e.g.:
 quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port Ethernet1/1 --interface-vendor "Intel" --interface-speed 10 --interface-switch-vendor arista --host <hostname>
 ```
 
-Interfaces without a `switch_vendor` default to the Juniper plugin (the historical default). The Juniper and Arista sections below describe the vendor-specific setup; host-side wiring (`QUADS Host Network Setup` and `Adding New QUADS Host`) is identical for both. `--interface-speed` and the API `speed` field are in **Gbps** (`--interface-speed 10` is a 10 Gbps port), and the plugins convert to the unit each switch expects (Junos `speed <N>g`; EOS `speed forced <N>gfull`, with `speed auto 100g-2` plus RS-FEC for 100G).
+Interfaces without a `switch_vendor` use the historical Juniper behavior: with the vendor drivers enabled the Juniper plugin claims them, while the generic `network` driver uses the `juniper` recipe and logs a warning until the interface is redefined. The Juniper and Arista sections below describe the vendor-specific setup; host-side wiring (`QUADS Host Network Setup` and `Adding New QUADS Host`) is identical for all switch drivers. `--interface-speed` and the API `speed` field are in **Gbps** (`--interface-speed 10` is a 10 Gbps port), and the plugins convert to the unit each switch expects (Junos `speed <N>g`; EOS `speed forced <N>gfull`, with `speed auto 100g-2` plus RS-FEC for 100G). `verify-switch-conf` checks the EOS speed and, for 100G, RS-FEC from the running config; Juniper verification logs `Skipping speed/FEC checks for juniper interfaces` because there is no reliable speed/FEC read there. The generic recipe-driven driver performs the same Arista check and skips Juniper interfaces with the same message.
 
-A `switch_vendor` must name an enabled switch plugin: only plugins with `enabled: true` in `/opt/quads/conf/plugins.yml` are loaded. If a switch port is tagged with a vendor that no enabled plugin claims (a typo, a disabled plugin, or a plugin that is not installed), QUADS fails the switch configuration for that host instead of quietly skipping the port: the move records a failed switch configuration and leaves `switch_config_applied` false, so `--validate-env` keeps reporting the host under `The following hosts are missing switch configuration` until it is corrected. Fix the tag with `--mod-interface --interface-switch-vendor`, or enable the plugin for that vendor. Ports with no `switch_vendor` are claimed by the Juniper plugin, so keep `juniper` enabled while untagged interfaces exist; an Arista-only site must tag every interface, because an untagged one is then claimed by nobody and fails the host's switch configuration. To deliberately leave a host's switch ports alone, use `omit_network_move` in `/opt/quads/conf/quads.yml`, and re-set `switch_config_applied` for the host as described in the README after each move (`--move-hosts` clears it again), otherwise `--validate-env` reports the host as missing switch configuration.
+A `switch_vendor` must name an enabled switch plugin: only plugins with `enabled: true` in `/opt/quads/conf/plugins.yml` are loaded. With the vendor drivers, if a switch port is tagged with a vendor that no enabled plugin claims (a typo, a disabled plugin, or a plugin that is not installed), QUADS fails the switch configuration for that host instead of quietly skipping the port: the move records a failed switch configuration and leaves `switch_config_applied` false, so `--validate-env` keeps reporting the host under `The following hosts are missing switch configuration` until it is corrected. Fix the tag with `--mod-interface --interface-switch-vendor`, or enable the plugin for that vendor. Ports with no `switch_vendor` are claimed by the Juniper plugin, so keep `juniper` enabled while untagged interfaces exist; an Arista-only site must tag every interface, because an untagged one is then claimed by nobody and fails the host's switch configuration. To deliberately leave a host's switch ports alone, use `omit_network_move` in `/opt/quads/conf/quads.yml`, and re-set `switch_config_applied` for the host as described in the README after each move (`--move-hosts` clears it again), otherwise `--validate-env` reports the host as missing switch configuration.
+
+### Generic Network Driver
+
+`network` is the recipe-driven alternative to the vendor plugins. It looks up each interface's `switch_vendor` recipe in `/opt/quads/conf/switch_commands.yml`, so one driver can manage mixed Juniper/Arista interfaces and additional vendors need only a new recipe. The shipped recipes cover Juniper Q-in-Q and Arista EOS.
+
+Speed handling is recipe data too: a vendor can define a `speeds:` map keyed by Gbps, with `mode` (`forced` or `auto`), `token`, and optional `fec: true`. The driver supplies `speed_forced`, `speed_auto`, and `speed_fec` for command `if:` conditions; an unknown `if:` name fails recipe validation. The shipped Arista map uses `speed auto 100g-2` plus RS-FEC for 100G; another EOS platform can override the map without a Python change. An unmapped speed leaves all three conditions false, so no speed command is sent.
+
+Enable the generic driver only when both vendor drivers are disabled:
+
+```yaml
+plugins:
+  juniper:
+    enabled: false
+  arista:
+    enabled: false
+  network:
+    enabled: true
+```
+
+If `network` is enabled alongside `juniper` or `arista`, QUADS treats the configuration as invalid and refuses to start. Enable one or both vendor drivers, or `network` alone. With `network`, a `switch_vendor` with no matching recipe fails the switch operation closed; interfaces with no `switch_vendor` use the historical `juniper` recipe and log a warning until redefined.
+
+At startup, `quads-server` verifies that at least one switch driver is enabled and that the vendor drivers cover every interface type present in the database. If hosts have both Juniper and Arista interfaces while only Juniper is enabled, startup aborts and reports that interfaces of type `arista` are defined but the `arista` driver is disabled.
 
 ### Juniper Switch Setup
 
