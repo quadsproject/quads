@@ -264,7 +264,7 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                     vlan_member = _line.split()[1].rstrip(";")
                                     break
                         else:
-                            if not _assignment.vlan:
+                            if _assignment and not _assignment.vlan:
                                 self.logger.warning(
                                     "Could not determine the previous VLAN member for %s, switch %s, switch port %s "
                                     % (
