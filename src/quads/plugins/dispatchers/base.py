@@ -58,10 +58,9 @@ class BaseDispatcher(Generic[T]):
         self._plugins = self.plugin_manager.get_plugins_by_type(self.plugin_type)
 
         if self._plugins:
-            logger.info(
-                f"{self.dispatcher_name} dispatcher loaded {len(self._plugins)} plugins: "
-                f"{[p.name for p in self._plugins]}"
-            )
+            count = len(self._plugins)
+            noun = "plugin" if count == 1 else "plugins"
+            logger.info(f"{self.dispatcher_name} dispatcher loaded {count} {noun}: {[p.name for p in self._plugins]}")
             # First enabled plugin becomes default
             self._default_plugin = self._plugins[0]
             # Store the plugin class as well
