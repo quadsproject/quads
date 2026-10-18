@@ -1,5 +1,7 @@
 """Tests for Juniper switch plugin"""
 
+from types import SimpleNamespace
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch, call
 
@@ -750,6 +752,28 @@ class TestJuniperSwitchPlugin:
         plugin.quads.filter_hosts.return_value = []
         result = await plugin.verify(host="nonexistent.example.com")
         assert result is False
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    async def test_verify_no_active_assignment_fails_closed(self, mock_ssh_class, mock_juniper_class, plugin):
+        """A None assignment must fail closed: no fall-through to cloud01
+        VLANs and no set_port call (spare-pool / fresh-install path)."""
+        mock_host = MockHost(
+            "host1.example.com",
+            interfaces=[MockInterface("em1", "10.0.0.1", "ge-0/0/1")],
+            cloud=SimpleNamespace(name="cloud01"),
+        )
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = None
+
+        result = await plugin.verify(host="host1.example.com", change=True)
+
+        assert result is False
+        mock_juniper_class.assert_not_called()
+        plugin.logger.warning.assert_any_call(
+            "No active assignment for cloud %s, cannot verify switch configuration." % "cloud01"
+        )
 
     @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
