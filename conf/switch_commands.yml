@@ -1,0 +1,173 @@
+###############################################################
+# Switch command recipes for the generic network driver.
+#
+# Each vendor section contains the exact CLI sequences quads
+# runs over SSH to configure/read the interfaces that point at
+# that vendor's switches.  Adding support for a new vendor or a
+# site-specific syntax is a config change only.
+#
+# Recipe placeholders:
+#   {username} {switch_ip} {switch_port} {old_vlan} {new_vlan}
+#   {speed}      - interface speed in Gbps
+#   {speed_eos}  - speed token from this vendor's `speeds` map for the
+#                  interface speed (e.g. 25gfull or 100g-2).  Empty when
+#                  the speed has no mapping; gate the command on the
+#                  corresponding speed_* condition below.
+#
+# Optional per-vendor `speeds:` map keyed by Gbps.  Each entry declares
+# how to program that speed:
+#   speeds:
+#     25:  {mode: forced, token: 25gfull}
+#     100: {mode: auto, token: 100g-2, fec: true}
+# The driver exposes speed_forced, speed_auto and speed_fec as command
+# conditions.  `mode` must be forced or auto; `fec` is optional.
+# Unmapped speeds leave all three conditions false, so no speed command
+# is sent.  Add an entry here instead of changing Python for a new
+# platform-specific token/mode.
+#
+# Optional per-command `if` key: the command is skipped when the named
+# condition is falsy (e.g. `if: old_vlan`).  Valid condition names are
+# the placeholders the driver supplies: username, switch_ip, switch_port,
+# old_vlan, new_vlan, speed, speed_eos, speed_forced, speed_auto,
+# speed_fec.  An unknown name fails recipe validation.
+#
+# Optional operation-level `config_prompt`: prompt to expect after each
+# command (defaults to connection.login_prompt).  Needed when a set
+# operation enters config mode, e.g. Junos edit -> '#'.
+#
+# `save` can be a single command string or a list; `save_wait` is
+# expected after the last save command.  `connection.timeout` (seconds,
+# default 120) bounds each expect.
+#
+# `username` falls back to plugins.yml (Config.plugins.<vendor>.username)
+# when unset or left as the shipped placeholder, so upgrades keep their
+# configured switch account.
+#
+# `connection.confirm_answer` (unset by default): 'y' auto-answers EOS
+# '[y/N]' confirmation prompts (e.g. group-wide 'speed forced' changes).
+# Unset, such a prompt fails the operation instead of hanging.
+#
+# verify_tagged / verify_untagged (default true when unset) are
+# used by the environment validator network test: they decide
+# whether the tagged (172.21-172.25) / untagged (172.16-172.20)
+# derived IPs of this vendor's interfaces are ping-tested.
+###############################################################
+vendors:
+  juniper:
+    # Example placeholder - any installation must ensure this user has
+    # passwordless SSH access to the switch (e.g. scaleadmin in RDU labs).
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      login_prompt: ">"
+      error_prefixes: ["error:", "syntax error"]
+    verify_tagged: true
+    verify_untagged: true
+    operations:
+      set_port_qinq:
+        # Junos changes to '#' after 'edit' (configuration mode).
+        config_prompt: "#"
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} apply-groups QinQ_vl{new_vlan}"
+          # Junos accepts the bare switch-port for vlan membership.
+          # Port speed is a prerequisite, not managed by quads: set it
+          # with 'set chassis fpc 0 pic 0 port 0 channel-speed 25g'
+          # (sets every channel on the port).  The POC QFX rejects a
+          # per-interface 'speed' command ("syntax error").
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}"
+            if: old_vlan
+          - "set vlans vlan{new_vlan} interface {switch_port}"
+        save: "commit"
+        save_wait: "commit complete"
+      set_port_public:
+        config_prompt: "#"
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} native-vlan-id {new_vlan}"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching interface-mode trunk"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching vlan members vlan{new_vlan}"
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}"
+            if: old_vlan
+        save: "commit"
+        save_wait: "commit complete"
+      get_vlan_qinq:
+        command: "show configuration vlans | display set | match {switch_port}.0 | no-more"
+        parse:
+          pattern: "vlan(\\d+) interface {switch_port}"
+      get_vlan_public:
+        command: "show configuration interfaces {switch_port} | no-more"
+        parse:
+          pattern: "native-vlan-id (\\d+)"
+  arista:
+    # Untagged validation is intentionally left enabled here.  The POC
+    # arista fabric has an untagged-traffic issue tracked with the
+    # network team, so the POC's local copy of this recipe sets
+    # verify_untagged: false until the fix lands.
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      # scaleadmin drops into enable mode: prompt is "#"
+      login_prompt: "#"
+      error_prefixes: ["%"]
+      init_commands: ["terminal length 0"]
+      timeout: 120
+    verify_tagged: true
+    verify_untagged: true
+    speeds:
+      1: {mode: forced, token: 1000full}
+      10: {mode: forced, token: 10gfull}
+      25: {mode: forced, token: 25gfull}
+      40: {mode: forced, token: 40gfull}
+      100: {mode: auto, token: 100g-2, fec: true}
+    operations:
+      # No 'default interface': it wipes every setting on the port
+      # (including ones we don't manage).  Instead, explicitly 'no' the
+      # opposite mode's settings, then apply ours.  All three 'no' forms
+      # are idempotent on EOS: absent settings are a no-op.
+      set_port_qinq:
+        commands:
+          - "configure terminal"
+          - "interface {switch_port}"
+          - "no switchport trunk native vlan"
+          - "no switchport trunk allowed vlan"
+          - "switchport mode dot1q-tunnel"
+          - "switchport access vlan {new_vlan}"
+          - cmd: "error-correction encoding reed-solomon"
+            if: speed_fec
+          - cmd: "speed auto {speed_eos}"
+            if: speed_auto
+          - cmd: "speed forced {speed_eos}"
+            if: speed_forced
+          - "exit"
+        save: ["write memory", "copy running-config startup-config"]
+        save_wait: "Copy completed"
+      set_port_public:
+        commands:
+          - "configure terminal"
+          - "interface {switch_port}"
+          - "no switchport access vlan"
+          - "switchport mode trunk"
+          - "switchport trunk native vlan {new_vlan}"
+          - "switchport trunk allowed vlan {new_vlan}"
+          - cmd: "error-correction encoding reed-solomon"
+            if: speed_fec
+          - cmd: "speed auto {speed_eos}"
+            if: speed_auto
+          - cmd: "speed forced {speed_eos}"
+            if: speed_forced
+          - "exit"
+        save: ["write memory", "copy running-config startup-config"]
+        save_wait: "Copy completed"
+      get_vlan_qinq:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport access vlan (\\d+)"
+      get_vlan_public:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport trunk native vlan (\\d+)"

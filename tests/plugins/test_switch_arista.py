@@ -611,7 +611,18 @@ class TestAristaSwitchPlugin:
         result = await plugin.verify(host="host1.example.com", change=False)
 
         assert result is False
-        plugin.logger.error.assert_called()
+        appears_warnings = [
+            entry
+            for entry in plugin.logger.warning.call_args_list
+            if entry.args and "appears to be a member" in str(entry.args[0])
+        ]
+        appears_errors = [
+            entry
+            for entry in plugin.logger.error.call_args_list
+            if entry.args and "appears to be a member" in str(entry.args[0])
+        ]
+        assert appears_warnings == []
+        assert len(appears_errors) == 1
 
     @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.arista.SSHHelper")
@@ -632,7 +643,11 @@ class TestAristaSwitchPlugin:
 
         assert result is False
         plugin.logger.warning.assert_any_call(
-            "Interface %s speed/FEC does not match quads speed %s Gbps", "Ethernet1", "10"
+            "Interface %s (%s: %s) speed/FEC does not match quads speed %s Gbps",
+            "Ethernet1",
+            "arista",
+            "10.0.0.1",
+            "10",
         )
 
     @pytest.mark.asyncio
@@ -1166,7 +1181,6 @@ class TestAristaClient:
         calls = [c.args[0] for c in mock_child.sendline.call_args_list]
         assert calls == [
             "terminal length 0",
-            "show running-config interfaces Ethernet1",
             "configure terminal",
             "interface Ethernet1",
             "no switchport trunk native vlan",
@@ -1214,7 +1228,7 @@ class TestAristaClient:
 
     @patch("quads.tools.external.arista.pexpect")
     def test_arista_100g_uses_auto_speed_with_fec(self, mock_pexpect):
-        """100G must use 'speed auto 100g-2' + RS-FEC, never 'speed forced'."""
+        """100G emits RS-FEC before 'speed auto 100g-2', matching the recipe."""
         from quads.tools.external.arista import Arista
 
         arista = Arista("10.0.0.1", "Ethernet1", "100", "10", "20", "admin")
@@ -1229,49 +1243,45 @@ class TestAristaClient:
         assert "error-correction encoding reed-solomon" in calls
         assert "speed auto 100g-2" in calls
         assert not any("speed forced" in c for c in calls)
-        # the 100G speed group must be active before RS-FEC is accepted
-        assert calls.index("speed auto 100g-2") < calls.index("error-correction encoding reed-solomon")
+        assert calls.index("error-correction encoding reed-solomon") < calls.index("speed auto 100g-2")
 
     @patch("quads.tools.external.arista.pexpect")
-    def test_arista_lower_speed_strips_stale_100g_settings(self, mock_pexpect):
-        """A port lowered from 100G must clear RS-FEC and the stale speed."""
+    def test_arista_lower_speed_uses_forced_token(self, mock_pexpect):
+        """Lowering speed emits the forced token; the recipe does not clear first."""
         from quads.tools.external.arista import Arista
 
         arista = Arista("10.0.0.1", "Ethernet1", "25", "10", "20", "admin")
 
         mock_child = MagicMock()
-        mock_child.before = (
-            "interface Ethernet1\n" "   speed auto 100g-2\n" "   error-correction encoding reed-solomon\n"
-        )
         mock_pexpect.spawn.return_value = mock_child
 
         result = arista.set_port()
 
         assert result is True
         calls = [c.args[0] for c in mock_child.sendline.call_args_list]
-        assert "no speed" in calls
-        assert "no error-correction encoding reed-solomon" in calls
+        assert "speed forced 25gfull" in calls
+        assert "no speed" not in calls
+        assert "no error-correction encoding reed-solomon" not in calls
         assert "error-correction encoding reed-solomon" not in calls
-        assert calls.index("no error-correction encoding reed-solomon") < calls.index("speed forced 25gfull")
 
     @patch("quads.tools.external.arista.pexpect")
-    def test_arista_100g_clears_stale_forced_speed(self, mock_pexpect):
-        """Raising a port to 100G clears a stale forced speed first."""
+    def test_arista_100g_uses_recipe_sequence(self, mock_pexpect):
+        """Raising a port to 100G follows the recipe without clearing first."""
         from quads.tools.external.arista import Arista
 
         arista = Arista("10.0.0.1", "Ethernet1", "100", "10", "20", "admin")
 
         mock_child = MagicMock()
-        mock_child.before = "interface Ethernet1\n   speed forced 25gfull\n"
         mock_pexpect.spawn.return_value = mock_child
 
         result = arista.set_port()
 
         assert result is True
         calls = [c.args[0] for c in mock_child.sendline.call_args_list]
-        assert "no speed" in calls
+        assert "no speed" not in calls
         assert "error-correction encoding reed-solomon" in calls
         assert "speed auto 100g-2" in calls
+        assert calls.index("error-correction encoding reed-solomon") < calls.index("speed auto 100g-2")
 
     @pytest.mark.parametrize(
         "speed, expected",
@@ -1314,7 +1324,6 @@ class TestAristaClient:
         calls = [c.args[0] for c in mock_child.sendline.call_args_list]
         assert calls == [
             "terminal length 0",
-            "show running-config interfaces Ethernet1",
             "configure terminal",
             "interface Ethernet1",
             "no switchport access vlan",

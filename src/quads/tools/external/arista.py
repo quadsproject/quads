@@ -119,32 +119,17 @@ class Arista:
         # ours (tested on the POC fabric; EOS 'no' forms are idempotent).
         self.execute(f"interface {self.switch_port}")
 
-    def _running_config(self):
-        """Read the port's config, used to gate the cleanup 'no' commands."""
-        self.execute(f"show running-config interfaces {self.switch_port}")
-        # tests may use a MagicMock child; a real pexpect child is str
-        return self.child.before if isinstance(self.child.before, str) else ""
-
-    def _set_speed(self, running_config=""):
-        # interface.speed is stored in Gbps (--interface-speed docs); EOS
-        # speed tokens are Mbps-based. 100G needs 'speed auto 100g-2' plus
-        # RS-FEC ('speed forced 100gfull' is rejected by the
-        # transceiver/speed group on the POC).
+    def _set_speed(self):
+        # interface.speed is stored in Gbps (--interface-speed docs). Keep the
+        # command sequence identical to the generic recipe: for 100G, RS-FEC
+        # precedes the speed statement. EOS rejects 'speed forced 100gfull',
+        # so 100G always uses 'speed auto 100g-2'.
         statement = expected_speed_statement(self.port_speed)
         if not statement:
             return
-        # A port lowered from 100G keeps the 100G-only settings unless they
-        # are cleared explicitly; gate each 'no' on the running config
-        # because some ports reject the no-op forms (not POC-vetted).
-        if re.search(r"^\s*speed\s", running_config, re.M):
-            self.execute("no speed")
-        if int(self.port_speed) != 100 and "error-correction encoding reed-solomon" in running_config:
-            self.execute("no error-correction encoding reed-solomon")
-        # Apply the speed before RS-FEC: on EOS the FEC line belongs to the
-        # 100G speed group, so issuing it first can be rejected.
-        self.execute(statement)
         if int(self.port_speed) == 100:
             self.execute("error-correction encoding reed-solomon")
+        self.execute(statement)
 
     def _save(self):
         # Tested sequence: write memory followed by copy running-config
@@ -161,14 +146,13 @@ class Arista:
         """
         try:
             self.connect()
-            running_config = self._running_config()
             self.execute("configure terminal")
             self._enter_interface()
             self.execute("no switchport trunk native vlan")
             self.execute("no switchport trunk allowed vlan")
             self.execute("switchport mode dot1q-tunnel")
             self.execute(f"switchport access vlan {self.new_vlan}")
-            self._set_speed(running_config)
+            self._set_speed()
             self.execute("exit")
             self._save()
         except AristaException as ex:
@@ -182,14 +166,13 @@ class Arista:
         """Convert a server port to a public trunk VLAN."""
         try:
             self.connect()
-            running_config = self._running_config()
             self.execute("configure terminal")
             self._enter_interface()
             self.execute("no switchport access vlan")
             self.execute("switchport mode trunk")
             self.execute(f"switchport trunk native vlan {self.new_vlan}")
             self.execute(f"switchport trunk allowed vlan {self.new_vlan}")
-            self._set_speed(running_config)
+            self._set_speed()
             self.execute("exit")
             self._save()
         except AristaException as ex:

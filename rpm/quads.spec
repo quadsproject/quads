@@ -176,6 +176,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/quads/conf/selfservice.yml
 %config(noreplace) /opt/quads/conf/vlans.yml
 %config(noreplace) /opt/quads/conf/plugins.yml
+%config(noreplace) /opt/quads/conf/switch_commands.yml
 %config(noreplace) /opt/quads/conf/oauth.yml
 %config(noreplace) /opt/quads/conf/hosts_metadata.yml
 %config(noreplace) /opt/quads/conf/idrac_interfaces.yml
