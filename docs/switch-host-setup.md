@@ -143,15 +143,28 @@ The switch plugins are configured in `/opt/quads/conf/plugins.yml`:
 
 ```yaml
 plugins:
+  # Enable juniper and/or arista, or network alone.
   juniper:
     enabled: true
     username: quads
   arista:
     enabled: false
     username: quads
+  network:
+    enabled: false
 ```
 
 The `arista.username` must be a privilege-15 EOS account: the driver enters `configure terminal` directly after login and does not run an `enable` step, so a lower-privilege user fails closed on the first configuration command.
+
+Change the selection with `quads --network-plugin` rather than editing the YAML by hand:
+
+```bash
+quads --network-plugin juniper
+quads --network-plugin arista,juniper
+quads --network-plugin network
+```
+
+The argument is a comma-separated list of `juniper`, `arista`, and `network`; `network` cannot be combined with a vendor driver. Run the command on the quads-server host. QUADS checks every host interface's `switch_vendor` before applying the change, so a Juniper-only selection is rejected when Arista interfaces are defined. On success the command updates `plugins.yml`, prints the enabled drivers to standard output, and restarts `quads-server`. The restart requires permission to manage the systemd service.
 
 Each interface is tagged with its switch vendor when it is added, e.g.:
 
@@ -159,9 +172,31 @@ Each interface is tagged with its switch vendor when it is added, e.g.:
 quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port Ethernet1/1 --interface-vendor "Intel" --interface-speed 10 --interface-switch-vendor arista --host <hostname>
 ```
 
-Interfaces without a `switch_vendor` default to the Juniper plugin (the historical default). The Juniper and Arista sections below describe the vendor-specific setup; host-side wiring (`QUADS Host Network Setup` and `Adding New QUADS Host`) is identical for both. `--interface-speed` and the API `speed` field are in **Gbps** (`--interface-speed 10` is a 10 Gbps port), and the plugins convert to the unit each switch expects (Junos `speed <N>g`; EOS `speed forced <N>gfull`, with `speed auto 100g-2` plus RS-FEC for 100G).
+Interfaces without a `switch_vendor` use the historical Juniper behavior: with the vendor drivers enabled the Juniper plugin claims them, while the generic `network` driver uses the `juniper` recipe and logs a warning until the interface is redefined. The Juniper and Arista sections below describe the vendor-specific setup; host-side wiring (`QUADS Host Network Setup` and `Adding New QUADS Host`) is identical for all switch drivers. `--interface-speed` and the API `speed` field are in **Gbps** (`--interface-speed 10` is a 10 Gbps port), and the plugins convert to the unit each switch expects (Junos `speed <N>g`; EOS `speed forced <N>gfull`, with `speed auto 100g-2` plus RS-FEC for 100G). `verify-switch-conf` checks the EOS speed and, for 100G, RS-FEC from the running config; Juniper verification logs `Skipping speed/FEC checks for juniper interfaces` because there is no reliable speed/FEC read there. The generic recipe-driven driver performs the same Arista check and skips Juniper interfaces with the same message.
 
-A `switch_vendor` must name an enabled switch plugin: only plugins with `enabled: true` in `/opt/quads/conf/plugins.yml` are loaded. If a switch port is tagged with a vendor that no enabled plugin claims (a typo, a disabled plugin, or a plugin that is not installed), QUADS fails the switch configuration for that host instead of quietly skipping the port: the move records a failed switch configuration and leaves `switch_config_applied` false, so `--validate-env` keeps reporting the host under `The following hosts are missing switch configuration` until it is corrected. Fix the tag with `--mod-interface --interface-switch-vendor`, or enable the plugin for that vendor. Ports with no `switch_vendor` are claimed by the Juniper plugin, so keep `juniper` enabled while untagged interfaces exist; an Arista-only site must tag every interface, because an untagged one is then claimed by nobody and fails the host's switch configuration. To deliberately leave a host's switch ports alone, use `omit_network_move` in `/opt/quads/conf/quads.yml`, and re-set `switch_config_applied` for the host as described in the README after each move (`--move-hosts` clears it again), otherwise `--validate-env` reports the host as missing switch configuration.
+A `switch_vendor` must name an enabled switch plugin: only plugins with `enabled: true` in `/opt/quads/conf/plugins.yml` are loaded. With the vendor drivers, if a switch port is tagged with a vendor that no enabled plugin claims (a typo, a disabled plugin, or a plugin that is not installed), QUADS fails the switch configuration for that host instead of quietly skipping the port: the move records a failed switch configuration and leaves `switch_config_applied` false, so `--validate-env` keeps reporting the host under `The following hosts are missing switch configuration` until it is corrected. Fix the tag with `--mod-interface --interface-switch-vendor`, or enable the plugin for that vendor. Ports with no `switch_vendor` are claimed by the Juniper plugin, so keep `juniper` enabled while untagged interfaces exist; an Arista-only site must tag every interface, because an untagged one is then claimed by nobody and fails the host's switch configuration. To deliberately leave a host's switch ports alone, use `omit_network_move` in `/opt/quads/conf/quads.yml`, and re-set `switch_config_applied` for the host as described in the README after each move (`--move-hosts` clears it again), otherwise `--validate-env` reports the host as missing switch configuration.
+
+### Generic Network Driver
+
+`network` is the recipe-driven alternative to the vendor plugins. It looks up each interface's `switch_vendor` recipe in `/opt/quads/conf/switch_commands.yml`, so one driver can manage mixed Juniper/Arista interfaces and additional vendors need only a new recipe. The shipped recipes cover Juniper Q-in-Q and Arista EOS.
+
+Speed handling is recipe data too: a vendor can define a `speeds:` map keyed by Gbps, with `mode` (`forced` or `auto`), `token`, and optional `fec: true`. The driver supplies `speed_forced`, `speed_auto`, `speed_fec`, and `speed_no_fec` for command `if:` conditions; an unknown `if:` name fails recipe validation. The shipped Arista map uses `speed auto 100g-2` plus RS-FEC for 100G; another EOS platform can override the map without a Python change. An unmapped speed leaves all four `speed_*` conditions false, so a recipe that gates its speed command on them (the shipped Arista recipe) sends no speed command. The Juniper recipe has no `speeds` map; it gates on the raw `speed` value and sends `set interfaces <port> speed <N>g` for any positive speed, matching the classic Juniper driver. A zero speed skips it. Models that reject the per-interface speed form can remove that command from the local recipe and set chassis channel speed instead.
+
+Enable the generic driver only when both vendor drivers are disabled:
+
+```yaml
+plugins:
+  juniper:
+    enabled: false
+  arista:
+    enabled: false
+  network:
+    enabled: true
+```
+
+If `network` is enabled alongside `juniper` or `arista`, QUADS treats the configuration as invalid and refuses to start. Enable one or both vendor drivers, or `network` alone. With `network`, a `switch_vendor` with no matching recipe fails the switch operation closed; interfaces with no `switch_vendor` use the historical `juniper` recipe and log a warning until redefined.
+
+At startup, `quads-server` verifies that at least one switch driver is enabled and that the vendor drivers cover every interface type present in the database. If hosts have both Juniper and Arista interfaces while only Juniper is enabled, startup aborts and reports that interfaces of type `arista` are defined but the `arista` driver is disabled.
 
 ### Juniper Switch Setup
 
@@ -169,7 +204,7 @@ The Juniper steps are the default and are covered above: `Greenfield TOR Switch 
 
 ### Arista Switch Setup
 
-Arista EOS switches are supported by the `arista` switch plugin. Prepare a greenfield EOS switch as follows. Commands labeled `QUADS` are what the plugin programs during a move; everything else is a one-time operator prerequisite.
+Arista EOS switches are supported by the `arista` switch plugin and the generic recipe-driven `network` driver. Prepare a greenfield EOS switch as follows. Commands labeled `QUADS` are what the plugin programs during a move; everything else is a one-time operator prerequisite.
 
    * Create a privileged user for QUADS. EOS needs privilege 15 so the pexpect driver lands at the `#` prompt after login:
 
@@ -196,7 +231,7 @@ vlan 1140
 name QinQ_vl1140
 ```
 
-   * Server-facing ports: `QUADS` programs `interface <port>`, clears the trunk settings (`no switchport trunk native vlan`, `no switchport trunk allowed vlan`), sets `switchport mode dot1q-tunnel` and `switchport access vlan <vlan>`, applies the speed token when the interface has a speed (`speed forced 1000full` for 1G, `speed forced 10gfull`/`25gfull`/`40gfull`, or `speed auto 100g-2` followed by `error-correction encoding reed-solomon` for 100G), then saves with `write memory` and `copy running-config startup-config` (`set_port()`). The dot1q-tunnel port pushes the cloud VLAN as an outer tag and keeps the host's own 802.1Q tags intact, which is what the Juniper `apply-groups QinQ_vl<vlan>` configuration does; an access port would drop the host's tagged traffic (the QUADS `172.21-25.x` per-NIC addresses). The remaining lines are operator prerequisites:
+   * Server-facing ports: `QUADS` programs `interface <port>`, clears the trunk settings (`no switchport trunk native vlan`, `no switchport trunk allowed vlan`), sets `switchport mode dot1q-tunnel` and `switchport access vlan <vlan>`, applies the speed/FEC steps when the interface has a speed (`no error-correction encoding reed-solomon` then `speed forced 1000full` for 1G, `speed forced 10gfull`/`25gfull`/`40gfull`, or `error-correction encoding reed-solomon` then `speed auto 100g-2` for 100G), then saves with `write memory` (`set_port()`). The dot1q-tunnel port pushes the cloud VLAN as an outer tag and keeps the host's own 802.1Q tags intact, which is what the Juniper `apply-groups QinQ_vl<vlan>` configuration does; an access port would drop the host's tagged traffic (the QUADS `172.21-25.x` per-NIC addresses). The remaining lines are operator prerequisites:
 
 ```
 interface Ethernet1/1
@@ -208,7 +243,7 @@ no shutdown
 exit
 ```
 
-   * The last host interface becomes a public trunk when the assignment defines a public VLAN (`QUADS` `convert_port_public()` clears `switchport access vlan`, sets `switchport mode trunk`, `switchport trunk native vlan`, `switchport trunk allowed vlan`, applies the same speed/FEC steps, and saves with both commands):
+   * The last host interface becomes a public trunk when the assignment defines a public VLAN (`QUADS` `convert_port_public()` clears `switchport access vlan`, sets `switchport mode trunk`, `switchport trunk native vlan`, `switchport trunk allowed vlan`, applies the same speed/FEC steps, and saves with `write memory`):
 
 ```
 interface Ethernet1/1
@@ -222,11 +257,10 @@ exit
 
 ```
 write memory
-copy running-config startup-config
 ```
 
 > [!IMPORTANT]
-> The plugin does not run `default interface <port>`; it clears only the opposite VLAN mode's settings before applying its own. Operator settings such as `no shutdown`, `spanning-tree portfast` and `spanning-tree bpdufilter enable` are preserved across moves. When the interface has a speed, the plugin reconciles the speed statement and the 100G-only RS-FEC from the running config (clearing stale values before applying the new speed); an unset (0) speed leaves both untouched, so clear `error-correction encoding reed-solomon` and `speed` by hand in that case. The `--interface-port` database value must be the exact canonical EOS interface name (e.g. `Ethernet1/1`).
+> The plugin does not run `default interface <port>`; it clears only the opposite VLAN mode's settings before applying its own. Operator settings such as `no shutdown`, `spanning-tree portfast` and `spanning-tree bpdufilter enable` are preserved across moves. When the interface has a speed, the plugin reconciles the speed statement and RS-FEC from the running config: it sends `no error-correction encoding reed-solomon` before a non-FEC speed and `error-correction encoding reed-solomon` before a FEC speed. An unset (0) speed leaves both untouched, so clear `error-correction encoding reed-solomon` and `speed` by hand in that case. The `--interface-port` database value must be the exact canonical EOS interface name (e.g. `Ethernet1/1`).
 
 EOS tunnel port notes: the outer VLAN must exist in the VLAN database (`vlan <id>` / `name QinQ_vl<id>` above); `switchport mode dot1q-tunnel` needs no global command (Arista's configuration guides show none; `show interfaces <port> switchport` shows the resulting dot1q-tunnel mode and SVLAN after provisioning). A tunnel port adds a 4-byte outer tag on top of the host's own tag, so allow 4 bytes more headroom than a plain port for jumbo frames (standard 9000-byte jumbo is unaffected). `switchport mode dot1q-tunnel` is not available on Petra platform switches (the fixed DCS-7048 series, and DCS-7500 series line cards built on Petra), so the `arista` plugin, which programs dot1q-tunnel on every server port, cannot manage ports on those switches. QUADS ports must be in switch mode, not routed mode (`switchport` / `no ip address`); if a port was previously routed, reset it with `default interface <port>` first.
 

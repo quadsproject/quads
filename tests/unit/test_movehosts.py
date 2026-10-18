@@ -105,6 +105,15 @@ def test_movehosts_switch_configure_exception_holds_flag():
     ns.move_and_rebuild.assert_not_awaited()
 
 
+def test_movehosts_dryrun_prints_switch_commands_without_writes():
+    ns = _run_movehosts(cli_args={"datearg": None, "dryrun": True})
+
+    ns.configure.assert_awaited_once_with("host1.example.com", "cloud01", "cloud02", dry_run=True)
+    ns.quads.update_host.assert_not_called()
+    ns.quads.start_move_batch.assert_not_called()
+    ns.move_and_rebuild.assert_not_awaited()
+
+
 def test_movehosts_omit_network_move_skips_switch():
     """Hosts/clouds in omit_network_move must skip switch configuration."""
     ns = _run_movehosts(conf_get=lambda key=None, *a, **k: "cloud02" if key == "omit_network_move" else None)

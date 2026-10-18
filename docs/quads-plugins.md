@@ -125,6 +125,7 @@ Automate network switch VLAN configurations.
 **Built-in Plugins**:
 - `juniper` - Juniper switch automation (Q-in-Q VLANs)
 - `arista` - Arista EOS switch automation (Q-in-Q via dot1q-tunnel)
+- `network` - Recipe-driven generic switch automation using `conf/switch_commands.yml` (Juniper and Arista recipes ship by default)
 
 ### Ticketing Plugins
 
@@ -160,7 +161,26 @@ QUADS components never call a plugin class directly. Each plugin category is rea
 
 For a single-plugin category, enable exactly one plugin. To change the active implementation, disable the current one and enable your replacement. This is how you replace the built-in `standard` release plugin with your own (see [Example: Custom Release Plugin](#example-custom-release-plugin)).
 
-Switch is multi-plugin: every enabled switch plugin is called, and each one acts only on interfaces whose `switch_vendor` matches its name. The Juniper plugin also owns interfaces with no `switch_vendor`, so keep `juniper` enabled while those interfaces exist. Disabling it leaves untagged ports unclaimed, and their switch configuration fails closed.
+Switch is multi-plugin: every enabled switch plugin is called, and each vendor plugin acts only on interfaces whose `switch_vendor` matches its name. The Juniper plugin also owns interfaces with no `switch_vendor`, so keep `juniper` enabled while those interfaces exist. Disabling it leaves untagged ports unclaimed, and their switch configuration fails closed.
+
+The recipe-driven `network` plugin is an alternative to the vendor plugins, so it must be the only enabled switch driver. Enable one or both vendor plugins (`juniper`, `arista`), or enable `network` alone. If `network` is enabled together with `juniper` or `arista`, QUADS treats the configuration as invalid and refuses to start.
+
+Select the switch drivers through the CLI instead of editing YAML:
+
+```bash
+# Juniper only
+quads --network-plugin juniper
+
+# Both vendor drivers for a mixed Juniper/Arista environment
+quads --network-plugin arista,juniper
+
+# The generic recipe-driven driver
+quads --network-plugin network
+```
+
+The argument is a comma-separated list of `juniper`, `arista`, and `network`; `network` cannot be combined with a vendor driver. Run the command on the quads-server host. Before changing anything, QUADS checks every `switch_vendor` defined on a host and refuses the selection when a required vendor driver would be disabled. On success it enables the listed drivers, disables the other switch drivers in `plugins.yml`, prints the enabled drivers to standard output, and restarts `quads-server` so the new selection is loaded. The restart requires permission to manage the systemd service.
+
+At startup, `quads-server` also verifies the saved selection: at least one switch driver must be enabled, and vendor-driver selections must cover every interface type present in the database. A misconfiguration aborts startup with an error naming the interface type and disabled driver.
 
 ## Configuration
 
@@ -228,7 +248,7 @@ plugins:
     # Delay in seconds between retry attempts (per-host, runs in parallel)
     ipmi_credential_retry_delay: 10
 
-  # Switch automation
+  # Switch automation: enable juniper and/or arista, OR network alone.
   juniper:
     enabled: true
     username: scaleadmin
@@ -236,6 +256,8 @@ plugins:
   arista:
     enabled: false
     username: admin
+  network:
+    enabled: false  # Must be the only enabled switch driver
 
   # Ticketing
   jira:
