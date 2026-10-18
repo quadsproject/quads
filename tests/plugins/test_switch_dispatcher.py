@@ -20,7 +20,7 @@ def test_verify_returns_plugin_result_false():
     dispatcher = _dispatcher(plugin)
 
     assert asyncio.run(dispatcher.verify("host1.example.com", "cloud01", "cloud02")) is False
-    plugin.verify.assert_awaited_once_with("host1.example.com", "cloud01", "cloud02")
+    plugin.verify.assert_awaited_once_with("host1.example.com", "cloud01", "cloud02", False)
 
 
 def test_verify_returns_plugin_result_true():

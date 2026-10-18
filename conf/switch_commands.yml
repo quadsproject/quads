@@ -1,0 +1,134 @@
+###############################################################
+# Switch command recipes for the generic network driver.
+#
+# Each vendor section contains the exact CLI sequences quads
+# runs over SSH to configure/read the interfaces that point at
+# that vendor's switches.  Adding support for a new vendor or a
+# site-specific syntax is a config change only.
+#
+# Recipe placeholders:
+#   {username} {switch_ip} {switch_port} {old_vlan} {new_vlan}
+#   {speed}      - port speed in Gbps (0/None = no speed command)
+#   {speed_mbps} - port speed * 1000 (for vendors that take Mbps)
+#
+# Optional per-command `if` key: the command is skipped when the
+# named placeholder is falsy (e.g. `if: old_vlan`).
+#
+# Optional operation-level `config_prompt`: prompt to expect after each
+# command (defaults to connection.login_prompt).  Needed when a set
+# operation enters config mode, e.g. Junos edit -> '#'.
+#
+# `save` can be a single command string or a list; `save_wait` is
+# expected after the last save command.  `connection.timeout` (seconds,
+# default 120) bounds each expect.
+#
+# `username` falls back to plugins.yml (Config.plugins.<vendor>.username)
+# when unset or left as the shipped placeholder, so upgrades keep their
+# configured switch account.
+#
+# verify_tagged / verify_untagged (default true when unset) are
+# used by the environment validator network test: they decide
+# whether the tagged (172.21-172.25) / untagged (172.16-172.20)
+# derived IPs of this vendor's interfaces are ping-tested.
+###############################################################
+vendors:
+  juniper:
+    # Example placeholder - any installation must ensure this user has
+    # passwordless SSH access to the switch (e.g. scaleadmin in RDU labs).
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      login_prompt: ">"
+      error_prefixes: ["error:", "syntax error"]
+    verify_tagged: true
+    verify_untagged: true
+    operations:
+      set_port_qinq:
+        # Junos changes to '#' after 'edit' (configuration mode).
+        config_prompt: "#"
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} apply-groups QinQ_vl{new_vlan}"
+          # VLAN membership is on the unit (et-0/0/0:0.0); the switch-port
+          # alone is not a valid target.  No speed command: the POC QFX
+          # class rejects an explicit speed and runs line-rate by default.
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}.0"
+            if: old_vlan
+          - "set vlans vlan{new_vlan} interface {switch_port}.0"
+        save: "commit"
+        save_wait: "commit complete"
+      set_port_public:
+        config_prompt: "#"
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} native-vlan-id {new_vlan}"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching interface-mode trunk"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching vlan members vlan{new_vlan}"
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}.0"
+            if: old_vlan
+        save: "commit"
+        save_wait: "commit complete"
+      get_vlan_qinq:
+        command: "show configuration vlans | display set | match {switch_port}.0 | no-more"
+        parse:
+          pattern: "vlan(\\d+) interface {switch_port}"
+      get_vlan_public:
+        command: "show configuration interfaces {switch_port} | no-more"
+        parse:
+          pattern: "native-vlan-id (\\d+)"
+  arista:
+    # Untagged validation is intentionally left enabled here.  The POC
+    # arista fabric has an untagged-traffic issue tracked with the
+    # network team, so the POC's local copy of this recipe sets
+    # verify_untagged: false until the fix lands.
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      # scaleadmin drops into enable mode: prompt is "#"
+      login_prompt: "#"
+      error_prefixes: ["%"]
+      init_commands: ["terminal length 0"]
+      timeout: 120
+    verify_tagged: true
+    verify_untagged: true
+    operations:
+      # Cloud moves always use dot1q-tunnel (QinQ), matching the Juniper
+      # behavior: the host's own 802.1Q tags must reach the switch.  An
+      # access-mode port would silently drop them.
+      set_port_qinq:
+        commands:
+          - "configure terminal"
+          - "default interface {switch_port}"
+          - "interface {switch_port}"
+          - "switchport mode dot1q-tunnel"
+          - "switchport access vlan {new_vlan}"
+          - cmd: "speed forced {speed}gfull"
+            if: speed
+          - "exit"
+        save: ["write memory", "copy running-config startup-config"]
+        save_wait: "Copy completed"
+      set_port_public:
+        commands:
+          - "configure terminal"
+          - "default interface {switch_port}"
+          - "interface {switch_port}"
+          - "switchport mode trunk"
+          - "switchport trunk native vlan {new_vlan}"
+          - "switchport trunk allowed vlan {new_vlan}"
+          - cmd: "speed forced {speed}gfull"
+            if: speed
+          - "exit"
+        save: ["write memory", "copy running-config startup-config"]
+        save_wait: "Copy completed"
+      get_vlan_qinq:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport access vlan (\\d+)"
+      get_vlan_public:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport trunk native vlan (\\d+)"
