@@ -10,7 +10,10 @@ from quads.plugins.builtin.chat.irc import IRCPlugin
 from quads.plugins.builtin.email.email import EmailPlugin as SMTPEmailPlugin
 from quads.plugins.builtin.hardware.badfish import BadfishHardwarePlugin
 from quads.plugins.builtin.provisioners.foreman import ForemanProvisionerPlugin
+from quads.config import Config
+from quads.plugins.builtin.switches.arista import AristaSwitchPlugin
 from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
+from quads.plugins.builtin.switches.network import NetworkSwitchPlugin
 from quads.plugins.builtin.ticketing.jira import JiraTicketingPlugin
 
 SMTP_PLUGIN_CONFIG = {
@@ -402,6 +405,44 @@ class TestJuniperPlugin:
         assert plugin.username is None
 
 
+class TestNetworkPlugin:
+    """Test cases for the generic network switch driver"""
+
+    def test_network_plugin_metadata(self):
+        """Test network plugin has correct metadata"""
+        assert NetworkSwitchPlugin.name == "network"
+        assert NetworkSwitchPlugin.version == "1.0.0"
+        assert NetworkSwitchPlugin.conflicts_with == ("juniper", "arista")
+
+    @patch.object(
+        Config,
+        "vendors",
+        {
+            "juniper": {
+                "connection": {"ssh": "ssh {username}@{switch_ip}", "login_prompt": ">"},
+                "operations": {
+                    "get_vlan_qinq": {"command": "show vlans", "parse": {"pattern": r"vlan(\d+)"}},
+                    "get_vlan_public": {"command": "show iface", "parse": {"pattern": r"vlan(\d+)"}},
+                    "set_port_qinq": {"commands": ["edit"], "save": "commit", "save_wait": "commit complete"},
+                    "set_port_public": {"commands": ["edit"], "save": "commit", "save_wait": "commit complete"},
+                },
+            }
+        },
+    )
+    @patch("quads.plugins.builtin.switches.network.QuadsApi")
+    def test_network_plugin_initialization_success(self, mock_quads_api):
+        """Test network plugin initializes with valid config"""
+        config = {
+            "enabled": True,
+        }
+        plugin = NetworkSwitchPlugin(config)
+        result = plugin.initialize()
+
+        assert result is True
+        assert plugin.recipes["juniper"]["connection"]["login_prompt"] == ">"
+        mock_quads_api.assert_called_once()
+
+
 class TestJiraPlugin:
     """Test cases for JIRA ticketing plugin"""
 
@@ -456,6 +497,8 @@ class TestBuiltinPluginNaming:
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
             JuniperSwitchPlugin,
+            AristaSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 
@@ -474,6 +517,8 @@ class TestBuiltinPluginNaming:
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
             JuniperSwitchPlugin,
+            AristaSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 
@@ -492,6 +537,8 @@ class TestBuiltinPluginNaming:
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
             JuniperSwitchPlugin,
+            AristaSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 
