@@ -84,6 +84,10 @@ plugins:
     # Delay in seconds between retry attempts (per-host, runs in parallel)
     ipmi_credential_retry_delay: 10
 
+  # Switch drivers: enable one or both vendor-specific plugins (juniper,
+  # arista), or the recipe-driven network plugin. The network plugin must be
+  # the only enabled switch driver; if it is enabled alongside juniper/arista
+  # it is ignored at startup with a warning in favor of the vendor plugin(s).
   juniper:
     enabled: true
     username: scaleadmin
@@ -93,6 +97,9 @@ plugins:
     # must be a privilege-15 account: the driver enters configure terminal
     # after login and does not run an enable step
     username: admin
+
+  network:
+    enabled: false
 
   jira:
     enabled: true
