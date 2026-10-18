@@ -84,9 +84,8 @@ plugins:
     # Delay in seconds between retry attempts (per-host, runs in parallel)
     ipmi_credential_retry_delay: 10
 
-  juniper:
+  network:
     enabled: true
-    username: scaleadmin
 
   jira:
     enabled: true
