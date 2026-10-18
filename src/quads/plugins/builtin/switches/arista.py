@@ -293,14 +293,6 @@ class AristaSwitchPlugin(SwitchPlugin):
                                 interface.speed,
                             )
                     if int(vlan_member) != int(vlan) or not speed_ok:
-                        if int(vlan_member) != int(vlan):
-                            self.logger.warning(
-                                "Interface %s appears to be a member of VLAN %s, should be %s",
-                                interface.switch_port,
-                                vlan_member,
-                                vlan,
-                            )
-
                         if change:
                             if _assignment and _assignment.vlan and last_nic:
                                 if int(_assignment.vlan.vlan_id) != int(old_vlan) or not speed_ok:

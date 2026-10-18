@@ -947,6 +947,45 @@ class TestJuniperSwitchPlugin:
 
     @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_verify_mismatch_logged_once_per_interface(self, mock_get_vlan, mock_ssh_class, plugin):
+        """A non-last interface gets one mismatch line, not a warning plus an error."""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.filter_hosts.return_value = [mock_host]
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", vlan=None)
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/1.0"]),
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/2.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.verify(host="host1.example.com", change=False)
+
+        assert result is False
+        appears_warnings = [
+            entry
+            for entry in plugin.logger.warning.call_args_list
+            if entry.args and "appears to be a member" in str(entry.args[0])
+        ]
+        appears_errors = [
+            entry
+            for entry in plugin.logger.error.call_args_list
+            if entry.args and "appears to be a member" in str(entry.args[0])
+        ]
+        assert appears_warnings == []
+        assert len(appears_errors) == 2
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
     @patch("quads.plugins.builtin.switches.juniper.Juniper")
     @patch("quads.plugins.builtin.switches.juniper.get_vlan")
     async def test_verify_change_multi_nic_continues_after_failure(
@@ -1001,6 +1040,7 @@ class TestJuniperSwitchPlugin:
 
         assert result is True
         plugin.logger.error.assert_not_called()
+        plugin.logger.info.assert_any_call("Skipping speed/FEC checks for juniper interfaces")
 
     @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")

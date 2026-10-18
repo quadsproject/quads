@@ -266,6 +266,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                     self.log_unclaimed(_host_obj.name, unclaimed)
                     all_ok = False
                     continue
+                if any(self.owns_interface(interface) for interface in interfaces):
+                    self.logger.info("Skipping speed/FEC checks for juniper interfaces")
                 for i, interface in enumerate(interfaces):
                     if not self.owns_interface(interface):
                         continue
@@ -313,14 +315,6 @@ class JuniperSwitchPlugin(SwitchPlugin):
                         self.logger.warning("Interface %s not using QinQ_vl%s", interface.switch_port, vlan)
 
                     if int(vlan_member) != int(vlan):
-                        if not last_nic:
-                            self.logger.warning(
-                                "Interface %s appears to be a member of VLAN %s, should be %s",
-                                interface.switch_port,
-                                vlan_member,
-                                vlan,
-                            )
-
                         if change:
                             if _assignment and _assignment.vlan and last_nic:
                                 if int(_assignment.vlan.vlan_id) != int(old_vlan):
