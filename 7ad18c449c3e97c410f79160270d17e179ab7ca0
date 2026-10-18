@@ -290,6 +290,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "7f0482e3_35308be2",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-18T14:45:31Z",
+      "side": 1,
+      "message": "Ran SwitchCLI._command(\u0027edit\u0027) against a simulated JUNOS console: it raises \u0027Timeout executing command: edit\u0027. _command() defaults its expect to connection.login_prompt on every command, and the juniper recipe sets that to \u0027\u003e\u0027. But a JUNOS box drops to \u0027#\u0027 once it enters config mode, so after \u0027edit\u0027 the \u0027\u003e\u0027 never matches and configure/modify time out for 120s. The old juniper driver used [\u003e#] for exactly this reason. Use a prompt that matches config mode here (or a per-command expect for edit/commit), and add a fake-channel test that runs edit then commit.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "6e3581f4_ca401fd5",
