@@ -1,0 +1,130 @@
+###############################################################
+# Switch command recipes for the generic network driver.
+#
+# Each vendor section contains the exact CLI sequences quads
+# runs over SSH to configure/read the interfaces that point at
+# that vendor's switches.  Adding support for a new vendor or a
+# site-specific syntax is a config change only.
+#
+# Recipe placeholders:
+#   {username} {switch_ip} {switch_port} {old_vlan} {new_vlan}
+#   {speed}      - port speed in Gbps (0/None = no speed command)
+#   {speed_mbps} - port speed * 1000 (for vendors that take Mbps)
+#
+# Optional per-command `if` key: the command is skipped when the
+# named placeholder is falsy (e.g. `if: old_vlan`).
+#
+# verify_tagged / verify_untagged (default true when unset) are
+# used by the environment validator network test: they decide
+# whether the tagged (172.21-172.25) / untagged (172.16-172.20)
+# derived IPs of this vendor's interfaces are ping-tested.
+###############################################################
+vendors:
+  juniper:
+    # Example placeholder - any installation must ensure this user has
+    # passwordless SSH access to the switch (e.g. scaleadmin in RDU labs).
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      login_prompt: ">"
+      error_prefixes: ["error:", "syntax error"]
+    verify_tagged: true
+    verify_untagged: true
+    operations:
+      set_port_qinq:
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} apply-groups QinQ_vl{new_vlan}"
+          - cmd: "set interfaces {switch_port} speed {speed}g"
+            if: speed
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}"
+            if: old_vlan
+          - "set vlans vlan{new_vlan} interface {switch_port}"
+        save: "commit"
+        save_wait: "commit complete"
+      set_port_public:
+        commands:
+          - "edit"
+          - "rollback"
+          - "delete interfaces {switch_port}"
+          - "set interfaces {switch_port} native-vlan-id {new_vlan}"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching interface-mode trunk"
+          - "set interfaces {switch_port} unit 0 family ethernet-switching vlan members vlan{new_vlan}"
+          - cmd: "set interfaces {switch_port} speed {speed}g"
+            if: speed
+          - cmd: "delete vlans vlan{old_vlan} interface {switch_port}"
+            if: old_vlan
+        save: "commit"
+        save_wait: "commit complete"
+      get_vlan_qinq:
+        command: "show configuration vlans | display set | match {switch_port}.0 | no-more"
+        parse:
+          pattern: "vlan(\\d+) interface {switch_port}"
+      get_vlan_public:
+        command: "show configuration interfaces {switch_port} | no-more"
+        parse:
+          pattern: "native-vlan-id (\\d+)"
+  arista:
+    # NOTE: POC arista fabric currently has an untagged-traffic issue
+    # (tracked with the network team); untagged validation is disabled.
+    # Re-enable (verify_untagged: true) once the network team's fix lands.
+    username: switch_username
+    connection:
+      ssh: "ssh -o StrictHostKeyChecking=no {username}@{switch_ip}"
+      # scaleadmin drops into enable mode: prompt is "#"
+      login_prompt: "#"
+      error_prefixes: ["%"]
+      init_commands: ["terminal length 0"]
+    verify_tagged: true
+    verify_untagged: false
+    operations:
+      set_port_access:
+        commands:
+          - "configure terminal"
+          - "default interface {switch_port}"
+          - "interface {switch_port}"
+          - "switchport mode access"
+          - "switchport access vlan {new_vlan}"
+          - cmd: "speed forced {speed}gfull"
+            if: speed
+          - "exit"
+        # Both saves persist the config across a switch reboot.  The role
+        # currently denies the copy command; ACL request pending with the
+        # network admins.
+        save: ["write memory", "copy running-configuration startup-configuration"]
+        save_wait: "Copy completed"
+      set_port_qinq:
+        commands:
+          - "configure terminal"
+          - "default interface {switch_port}"
+          - "interface {switch_port}"
+          - "switchport mode dot1q-tunnel"
+          - "switchport access vlan {new_vlan}"
+          - cmd: "speed forced {speed}gfull"
+            if: speed
+          - "exit"
+        save: ["write memory", "copy running-configuration startup-configuration"]
+        save_wait: "Copy completed"
+      set_port_public:
+        commands:
+          - "configure terminal"
+          - "default interface {switch_port}"
+          - "interface {switch_port}"
+          - "switchport mode trunk"
+          - "switchport trunk native vlan {new_vlan}"
+          - "switchport trunk allowed vlan {new_vlan}"
+          - cmd: "speed forced {speed}gfull"
+            if: speed
+          - "exit"
+        save: ["write memory", "copy running-configuration startup-configuration"]
+        save_wait: "Copy completed"
+      get_vlan_qinq:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport access vlan (\\d+)"
+      get_vlan_public:
+        command: "show running-config interfaces {switch_port}"
+        parse:
+          pattern: "switchport trunk native vlan (\\d+)"

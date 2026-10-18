@@ -145,6 +145,7 @@ class TestInterface(TestBase):
             "\t--interface-port\n"
             "\t--interface-speed\n"
             "\t--interface-vendor\n"
+            "\t--interface-switch-vendor\n"
             "\t--pxe-boot\n"
             "\t--maintenance"
         )
