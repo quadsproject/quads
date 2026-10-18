@@ -2,6 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
+from quads.plugins.base import BasePlugin
 from quads.plugins.manager import PluginManager
 from tests.plugins.conftest import (
     MockChatPlugin,
@@ -234,3 +235,121 @@ class TestPluginManager:
         assert plugin.config == config
         assert plugin.config.get("webhook_url") == "https://test.com"
         assert plugin.config.get("custom_param") == "value"
+
+    @patch("quads.plugins.manager.PluginDiscovery")
+    def test_conflicting_plugin_is_ignored(self, mock_discovery_class, caplog):
+        """A plugin declaring conflicts is skipped in favor of the enabled one."""
+
+        class NetworkPlugin(BasePlugin):
+            name = "network"
+            conflicts_with = ("juniper", "arista")
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        class JuniperPlugin(BasePlugin):
+            name = "juniper"
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        class AristaPlugin(BasePlugin):
+            name = "arista"
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        mock_discovery = MagicMock()
+        mock_discovery.discover_plugins.return_value = {
+            "network": NetworkPlugin,
+            "juniper": JuniperPlugin,
+            "arista": AristaPlugin,
+        }
+        mock_discovery_class.return_value = mock_discovery
+
+        manager = PluginManager(
+            config={
+                "plugins": {
+                    "network": {"enabled": True},
+                    "juniper": {"enabled": True},
+                    "arista": {"enabled": True},
+                }
+            }
+        )
+        manager.initialize()
+
+        assert set(manager.loaded_plugins) == {"juniper", "arista"}
+        assert "Plugin configuration conflict" in caplog.text
+        assert "ignoring 'network'" in caplog.text
+
+    @patch("quads.plugins.manager.PluginDiscovery")
+    def test_conflict_free_plugins_load_together(self, mock_discovery_class):
+        """Vendor plugins can be enabled together when the generic driver is off."""
+
+        class NetworkPlugin(BasePlugin):
+            name = "network"
+            conflicts_with = ("juniper", "arista")
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        class JuniperPlugin(BasePlugin):
+            name = "juniper"
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        class AristaPlugin(BasePlugin):
+            name = "arista"
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        mock_discovery = MagicMock()
+        mock_discovery.discover_plugins.return_value = {
+            "network": NetworkPlugin,
+            "juniper": JuniperPlugin,
+            "arista": AristaPlugin,
+        }
+        mock_discovery_class.return_value = mock_discovery
+
+        manager = PluginManager(
+            config={
+                "plugins": {
+                    "network": {"enabled": False},
+                    "juniper": {"enabled": True},
+                    "arista": {"enabled": True},
+                }
+            }
+        )
+        manager.initialize()
+
+        assert set(manager.loaded_plugins) == {"juniper", "arista"}
+
+    @patch("quads.plugins.manager.PluginDiscovery")
+    def test_generic_plugin_loads_alone(self, mock_discovery_class):
+        """The generic driver loads when no conflicting plugin is enabled."""
+
+        class NetworkPlugin(BasePlugin):
+            name = "network"
+            conflicts_with = ("juniper", "arista")
+
+            def initialize(self, plugin_manager=None):
+                return True
+
+        mock_discovery = MagicMock()
+        mock_discovery.discover_plugins.return_value = {"network": NetworkPlugin}
+        mock_discovery_class.return_value = mock_discovery
+
+        manager = PluginManager(
+            config={
+                "plugins": {
+                    "network": {"enabled": True},
+                    "juniper": {"enabled": False},
+                    "arista": {"enabled": False},
+                }
+            }
+        )
+        manager.initialize()
+
+        assert set(manager.loaded_plugins) == {"network"}

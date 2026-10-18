@@ -23,11 +23,27 @@ class PluginManager:
         """Discover and load configured plugins"""
         self.available_plugins = self.discovery.discover_plugins()
 
-        # Load plugins from config
+        # Load plugins from config. A plugin can declare names it must not be
+        # loaded alongside (e.g. the generic network driver and vendor drivers);
+        # resolve those conflicts before initializing anything so the ignored
+        # plugin has no side effects.
         plugin_config = self.config.get("plugins", {})
+        enabled = {name for name, settings in plugin_config.items() if settings.get("enabled", False)}
         for plugin_name, plugin_settings in plugin_config.items():
-            if plugin_settings.get("enabled", False):
-                self.load_plugin(plugin_name, plugin_settings)
+            if plugin_name not in enabled:
+                continue
+            plugin_class = self.available_plugins.get(plugin_name)
+            conflicts = [name for name in getattr(plugin_class, "conflicts_with", ()) if name in enabled]
+            if conflicts:
+                logger.warning(
+                    "Plugin configuration conflict: '%s' is enabled together with %s; "
+                    "ignoring '%s' in favor of the conflicting plugin(s)",
+                    plugin_name,
+                    ", ".join(f"'{name}'" for name in conflicts),
+                    plugin_name,
+                )
+                continue
+            self.load_plugin(plugin_name, plugin_settings)
 
     def load_plugin(self, name: str, config: Dict) -> Optional[BasePlugin]:
         """Load and initialize a specific plugin"""

@@ -106,12 +106,14 @@ class TestEnvironmentValidatorPlugin:
             plugin_obj = EnvironmentValidatorPlugin(config={})
             plugin_obj.quads = MagicMock()
             plugin_obj.hardware_dispatcher = AsyncMock()
-            plugin_obj.switch_dispatcher = AsyncMock()
             # Make email_dispatcher methods async
             plugin_obj.email_dispatcher = MagicMock()
             plugin_obj.email_dispatcher.send_mail = AsyncMock()
             plugin_obj.logger = MagicMock()
             plugin_obj.initialize()
+            # initialize() must not create the switch dispatcher while the
+            # plugin manager is still loading the other switch plugins.
+            plugin_obj._switch_dispatcher = AsyncMock()
             return plugin_obj
 
     def test_plugin_metadata(self):
@@ -139,7 +141,9 @@ class TestEnvironmentValidatorPlugin:
             assert result is True
             assert hasattr(plugin, "quads")
             assert hasattr(plugin, "hardware_dispatcher")
+            assert plugin._switch_dispatcher is None
             assert hasattr(plugin, "switch_dispatcher")
+            assert plugin._switch_dispatcher is not None
             assert hasattr(plugin, "email_dispatcher")
 
     @pytest.mark.asyncio

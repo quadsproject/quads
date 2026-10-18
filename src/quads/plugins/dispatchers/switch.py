@@ -11,16 +11,22 @@ class SwitchDispatcher(BaseDispatcher[SwitchPlugin]):
     def __init__(self, plugin_manager: PluginManager):
         super().__init__(plugin_manager, SwitchPlugin, "Switch")
 
-    async def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
+    async def configure(self, host: str, old_cloud: str, new_cloud: str, dry_run: bool = False) -> bool:
         plugins = self.get_all_plugins()
         if not plugins:
             logger.error("No switch plugin enabled")
             return False
 
         for plugin in plugins:
+            if dry_run and not getattr(plugin, "supports_dry_run", False):
+                logger.info("Skipping switch dry-run for %s: driver does not support it", plugin.name)
+                continue
             logger.info(f"Configuring switch for {host} from {old_cloud} to {new_cloud} via {plugin.name}")
             try:
-                result = await plugin.configure(host, old_cloud, new_cloud)
+                if dry_run:
+                    result = await plugin.configure(host, old_cloud, new_cloud, dry_run=True)
+                else:
+                    result = await plugin.configure(host, old_cloud, new_cloud)
                 if result is not True:
                     return False
             except Exception as e:
@@ -103,9 +109,9 @@ def get_switch_dispatcher(plugin_manager: Optional[PluginManager] = None) -> Swi
     return _dispatcher_instance
 
 
-async def configure(host: str, old_cloud: str, new_cloud: str) -> bool:
+async def configure(host: str, old_cloud: str, new_cloud: str, dry_run: bool = False) -> bool:
     dispatcher = get_switch_dispatcher()
-    return await dispatcher.configure(host, old_cloud, new_cloud)
+    return await dispatcher.configure(host, old_cloud, new_cloud, dry_run=dry_run)
 
 
 async def modify(
