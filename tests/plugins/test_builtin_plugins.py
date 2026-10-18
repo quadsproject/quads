@@ -10,7 +10,7 @@ from quads.plugins.builtin.chat.irc import IRCPlugin
 from quads.plugins.builtin.email.email import EmailPlugin as SMTPEmailPlugin
 from quads.plugins.builtin.hardware.badfish import BadfishHardwarePlugin
 from quads.plugins.builtin.provisioners.foreman import ForemanProvisionerPlugin
-from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
+from quads.plugins.builtin.switches.network import NetworkSwitchPlugin
 from quads.plugins.builtin.ticketing.jira import JiraTicketingPlugin
 
 SMTP_PLUGIN_CONFIG = {
@@ -368,38 +368,26 @@ class TestForemanPlugin:
         assert plugin.url is None
 
 
-class TestJuniperPlugin:
-    """Test cases for Juniper switch plugin"""
+class TestNetworkPlugin:
+    """Test cases for the generic network switch driver"""
 
-    def test_juniper_plugin_metadata(self):
-        """Test Juniper plugin has correct metadata"""
-        assert JuniperSwitchPlugin.name == "juniper"
-        assert JuniperSwitchPlugin.version == "1.0.0"
+    def test_network_plugin_metadata(self):
+        """Test network plugin has correct metadata"""
+        assert NetworkSwitchPlugin.name == "network"
+        assert NetworkSwitchPlugin.version == "1.0.0"
 
-    @patch("quads.plugins.builtin.switches.juniper.QuadsApi")
-    def test_juniper_plugin_initialization_success(self, mock_quads_api):
-        """Test Juniper plugin initializes with valid config"""
+    @patch("quads.plugins.builtin.switches.network.QuadsApi")
+    def test_network_plugin_initialization_success(self, mock_quads_api):
+        """Test network plugin initializes with valid config"""
         config = {
             "enabled": True,
-            "username": "admin",
         }
-        plugin = JuniperSwitchPlugin(config)
+        plugin = NetworkSwitchPlugin(config)
         result = plugin.initialize()
 
         assert result is True
-        assert plugin.username == "admin"
+        assert plugin.recipes == {}
         mock_quads_api.assert_called_once()
-
-    @patch("quads.plugins.builtin.switches.juniper.QuadsApi")
-    def test_juniper_plugin_initialization_minimal(self, mock_quads_api):
-        """Test Juniper plugin initializes with minimal config"""
-        config = {"enabled": True}
-        plugin = JuniperSwitchPlugin(config)
-        result = plugin.initialize()
-
-        # Juniper plugin initializes even without username
-        assert result is True
-        assert plugin.username is None
 
 
 class TestJiraPlugin:
@@ -455,7 +443,7 @@ class TestBuiltinPluginNaming:
             SMTPEmailPlugin,
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
-            JuniperSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 
@@ -473,7 +461,7 @@ class TestBuiltinPluginNaming:
             SMTPEmailPlugin,
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
-            JuniperSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 
@@ -491,7 +479,7 @@ class TestBuiltinPluginNaming:
             SMTPEmailPlugin,
             BadfishHardwarePlugin,
             ForemanProvisionerPlugin,
-            JuniperSwitchPlugin,
+            NetworkSwitchPlugin,
             JiraTicketingPlugin,
         ]
 

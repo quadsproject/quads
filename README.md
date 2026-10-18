@@ -593,11 +593,16 @@ c09-h03-r630.example.com
 ```bash
 quads --ls-interface --host c08-h21-r630.example.com
 
-{"name": "em1", "mac_address": "52:54:00:d9:5d:df", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:0"}
-{"name": "em2", "mac_address": "52:54:00:d9:5d:dg", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:1"}
-{"name": "em3", "mac_address": "52:54:00:d9:5d:dh", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:2"}
-{"name": "em4", "mac_address": "52:54:00:d9:5d:d1", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:3"}
+{"name": "em1", "mac_address": "52:54:00:d9:5d:df", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:0", "switch_vendor": "juniper"}
+{"name": "em2", "mac_address": "52:54:00:d9:5d:dg", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:1", "switch_vendor": "juniper"}
+{"name": "em3", "mac_address": "52:54:00:d9:5d:dh", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:2", "switch_vendor": "juniper"}
+{"name": "em4", "mac_address": "52:54:00:d9:5d:d1", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:3", "switch_vendor": "juniper"}
 ```
+
+The `switch_vendor` field records which switch vendor the interface
+attaches to (set with `--interface-switch-vendor` when defining an
+interface); it selects the switch command recipes used for that port.
+
 
    - To see the current system allocations:
 

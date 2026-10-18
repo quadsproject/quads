@@ -28,6 +28,7 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
         host: str,
         change: bool = False,
         overrides: Optional[dict] = None,
+        dry_run: bool = False,
     ) -> bool:
         if not self._default_plugin:
             logger.error("No switch plugin enabled")
@@ -35,12 +36,12 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
 
         logger.info(f"Modifying switch for {host} via {self._default_plugin.name}")
         try:
-            return await self._default_plugin.modify(host, change, overrides)
+            return await self._default_plugin.modify(host, change, overrides, dry_run)
         except Exception as e:
             logger.error(f"Failed to modify switch: {e}")
             return False
 
-    async def verify(self, host: str = None, cloud: str = None, change: bool = False) -> bool:
+    async def verify(self, host: str = None, cloud: str = None, change: bool = False, dry_run: bool = False) -> bool:
         if not self._default_plugin:
             logger.error("No switch plugin enabled")
             return False
@@ -48,7 +49,7 @@ class SwitchDispatcher(SinglePluginDispatcher[SwitchPlugin]):
         component = host if host else cloud
         logger.info(f"Verifying switch for {component} via {self._default_plugin.name}")
         try:
-            return await self._default_plugin.verify(host, cloud, change)
+            return await self._default_plugin.verify(host, cloud, change, dry_run)
         except Exception as e:
             logger.error(f"Failed to verify switch: {e}")
             return False
@@ -88,14 +89,15 @@ async def modify(
     host: str,
     change: bool = False,
     overrides: Optional[dict] = None,
+    dry_run: bool = False,
 ) -> bool:
     dispatcher = get_switch_dispatcher()
-    return await dispatcher.modify(host, change, overrides)
+    return await dispatcher.modify(host, change, overrides, dry_run)
 
 
-async def verify(host: str = None, cloud: str = None, change: bool = False) -> bool:
+async def verify(host: str = None, cloud: str = None, change: bool = False, dry_run: bool = False) -> bool:
     dispatcher = get_switch_dispatcher()
-    return await dispatcher.verify(host, cloud, change)
+    return await dispatcher.verify(host, cloud, change, dry_run)
 
 
 async def ls_config(cloud: str, all: bool = False) -> bool:

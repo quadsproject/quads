@@ -117,8 +117,8 @@ class TestPluginDiscovery:
         plugins = discovery.discover_plugins()
 
         # Check that switch plugins can be discovered
-        if "juniper" in plugins:
-            assert issubclass(plugins["juniper"], BasePlugin)
+        if "network" in plugins:
+            assert issubclass(plugins["network"], BasePlugin)
 
     def test_discover_builtin_provisioner_plugins(self):
         """Test that built-in provisioner plugins can be discovered"""
