@@ -78,7 +78,7 @@ def test_movehosts_awaits_switch_configure():
     dangling coroutine, and the flag flips True only on a real success."""
     ns = _run_movehosts()
 
-    ns.configure.assert_awaited_once_with("host1.example.com", "cloud01", "cloud02")
+    ns.configure.assert_awaited_once_with("host1.example.com", "cloud01", "cloud02", False)
     ns.quads.update_host.assert_any_call("host1.example.com", {"switch_config_applied": True})
 
 

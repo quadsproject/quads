@@ -17,6 +17,7 @@
     speed: 1000
     switch_ip: 10.0.0.1
     switch_port: et-4/0/0
+    switch_vendor: null
     vendor: Intel
   memory:
   - handle: DIMM1

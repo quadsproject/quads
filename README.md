@@ -178,7 +178,10 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
    - Recent [Fedora Server](https://fedoraproject.org/server/download/) for RPM installations
    - 1 x modest sized VM (8 vcpu 8GB mem) for combined QUADS stack (quads-server, quads-web, quads-db)
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
-   - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
+   - Switch/VLAN automation is done through a recipe-driven network plugin: the exact command sequences per vendor live in `/opt/quads/conf/switch_commands.yml` (Juniper Q-in-Q and Arista EOS recipes ship by default) and no vendor-specific Python code is required to add another vendor.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
+   - Each interface records which switch vendor it attaches to in its `switch_vendor` field (set with `--interface-switch-vendor` when defining an interface).  The recipe for that vendor is used to program and read the port; interfaces created before this field existed default to the historical `juniper` vendor.
+   - Recipe schema: each vendor section has a `connection` (ssh command template, `login_prompt`, optional `error_prefixes`/`init_commands`/`timeout`), `verify_tagged`/`verify_untagged` (whether the environment validator pings this vendor's interfaces), and named `operations` (get operations with a `command` + `parse.pattern` regex; set operations with a `commands` list, an optional `config_prompt` for config-mode prompts like Junos `#`, and a `save` command or command list with a `save_wait` marker).  Set commands are skipped when their optional `if` placeholder is falsy.
+   - Upgrades: `plugins.yml` is a noreplace config file; if an existing install still only enables the removed `juniper` plugin, quads falls back to the recipe-driven `network` switch driver automatically (set `network.enabled: true` in `plugins.yml` to be explicit).
    - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.  Most enterprise server vendors come standard with IPMI interfaces and the [Redfish API](https://en.wikipedia.org/wiki/Redfish_(specification)).
 
 ## QUADS Terminology
@@ -453,7 +456,7 @@ crontab -e
 #### External Services
 
    - QUADS integrates with external services via the plugin architecture (configured in `/opt/quads/conf/plugins.yml`)
-   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper switches (network automation)
+   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), recipe-driven network switch automation (Juniper/Arista recipes in `conf/switch_commands.yml`)
    - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for configuration details
 
 | Service Command       | Category | Purpose |
@@ -593,11 +596,16 @@ c09-h03-r630.example.com
 ```bash
 quads --ls-interface --host c08-h21-r630.example.com
 
-{"name": "em1", "mac_address": "52:54:00:d9:5d:df", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:0"}
-{"name": "em2", "mac_address": "52:54:00:d9:5d:dg", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:1"}
-{"name": "em3", "mac_address": "52:54:00:d9:5d:dh", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:2"}
-{"name": "em4", "mac_address": "52:54:00:d9:5d:d1", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:3"}
+{"name": "em1", "mac_address": "52:54:00:d9:5d:df", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:0", "switch_vendor": "juniper"}
+{"name": "em2", "mac_address": "52:54:00:d9:5d:dg", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:1", "switch_vendor": "juniper"}
+{"name": "em3", "mac_address": "52:54:00:d9:5d:dh", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:2", "switch_vendor": "juniper"}
+{"name": "em4", "mac_address": "52:54:00:d9:5d:d1", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:3", "switch_vendor": "juniper"}
 ```
+
+The `switch_vendor` field records which switch vendor the interface
+attaches to (set with `--interface-switch-vendor` when defining an
+interface); it selects the switch command recipes used for that port.
+
 
    - To see the current system allocations:
 
@@ -673,7 +681,7 @@ INFO: Moving c08-h21-r630.example.com from cloud01 to cloud02 c08-h21-r630.examp
 #### QUADS Move Host Command
 In QUADS, the move workflow is the actionable process that provisions and moves a set of systems from one cloud environment to the other. Via cron, QUADS routinely queries the existing schedules and when it comes time for a set of systems to move to a new environment, or to be reclaimed and moved back to the spare pool, it runs the move workflow for each host.
 
-The move workflow is handled by the `standard` release plugin, which coordinates the provisioner (Foreman), hardware (Badfish) and switch (Juniper) plugins for each host.
+The move workflow is handled by the `standard` release plugin, which coordinates the provisioner (Foreman), hardware (Badfish) and switch (recipe-driven network) plugins for each host.
 
 * Runs against all hosts according to the QUADS schedule.
 
@@ -1368,7 +1376,7 @@ curl -X DELETE \
   - **Hardware** - Badfish IPMI/Redfish management
   - **Provisioners** - Foreman/Satellite integration
   - **Release** - Environment release workflows
-  - **Switches** - Juniper network automation
+  - **Switches** - recipe-driven network automation (Juniper/Arista via `conf/switch_commands.yml`)
   - **Ticketing** - JIRA integration
   - **Validators** - Environment health validation
 * **Creating Custom Plugins:**
