@@ -16,6 +16,23 @@
       "message": "Verified: fail-closed here is the correct call and matches ls_config(). Removing this block drops verify() back into the fall-through path and the new regression test fails, so it is well covered.",
       "revId": "5b03ff7f86687c2388b59428df3aa55ab8465511",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3168ecb4_a579c7ac",
+        "filename": "tests/plugins/test_switch_juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 765,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-19T13:32:21Z",
+      "side": 1,
+      "message": "Non-blocking test NIT: this test only exercises a cloud01 host, and it does not assert SSHHelper is not constructed.\n\nA guard scoped to the spare pool (`if not _assignment and _cloud_obj.name \u003d\u003d \"cloud01\":`) still passes this test, while a cloud04 host with no assignment would still fall through to get_vlan(None) and set_port. Similarly, moving the early return after SSHHelper(interface.switch_ip, self.username) still passes, although the SSH connection is opened before failing closed.\n\nPlease parametrize the host cloud over [\"cloud01\", \"cloud04\"] (and adjust the expected warning) and add `mock_ssh_class.assert_not_called()` after the Juniper assertion. This is a test-strengthening nit, not a product defect.",
+      "revId": "5b03ff7f86687c2388b59428df3aa55ab8465511",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
