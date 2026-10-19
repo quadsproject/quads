@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fc5575d_9768456d",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-19T13:14:43Z",
+      "side": 1,
+      "message": "Verified: fail-closed here is the correct call and matches ls_config(). Removing this block drops verify() back into the fall-through path and the new regression test fails, so it is well covered.",
+      "revId": "5b03ff7f86687c2388b59428df3aa55ab8465511",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
