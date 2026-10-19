@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e57fc6f7_0093e095",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-19T12:15:45Z",
+      "side": 1,
+      "message": "Fix verified: with get_active_cloud_assignment() returning None and a fresh port (the IndexError path), verify() no longer crashes; the old line raised AttributeError on _assignment.vlan. Add a regression test though: every existing verify() test mocks a non-None assignment, and the only None-assignment test (test_ls_config_cloud_not_found) covers ls_config, not verify. Lock in the #751 path.",
+      "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
