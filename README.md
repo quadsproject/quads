@@ -88,6 +88,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
   * [Modify a Host Interface](#modify-a-host-interface)
   * [Remove a Host Interface](#remove-a-host-interface)
   * [QUADS Provided Metadata](#quads-provided-metadata)
+  * [QUADS Provided Instack Files](#quads-provided-instack-files)
 * [Using the QUADS JSON API](#using-the-quads-json-api)
 * [API Tokens](#api-tokens)
   * [Creating API Tokens via the Web UI](#creating-api-tokens-via-the-web-ui)
@@ -1297,6 +1298,17 @@ To enable this plugin, add the following to `/opt/quads/conf/plugins.yml`:
 
 ```yaml
   clouddata:
+    enabled: true
+```
+
+### QUADS Provided Instack Files
+
+During the same initial release notification, the built-in `instackdata` dayzero plugin copies the generated `<cloud>_instackenv.json` and `<cloud>_ocpinventory.json` from `json_web_path` to `/root` on the first host of the allocation. Only files that exist are copied, so OpenStack-only and OpenShift-only deployments get the matching inventory. Timestamped retention copies are not copied.
+
+To enable this plugin, add the following to `/opt/quads/conf/plugins.yml`:
+
+```yaml
+  instackdata:
     enabled: true
 ```
 

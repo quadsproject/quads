@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import base64
+import io
 import logging
 import os
 
-from paramiko import SSHClient, AutoAddPolicy, SSHConfig, SSHException
+from paramiko import SSHClient, AutoAddPolicy, SSHConfig, SSHException, SFTPError
 
 logger = logging.getLogger(__name__)
 logging.getLogger("paramiko").setLevel(logging.WARNING)
@@ -73,6 +74,16 @@ class SSHHelper(object):
         else:
             logger.debug("Command executed successfully: %s" % cmd)
             return True, stdout.readlines()
+
+    def put_file(self, content, remote_path, mode=0o644):
+        try:
+            with self.ssh.open_sftp() as sftp:
+                sftp.putfo(io.BytesIO(content.encode()), remote_path)
+                sftp.chmod(remote_path, mode)
+        except (SSHException, SFTPError, OSError) as ex:
+            logger.error("Failed to upload %s: %s" % (remote_path, ex))
+            return False
+        return True
 
     def copy_ssh_key(self, _ssh_key):
 

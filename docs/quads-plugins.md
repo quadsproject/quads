@@ -51,6 +51,7 @@ Post-release plugins that run on the first host of a new cloud assignment after 
 **Built-in Plugins**:
 - `cloudcmd` - runs the owner's release command on the first host via tmux
 - `clouddata` - drops `/root/quads_env.yml` metadata on the first host
+- `instackdata` - copies `<cloud>_instackenv.json` and `<cloud>_ocpinventory.json` to `/root` on the first host
 
 ### Email Plugins
 
