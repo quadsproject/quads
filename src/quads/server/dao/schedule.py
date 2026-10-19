@@ -268,9 +268,17 @@ class ScheduleDao(BaseDao):
 
     @staticmethod
     def get_current_schedule(
-        date: datetime = None, host: Host = None, cloud: Cloud = None, assignment_id: int = None
+        date: datetime = None,
+        host: Host = None,
+        cloud: Cloud = None,
+        assignment_id: int = None,
+        include_inactive: bool = False,
     ) -> List[Type[Schedule]]:
-        query = db.session.query(Schedule).join(Assignment).filter(Assignment.active.is_(True))
+        query = db.session.query(Schedule)
+        if not include_inactive:
+            query = query.join(Assignment).filter(Assignment.active.is_(True))
+        elif cloud or assignment_id:
+            query = query.join(Assignment)
         if host:
             query = query.filter(Schedule.host == host)
         if cloud:
