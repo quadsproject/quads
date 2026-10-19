@@ -1949,3 +1949,89 @@ class TestScheduleCreationRace:
         assert response.json["message"] == "simulated failure"
         after = unwrap_json(test_client.get("/api/v3/schedules", headers=auth_header)).json
         assert len(after) == len(before)
+
+
+class TestHistoricalCurrentSchedule:
+    @pytest.mark.parametrize("prefill", prefill_schedule, indirect=True)
+    def test_past_date_includes_inactive_assignment(self, test_client, auth, prefill):
+        """
+        | GIVEN: An assignment with schedules in the past and future
+        | WHEN: The assignment is terminated and schedules are queried by date
+        | THEN: Past dates still return the historical schedules, while current
+        |       and future dates exclude the inactive assignment
+        """
+        auth_header = auth.get_auth_header()
+        assignment = AssignmentDao.get_assignment(1)
+        host = HostDao.get_host("host2.example.com")
+        past_schedule = ScheduleDao.create_schedule(
+            start=datetime(2024, 1, 1, 0, 0),
+            end=datetime(2024, 1, 2, 0, 0),
+            assignment=assignment,
+            host=host,
+        )
+        future_start = (datetime.now() + timedelta(days=1)).replace(second=0, microsecond=0)
+        ScheduleDao.create_schedule(
+            start=future_start,
+            end=future_start + timedelta(days=1),
+            assignment=assignment,
+            host=host,
+        )
+        current_minute = datetime(2024, 6, 14, 17, 0)
+        ScheduleDao.create_schedule(
+            start=current_minute,
+            end=current_minute + timedelta(hours=1),
+            assignment=assignment,
+            host=host,
+        )
+        now_start = datetime.now().replace(second=0, microsecond=0) - timedelta(minutes=1)
+        ScheduleDao.create_schedule(
+            start=now_start,
+            end=now_start + timedelta(hours=1),
+            assignment=assignment,
+            host=host,
+        )
+        assignment.active = False
+        db.session.commit()
+
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/schedules/current?cloud=cloud02&date=2024-01-01T12:00",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert [schedule["id"] for schedule in response.json] == [past_schedule.id]
+
+        future_date = future_start.strftime("%Y-%m-%dT%H:%M")
+        response = unwrap_json(
+            test_client.get(
+                f"/api/v3/schedules/current?cloud=cloud02&date={future_date}",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json == []
+
+        response = unwrap_json(
+            test_client.get(
+                "/api/v3/schedules/current?cloud=cloud02",
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json == []
+
+        class FrozenDateTime(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls(2024, 6, 14, 17, 0, 30)
+
+        with patch("quads.server.blueprints.schedules.datetime", FrozenDateTime):
+            response = unwrap_json(
+                test_client.get(
+                    "/api/v3/schedules/current?cloud=cloud02&date=2024-06-14T17:00",
+                    headers=auth_header,
+                )
+            )
+        assert response.status_code == 200
+        assert response.json == []
