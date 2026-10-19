@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from paramiko import SSHException
+from paramiko import SSHException, SFTPError
 
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from tests.tools.test_base import TestBase
@@ -122,6 +122,27 @@ class TestSSHHelper(TestBase):
         ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
         result, error = ssh_helper.run_cmd("ls")
         assert result
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is True
+        assert sftp_mock.putfo.call_args[0][0].getvalue() == b"content"
+        assert sftp_mock.putfo.call_args[0][1] == "/root/file"
+        sftp_mock.chmod.assert_called_once_with("/root/file", 0o644)
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_error(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        mock_client.return_value.open_sftp.side_effect = SFTPError("upload failed")
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is False
+        assert "upload failed" in self._caplog.messages[0]
 
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")
