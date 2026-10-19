@@ -45,12 +45,15 @@ Send notifications to chat/messaging platforms.
 
 Post-release plugins that run on the first host of a new cloud assignment after it is released.
 
+Plugins run sequentially in the order listed in `plugins.yml`, so metadata providers such as `instackdata` and `clouddata` are attempted before `cloudcmd` when the release command depends on their files. A failed plugin does not stop later plugins; ordering guarantees attempt order only. Existing `plugins.yml` files are not replaced on upgrade; merge the dayzero block into your file so this order applies.
+
 **Interface**: `DayzeroPlugin`
 **Methods**: `execute(cloud)` (async)
 
 **Built-in Plugins**:
-- `cloudcmd` - runs the owner's release command on the first host via tmux
+- `instackdata` - copies `<cloud>_instackenv.json` and `<cloud>_ocpinventory.json` to `/root` on the first host
 - `clouddata` - drops `/root/quads_env.yml` metadata on the first host
+- `cloudcmd` - runs the owner's release command on the first host via tmux
 
 ### Email Plugins
 
