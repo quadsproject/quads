@@ -232,6 +232,12 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
         _assignment = self.quads.get_active_cloud_assignment(_cloud_obj.name)
 
+        if not _assignment:
+            self.logger.warning(
+                "No active assignment for cloud %s, cannot verify switch configuration." % _cloud_obj.name
+            )
+            return False
+
         for _host_obj in hosts:
             self.logger.info(f"Host: {_host_obj.name}")
             if _host_obj.interfaces:
@@ -264,7 +270,7 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                     vlan_member = _line.split()[1].rstrip(";")
                                     break
                         else:
-                            if not _assignment.vlan:
+                            if _assignment and not _assignment.vlan:
                                 self.logger.warning(
                                     "Could not determine the previous VLAN member for %s, switch %s, switch port %s "
                                     % (
