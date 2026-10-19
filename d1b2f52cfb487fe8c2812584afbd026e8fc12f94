@@ -33,6 +33,42 @@
       "message": "P1: this guard prevents the AttributeError, but it turns the missing-assignment case into a fail-open path.\n\nWhen _assignment is None and the vlans lookup raises IndexError, get_vlan(None, i, last_nic) returns calculate_vlan(1, 0, index), i.e. cloud01\u0027s VLAN regardless of the host\u0027s cloud (helpers/utils.py:29-43). With a truthy change argument, the mismatch branch at line 321 calls Juniper.set_port() and verify() can return True. --verify-switch-conf --change and --validate-env (environment.py:238 passes host.cloud.name as the truthy change argument) can then rewrite a port to the wrong VLAN and mark switch_config_applied. Pre-patch, SwitchDispatcher.verify caught the AttributeError and returned False, so this is a fail-open regression.\n\nPlease fail closed at the assignment lookup (line 233), mirroring ls_config():\n\n        _assignment \u003d self.quads.get_active_cloud_assignment(_cloud_obj.name)\n        if not _assignment:\n            self.logger.warning(\n                \"No active assignment for cloud %s, cannot verify switch configuration.\" % _cloud_obj.name\n            )\n            return False\n\nKeep the guard as defense in depth. Add a regression test in tests/plugins/test_switch_juniper.py with get_active_cloud_assignment() returning None, both run_cmd calls returning empty lists, change\u003dTrue, and assertions that verify() is False and Juniper.set_port is not called. The changed branch (lines 267-276) is currently uncovered.\n\nAlso add #740 to the commit message; it is the same crash at the same line and remains open.",
       "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1234ca39_dfb85edf",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T13:08:42Z",
+      "side": 1,
+      "message": "Addressed in Patch Set 2: verify() now fails closed at the assignment lookup (warning + return False, mirroring ls_config), a regression test was added, and #740 was added to the commit message.",
+      "parentUuid": "429fce47_a5dcc47e",
+      "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ec54be04_9cf7ab54",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T13:08:42Z",
+      "side": 1,
+      "message": "Addressed in Patch Set 2: added test_verify_no_active_assignment_fails_closed (None assignment, change\u003dTrue: verify() is False and Juniper.set_port is never called).",
+      "parentUuid": "e57fc6f7_0093e095",
+      "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
