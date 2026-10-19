@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9b783301_cd8029b8",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T20:06:55Z",
+      "side": 1,
+      "message": "Cosmetic: prefer `isinstance(ssm_description_max, int) and not isinstance(ssm_description_max, bool)` over `type(...) is not int` (PEP8; same effect, `bool` still rejected). Also consider a `logger.warning` here — a bad/typed config value (e.g. quoted \"60\" or 0) silently falls back to 60, and operators have no signal that their `ssm_description_max` was ignored.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
