@@ -156,7 +156,10 @@ def get_current_schedule() -> Response:
     if cloud_name:
         cloud = CloudDao.get_cloud(cloud_name)
         _kwargs["cloud"] = cloud
-    _schedules = ScheduleDao.get_current_schedule(**_kwargs)
+    # Treat the current minute as current, not historical.
+    current_minute = datetime.now().replace(second=0, microsecond=0)
+    include_inactive = bool(date) and _kwargs["date"] < current_minute
+    _schedules = ScheduleDao.get_current_schedule(**_kwargs, include_inactive=include_inactive)
     return jsonify([_schedule.as_dict() for _schedule in _schedules])
 
 
