@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import base64
+import io
 import logging
 import os
 
-from paramiko import SSHClient, AutoAddPolicy, SSHConfig, SSHException
+from paramiko import SSHClient, AutoAddPolicy, SSHConfig, SSHException, SFTPError
 
 logger = logging.getLogger(__name__)
 logging.getLogger("paramiko").setLevel(logging.WARNING)
@@ -73,6 +74,53 @@ class SSHHelper(object):
         else:
             logger.debug("Command executed successfully: %s" % cmd)
             return True, stdout.readlines()
+
+    def put_file(self, content, remote_path, mode=0o600):
+        tmp_path = f"{remote_path}.tmp"
+        try:
+            with self.ssh.open_sftp() as sftp:
+                try:
+                    sftp.putfo(io.BytesIO(content.encode()), tmp_path)
+                    try:
+                        sftp.posix_rename(tmp_path, remote_path)
+                    except (OSError, SFTPError):
+                        backup_path = f"{remote_path}.bak"
+                        try:
+                            sftp.remove(backup_path)
+                        except (OSError, SFTPError):
+                            pass
+                        try:
+                            sftp.rename(remote_path, backup_path)
+                        except (OSError, SFTPError):
+                            backup_path = None
+                        try:
+                            sftp.rename(tmp_path, remote_path)
+                        except (OSError, SFTPError):
+                            if backup_path:
+                                try:
+                                    sftp.rename(backup_path, remote_path)
+                                except (OSError, SFTPError):
+                                    pass
+                            raise
+                        if backup_path:
+                            try:
+                                sftp.remove(backup_path)
+                            except (OSError, SFTPError) as ex:
+                                logger.warning("Failed to remove backup %s: %s" % (backup_path, ex))
+                except Exception:
+                    try:
+                        sftp.remove(tmp_path)
+                    except Exception:
+                        pass
+                    raise
+                try:
+                    sftp.chmod(remote_path, mode)
+                except (SSHException, SFTPError, OSError) as ex:
+                    logger.warning("Failed to chmod %s: %s" % (remote_path, ex))
+        except (SSHException, SFTPError, OSError, EOFError) as ex:
+            logger.error("Failed to upload %s: %s" % (remote_path, ex))
+            return False
+        return True
 
     def copy_ssh_key(self, _ssh_key):
 

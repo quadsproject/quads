@@ -1,7 +1,7 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
-from paramiko import SSHException
+from paramiko import SSHException, SFTPError
 
 from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from tests.tools.test_base import TestBase
@@ -122,6 +122,102 @@ class TestSSHHelper(TestBase):
         ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
         result, error = ssh_helper.run_cmd("ls")
         assert result
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is True
+        assert sftp_mock.putfo.call_args[0][0].getvalue() == b"content"
+        assert sftp_mock.putfo.call_args[0][1] == "/root/file.tmp"
+        sftp_mock.posix_rename.assert_called_once_with("/root/file.tmp", "/root/file")
+        sftp_mock.chmod.assert_called_once_with("/root/file", 0o600)
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_fallback_rename(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.posix_rename.side_effect = OSError("posix-rename unsupported")
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is True
+        sftp_mock.rename.assert_any_call("/root/file", "/root/file.bak")
+        sftp_mock.rename.assert_any_call("/root/file.tmp", "/root/file")
+        assert call("/root/file.bak") in sftp_mock.remove.call_args_list
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_fallback_without_previous_copy(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.posix_rename.side_effect = OSError("posix-rename unsupported")
+        sftp_mock.rename.side_effect = [OSError("no previous copy"), None]
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is True
+        sftp_mock.rename.assert_any_call("/root/file", "/root/file.bak")
+        sftp_mock.rename.assert_any_call("/root/file.tmp", "/root/file")
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_failed_fallback_restores_previous(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.posix_rename.side_effect = OSError("posix-rename unsupported")
+        sftp_mock.rename.side_effect = [None, OSError("rename failed"), None]
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is False
+        sftp_mock.rename.assert_any_call("/root/file", "/root/file.bak")
+        sftp_mock.rename.assert_any_call("/root/file.tmp", "/root/file")
+        sftp_mock.rename.assert_any_call("/root/file.bak", "/root/file")
+        assert call("/root/file.tmp") in sftp_mock.remove.call_args_list
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_eof_error_returns_false(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.posix_rename.side_effect = EOFError("connection lost")
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is False
+        assert call("/root/file.tmp") in sftp_mock.remove.call_args_list
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_chmod_failure_is_not_fatal(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.chmod.side_effect = OSError("chmod not supported")
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is True
+        assert "Failed to chmod /root/file" in self._caplog.messages[0]
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_upload_failure_removes_tmp(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        sftp_mock = MagicMock()
+        sftp_mock.putfo.side_effect = OSError("disk full")
+        mock_client.return_value.open_sftp.return_value.__enter__.return_value = sftp_mock
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is False
+        sftp_mock.remove.assert_called_once_with("/root/file.tmp")
+
+    @patch("quads.tools.external.ssh_helper.SSHConfig")
+    @patch("quads.tools.external.ssh_helper.SSHClient")
+    def test_put_file_error(self, mock_client, mock_config):
+        mock_config.return_value = MagicMock()
+        mock_client.return_value.open_sftp.side_effect = SFTPError("upload failed")
+        ssh_helper = SSHHelper("invalid_host", "invalid_user", "invalid_password")
+        assert ssh_helper.put_file("content", "/root/file") is False
+        assert "upload failed" in self._caplog.messages[0]
 
     @patch("quads.tools.external.ssh_helper.SSHConfig")
     @patch("quads.tools.external.ssh_helper.SSHClient")
