@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "466938fb_c8494f82",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-19T17:50:02Z",
+      "side": 1,
+      "message": "Regression from this verify() refactor. The base set `_cloud_obj \u003d first_host.cloud` before this block; here the assignment lookup uses first_host.cloud.name but the no-active-assignment warning below (line 253) still reads `% _cloud_obj.name`, and _cloud_obj is no longer defined in this function. So a host whose cloud has no active assignment hits NameError: name \u0027_cloud_obj\u0027 is not defined instead of the warning + return False. Confirmed: test_verify_no_active_assignment_fails_closed passes at the base and fails here. Fix: use first_host.cloud.name in that warning.",
+      "revId": "69da7755a47ee8734c529d88a977c4a610bcbd17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
