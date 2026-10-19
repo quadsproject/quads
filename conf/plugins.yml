@@ -103,11 +103,17 @@ plugins:
   environment:
     enabled: true
 
-  # dayzero - post-release plugins
+  # dayzero - post-release plugins, run sequentially in this order
   # lab-admin plugins go in /opt/quads/plugins/dayzero/
-  cloudcmd:
+  # instackdata - copies <cloud>_instackenv.json and <cloud>_ocpinventory.json
+  # to /root on the first host per cloud
+  instackdata:
     enabled: true
 
   # clouddata - drops /root/quads_env.yml on the first host per cloud
   clouddata:
+    enabled: true
+
+  # cloudcmd - runs the owner's release command on the first host via tmux
+  cloudcmd:
     enabled: true

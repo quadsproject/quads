@@ -1,6 +1,7 @@
 """Tests for dayzero plugin system"""
 
 import asyncio
+import logging
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 
@@ -137,6 +138,165 @@ class TestDayzeroDispatcher:
         plugins = dispatcher.get_active_plugins()
         assert len(plugins) > 0
         assert plugins[0].name == "mock_dayzero"
+
+    @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
+    def test_execute_runs_plugins_sequentially(self, mock_handler):
+        events = []
+
+        class FirstPlugin(DayzeroPlugin):
+            name = "zeta_first"
+            version = "1.0.0"
+            description = "First sequential plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                events.append("first-start")
+                await asyncio.sleep(0.01)
+                events.append("first-end")
+                return True
+
+        class SecondPlugin(DayzeroPlugin):
+            name = "alpha_second"
+            version = "1.0.0"
+            description = "Second sequential plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                events.append("second-start")
+                return True
+
+        manager = PluginManager(config={})
+        manager.available_plugins = {"zeta_first": FirstPlugin, "alpha_second": SecondPlugin}
+        manager.load_plugin("zeta_first", {"enabled": True})
+        manager.load_plugin("alpha_second", {"enabled": True})
+
+        dispatcher = DayzeroDispatcher(manager)
+        assert asyncio.run(dispatcher.execute("cloud02")) is True
+        assert events == ["first-start", "first-end", "second-start"]
+
+    @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
+    def test_execute_continues_after_plugin_failure(self, mock_handler):
+        events = []
+
+        class FailingPlugin(DayzeroPlugin):
+            name = "zeta_failing"
+            version = "1.0.0"
+            description = "Fails before the second plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                events.append("failing-start")
+                raise RuntimeError("boom")
+
+        class SecondPlugin(DayzeroPlugin):
+            name = "alpha_second"
+            version = "1.0.0"
+            description = "Runs after the failing plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                events.append("second-start")
+                return True
+
+        manager = PluginManager(config={})
+        manager.available_plugins = {"zeta_failing": FailingPlugin, "alpha_second": SecondPlugin}
+        manager.load_plugin("zeta_failing", {"enabled": True})
+        manager.load_plugin("alpha_second", {"enabled": True})
+
+        dispatcher = DayzeroDispatcher(manager)
+        assert asyncio.run(dispatcher.execute("cloud02")) is False
+        assert events == ["failing-start", "second-start"]
+
+    @patch("quads.plugins.dispatchers.dayzero._ensure_dayzero_log_handler")
+    def test_warns_when_cloudcmd_precedes_metadata(self, mock_handler, caplog):
+        class CloudCmdPlugin(DayzeroPlugin):
+            name = "cloudcmd"
+            version = "1.0.0"
+            description = "Mock release command plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                return True
+
+        class InstackDataPlugin(DayzeroPlugin):
+            name = "instackdata"
+            version = "1.0.0"
+            description = "Mock metadata plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def execute(self, cloud: str) -> bool:
+                return True
+
+        manager = PluginManager(config={})
+        manager.available_plugins = {"cloudcmd": CloudCmdPlugin, "instackdata": InstackDataPlugin}
+        manager.load_plugin("cloudcmd", {"enabled": True})
+        manager.load_plugin("instackdata", {"enabled": True})
+
+        with caplog.at_level(logging.WARNING):
+            DayzeroDispatcher(manager)
+
+        assert "cloudcmd is listed before instackdata" in caplog.text
+
+
+class TestDayzeroLogHandler:
+    """Test that the dayzero log handler targets the BasePlugin loggers"""
+
+    def test_base_plugin_loggers_get_dayzero_handler(self, tmp_path, monkeypatch):
+        from quads.plugins.dispatchers import dayzero as dayzero_module
+
+        log_path = tmp_path / "quads-dayzero.log"
+        monkeypatch.setattr(dayzero_module, "DAYZERO_LOG", str(log_path))
+
+        names = [
+            "quads.plugins.dispatchers.dayzero",
+            "quads.plugins.cloudcmd",
+            "quads.plugins.clouddata",
+            "quads.plugins.instackdata",
+            "quads.plugins.builtin.dayzero.cloudcmd",
+        ]
+        before_handlers = {name: list(logging.getLogger(name).handlers) for name in names}
+        before_levels = {name: logging.getLogger(name).level for name in names}
+
+        try:
+            dayzero_module._ensure_dayzero_log_handler()
+
+            for name in names[:-1]:
+                handlers = logging.getLogger(name).handlers
+                assert any(
+                    isinstance(handler, logging.FileHandler) and handler.baseFilename == str(log_path)
+                    for handler in handlers
+                )
+
+            assert not any(
+                isinstance(handler, logging.FileHandler) and handler.baseFilename == str(log_path)
+                for handler in logging.getLogger(names[-1]).handlers
+            )
+        finally:
+            for name in names:
+                target = logging.getLogger(name)
+                for handler in list(target.handlers):
+                    if handler not in before_handlers[name]:
+                        target.removeHandler(handler)
+                        handler.close()
+                target.setLevel(before_levels[name])
 
 
 class TestCloudCmdPlugin:

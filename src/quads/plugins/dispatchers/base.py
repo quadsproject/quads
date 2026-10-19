@@ -193,6 +193,7 @@ class MultiPluginDispatcher(BaseDispatcher[T]):
         plugin_callable: Callable[[T], Awaitable[Any]],
         skip_disabled: bool = True,
         log_summary: bool = True,
+        concurrent: bool = True,
     ) -> Dict[str, Any]:
         plugins = self.get_active_plugins()
 
@@ -214,7 +215,15 @@ class MultiPluginDispatcher(BaseDispatcher[T]):
             logger.warning(f"No enabled {self.dispatcher_name} plugins for {operation_name}")
             return {}
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        if concurrent:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+        else:
+            results = []
+            for task in tasks:
+                try:
+                    results.append(await task)
+                except Exception as e:
+                    results.append(e)
 
         result_map = {}
         for plugin_name, result in zip(plugin_names, results):
