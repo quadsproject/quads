@@ -69,6 +69,23 @@
       "parentUuid": "e57fc6f7_0093e095",
       "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "64d29665_1aa59c38",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-19T13:08:59Z",
+      "side": 1,
+      "message": "nit (non-blocking): correct guard, consistent with the None-checks at lines 258 and 293. Consider a regression test for this path: with get_active_cloud_assignment() returning None and a fresh port (empty vlans stanza -\u003e IndexError), the pre-fix code raised AttributeError here, yet reverting just this guard still passes all 40 tests in tests/plugins/test_switch_juniper.py, so the fix is currently uncovered.",
+      "revId": "d1b2f52cfb487fe8c2812584afbd026e8fc12f94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
