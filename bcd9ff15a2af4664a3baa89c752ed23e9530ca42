@@ -16,6 +16,24 @@
       "message": "The opt-in is wired only into /schedules/current. The same regression (#752) is still live in /clouds/summary/: its docstring advertises \u0027a date in the past for a time-bound summary\u0027, but clouds.py calls get_current_schedule(cloud\u003d..., date\u003d...) with no include_inactive, so the active filter still drops schedules whose assignment is inactive now and a past-date summary undercounts that cloud. Pass include_inactive there with the same date-before-current-minute rule, and add a summary test for a past date under an inactive assignment.",
       "revId": "bcd9ff15a2af4664a3baa89c752ed23e9530ca42",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "da182b08_eb39f0ce",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-19T11:58:09Z",
+      "side": 1,
+      "message": "Confirmed: action_summary passes datearg to /clouds/summary in both 2.2 and latest, and the endpoint docstring already documents a past-date summary, so the same regression exists there. Patchset 2 adds the same date-before-current-minute include_inactive rule to clouds.py and a summary regression test: a past date counts the inactive assignment, while future and current-minute dates exclude it. The summary assertion fails on PS1 with 0 !\u003d 1 and passes on PS2.",
+      "parentUuid": "670a8dd6_42293ac4",
+      "revId": "bcd9ff15a2af4664a3baa89c752ed23e9530ca42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
