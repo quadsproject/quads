@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7200c5fe_1c6c6575",
+        "filename": "src/quads/plugins/builtin/dayzero/instackdata.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T20:06:53Z",
+      "side": 1,
+      "message": "Cloud name is used directly to build `filename \u003d f\"{cloud}_{name}.json\"` and then joined into both `Config[\"json_web_path\"]` and `REMOTE_DIR`. `POST /api/v3/clouds/` (clouds.py:60-80) accepts any non-empty string with no charset validation, so a cloud named `foo/../../etc/...` makes this plugin read/write outside the intended directories (and we write as root on the tenant host). Suggest `re.fullmatch(r\"[A-Za-z0-9_-]+\", cloud)` (or at least `os.path.basename()`) before path use.",
+      "revId": "507fa047873007a586df936f8b7901bd3aa38c8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e9d9318_79300aa0",
+        "filename": "src/quads/plugins/builtin/dayzero/instackdata.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T20:06:53Z",
+      "side": 1,
+      "message": "`SSHHelper(host)` with no `_user` → paramiko falls back to `getpass.getuser()` (the quads daemon\u0027s own uid), not necessarily root, and ssh-config `User` is ignored since `connect()` only reads `identityfile`. `cloudcmd` connects as `root@host` explicitly; this plugin should too (`SSHHelper(host, \"root\")`) to make the RFE\u0027s \u0027SSH as root\u0027 guarantee hold, otherwise `/root` writes fail with permission denied if the daemon ever runs as non-root.",
+      "revId": "507fa047873007a586df936f8b7901bd3aa38c8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
