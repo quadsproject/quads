@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b6e70b7_410112ea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-19T13:05:35Z",
+      "side": 1,
+      "message": "Verdict: correct, well-scoped, no defects found. Verified:\n\n - Root cause/fix correct. ab3dc63d\u0027s unconditional Assignment.active filter leaked into point-in-time queries;\n   include_inactive opt-in restores past-date results without regressing the #746 move behavior.\n - DAO join logic (schedule.py:277-292) sound across every include_inactive × {host,cloud,assignment_id} combo.\n   Assignment.cloud/Assignment.id are only referenced under the same cloud/assignment_id guards that trigger the elif join\n   — no missing join, cartesian, or fan-out duplicates (Schedule→Assignment is many-to-one). include_inactive\u003dFalse emits\n   byte-identical SQL to pre-patch.\n - Boundary math correct. Both sides minute-truncated → exact current minute is \u003d\u003d, treated as current (excludes inactive),\n   matching intent and the \u003c vs \u003c\u003d test case.\n - All other callers (assignments.py, available.py, moves.py, schedules.py:323, schedule.py:436) use the default False →\n   unchanged.\n - Test is genuine: reverting the DAO guard fails it (assert [] \u003d\u003d [3]); asserts observable HTTP responses, covers\n   past/future/no-date/current-minute boundary for both /schedules/current and /clouds/summary.\n - black + flake8 clean. The 2 full-module failures are pre-existing/environment (json_build_object Postgres-only under\n   SQLite; test_valid_now_keyword 2h BST offset) — unrelated.\n - Non-blocking, pre-existing (NOT introduced here): clouds.py:190 strptime(_date,...) is unguarded — a malformed date arg\n   500s, whereas /schedules/current returns 400. Out of scope for this fix.",
+      "revId": "63218652d9e63d8b049ecf7e15aaaf6de6117e78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
