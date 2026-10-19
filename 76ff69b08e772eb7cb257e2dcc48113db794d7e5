@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf9eac13_84117538",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-19T16:48:22Z",
+      "side": 1,
+      "message": "Issue #749 asked for this to return 400 and create no assignment on over-limit; this truncates and still returns 201. Silent truncation drops whatever ran past 60 chars with no signal to the caller, so the stored description now differs from what was submitted and automation gets no feedback. The commit and docs note the deviation, so it may be the intended call. Confirm it is the final behavior and update #749 to match, since the data-integrity tradeoff is real.",
+      "revId": "76ff69b08e772eb7cb257e2dcc48113db794d7e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
