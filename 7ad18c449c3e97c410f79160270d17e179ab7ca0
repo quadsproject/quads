@@ -36,6 +36,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6eb78872_38912795",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "a4d030f1_9ef49719",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9fd77628_02c790ef",
@@ -49,6 +67,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Blocking upgrade: renaming the only switch plugin from juniper to network is not migrated. plugins.yml is %config(noreplace) (rpm/quads.spec:178), so an existing install keeps `juniper: enabled: true`; juniper.py is deleted, PluginManager loads no switch plugin, and every move reports \u0027No switch plugin enabled\u0027. Add a compatibility alias or upgrade migration, or keep the juniper plugin enabled alongside network.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d63c966f_8b1e92cd",
+        "filename": "conf/plugins.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "9fd77628_02c790ef",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -70,6 +106,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "76ad52a6_a58f9818",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "0cc9eb84_738f7d6d",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "88df9e0d_dd01f687",
@@ -83,6 +137,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Blocking: `SwitchCLI._command()` waits for `connection.login_prompt` after every command (switch_cli.py:74). JUNOS switches to `#` after `edit`, so every configure/modify times out on `edit`. Reproduced against a fake JUNOS CLI over pexpect; the parent driver succeeds on the same switch. The old driver used `\u003e` only on connect and `#` for command execution. Use `[\u003e#]` as issue #750 proposed, or add a per-command expect. Add a fake-channel test covering edit/commit.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "642f58e2_c9cff773",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "88df9e0d_dd01f687",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -104,6 +176,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "aba74a8f_95df580d",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "a08438e9_01885227",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6c6a642_73a19298",
@@ -117,6 +207,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Blocking: the save list runs `write memory` then `copy running-configuration startup-configuration`, with `save_wait: Copy completed` applied only to the last save (switch_cli.py:118-126). The comment says the role denies the copy; EOS prints `% ...` and the prompt, so the expect times out for 120 s and `_set_op` returns False even though `write memory` persisted the change. The EOS spelling is `copy running-config startup-config`, not `...-configuration...`, so an ACL grant would not fix it. Use `save: write memory` with `save_wait: Copy completed` as 1238096 does, or add per-save expects.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bc857a7_f61725ea",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "e6c6a642_73a19298",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -138,6 +246,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a51df9e1_c6045e61",
+        "filename": "migrations/versions/c4a5e6b7d8e9_interface_switch_vendor.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "c440bba7_26cbc636",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f33f246_9697d397",
@@ -151,6 +277,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Required: the metadata export dict omits switch_vendor. `--export-host-details` followed by `--define-host-details --force` clears and recreates interfaces from this dict, so the tag becomes NULL and the next switch operation fails closed. Add switch_vendor and a round-trip test. 1238096 already does this.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "85330150_12371ec1",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1482,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "5f33f246_9697d397",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -172,6 +316,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d4c2994_0ee7a2cf",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1874,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "9dc59d36_49448c5a",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "76b8ebb3_2fae5a30",
@@ -185,6 +347,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Blocking for non-qinq clouds: qinq only changes VLAN numbering (helpers/utils.py:40-47); the parent Juniper path always applies the QinQ group. Selecting `set_port_access` here programs `switchport mode access` (conf/switch_commands.yml:88), which drops the host\u0027s own 802.1Q tags (the 172.21-25 per-NIC addresses). 1238096 always uses `switchport mode dot1q-tunnel` and documents this. Use dot1q-tunnel for cloud moves, or make port mode an explicit operator decision.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26294755_e3fc1f55",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "76b8ebb3_2fae5a30",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -206,6 +386,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c210630a_47bfd733",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "8ffd779d_f5095e75",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "13e88f71_397066f6",
@@ -219,6 +417,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Required by issue #750: configure hardcodes dry_run\u003dFalse and the dispatcher/CLI never pass a dry-run through --move-hosts; cli.py:2028 skips switch tasks entirely on --dry-run. The issue asks the move path to print the exact command sequence. Thread dry_run through configure and --move-hosts.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a1a208b4_eb8a8ab1",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "13e88f71_397066f6",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -259,6 +475,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "59566e5f_b06c4756",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "7697e5b7_633b1c45",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "ebcf6d99_8baba55d",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 3
@@ -291,6 +525,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "84eb1668_6122bad7",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "b6459dcc_38ed4ca9",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c37f54fe_3467c75e",
@@ -308,6 +560,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "621ab47f_204fd95c",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "c37f54fe_3467c75e",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7f0482e3_35308be2",
@@ -321,6 +591,24 @@
       "writtenOn": "2026-10-18T14:45:31Z",
       "side": 1,
       "message": "Ran SwitchCLI._command(\u0027edit\u0027) against a simulated JUNOS console: it raises \u0027Timeout executing command: edit\u0027. _command() defaults its expect to connection.login_prompt on every command, and the juniper recipe sets that to \u0027\u003e\u0027. But a JUNOS box drops to \u0027#\u0027 once it enters config mode, so after \u0027edit\u0027 the \u0027\u003e\u0027 never matches and configure/modify time out for 120s. The old juniper driver used [\u003e#] for exactly this reason. Use a prompt that matches config mode here (or a per-command expect for edit/commit), and add a fake-channel test that runs edit then commit.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "08b9eb39_c248ef1f",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "7f0482e3_35308be2",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -355,6 +643,24 @@
       "writtenOn": "2026-10-18T14:28:42Z",
       "side": 1,
       "message": "Blocking: this patch deletes 978 lines/40 Juniper plugin tests and 92 lines/10 driver tests, and replaces them with 4 helper tests + 4 dry-run tests. Coverage of the replaced switch path drops from 90% to 23% (network.py 10%, switch_cli.py 57%). configure/modify/verify/ls_config, public VLAN, qinq/access, multi-NIC, fail-closed, save/error/timeout, and a real pexpect channel are untested; the Juniper prompt timeout passes all new tests. Restore the behavior tests and add a fake-channel harness before merge.",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "457f7850_93e5c9e2",
+        "filename": "tests/plugins/test_switch_network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-19T08:51:56Z",
+      "side": 1,
+      "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "0aa93c37_f2e1364e",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
