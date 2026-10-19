@@ -175,6 +175,8 @@ def get_summary() -> Response:
     clouds_summary = []
     total_count = 0
     _clouds = CloudDao.get_clouds()
+    # Treat the current minute as current, not historical.
+    current_minute = datetime.now().replace(second=0, microsecond=0)
     for _cloud in _clouds:
         _assignment = None
         description = "Available"
@@ -186,7 +188,11 @@ def get_summary() -> Response:
             owner = Config["spare_pool_owner"]
         else:
             date = datetime.strptime(_date, "%Y-%m-%dT%H:%M") if _date else datetime.now()
-            schedules = ScheduleDao.get_current_schedule(cloud=_cloud, date=date)
+            schedules = ScheduleDao.get_current_schedule(
+                cloud=_cloud,
+                date=date,
+                include_inactive=bool(_date) and date < current_minute,
+            )
             count = len(schedules)
             total_count += count
             if schedules:
