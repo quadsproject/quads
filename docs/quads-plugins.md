@@ -124,6 +124,7 @@ Automate network switch VLAN configurations.
 
 **Built-in Plugins**:
 - `juniper` - Juniper switch automation (Q-in-Q VLANs)
+- `arista` - Arista EOS switch automation (Q-in-Q via dot1q-tunnel)
 
 ### Ticketing Plugins
 
@@ -154,10 +155,12 @@ Validate environment health and connectivity.
 
 QUADS components never call a plugin class directly. Each plugin category is reached through a dispatcher that decides how the enabled plugins of that category are invoked. There are two kinds:
 
-- **Single-plugin** (first enabled wins): the dispatcher uses exactly one plugin, the first enabled plugin of that category in `plugins.yml` load order. Enabling a second plugin of the same category has no effect. Categories: Cloud, Hardware, Provisioner, Release, Switch, Ticketing, Validator.
-- **Multi-plugin** (broadcast): the dispatcher calls every enabled plugin of that category. Categories: Chat, Dayzero, Email.
+- **Single-plugin** (first enabled wins): the dispatcher uses exactly one plugin, the first enabled plugin of that category in `plugins.yml` load order. Enabling a second plugin of the same category has no effect. Categories: Cloud, Hardware, Provisioner, Release, Ticketing, Validator.
+- **Multi-plugin** (broadcast): the dispatcher calls every enabled plugin of that category. Categories: Chat, Dayzero, Email, Switch.
 
 For a single-plugin category, enable exactly one plugin. To change the active implementation, disable the current one and enable your replacement. This is how you replace the built-in `standard` release plugin with your own (see [Example: Custom Release Plugin](#example-custom-release-plugin)).
+
+Switch is multi-plugin: every enabled switch plugin is called, and each one acts only on interfaces whose `switch_vendor` matches its name. The Juniper plugin also owns interfaces with no `switch_vendor`, so keep `juniper` enabled while those interfaces exist. Disabling it leaves untagged ports unclaimed, and their switch configuration fails closed.
 
 ## Configuration
 
@@ -230,6 +233,9 @@ plugins:
     enabled: true
     username: scaleadmin
     # Password configured via host metadata or environment
+  arista:
+    enabled: false
+    username: admin
 
   # Ticketing
   jira:
@@ -400,6 +406,21 @@ juniper:
 - Q-in-Q VLAN configuration
 - VLAN verification
 - Automatic rollback on failure
+
+### Arista Plugin
+
+Arista EOS switch VLAN automation.
+
+```yaml
+arista:
+  enabled: false
+  username: admin
+```
+
+**Features**:
+- Q-in-Q VLAN configuration with `switchport mode dot1q-tunnel`
+- Public trunk configuration for the last host interface
+- EOS error detection and fail-closed port writes
 
 ### JIRA Plugin
 
@@ -662,7 +683,7 @@ The plugin architecture replaces several legacy tools:
 | `move_and_rebuild.py` | `standard` release plugin | Integrated into release workflow |
 | `validate_env.py` | `environment` validator plugin | Same validation logic, plugin interface |
 | `tools/external/postman.py` | `email` plugin | Configurable via plugins.yml |
-| Hardcoded switch logic | `juniper` plugin | Extensible for other switch vendors |
+| Hardcoded switch logic | `juniper` and `arista` plugins | Extensible for other switch vendors |
 | Hardcoded Foreman calls | `foreman` plugin | Cleaner interface, easier testing |
 
 ### Configuration Migration

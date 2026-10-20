@@ -26,6 +26,7 @@ from tests.cli.config import (
     IFNAME1,
     IFPORT1,
     IFSPEED,
+    IFSWITCHVENDOR1,
     IFVENDOR1,
     MOD_CLOUD,
     MODEL1,
@@ -73,6 +74,7 @@ def populate_db():
         IFVENDOR1,
         True,
         False,
+        switch_vendor=IFSWITCHVENDOR1,
     )
     DiskDao.create_disk(HOST1, "NVME", 4096, 10)
     DiskDao.create_disk(HOST1, "SATA", 4096, 5)

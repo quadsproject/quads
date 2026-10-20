@@ -89,6 +89,7 @@ def test_movehosts_holds_flag_when_switch_config_fails():
 
     ns.configure.assert_awaited_once()
     assert not _applied_true_calls(ns.quads), "switch_config_applied must stay False when switch config fails"
+    ns.move_and_rebuild.assert_not_awaited()
 
 
 def test_movehosts_switch_configure_exception_holds_flag():
@@ -101,6 +102,7 @@ def test_movehosts_switch_configure_exception_holds_flag():
     ns.quads.update_move_status.assert_any_call(
         1, {"status": "failed", "error_message": "Switch configuration failed"}
     )
+    ns.move_and_rebuild.assert_not_awaited()
 
 
 def test_movehosts_omit_network_move_skips_switch():
