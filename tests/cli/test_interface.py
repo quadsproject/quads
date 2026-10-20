@@ -21,6 +21,8 @@ from tests.cli.config import (
     IFPORT1,
     IFPORT2,
     IFSPEED,
+    IFSWITCHVENDOR1,
+    IFSWITCHVENDOR2,
     IFVENDOR1,
     IFVENDOR2,
 )
@@ -96,6 +98,7 @@ class TestInterface(TestBase):
         self.cli_args["ifbiosid"] = IFBIOSID2
         self.cli_args["ifspeed"] = IFSPEED
         self.cli_args["ifvendor"] = IFVENDOR2
+        self.cli_args["ifswitchvendor"] = IFSWITCHVENDOR2
 
         self.quads_cli_call("addinterface")
 
@@ -107,6 +110,7 @@ class TestInterface(TestBase):
         assert host.interfaces[0].bios_id == IFBIOSID2
         assert host.interfaces[0].speed == IFSPEED
         assert host.interfaces[0].vendor == IFVENDOR2
+        assert host.interfaces[0].switch_vendor == IFSWITCHVENDOR2
         assert host.interfaces[0].pxe_boot
         assert not host.interfaces[0].maintenance
 
@@ -114,6 +118,7 @@ class TestInterface(TestBase):
         self.cli_args["host"] = HOST2
         self.cli_args["ifname"] = IFNAME2
         self.cli_args["ifip"] = "192.168.0.1"
+        self.cli_args["ifswitchvendor"] = IFSWITCHVENDOR2
 
         self.quads_cli_call("modinterface")
 
@@ -121,6 +126,7 @@ class TestInterface(TestBase):
         assert len(host.interfaces) == 1
         assert host.interfaces[0].name == IFNAME2
         assert host.interfaces[0].switch_ip == "192.168.0.1"
+        assert host.interfaces[0].switch_vendor == IFSWITCHVENDOR2
 
     def test_mod_interface_no_arg(self, mod_interface):
         self.cli_args["host"] = HOST2
@@ -131,6 +137,7 @@ class TestInterface(TestBase):
         self.cli_args["ifbiosid"] = None
         self.cli_args["ifspeed"] = None
         self.cli_args["ifvendor"] = None
+        self.cli_args["ifswitchvendor"] = None
 
         with pytest.raises(CliException) as ex:
             self.quads_cli_call("modinterface")
@@ -145,6 +152,7 @@ class TestInterface(TestBase):
             "\t--interface-port\n"
             "\t--interface-speed\n"
             "\t--interface-vendor\n"
+            "\t--interface-switch-vendor\n"
             "\t--pxe-boot\n"
             "\t--maintenance"
         )
@@ -300,6 +308,7 @@ class TestInterface(TestBase):
         assert IFMAC1 in output
         assert IFIP1 in output
         assert IFPORT1 in output
+        assert IFSWITCHVENDOR1 in output
         assert str(IFSPEED) in output
         assert IFVENDOR1 in output
         assert "True" in output

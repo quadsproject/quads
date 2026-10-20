@@ -19,8 +19,10 @@ class JuniperSwitchPlugin(SwitchPlugin):
     version = "1.0.0"
     description = "Juniper switch plugin"
     author = "QUADS Team"
+    _owns_legacy_interfaces = True
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
+        super().initialize(plugin_manager)
         self.quads = QuadsApi(Config)
         self.username = self.config.get("username")
         return True
@@ -32,12 +34,20 @@ class JuniperSwitchPlugin(SwitchPlugin):
         if not _host_obj.interfaces:
             self.logger.error("Host has no interfaces defined.")
             return False
-        self.logger.debug("Connecting to switch on: %s" % _host_obj.interfaces[0].switch_ip)
+        interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
+        unclaimed = self.unclaimed_interfaces(interfaces)
+        if unclaimed:
+            self.log_unclaimed(host, unclaimed)
+            return False
+        if not any(self.owns_interface(interface) for interface in interfaces):
+            return True
+        self.logger.debug(f"Connecting to switch on: {interfaces[0].switch_ip}")
         switch_ip = None
         ssh_helper = None
-        interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
         for i, interface in enumerate(interfaces):
-            last_nic = i == len(_host_obj.interfaces) - 1
+            if not self.owns_interface(interface):
+                continue
+            last_nic = i == len(interfaces) - 1
             if not switch_ip:
                 switch_ip = interface.switch_ip
                 try:
@@ -116,11 +126,16 @@ class JuniperSwitchPlugin(SwitchPlugin):
         _host_obj = self.quads.get_host(host)
         if not _host_obj:
             self.logger.error("Hostname not found.")
-            return
+            return False
 
         self.logger.info(f"Host: {_host_obj.name}")
+        all_ok = True
         if _host_obj.interfaces:
             interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
+            unclaimed = self.unclaimed_interfaces(interfaces)
+            if unclaimed:
+                self.log_unclaimed(_host_obj.name, unclaimed)
+                return False
             for index in sorted(overrides.keys()):
                 if index >= len(interfaces):
                     self.logger.warning(
@@ -129,6 +144,8 @@ class JuniperSwitchPlugin(SwitchPlugin):
                         len(interfaces),
                     )
             for i, interface in enumerate(interfaces):
+                if not self.owns_interface(interface):
+                    continue
                 vlan = overrides.get(i)
                 if vlan:
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
@@ -187,10 +204,12 @@ class JuniperSwitchPlugin(SwitchPlugin):
                                 self.logger.info("Successfully updated switch settings.")
                             else:
                                 self.logger.error(f"There was something wrong updating switch for {interface.name}")
+                                all_ok = False
                     else:
                         self.logger.info(f"Interface {interface.name} is already configured for vlan{vlan}")
         else:
             self.logger.error("The host has no interfaces defined")
+        return all_ok
 
     async def verify(self, host=None, cloud=None, change=False):
         Config.load_from_yaml(DEFAULT_CONF_PATH)
@@ -201,7 +220,7 @@ class JuniperSwitchPlugin(SwitchPlugin):
             self.logger.warning("At least one of --cloud or --host should be specified.")
             return False
 
-        _cloud_obj = None
+        _cloud = None
         if cloud:
             _cloud = self.quads.get_cloud(cloud)
             if not _cloud:
@@ -220,21 +239,18 @@ class JuniperSwitchPlugin(SwitchPlugin):
                 return False
         first_host = hosts[0]
 
-        if not _cloud_obj:
-            _cloud_obj = first_host.cloud
-
-        if _cloud_obj != first_host.cloud:
+        if _cloud and _cloud.name != first_host.cloud.name:
             self.logger.warning("Both --cloud and --host have been specified.")
             self.logger.warning(f"Host: {first_host.name}")
-            self.logger.warning(f"Cloud: {_cloud_obj.name}")
+            self.logger.warning(f"Cloud: {_cloud.name}")
             self.logger.warning(f"However, {first_host.name} is a member of {first_host.cloud.name}")
-            self.logger.warning("!!!!! Be certain this is what you want to do. !!!!!")
+            self.logger.warning(f"!!!!! {_cloud.name} is ignored, verifying {first_host.cloud.name}. !!!!!")
 
-        _assignment = self.quads.get_active_cloud_assignment(_cloud_obj.name)
+        _assignment = self.quads.get_active_cloud_assignment(first_host.cloud.name)
 
         if not _assignment:
             self.logger.warning(
-                "No active assignment for cloud %s, cannot verify switch configuration." % _cloud_obj.name
+                "No active assignment for cloud %s, cannot verify switch configuration." % first_host.cloud.name
             )
             return False
 
@@ -242,9 +258,16 @@ class JuniperSwitchPlugin(SwitchPlugin):
             self.logger.info(f"Host: {_host_obj.name}")
             if _host_obj.interfaces:
                 interfaces = sorted(_host_obj.interfaces, key=lambda k: k.name)
+                unclaimed = self.unclaimed_interfaces(interfaces)
+                if unclaimed:
+                    self.log_unclaimed(_host_obj.name, unclaimed)
+                    all_ok = False
+                    continue
                 for i, interface in enumerate(interfaces):
+                    if not self.owns_interface(interface):
+                        continue
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
-                    last_nic = i == len(_host_obj.interfaces) - 1
+                    last_nic = i == len(interfaces) - 1
                     vlan = get_vlan(_assignment, i, last_nic)
 
                     try:
@@ -347,10 +370,13 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
         if not _assignment:
             self.logger.error("Cloud not found.")
-            return
+            return False
         self.logger.info(f"Cloud qinq: {_assignment.qinq}")
 
         hosts = self.quads.filter_hosts({"cloud": cloud})
+        if not hosts:
+            self.logger.error("No hosts found on cloud.")
+            return False
         if not all:
             hosts = [hosts[0]]
 
@@ -361,9 +387,11 @@ class JuniperSwitchPlugin(SwitchPlugin):
                 interfaces = sorted(host.interfaces, key=lambda k: k.name)
 
                 for i, interface in enumerate(interfaces):
+                    if not self.owns_interface(interface):
+                        continue
                     ssh_helper = SSHHelper(interface.switch_ip, self.username)
                     try:
-                        if interface == interfaces[-1]:
+                        if i == len(interfaces) - 1:
                             _, vlan_member_out = ssh_helper.run_cmd(
                                 f"show configuration interfaces {interface.switch_port}"
                             )
@@ -394,3 +422,4 @@ class JuniperSwitchPlugin(SwitchPlugin):
 
             else:
                 self.logger.error("The cloud has no hosts or the host has no interfaces defined")
+        return True

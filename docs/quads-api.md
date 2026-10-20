@@ -422,6 +422,7 @@ curl -X 'POST' \
         "speed": 10,
         "switch_ip": "10.1.34.235",
         "switch_port": "xe-0/0/8:0",
+        "switch_vendor": "juniper",
         "vendor": "Intel Corporation"
       },
       {
@@ -435,6 +436,7 @@ curl -X 'POST' \
         "speed": 10,
         "switch_ip": "10.1.34.235",
         "switch_port": "xe-0/0/8:1",
+        "switch_vendor": "juniper",
         "vendor": "Intel Corporation"
       },
       {
@@ -448,6 +450,7 @@ curl -X 'POST' \
         "speed": 10,
         "switch_ip": "10.1.34.235",
         "switch_port": "xe-0/0/8:2",
+        "switch_vendor": "juniper",
         "vendor": "Intel Corporation"
       },
       {
@@ -461,6 +464,7 @@ curl -X 'POST' \
         "speed": 10,
         "switch_ip": "10.1.34.235",
         "switch_port": "xe-0/0/8:3",
+        "switch_vendor": "juniper",
         "vendor": "Intel Corporation"
       }
     ],
@@ -562,6 +566,7 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
             "speed": 10,
             "switch_ip": "10.1.34.235",
             "switch_port": "xe-0/0/8:0",
+            "switch_vendor": "juniper",
             "vendor": "Intel Corporation"
           },
           {
@@ -575,6 +580,7 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
             "speed": 10,
             "switch_ip": "10.1.34.235",
             "switch_port": "xe-0/0/8:1",
+            "switch_vendor": "juniper",
             "vendor": "Intel Corporation"
           },
           {
@@ -588,6 +594,7 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
             "speed": 10,
             "switch_ip": "10.1.34.235",
             "switch_port": "xe-0/0/8:2",
+            "switch_vendor": "juniper",
             "vendor": "Intel Corporation"
           },
           {
@@ -601,6 +608,7 @@ curl http://localhost/api/v3/schedules?host=host01.example.com | python3 -m json
             "speed": 10,
             "switch_ip": "10.1.34.235",
             "switch_port": "xe-0/0/8:3",
+            "switch_vendor": "juniper",
             "vendor": "Intel Corporation"
           }
         ],

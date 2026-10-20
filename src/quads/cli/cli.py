@@ -404,6 +404,7 @@ class QuadsCli:
             table.add_column("MAC Address")
             table.add_column("Switch IP")
             table.add_column("Port")
+            table.add_column("Switch Vendor")
             table.add_column("Speed")
             table.add_column("Vendor")
             table.add_column("PXE Boot")
@@ -415,6 +416,7 @@ class QuadsCli:
                     str(interface.mac_address),
                     str(interface.switch_ip),
                     str(interface.switch_port),
+                    str(interface.switch_vendor),
                     str(interface.speed),
                     str(interface.vendor),
                     str(interface.pxe_boot),
@@ -1484,6 +1486,7 @@ class QuadsCli:
                     "switch_port": interface.switch_port,
                     "speed": interface.speed if interface.speed else 0,
                     "vendor": interface.vendor,
+                    "switch_vendor": interface.switch_vendor,
                     "pxe_boot": interface.pxe_boot,
                     "maintenance": interface.maintenance,
                 }
@@ -1764,6 +1767,7 @@ class QuadsCli:
         _ifbiosid = self.cli_args.get("ifbiosid", None)
         _ifspeed = self.cli_args.get("ifspeed", None)
         _ifvendor = self.cli_args.get("ifvendor", None)
+        _ifswitchvendor = self.cli_args.get("ifswitchvendor", None)
         _ifmaintenance = self.cli_args.get("ifmaintenance", False)
         _force = self.cli_args.get("force", None)
         _host = self.cli_args.get("host", None)
@@ -1791,6 +1795,7 @@ class QuadsCli:
             "switch_port": _ifport,
             "speed": _ifspeed,
             "vendor": _ifvendor,
+            "switch_vendor": _ifswitchvendor,
             "maintenance": _ifmaintenance,
             "pxe_boot": pxe_boot,
             "force": _force,
@@ -1833,6 +1838,7 @@ class QuadsCli:
             "ifbiosid": "bios_id",
             "ifspeed": "speed",
             "ifvendor": "vendor",
+            "ifswitchvendor": "switch_vendor",
             "ifmaintenance": "maintenance",
         }
         _ifmac = self.cli_args.get("ifmac", None)
@@ -1842,6 +1848,7 @@ class QuadsCli:
         _ifbiosid = self.cli_args.get("ifbiosid", None)
         _ifspeed = self.cli_args.get("ifspeed", None)
         _ifvendor = self.cli_args.get("ifvendor", None)
+        _ifswitchvendor = self.cli_args.get("ifswitchvendor", None)
         _host = self.cli_args.get("host", None)
         # TODO: fix all
         if _host is None or _ifname is None:
@@ -1868,6 +1875,7 @@ class QuadsCli:
             and _ifport is None
             and _ifspeed is None
             and _ifvendor is None
+            and _ifswitchvendor is None
             and "ifpxe" not in self.cli_args
             and "ifmaintenance" not in self.cli_args
         ):
@@ -1880,6 +1888,7 @@ class QuadsCli:
                 "\t--interface-port\n"
                 "\t--interface-speed\n"
                 "\t--interface-vendor\n"
+                "\t--interface-switch-vendor\n"
                 "\t--pxe-boot\n"
                 "\t--maintenance"
             )
@@ -2067,6 +2076,9 @@ class QuadsCli:
                                         )
                                     except Exception:
                                         pass
+                                # do not move a host whose switch config failed:
+                                # half-configured ports would split its VLANs
+                                move_args[:] = [ma for ma in move_args if ma["host"] != hostname]
                                 continue
 
                             if result:
@@ -2088,6 +2100,7 @@ class QuadsCli:
                                         )
                                     except Exception:
                                         pass
+                                move_args[:] = [ma for ma in move_args if ma["host"] != hostname]
                                 continue
 
                     for ma in move_args:
