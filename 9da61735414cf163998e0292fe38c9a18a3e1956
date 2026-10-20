@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d5522b8f_19b20f68",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 2102,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Pre-existing move ordering: a failed switch configure `continue`s only the switch task loop, but every `move_args` entry still becomes a move_and_rebuild task, so the host can move with split VLANs. Mixed-vendor support makes this newly reachable. Consider aborting the move for that host when switch configuration fails.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "af81703a_8cf3f7fa",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Design follow-up: configure/modify/verify/ls_config are near-verbatim copies of the Juniper plugin. A shared base with vendor hooks would remove roughly 200 lines and make the contract testable once.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f24ca92_e474fd76",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Follow-up: verify() compares only the VLAN. If set_port()/convert_port_public() applies the VLAN and then fails at speed or save, a later verify sees the VLAN as correct and can set switch_config_applied\u003dtrue while the speed was never applied and the config is unsaved. Consider verifying speed/FEC or using a config session before claiming success.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f0cae955_f78bf1f3",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Follow-up: `hosts[0]` raises IndexError when the cloud has no hosts; the dispatcher catches it and the CLI exits 0. The Juniper plugin has the same pattern. Return False with a clear log before indexing.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "acec09e3_57a19801",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Nit: on a mixed-vendor host interfaces[0] can be another vendor\u0027s switch; log the first owned interface\u0027s switch_ip.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a3ec0adc_c9eae27f",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Nit: passing host.cloud.name makes both plugins call get_cloud again, but the host and cloud names always match. verify(host.name, None, True) is equivalent and one lookup cheaper. The functional change (current cloud, change\u003dTrue) is correct and fixes the parent\u0027s previous-cloud lookup.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8883528b_167dd10c",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "PATCH cannot clear switch_vendor back to NULL because bool(\u0027\u0027)/None are dropped. Explicit \u0027juniper\u0027 is equivalent to the legacy default, so this only matters if un-tagging is needed.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f0fe7da_f581abf2",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "PS15 fixes the unit inversion here: interface.speed is Gbps and the EOS tokens are Mbps-based. Verified 1/10/25/40/100 -\u003e 1000full/10gfull/25gfull/40gfull/100g-2 + RS-FEC. The plugin-to-driver seam test covers the 10G path.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ddb12e4_a91ef5b8",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T16:06:11Z",
+      "side": 1,
+      "message": "Follow-up: `error-correction encoding reed-solomon` is only set for 100G and never cleared, and a falsy speed returns without issuing any command. With `default interface` removed, a port reused at a lower rate keeps stale FEC/speed. `no error-correction`/`no speed` are not POC-vetted and can be rejected on some ports, so gate them on `show running-config interfaces` before issuing.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
