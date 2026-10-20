@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e37344f1_587ffbb8",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T12:04:28Z",
+      "side": 1,
+      "message": "Leftover from the dropped `l2-protocol tunnel dot1q` prerequisite: the driver no longer programs any `l2-protocol` configuration, so pointing operators at `show running-config | include l2-protocol` after provisioning sends them looking for something that is always absent - and reads like the prerequisite was only renamed rather than removed. Suggest replacing the clause with `show interfaces \u003cport\u003e switchport` (it shows the dot1q-tunnel mode and the SVLAN) or dropping it.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43a2ddb8_ba54df93",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T12:04:28Z",
+      "side": 1,
+      "message": "Redundant duplicate check. `vlan_member` is assigned straight from `old_vlan` on line 273, so this block and the `if int(vlan_member) !\u003d int(vlan)` on line 280 test the identical condition: every mismatched port logs two messages (\u0027not configured for vlanX\u0027 here, then \u0027appears to be a member of VLAN ... should be ...\u0027 below). On Arista, access/native VLAN *is* the membership, so the two-variable split that Juniper needs collapsed into one.\n\nTrigger: any `--verify-switch-conf`, and every `--validate-env` pass over a host with switch_config_applied false.\n\nFix: drop lines 277-278 and remove the `if not last_nic:` guard on the line-280 warning, so the single remaining branch reports the mismatch for the last-NIC/public-VLAN case too, once.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9c7fa36_cd43947a",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T12:04:28Z",
+      "side": 1,
+      "message": "With a mixed-vendor host, `interfaces[0]` need not be an interface this plugin owns, so this debug line can name an Arista switch the Juniper plugin will not dial. Cheap fix: log the first interface the loop actually handles (the value assigned to `switch_ip`), i.e. the first owned one.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "178209ec_050ac664",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T12:04:28Z",
+      "side": 1,
+      "message": "Inconsistent failure convention in one class: `configure` treats any falsy return as failure (`if not result`), while `modify` (line 46) and `verify` (line 65) fail only on a literal `False`.\n\nImpact: a switch plugin returning `None` - which is exactly what JuniperSwitchPlugin.modify did before this patch - is fatal for a move but silently counted as success for modify/verify. The next external switch plugin gets to guess which convention applies.\n\nFix: pick one. If the intent is fail-closed everywhere, use `if result is not True:` in all four methods (modify/verify/ls_config included) and state it in the SwitchPlugin docstrings.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94a6124c_2d75c7bc",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T12:04:28Z",
+      "side": 1,
+      "message": "`include` uses `bool(value)` for the non-boolean keys, so `{\"switch_vendor\": \"\"}` (or null) is dropped and a mis-tagged port can never be returned to the untagged/Juniper default through the API or `--mod-interface --interface-switch-vendor \"\"`. The documented workaround - re-tag it `juniper` - is only equivalent while the Juniper plugin stays enabled, and the docs explicitly describe the case where it is not.\n\nFix if clearing should be supported: `include \u003d key in data` for the nullable string keys (switch_vendor, and vendor next to it), keeping the current truthiness rule for the rest.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
