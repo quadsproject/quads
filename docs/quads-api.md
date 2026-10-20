@@ -170,7 +170,7 @@ curl -X POST -u $USERNAME:$PASSWORD -H 'accept: application/json' 'http://localh
     - `/api/v3/processors/<hostname>`   Add a processor to a host
     - `/api/v3/vlans`        Add a new public VLAN definition
     - `/api/v3/assignments`  Create a new assignment for a cloud
-    - `/api/v3/assignments/self`  Create a self-scheduled assignment (owner derived from token)
+    - `/api/v3/assignments/self`  Create a self-scheduled assignment (owner derived from token); a description over `ssm_description_max` is truncated and the response includes a `warning` field
     - `/api/v3/assignments/terminate/<id>`  Terminate an assignment
     - `/api/v3/moves/progress/batch`  Start move tracking for a batch of hosts (admin)
   * Valid PATCH URI queries
