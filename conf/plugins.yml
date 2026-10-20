@@ -88,6 +88,12 @@ plugins:
     enabled: true
     username: scaleadmin
 
+  arista:
+    enabled: false
+    # must be a privilege-15 account: the driver enters configure terminal
+    # after login and does not run an enable step
+    username: admin
+
   jira:
     enabled: true
     # takes 2 values only, basic or token, defaults to basic

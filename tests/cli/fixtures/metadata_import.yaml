@@ -17,6 +17,7 @@
     switch_ip: 10.0.0.1
     switch_port: et-4:0/0
     vendor: Intel
+    switch_vendor: arista
     bios_id: NIC.Intel.1
   last_build: null
   memory:
