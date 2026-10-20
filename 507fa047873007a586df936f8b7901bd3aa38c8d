@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9fcb5395_065ef248",
+        "filename": "src/quads/plugins/builtin/dayzero/instackdata.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T07:25:16Z",
+      "side": 1,
+      "message": "Pre-existing: `make_instackenv_json.py:73` builds the same `json_web_path` path from the same cloud name, and cloud creation is admin-only. This patch does not widen the trust boundary. If we harden, `CloudDao.create_cloud` is the right place so every consumer benefits.",
+      "parentUuid": "7200c5fe_1c6c6575",
+      "revId": "507fa047873007a586df936f8b7901bd3aa38c8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "2e9d9318_79300aa0",
         "filename": "src/quads/plugins/builtin/dayzero/instackdata.py",
         "patchSetId": 1
@@ -31,6 +49,24 @@
       "writtenOn": "2026-10-19T20:06:53Z",
       "side": 1,
       "message": "`SSHHelper(host)` with no `_user` → paramiko falls back to `getpass.getuser()` (the quads daemon\u0027s own uid), not necessarily root, and ssh-config `User` is ignored since `connect()` only reads `identityfile`. `cloudcmd` connects as `root@host` explicitly; this plugin should too (`SSHHelper(host, \"root\")`) to make the RFE\u0027s \u0027SSH as root\u0027 guarantee hold, otherwise `/root` writes fail with permission denied if the daemon ever runs as non-root.",
+      "revId": "507fa047873007a586df936f8b7901bd3aa38c8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db21481b_ce2e6050",
+        "filename": "src/quads/plugins/builtin/dayzero/instackdata.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-20T07:25:16Z",
+      "side": 1,
+      "message": "`clouddata.py:76` uses the same `SSHHelper(host)` and writes `/root/quads_env.yml`, so the root-equivalent notify contract already exists. Making only instackdata pass `root` would diverge from the existing dayzero plugin; a shared change for both is the right follow-up.",
+      "parentUuid": "2e9d9318_79300aa0",
       "revId": "507fa047873007a586df936f8b7901bd3aa38c8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
