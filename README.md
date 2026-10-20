@@ -178,7 +178,7 @@ QUADS also provides a robust, RESTful API that enables end-to-end self service d
    - Recent [Fedora Server](https://fedoraproject.org/server/download/) for RPM installations
    - 1 x modest sized VM (8 vcpu 8GB mem) for combined QUADS stack (quads-server, quads-web, quads-db)
    - The scheduling functionality can be used standalone, but you'll want a provisioning backend like [Foreman](https://theforeman.org/) to take full advantage of QUADS scheduling, automation and provisioning capabilities.
-   - Switch/VLAN automation is done on Juniper Switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches), but command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
+   - Switch/VLAN automation is done on Juniper Switches (QFX5200/5130) and Arista EOS switches in [Q-in-Q VLANs](https://www.juniper.net/documentation/us/en/software/junos/multicast-l2/topics/topic-map/q-in-q.html#id-example-setting-up-qinq-tunneling-on-qfx-series-switches); QUADS routes each interface to the matching switch plugin based on its `switch_vendor`, so environments may mix vendors per interface.  Command sets can be extended to support other network switch models as future RFE's.  Any switch platform that supports industry-standard [802.1Q](https://info.support.huawei.com/info-finder/encyclopedia/en/QinQ.html) [IEEE spec](https://standards.ieee.org/ieee/802.1Q/6844/) in layer 2 can theoretically work.  Q-in-Q is an IEEE [amendment](https://standards.ieee.org/ieee/802.1ad/3374/) to 802.1ad originally.
    - For QUADS to manage bare-metal systems **they must support IPMI 2.0 or higher and the [Redfish API](https://www.dmtf.org/standards/redfish)** in their out-of-band implementation.  This is used for power actions, user RBAC and other features.  Dell (preferred), SuperMicro and HPE have been used in our environments.  Most enterprise server vendors come standard with IPMI interfaces and the [Redfish API](https://en.wikipedia.org/wiki/Redfish_(specification)).
 
 ## QUADS Terminology
@@ -244,7 +244,7 @@ _How many hosts and environments can a single QUADS instance use?_
 | General Architecture Overview | [docs](/docs/quads-workflow.md) | Architecture overview |
 | Install and Setup Foreman/Satellite | [docs](https://theforeman.org/manuals/nightly/#3.InstallingForeman) | User installed. Or use [Ansible Foreman Create](https://github.com/quadsproject/ansible-foreman-create) |
 | Setup Foreman/Satellite Validation Templates | [examples](/templates) | Templates for internal interface configs |
-| Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper Environments, IPMI, Foreman |
+| Prepare Host and Network Environment | [docs](/docs/switch-host-setup.md) | Covers Juniper and Arista Environments, IPMI, Foreman |
 | Install QUADS | [docs](#installing-quads) | Install via RPM |
 | Enable SSL | [docs](#using-ssl-with-flask-api-and-quads) | Optionally enable SSL for API, Web |
 | Google OAuth Setup | [docs](/docs/google-oauth-setup.md) | Optionally setup Google OAuth for API, Web |
@@ -453,7 +453,7 @@ crontab -e
 #### External Services
 
    - QUADS integrates with external services via the plugin architecture (configured in `/opt/quads/conf/plugins.yml`)
-   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper switches (network automation)
+   - Core plugins include: Foreman (provisioning), JIRA (ticketing), Slack/Google Chat/IRC (notifications), Badfish (hardware management), Juniper and Arista switches (network automation)
    - See the [Plugin Architecture Documentation](/docs/quads-plugins.md) for configuration details
 
 | Service Command       | Category | Purpose |
@@ -556,14 +556,14 @@ quads --define-host --host <hostname> --default-cloud cloud01 --host-type genera
 #### Define Host Interfaces in QUADS
 
    - Define the host interfaces, these are the internal interfaces you want QUADS to manage for VLAN automation
-   - Do this for every interface you want QUADS to manage per host (we are working on auto-discovery of this step).
+   - Do this for every interface you want QUADS to manage per host (we are working on auto-discovery of this step). Interface speed is in Gbps (`--interface-speed 10` is a 10 Gbps port).
    - The variable `default_pxe_interface` in the `/opt/quads/conf/quads.yml` will set the default value of `pxe_boot=True` for that interface while any other interface will have a default value of `False` unless specified via `--pxe-boot` or `--no-pxe-boot`. This can be later modified via `--mod-interface`.
 
 ```bash
-quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:0 --interface-vendor "Intel" --interface-speed 1000 --host <hostname>
-quads --add-interface --interface-name em2 --interface-mac 52:54:00:d9:5d:dg --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:1 --interface-vendor "Intel" --interface-speed 1000 --pxe-boot --host <hostname>
-quads --add-interface --interface-name em3 --interface-mac 52:54:00:d9:5d:dh --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:2 --interface-vendor "Intel" --interface-speed 1000 --host <hostname>
-quads --add-interface --interface-name em4 --interface-mac 52:54:00:d9:5d:d1 --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:3 --interface-vendor "Intel" --interface-speed 1000 --host <hostname>
+quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:0 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
+quads --add-interface --interface-name em2 --interface-mac 52:54:00:d9:5d:dg --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:1 --interface-vendor "Intel" --interface-speed 10 --pxe-boot --host <hostname>
+quads --add-interface --interface-name em3 --interface-mac 52:54:00:d9:5d:dh --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:2 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
+quads --add-interface --interface-name em4 --interface-mac 52:54:00:d9:5d:d1 --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:3 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
 ```
 
    - To list the hosts:
@@ -673,7 +673,7 @@ INFO: Moving c08-h21-r630.example.com from cloud01 to cloud02 c08-h21-r630.examp
 #### QUADS Move Host Command
 In QUADS, the move workflow is the actionable process that provisions and moves a set of systems from one cloud environment to the other. Via cron, QUADS routinely queries the existing schedules and when it comes time for a set of systems to move to a new environment, or to be reclaimed and moved back to the spare pool, it runs the move workflow for each host.
 
-The move workflow is handled by the `standard` release plugin, which coordinates the provisioner (Foreman), hardware (Badfish) and switch (Juniper) plugins for each host.
+The move workflow is handled by the `standard` release plugin, which coordinates the provisioner (Foreman), hardware (Badfish) and switch (Juniper and Arista) plugins for each host.
 
 * Runs against all hosts according to the QUADS schedule.
 
@@ -1243,7 +1243,7 @@ quads --mod-host --host <hostname> --bootmode None
 You can change any of the properties of an interface (except its name) using --mod-interface:
 
 ```bash
-quads --mod-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com --interface-speed 1000
+quads --mod-interface --interface-name em1 --host f03-h30-000-r720xd.rdu2.example.com --interface-speed 10
 Interface successfully updated
 ```
 
@@ -1368,7 +1368,7 @@ curl -X DELETE \
   - **Hardware** - Badfish IPMI/Redfish management
   - **Provisioners** - Foreman/Satellite integration
   - **Release** - Environment release workflows
-  - **Switches** - Juniper network automation
+  - **Switches** - Juniper and Arista network automation
   - **Ticketing** - JIRA integration
   - **Validators** - Environment health validation
 * **Creating Custom Plugins:**
