@@ -264,6 +264,37 @@ class TestUpdateInterfaces:
         assert response.status_code == 200
         assert response.json == INTERFACE_1_UPDATE_RESPONSE
 
+    @pytest.mark.parametrize("cleared", [None, ""])
+    @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
+    def test_switch_vendor_can_be_cleared(self, test_client, auth, prefill, cleared):
+        """
+        | GIVEN: Defaults, auth token, clouds and hosts
+        | WHEN: User updates switch_vendor to null or an empty string
+        | THEN: The tag is cleared back to the legacy default
+        """
+        auth_header = auth.get_auth_header()
+        hostname = INTERFACE_1_REQUEST[1]
+
+        tagged = unwrap_json(
+            test_client.patch(
+                f"/api/v3/interfaces/{hostname}",
+                json={"id": 1, "switch_vendor": "arista"},
+                headers=auth_header,
+            )
+        )
+        assert tagged.status_code == 200
+        assert tagged.json["switch_vendor"] == "arista"
+
+        response = unwrap_json(
+            test_client.patch(
+                f"/api/v3/interfaces/{hostname}",
+                json={"id": 1, "switch_vendor": cleared},
+                headers=auth_header,
+            )
+        )
+        assert response.status_code == 200
+        assert response.json["switch_vendor"] is None
+
     @pytest.mark.parametrize("prefill", prefill_settings, indirect=True)
     def test_invalid_speed(self, test_client, auth, prefill):
         """

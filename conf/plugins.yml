@@ -88,6 +88,10 @@ plugins:
     enabled: true
     username: scaleadmin
 
+  arista:
+    enabled: false
+    username: admin
+
   jira:
     enabled: true
     # takes 2 values only, basic or token, defaults to basic
