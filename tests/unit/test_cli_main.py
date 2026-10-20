@@ -25,6 +25,7 @@ class _FakeApi:
                 mac_address="04:32:01:ab:62:f1",
                 switch_ip="192.168.241.253",
                 switch_port="et-0/0/12:1",
+                switch_vendor=None,
                 speed=25,
                 vendor=None,
                 pxe_boot=False,

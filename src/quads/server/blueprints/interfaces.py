@@ -53,6 +53,7 @@ def create_interface(hostname: str) -> Response:
     switch_port = data.get("switch_port")
     speed = data.get("speed")
     vendor = data.get("vendor")
+    switch_vendor = data.get("switch_vendor")
     pxe_boot = data.get("pxe_boot")
     maintenance = data.get("maintenance")
 
@@ -87,6 +88,7 @@ def create_interface(hostname: str) -> Response:
         switch_port=switch_port,
         speed=speed,
         vendor=vendor,
+        switch_vendor=switch_vendor,
         pxe_boot=pxe_boot,
         maintenance=maintenance,
         host_id=_host.id,
@@ -136,16 +138,25 @@ def update_interface(hostname: str) -> Response:
         "switch_port",
         "speed",
         "vendor",
+        "switch_vendor",
         "pxe_boot",
         "maintenance",
     ]
     boolean_keys = {"pxe_boot", "maintenance"}
+    nullable_string_keys = {"vendor", "switch_vendor"}
     update_fields = {}
     for key in keys:
         value = data.get(key)
         if isinstance(value, str) and value.lower() in ["true", "false"]:
             value = value.lower() == "true"
-        include = value is not None if key in boolean_keys else bool(value)
+        if key in boolean_keys:
+            include = value is not None
+        elif key in nullable_string_keys:
+            include = key in data
+            if include and value == "":
+                value = None
+        else:
+            include = bool(value)
         if include:
             update_fields[key] = value
 

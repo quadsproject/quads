@@ -635,14 +635,21 @@ parser.add_argument(
     dest="ifspeed",
     type=str,
     default=None,
-    help="Interface speed",
+    help="Interface speed (Gbps)",
 )
 parser.add_argument(
     "--interface-vendor",
     dest="ifvendor",
     type=str,
-    default=None,
+    default=argparse.SUPPRESS,
     help="Interface vendor",
+)
+parser.add_argument(
+    "--interface-switch-vendor",
+    dest="ifswitchvendor",
+    type=str,
+    default=argparse.SUPPRESS,
+    help="Switch vendor for plugin routing (e.g. juniper, arista)",
 )
 
 pxe_group_args = parser.add_mutually_exclusive_group()
