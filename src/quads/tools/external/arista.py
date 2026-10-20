@@ -1,0 +1,128 @@
+import logging
+
+import pexpect
+
+logger = logging.getLogger(__name__)
+
+
+class AristaException(Exception):
+    pass
+
+
+class Arista:
+    def __init__(self, ip_address, switch_port, port_speed, old_vlan, new_vlan, username):
+        self.ip_address = ip_address
+        self.switch_port = switch_port
+        self.port_speed = port_speed
+        self.old_vlan = str(old_vlan)
+        self.new_vlan = str(new_vlan)
+        self.username = username
+        self.child = None
+
+    def connect(self):
+        logger.debug(f"Connecting to switch: {self.ip_address}")
+        if not self.username:
+            raise AristaException("No username configured for the arista plugin (plugins.yml: arista.username)")
+        try:
+            # encoding is required: output is inspected as text in execute()
+            self.child = pexpect.spawn(
+                f"ssh -o StrictHostKeyChecking=no {self.username}@{self.ip_address}",
+                encoding="utf-8",
+            )
+            self.child.expect(r"[>#]")
+            # EOS paginates long output; disable it for the whole session
+            # (tested on the POC fabric).
+            self.execute("terminal length 0")
+        except pexpect.exceptions.TIMEOUT:
+            raise AristaException("Timeout trying to connect via SSH")
+
+    def close(self):
+        if self.child:
+            self.child.close()
+
+    def execute(self, command, expect=r"[>#]"):
+        logger.debug(command)
+        try:
+            self.child.sendline(command)
+            self.child.expect(expect, timeout=120)
+            for line in self.child.before.splitlines():
+                if line.strip().startswith("%"):
+                    raise AristaException(f"Switch rejected: {line.strip()}")
+        except pexpect.exceptions.TIMEOUT:  # pragma: no cover
+            raise AristaException(f"Timeout trying to execute the command: {command}")
+
+    def _enter_interface(self):
+        # No 'default interface': it wipes every setting on the port.
+        # Instead explicitly 'no' the opposite mode's settings, then apply
+        # ours (tested on the POC fabric; EOS 'no' forms are idempotent).
+        self.execute(f"interface {self.switch_port}")
+
+    def _set_speed(self):
+        # interface.speed is stored in Mbps (--interface-speed docs); EOS
+        # gets the tested tokens: 'speed forced <token>' for standard rates,
+        # but 100G needs 'speed auto 100g-2' plus RS-FEC ('speed forced
+        # 100gfull' is rejected by the transceiver/speed group on the POC).
+        if not self.port_speed or int(self.port_speed) <= 0:
+            return
+        speed = int(self.port_speed)
+        mode, token, fec = {
+            1000: ("forced", "1000full", False),
+            10000: ("forced", "10gfull", False),
+            25000: ("forced", "25gfull", False),
+            40000: ("forced", "40gfull", False),
+            100000: ("auto", "100g-2", True),
+        }.get(speed, ("forced", f"{speed // 1000}gfull", False))
+        if fec:
+            self.execute("error-correction encoding reed-solomon")
+        self.execute(f"speed {'auto' if mode == 'auto' else 'forced'} {token}")
+
+    def _save(self):
+        # Tested sequence: write memory followed by copy running-config
+        # startup-config, matching the generic recipe's save steps.
+        self.execute("write memory", "Copy completed")
+        self.execute("copy running-config startup-config", "Copy completed")
+
+    def set_port(self):
+        """Move a server port to a new cloud VLAN (cloud move).
+
+        dot1q-tunnel mirrors the Juniper driver's QinQ group: the cloud VLAN is
+        pushed as an outer tag on ingress and popped on egress, so a host's own
+        802.1Q tags survive instead of being dropped by an access port.
+        """
+        try:
+            self.connect()
+            self.execute("configure terminal")
+            self._enter_interface()
+            self.execute("no switchport trunk native vlan")
+            self.execute("no switchport trunk allowed vlan")
+            self.execute("switchport mode dot1q-tunnel")
+            self.execute(f"switchport access vlan {self.new_vlan}")
+            self._set_speed()
+            self.execute("exit")
+            self._save()
+        except AristaException as ex:
+            logger.debug(ex)
+            return False
+        finally:
+            self.close()
+        return True
+
+    def convert_port_public(self):
+        """Convert a server port to a public trunk VLAN."""
+        try:
+            self.connect()
+            self.execute("configure terminal")
+            self._enter_interface()
+            self.execute("no switchport access vlan")
+            self.execute("switchport mode trunk")
+            self.execute(f"switchport trunk native vlan {self.new_vlan}")
+            self.execute(f"switchport trunk allowed vlan {self.new_vlan}")
+            self._set_speed()
+            self.execute("exit")
+            self._save()
+        except AristaException as ex:
+            logger.debug(ex)
+            return False
+        finally:
+            self.close()
+        return True
