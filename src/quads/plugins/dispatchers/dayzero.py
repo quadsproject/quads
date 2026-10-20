@@ -20,7 +20,12 @@ def _ensure_dayzero_log_handler():
         logger.warning(f"Cannot write to {DAYZERO_LOG}, dayzero logs will use standard logging only")
         return
 
-    for logger_name in [__name__, "quads.plugins.builtin.dayzero.cloudcmd", "quads.plugins.builtin.dayzero.clouddata"]:
+    for logger_name in [
+        __name__,
+        "quads.plugins.cloudcmd",
+        "quads.plugins.clouddata",
+        "quads.plugins.instackdata",
+    ]:
         target = logging.getLogger(logger_name)
         if not any(
             isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", None) == abs_log for h in target.handlers
@@ -34,6 +39,15 @@ class DayzeroDispatcher(MultiPluginDispatcher[DayzeroPlugin]):
     def __init__(self, plugin_manager: PluginManager, plugin_names: Optional[List[str]] = None):
         super().__init__(plugin_manager, DayzeroPlugin, "Dayzero", plugin_names=plugin_names)
         _ensure_dayzero_log_handler()
+        names = [plugin.name for plugin in self.get_active_plugins()]
+        if "cloudcmd" in names:
+            late = [name for name in names[names.index("cloudcmd") + 1 :] if name in ("instackdata", "clouddata")]
+            if late:
+                logger.warning(
+                    "cloudcmd is listed before %s in plugins.yml; its release command may run "
+                    "before those metadata files are delivered. List instackdata and clouddata "
+                    "before cloudcmd." % ", ".join(late)
+                )
 
     async def execute(self, cloud: str):
         plugins = self.get_active_plugins()
@@ -44,6 +58,7 @@ class DayzeroDispatcher(MultiPluginDispatcher[DayzeroPlugin]):
         results = await self.dispatch_all(
             f"dayzero for {cloud}",
             lambda plugin: plugin.execute(cloud),
+            concurrent=False,
         )
         return all(results.values()) if results else False
 

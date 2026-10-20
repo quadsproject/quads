@@ -1,9 +1,10 @@
 """Tests for plugin dispatchers"""
 
+import asyncio
 import pytest
 from unittest.mock import patch
 
-from quads.plugins.dispatchers.base import BaseDispatcher
+from quads.plugins.dispatchers.base import BaseDispatcher, MultiPluginDispatcher
 from quads.plugins.interfaces.chat import ChatPlugin
 from quads.plugins.interfaces.email import EmailPlugin
 from tests.plugins.conftest import MockChatPlugin, MockEmailPlugin
@@ -270,3 +271,55 @@ class TestBaseDispatcher:
         # All loaded plugins should be enabled
         for plugin in dispatcher._plugins:
             assert plugin.enabled is True
+
+
+class TestMultiPluginDispatcher:
+    """Test cases for MultiPluginDispatcher"""
+
+    def test_dispatch_all_defaults_to_concurrent(self, plugin_manager):
+        events = []
+
+        class FirstChat(ChatPlugin):
+            name = "zeta_first_chat"
+            version = "1.0.0"
+            description = "First concurrent plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def send_message(self, message: str, channels=None, **kwargs) -> bool:
+                events.append("first-start")
+                await asyncio.sleep(0.01)
+                events.append("first-end")
+                return True
+
+        class SecondChat(ChatPlugin):
+            name = "alpha_second_chat"
+            version = "1.0.0"
+            description = "Second concurrent plugin"
+            author = "Test"
+
+            def initialize(self, plugin_manager=None) -> bool:
+                return True
+
+            async def send_message(self, message: str, channels=None, **kwargs) -> bool:
+                events.append("second-start")
+                return True
+
+        plugin_manager.available_plugins = {
+            "zeta_first_chat": FirstChat,
+            "alpha_second_chat": SecondChat,
+        }
+        plugin_manager.load_plugin("zeta_first_chat", {"enabled": True})
+        plugin_manager.load_plugin("alpha_second_chat", {"enabled": True})
+
+        dispatcher = MultiPluginDispatcher(
+            plugin_manager=plugin_manager,
+            plugin_type=ChatPlugin,
+            dispatcher_name="Chat",
+        )
+        result = asyncio.run(dispatcher.dispatch_all("test chat", lambda plugin: plugin.send_message("hi")))
+
+        assert result == {"zeta_first_chat": True, "alpha_second_chat": True}
+        assert events == ["first-start", "second-start", "first-end"]
