@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "afbe1c82_170a4233",
+        "filename": "src/quads/tools/external/ssh_helper.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T11:54:23Z",
+      "side": 1,
+      "message": "`mode\u003d0o644` as a default for a generic helper is a little loose: `make_instackenv_json.py` embeds `pm_user` and `pm_password` in every node entry, so the file this copies carries IPMI/Foreman credentials. `/root` is normally 0700, and `clouddata` does the same `chmod 644`, so this is defence-in-depth rather than a live leak — but I\u0027d default `put_file` to 0o600 and let callers ask for 0o644 explicitly.",
+      "revId": "2321d9432a06a85f601099bc97e504155f434894",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bccf3b29_94dc769b",
+        "filename": "src/quads/tools/external/ssh_helper.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T11:54:23Z",
+      "side": 1,
+      "message": "`putfo` writes straight to the final path, so if the transfer dies part-way (dropped connection, ENOSPC on the host, sftp timeout) `/root/\u003ccloud\u003e_instackenv.json` is left truncated and the previous good copy is already gone. Those files feed `overcloud deploy` / openshift tooling directly, so a half-written inventory is worse than a missing one. Uploading to `remote_path + \".tmp\"` and then `sftp.posix_rename(tmp, remote_path)` (falling back to remove+rename) makes the publish atomic.",
+      "revId": "2321d9432a06a85f601099bc97e504155f434894",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd81ee41_5fdcd832",
+        "filename": "src/quads/tools/external/ssh_helper.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T11:54:23Z",
+      "side": 1,
+      "message": "If `chmod` alone fails (some sftp servers reject it for a non-owner, or the server aborts the channel after the write), `put_file` returns False even though the content is already on disk. `_deliver_files` then reports failure and skips the second inventory file, so a fully usable pair ends up as one file plus an error in the dayzero log. chmod is best-effort here; I\u0027d log a warning and still return True.",
+      "revId": "2321d9432a06a85f601099bc97e504155f434894",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
