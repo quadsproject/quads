@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "58cedf01_06e8c4b5",
+        "filename": "migrations/versions/a1b2c3d4e5f6_add_switch_vendor_to_interfaces.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:44:09Z",
+      "side": 1,
+      "message": "this revision id is generic, we need a proper UID\nyou can generate a proper migration script with `flask --app quads.server.app db migrate -m \"Add switch_vendor to interfaces\"`\nthen edit the generated script with the upgrade and downgrade code from this file",
+      "revId": "dcac9af73a91d9eef46d72cae15ed1acf3a61b05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
