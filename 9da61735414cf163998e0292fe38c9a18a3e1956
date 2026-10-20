@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "5b51b53d_cd6d237e",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 2102,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-20T17:19:47Z",
+      "side": 1,
+      "message": "Fixed in PS16. When switch configure fails for a host (exception or False result), the host is now removed from move_args, so no move_and_rebuild task is queued for it and it cannot move with split VLANs. tests/unit/test_movehosts.py asserts move_and_rebuild is not awaited in both failure paths.",
+      "parentUuid": "d5522b8f_19b20f68",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "af81703a_8cf3f7fa",
         "filename": "src/quads/plugins/builtin/switches/arista.py",
         "patchSetId": 15
@@ -52,6 +70,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f19bb47_0d3076f5",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-20T17:19:47Z",
+      "side": 1,
+      "message": "Fixed in PS16. verify() now checks the expected speed statement and, for 100G, the RS-FEC line in addition to the VLAN. Without --change any drift fails closed; with --change the port is re-applied when only speed/FEC drifted, including the last-NIC/public path. Tests: speed mismatch -\u003e False, --change -\u003e set_port, stale FEC on 25G -\u003e False.",
+      "parentUuid": "2f24ca92_e474fd76",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f0cae955_f78bf1f3",
@@ -65,6 +101,24 @@
       "writtenOn": "2026-10-20T16:06:11Z",
       "side": 1,
       "message": "Follow-up: `hosts[0]` raises IndexError when the cloud has no hosts; the dispatcher catches it and the CLI exits 0. The Juniper plugin has the same pattern. Return False with a clear log before indexing.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ff6b673_bc23b66c",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-20T17:19:47Z",
+      "side": 1,
+      "message": "Fixed in PS16 for both plugins. ls_config() logs \u0027No hosts found on cloud.\u0027 and returns False before indexing hosts[0], for --all and for the single-host path. Tests added in test_switch_arista.py and test_switch_juniper.py.",
+      "parentUuid": "f0cae955_f78bf1f3",
       "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -150,6 +204,24 @@
       "writtenOn": "2026-10-20T16:06:11Z",
       "side": 1,
       "message": "Follow-up: `error-correction encoding reed-solomon` is only set for 100G and never cleared, and a falsy speed returns without issuing any command. With `default interface` removed, a port reused at a lower rate keeps stale FEC/speed. `no error-correction`/`no speed` are not POC-vetted and can be rejected on some ports, so gate them on `show running-config interfaces` before issuing.",
+      "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "77fa9cc9_4b15619d",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-20T17:19:47Z",
+      "side": 1,
+      "message": "Fixed in PS16. The driver reads `show running-config interfaces \u003cport\u003e` before configuring; for a non-100G speed it issues `no speed` (when a speed statement exists) and `no error-correction encoding reed-solomon` (when RS-FEC is present) before the forced token. Raising to 100G clears a stale forced speed before `speed auto 100g-2`. Both `no` forms are gated on the running config as suggested. Tests pin the 100G-\u003e25G and 25G-\u003e100G sequences. A 0/unset speed is still left untouched (no target to program).",
+      "parentUuid": "9ddb12e4_a91ef5b8",
       "revId": "9da61735414cf163998e0292fe38c9a18a3e1956",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
