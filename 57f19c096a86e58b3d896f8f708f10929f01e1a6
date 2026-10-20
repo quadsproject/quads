@@ -3,6 +3,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "637df316_fc7a4344",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "Nit: description is now validated in three places - the `required_fields` truthiness loop above, this isinstance check, then the post-strip emptiness check. Since description is the only entry in required_fields, folding all three into one helper returning `(description, error_response)` would read better and keeps the 60-char policy in a single place if it ever needs to apply to PATCH/admin too. Also worth a thought: `description[:60]` slices code points, so a cut can split a combining sequence or ZWJ emoji; probably fine for this field.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "9b783301_cd8029b8",
         "filename": "src/quads/server/blueprints/assignments.py",
         "patchSetId": 5
@@ -14,6 +31,108 @@
       "writtenOn": "2026-10-19T20:06:55Z",
       "side": 1,
       "message": "Cosmetic: prefer `isinstance(ssm_description_max, int) and not isinstance(ssm_description_max, bool)` over `type(...) is not int` (PEP8; same effect, `bool` still rejected). Also consider a `logger.warning` here — a bad/typed config value (e.g. quoted \"60\" or 0) silently falls back to 60, and operators have no signal that their `ssm_description_max` was ignored.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49530e85_7ebd00d1",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "Kambiz\u0027s ps5 comment on this line is still unaddressed. `type(x) is not int` works (flake8 E721 does not flag `is not`), but `isinstance(ssm_description_max, int) and not isinstance(ssm_description_max, bool)` is the readable form. The more valuable half of his comment is the missing signal: an operator who writes `ssm_description_max: \"60\"` (quoted YAML) is silently downgraded to 60 with no indication. This module already has a logger, so `logger.warning(\"Invalid ssm_description_max %r, falling back to %s\", ssm_description_max, SSM_DESCRIPTION_MAX)` would let them find it. Validating the value in src/quads/tools/conf_check.py (positive int) would surface it at deploy time instead of at request time.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e831d400_96118d34",
+        "filename": "src/quads/server/blueprints/assignments.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "The 201 body is no longer a pure assignment record - `warning` appears only on truncation, which is a conditional response shape that breaks strict deserialization (e.g. `Assignment(**resp.json)`). It is documented in docs/quads-self-schedule.md, but docs/quads-api.md only lists the endpoint; one line there would save a client author the surprise. Separately, this `warning` is the only durable trace of a truncation - a `logger.warning` here would also let admins find the automation that motivated #749.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa386493_3e6c30ca",
+        "filename": "tests/api/test_assignment_self.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "Two cases are missing from this parametrization, both of which are the reason the fallback branch exists: `None` (key absent - the path every upgraded install takes, since selfservice.yml is %config(noreplace)) and `True` (the only reason the code rejects bool at all). `[0, -1, \"60\", None, True]` would cover the branch completely.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fadb249_6661e58e",
+        "filename": "tests/api/test_assignment_self.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "`active.json \u003d\u003d {}` only holds because the earlier tests happened to clean up cloud04 - it asserts on global module state, not on what this test did. Assert on something owned by this test instead, e.g. that no assignment with ticket SELF-105 exists, or that the apiuser\u0027s active self-scheduled count did not increase.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5724072_e8a9a4cd",
+        "filename": "tests/api/test_assignment_self.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "This test (and test_description_at_limit_accepted on cloud03, and test_admin_create_description_not_limited on cloud02) creates an assignment and never deletes it, while the other three tests in the class do. test_client/prefill are module-scoped, so one DB is shared by the whole module: the leftover active self-assignment on cloud05 is exactly what makes a positional assertion like `active.json \u003d\u003d {}` fragile. Either delete at the end of each test, or add a tiny autouse cleanup fixture.",
+      "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fc90202_faf23ea6",
+        "filename": "tests/api/test_assignment_self.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-20T09:25:35Z",
+      "side": 1,
+      "message": "This is the \"admin paths unchanged\" claim, but it only asserts 201. Assert the 200-char description comes back intact - otherwise the test would still pass if the limit leaked into the admin endpoint and silently truncated. Also missing: a test with a non-default ssm_description_prefix (e.g. \"[X]\") to prove the prefix is excluded (acceptance criterion #3), and a test with ssm_jira_create_ticket: True to show the truncated value reaches the ticket summary and the warning is still returned - that is the highest-value path for the issue\u0027s motivation.",
       "revId": "57f19c096a86e58b3d896f8f708f10929f01e1a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
