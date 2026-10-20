@@ -14,6 +14,7 @@ class _Interface:
     mac_address = "04:32:01:ab:62:f1"
     switch_ip = "192.168.1.53"
     switch_port = "et-0/0/12:1"
+    switch_vendor = None
     speed = 25
     vendor = ""
     pxe_boot = False

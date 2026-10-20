@@ -11,11 +11,12 @@ from quads.plugins.builtin.switches.juniper import JuniperSwitchPlugin
 class MockInterface:
     """Mock interface object for testing"""
 
-    def __init__(self, name, switch_ip, switch_port, speed="1000"):
+    def __init__(self, name, switch_ip, switch_port, speed="1000", switch_vendor=None):
         self.name = name
         self.switch_ip = switch_ip
         self.switch_port = switch_port
         self.speed = speed
+        self.switch_vendor = switch_vendor
 
 
 class MockHost:
@@ -407,6 +408,17 @@ class TestJuniperSwitchPlugin:
         plugin.logger.error.assert_called_with("Cloud not found.")
 
     @pytest.mark.asyncio
+    async def test_ls_config_no_hosts_returns_false(self, plugin):
+        """An empty cloud must not raise IndexError on hosts[0]."""
+        plugin.quads.get_active_cloud_assignment.return_value = MockAssignment("cloud01", qinq=1)
+        plugin.quads.filter_hosts.return_value = []
+
+        result = await plugin.ls_config("cloud01", all=False)
+
+        assert result is False
+        plugin.logger.error.assert_called_with("No hosts found on cloud.")
+
+    @pytest.mark.asyncio
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
     async def test_ls_config_single_host(self, mock_ssh_class, plugin):
         """Test ls_config for single host"""
@@ -589,7 +601,7 @@ class TestJuniperSwitchPlugin:
         await plugin.modify("host1.example.com", change=True, overrides=overrides)
 
         assert mock_juniper.set_port.call_count == 2
-        plugin.logger.info.assert_any_call("Successfully updated switch settings.")
+        plugin.logger.info.assert_any_call("Successfully updated switch settings (juniper: 10.0.0.1)")
 
     @pytest.mark.asyncio
     async def test_modify_host_not_found(self, plugin):
@@ -713,7 +725,7 @@ class TestJuniperSwitchPlugin:
     @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
     @patch("quads.plugins.builtin.switches.juniper.Juniper")
     async def test_modify_set_port_failure(self, mock_juniper_class, mock_ssh_class, plugin):
-        """Test modify logs error when set_port fails"""
+        """Test modify reports failure when set_port fails"""
         interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1")]
         mock_host = MockHost("host1.example.com", interfaces=interfaces)
         plugin.quads.get_host.return_value = mock_host
@@ -729,9 +741,20 @@ class TestJuniperSwitchPlugin:
         mock_juniper.set_port.return_value = False
         mock_juniper_class.return_value = mock_juniper
 
-        await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
+        result = await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
 
+        assert result is False
         plugin.logger.error.assert_any_call("There was something wrong updating switch for em1")
+
+    @pytest.mark.asyncio
+    async def test_modify_host_not_found_returns_false(self, plugin):
+        """Test modify fails when the host does not exist"""
+        plugin.quads.get_host.return_value = None
+
+        result = await plugin.modify("nosuchhost.example.com", change=True, overrides={})
+
+        assert result is False
+        plugin.logger.error.assert_any_call("Hostname not found.")
 
     @pytest.mark.asyncio
     async def test_verify_no_args_returns_false(self, plugin):
@@ -1000,3 +1023,180 @@ class TestJuniperSwitchPlugin:
 
         assert result is False
         plugin.logger.error.assert_called()
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_configure_skips_other_vendor_interfaces(
+        self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin
+    ):
+        """Test configure skips interfaces with a different switch_vendor"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="juniper"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2", switch_vendor="arista"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00", vlan=None)
+        mock_new_assignment = MockAssignment("cloud01", vlan=None)
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.return_value = (True, ["members QinQ_vl10;"])
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        mock_get_vlan.return_value = 20
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is True
+        assert mock_juniper.set_port.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_configure_returns_true_no_matching_interfaces(self, plugin, switch_plugin_manager):
+        """Test configure returns True when all interfaces belong to another enabled plugin"""
+        from quads.plugins.builtin.switches.arista import AristaSwitchPlugin
+
+        plugin.plugin_manager = switch_plugin_manager(plugin, AristaSwitchPlugin(config={"enabled": True}))
+
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="arista"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00")
+        mock_new_assignment = MockAssignment("cloud01")
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is True
+        plugin.logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_configure_fails_when_no_plugin_claims_interfaces(self, plugin, plugin_manager):
+        """Test configure fails closed when switch_vendor names no enabled switch plugin"""
+        from quads.plugins.builtin.switches.arista import AristaSwitchPlugin
+
+        plugin_manager.loaded_plugins = {
+            "juniper": plugin,
+            "arista": AristaSwitchPlugin(config={"enabled": True}),
+        }
+        plugin.plugin_manager = plugin_manager
+
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="Arista"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00")
+        mock_new_assignment = MockAssignment("cloud01")
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is False
+        plugin.logger.error.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_modify_fails_when_no_plugin_claims_interfaces(self, plugin, switch_plugin_manager):
+        """Test modify fails closed when switch_vendor names no enabled switch plugin"""
+        from quads.plugins.builtin.switches.arista import AristaSwitchPlugin
+
+        plugin.plugin_manager = switch_plugin_manager(plugin, AristaSwitchPlugin(config={"enabled": True}))
+
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="Arista")]
+        plugin.quads.get_host.return_value = MockHost("host1.example.com", interfaces=interfaces)
+
+        result = await plugin.modify("host1.example.com", change=True, overrides={0: "1400"})
+
+        assert result is False
+        plugin.logger.error.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_verify_fails_when_no_plugin_claims_interfaces(self, plugin, switch_plugin_manager):
+        """Test verify fails closed when switch_vendor names no enabled switch plugin"""
+        from quads.plugins.builtin.switches.arista import AristaSwitchPlugin
+
+        plugin.plugin_manager = switch_plugin_manager(plugin, AristaSwitchPlugin(config={"enabled": True}))
+
+        interfaces = [MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="Arista")]
+        plugin.quads.filter_hosts.return_value = [MockHost("host1.example.com", interfaces=interfaces)]
+
+        result = await plugin.verify(host="host1.example.com")
+
+        assert result is False
+        plugin.logger.error.assert_called()
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    @patch("quads.plugins.builtin.switches.juniper.get_vlan")
+    async def test_configure_uses_global_vlan_index(self, mock_get_vlan, mock_juniper_class, mock_ssh_class, plugin):
+        """Test configure uses host-global NIC index for get_vlan on mixed-vendor hosts"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="arista"),
+            MockInterface("em2", "10.0.0.2", "ge-0/0/2", switch_vendor="juniper"),
+            MockInterface("em3", "10.0.0.2", "ge-0/0/3", switch_vendor="juniper"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_old_assignment = MockAssignment("cloud00", vlan=None, qinq=0)
+        mock_new_assignment = MockAssignment("cloud01", vlan=None, qinq=0)
+        plugin.quads.get_active_cloud_assignment.side_effect = [mock_old_assignment, mock_new_assignment]
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.return_value = (False, [])
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        mock_get_vlan.side_effect = [10, 20, 10, 20]
+
+        result = await plugin.configure("host1.example.com", "cloud00", "cloud01")
+
+        assert result is True
+        assert mock_juniper.set_port.call_count == 2
+        mock_get_vlan.assert_any_call(mock_old_assignment, 1, False)
+        mock_get_vlan.assert_any_call(mock_new_assignment, 1, False)
+        mock_get_vlan.assert_any_call(mock_old_assignment, 2, True)
+        mock_get_vlan.assert_any_call(mock_new_assignment, 2, True)
+
+    @pytest.mark.asyncio
+    @patch("quads.plugins.builtin.switches.juniper.SSHHelper")
+    @patch("quads.plugins.builtin.switches.juniper.Juniper")
+    async def test_modify_skips_other_vendor_interfaces(self, mock_juniper_class, mock_ssh_class, plugin):
+        """Test modify only touches interfaces owned by this plugin"""
+        interfaces = [
+            MockInterface("em1", "10.0.0.1", "ge-0/0/1", switch_vendor="arista"),
+            MockInterface("em2", "10.0.0.1", "ge-0/0/2", switch_vendor="juniper"),
+        ]
+        mock_host = MockHost("host1.example.com", interfaces=interfaces)
+        plugin.quads.get_host.return_value = mock_host
+
+        mock_ssh = MagicMock()
+        mock_ssh.run_cmd.side_effect = [
+            (True, ["members QinQ_vl10;"]),
+            (True, ["set vlans vlan10 interface ge-0/0/2.0"]),
+        ]
+        mock_ssh_class.return_value = mock_ssh
+
+        mock_juniper = MagicMock()
+        mock_juniper.set_port.return_value = True
+        mock_juniper_class.return_value = mock_juniper
+
+        await plugin.modify("host1.example.com", change=True, overrides={0: "1400", 1: "1401"})
+
+        assert mock_juniper.set_port.call_count == 1
+        mock_juniper_class.assert_called_once_with("10.0.0.1", "ge-0/0/2", "1000", "10", "1401")
