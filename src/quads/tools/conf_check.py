@@ -4,10 +4,10 @@ import sys
 from dataclasses import dataclass, field
 
 import yaml
-from rich.console import Console
 from rich.table import Table
 
 from quads.config import QUADS_CONF_DIR
+from quads.helpers.console import make_console
 
 logger = logging.getLogger(__name__)
 
@@ -293,7 +293,7 @@ def main(logger=None):
     if logger is None:
         logger = logging.getLogger(__name__)
 
-    console = Console(width=None if sys.stdout.isatty() else 200)
+    console = make_console(width=None if sys.stdout.isatty() else 200)
     result = run_conf_check()
 
     if result.passed:

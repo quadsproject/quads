@@ -8,6 +8,7 @@ from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn
 from rich.table import Column, Table
 
 from quads.config import Config
+from quads.helpers.console import make_console
 from quads.quads_api import QuadsApi
 
 quads = QuadsApi(Config)
@@ -37,6 +38,7 @@ def main():
         BarColumn(),
         MofNCompleteColumn(),
         TimeRemainingColumn(),
+        console=make_console(),
     ) as progress:
         task = progress.add_task("Importing metadata", total=len(json_files))
         for filename in json_files:
