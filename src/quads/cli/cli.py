@@ -1,5 +1,6 @@
 import asyncio
 import functools
+import json
 import logging
 import os
 import sys
@@ -18,7 +19,7 @@ from rich.table import Table as RichTable
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
-from quads.helpers.timeutil import parse_http_date_local
+from quads.helpers.timeutil import format_iso_utc, parse_http_date_local
 from quads.helpers.utils import (
     first_day_month,
     last_day_month,
@@ -45,6 +46,28 @@ from quads.helpers.utils import time_remaining
 
 class QuadsCli:
     ACTION_PREFIX = "action_"
+    JSON_ACTIONS = {
+        "interface",
+        "memory",
+        "disks",
+        "cpu",
+        "gpu",
+        "ls_expirations",
+        "summary",
+        "list_notifications",
+        "os_list",
+    }
+    NOTIFICATION_FIELDS = (
+        "fail",
+        "success",
+        "initial",
+        "pre_initial",
+        "pre",
+        "one_day",
+        "three_days",
+        "five_days",
+        "seven_days",
+    )
 
     quads: Quads
     logger: logging.Logger
@@ -60,9 +83,35 @@ class QuadsCli:
     def _confirmation_dialog(msg, default_choice="n"):
         return (input(msg) or default_choice).lower() in ("y", "yes")
 
+    @staticmethod
+    def _echo_json(data):
+        def _default(value):
+            if isinstance(value, datetime):
+                return format_iso_utc(value)
+            raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+        print(json.dumps(data, indent=2, default=_default))
+
+    @staticmethod
+    def _expiring_per_cloud(schedules):
+        seen = set()
+        for schedule in schedules:
+            cloud_name = schedule.assignment.cloud.name
+            if cloud_name in seen:
+                continue
+            seen.add(cloud_name)
+            days, _ = time_remaining(schedule.end)
+            yield cloud_name, schedule, days
+
     def run(self, action: str, cli_args: dict) -> Optional[int]:
         self.cli_args = cli_args
         self.logger.debug(self.cli_args)
+
+        if self.cli_args.get("json_output"):
+            if not action:
+                raise CliException("--json requires one of the supported actions")
+            if action not in self.JSON_ACTIONS:
+                raise CliException("--json is not supported for this action")
 
         if action:
             # action method should always be available
@@ -280,6 +329,28 @@ class QuadsCli:
             schedules = self.quads.get_expiring_schedules()
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
+        if self.cli_args.get("json_output"):
+            self._echo_json(
+                [
+                    {
+                        "cloud": cloud_name,
+                        "ticket": schedule.assignment.ticket,
+                        "end": schedule.end,
+                        "expires_in_days": days,
+                        "is_self_schedule": schedule.assignment.is_self_schedule,
+                        "owner": schedule.assignment.owner,
+                        "description": schedule.assignment.description,
+                        "qinq": schedule.assignment.qinq,
+                        "wipe": schedule.assignment.wipe,
+                        "ostype": schedule.assignment.ostype,
+                        "boot_order": schedule.assignment.boot_order,
+                        "provisioned": schedule.assignment.provisioned,
+                        "validated": schedule.assignment.validated,
+                    }
+                    for cloud_name, schedule, days in self._expiring_per_cloud(schedules)
+                ]
+            )
+            return 0
         if not schedules:
             self.logger.warning("No active schedules found.")
             return 0
@@ -295,12 +366,7 @@ class QuadsCli:
         table.add_column("Expires In", justify="right")
         table.add_column("SSM")
 
-        expiring_clouds = set()
-        for schedule in schedules:
-            cloud_name = schedule.assignment.cloud.name
-            if cloud_name in expiring_clouds:
-                continue
-            days, _ = time_remaining(schedule.end)
+        for cloud_name, schedule, days in self._expiring_per_cloud(schedules):
             table.add_row(
                 cloud_name,
                 schedule.assignment.ticket,
@@ -308,7 +374,6 @@ class QuadsCli:
                 f"{days}d",
                 str(schedule.assignment.is_self_schedule),
             )
-            expiring_clouds.add(cloud_name)
         self.console.print(table)
         return 0
 
@@ -393,6 +458,25 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
 
+        if self.cli_args.get("json_output"):
+            self._echo_json(
+                [
+                    {
+                        "name": interface.name,
+                        "bios_id": interface.bios_id,
+                        "mac_address": interface.mac_address,
+                        "switch_ip": interface.switch_ip,
+                        "switch_port": interface.switch_port,
+                        "speed": interface.speed,
+                        "vendor": interface.vendor,
+                        "pxe_boot": interface.pxe_boot,
+                        "maintenance": interface.maintenance,
+                    }
+                    for interface in sorted(data or [], key=lambda k: k.name)
+                ]
+            )
+            return 0
+
         if data:
             table = RichTable(
                 title=f"Interfaces: {hostname}",
@@ -434,6 +518,10 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
 
+        if self.cli_args.get("json_output"):
+            self._echo_json([{"handle": memory.handle, "size_gb": memory.size_gb} for memory in host.memory or []])
+            return 0
+
         if host.memory:
             table = RichTable(
                 title=f"Memory: {hostname}",
@@ -460,6 +548,20 @@ class QuadsCli:
             host = self.quads.get_host(hostname)
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
+
+        if self.cli_args.get("json_output"):
+            self._echo_json(
+                [
+                    {
+                        "name": f"disk{i}",
+                        "disk_type": disk.disk_type,
+                        "size_gb": disk.size_gb,
+                        "count": disk.count,
+                    }
+                    for i, disk in enumerate(host.disks or [])
+                ]
+            )
+            return 0
 
         if host.disks:
             table = RichTable(
@@ -491,6 +593,23 @@ class QuadsCli:
             host = self.quads.get_host(hostname)
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
+
+        if self.cli_args.get("json_output"):
+            self._echo_json(
+                [
+                    {
+                        "handle": processor.handle,
+                        "vendor": processor.vendor,
+                        "product": processor.product,
+                        "cores": processor.cores,
+                        "threads": processor.threads,
+                        "processor_type": processor.processor_type,
+                    }
+                    for processor in host.processors or []
+                    if processor.processor_type == "CPU"
+                ]
+            )
+            return 0
 
         if host.processors:
             cpu_processors = [p for p in host.processors if p.processor_type == "CPU"]
@@ -528,6 +647,23 @@ class QuadsCli:
             host = self.quads.get_host(hostname)
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
+
+        if self.cli_args.get("json_output"):
+            self._echo_json(
+                [
+                    {
+                        "handle": processor.handle,
+                        "vendor": processor.vendor,
+                        "product": processor.product,
+                        "cores": processor.cores,
+                        "threads": processor.threads,
+                        "processor_type": processor.processor_type,
+                    }
+                    for processor in host.processors or []
+                    if processor.processor_type == "GPU"
+                ]
+            )
+            return 0
 
         if host.processors:
             gpu_processors = [p for p in host.processors if p.processor_type == "GPU"]
@@ -2417,6 +2553,11 @@ class QuadsCli:
             raise CliException(str(ex))
         summary_json = summary.json()
 
+        if self.cli_args.get("json_output"):
+            # JSON always carries the full detail, regardless of --detail/--all
+            self._echo_json(summary_json)
+            return 0
+
         table = RichTable(
             title="Cloud Summary",
             show_header=True,
@@ -2542,6 +2683,28 @@ class QuadsCli:
         except (APIServerException, APIBadRequest) as ex:
             raise CliException(str(ex))
 
+        if self.cli_args.get("json_output"):
+            payload = []
+            for ass in assignments:
+                row = {
+                    "cloud": ass.cloud.name,
+                    "ticket": ass.ticket,
+                    "owner": ass.owner,
+                    "description": ass.description,
+                    "qinq": ass.qinq,
+                    "wipe": ass.wipe,
+                    "ostype": ass.ostype,
+                    "boot_order": ass.boot_order,
+                    "is_self_schedule": ass.is_self_schedule,
+                    "provisioned": ass.provisioned,
+                    "validated": ass.validated,
+                }
+                for field in self.NOTIFICATION_FIELDS:
+                    row[field] = getattr(ass.notification, field) if ass.notification else None
+                payload.append(row)
+            self._echo_json(payload)
+            return 0
+
         if assignments:
             table = RichTable(
                 title="Notifications",
@@ -2560,20 +2723,9 @@ class QuadsCli:
             table.add_column("5 Days")
             table.add_column("7 Days")
 
-            notification_fields = [
-                "fail",
-                "success",
-                "initial",
-                "pre_initial",
-                "pre",
-                "one_day",
-                "three_days",
-                "five_days",
-                "seven_days",
-            ]
             for ass in assignments:
                 row = [str(ass.cloud.name), str(ass.ticket)]
-                for field in notification_fields:
+                for field in self.NOTIFICATION_FIELDS:
                     row.append(str(getattr(ass.notification, field)))
                 table.add_row(*row)
             self.console.print(table)
@@ -2588,17 +2740,7 @@ class QuadsCli:
         cloud_name = self.cli_args.get("cloud")
         if not cloud_name:
             raise CliException("Missing parameter --cloud")
-        mod_notification_arg_names = [
-            "fail",
-            "success",
-            "initial",
-            "pre_initial",
-            "pre",
-            "one_day",
-            "three_days",
-            "five_days",
-            "seven_days",
-        ]
+        mod_notification_arg_names = self.NOTIFICATION_FIELDS
         modify_notifications = list(
             filter(lambda item: self.cli_args.get(item) is not None, mod_notification_arg_names)
         )
@@ -2632,6 +2774,9 @@ class QuadsCli:
 
     def action_os_list(self):
         available_os_list = self.quads.get_os_list()
+        if self.cli_args.get("json_output"):
+            self._echo_json(available_os_list or [])
+            return 0
         if available_os_list:
             table = RichTable(
                 title="Available OS",
