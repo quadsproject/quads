@@ -54,7 +54,8 @@ class QuadsCli:
         self.quads = quads
         self.logger = logger
         width = None if sys.stdout.isatty() else 200
-        self.console = Console(width=width)
+        # no emoji substitution: table cells hold raw data (MACs, ports, ...)
+        self.console = Console(width=width, emoji=False)
 
     @staticmethod
     def _confirmation_dialog(msg, default_choice="n"):

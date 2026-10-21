@@ -17,7 +17,7 @@ from rich.table import Table
 from quads.quads_api import QuadsApi
 
 quads = QuadsApi(Config)
-console = Console(width=None if sys.stdout.isatty() else 200)
+console = Console(width=None if sys.stdout.isatty() else 200, emoji=False)
 
 
 def _report_to_markdown(title, headers, rows, metadata=None):
@@ -34,7 +34,7 @@ def _report_to_markdown(title, headers, rows, metadata=None):
 
 
 def _report_to_html(title, headers, rows, metadata=None):
-    rec_console = Console(record=True, width=200)
+    rec_console = Console(record=True, width=200, emoji=False)
     if metadata:
         for label, value in metadata:
             rec_console.print(f"[bold]{label}[/bold]: {value}")
