@@ -7,6 +7,7 @@ from rich.table import Table
 
 import yaml
 
+from quads.helpers.console import make_console
 from quads.quads_api import APIBadRequest
 from quads.tools.import_current_schedules import import_current_schedules
 
@@ -138,16 +139,16 @@ class TestImportSchedulesProgress:
 
         mock_quads.insert_schedule.assert_not_called()
 
-    @patch("quads.tools.import_current_schedules.Console")
+    @patch("quads.tools.import_current_schedules.make_console")
     @patch("quads.tools.import_current_schedules.quads")
-    def test_summary_table_printed_after_import(self, mock_quads, mock_console_cls):
+    def test_summary_table_printed_after_import(self, mock_quads, mock_make_console):
         mock_quads.get_cloud.return_value = None
         mock_quads.get_active_cloud_assignment.return_value = None
         mock_quads.get_host.return_value = MagicMock()
 
         mock_console = MagicMock()
         mock_console.is_terminal = True
-        mock_console_cls.return_value = mock_console
+        mock_make_console.side_effect = [make_console(), make_console(), mock_console]
 
         now = datetime(2024, 8, 6, 19, 0)
         end = datetime(2024, 8, 20, 19, 0)
@@ -182,14 +183,14 @@ class TestImportSchedulesProgress:
         assert printed_arg.row_count == 2
         assert [c.header for c in printed_arg.columns] == ["Cloud", "Host", "Start", "End"]
 
-    @patch("quads.tools.import_current_schedules.Console")
+    @patch("quads.tools.import_current_schedules.make_console")
     @patch("quads.tools.import_current_schedules.quads")
-    def test_no_table_when_no_schedules(self, mock_quads, mock_console_cls):
+    def test_no_table_when_no_schedules(self, mock_quads, mock_make_console):
         mock_quads.get_cloud.return_value = None
         mock_quads.get_active_cloud_assignment.return_value = None
 
         mock_console = MagicMock()
-        mock_console_cls.return_value = mock_console
+        mock_make_console.side_effect = [make_console(), make_console()]
 
         with tempfile.TemporaryDirectory() as tmpdir:
             filepath = self._make_yaml(tmpdir, schedules=[])
@@ -197,16 +198,16 @@ class TestImportSchedulesProgress:
 
         mock_console.print.assert_not_called()
 
-    @patch("quads.tools.import_current_schedules.Console")
+    @patch("quads.tools.import_current_schedules.make_console")
     @patch("quads.tools.import_current_schedules.quads")
-    def test_plain_output_when_piped(self, mock_quads, mock_console_cls, capsys):
+    def test_plain_output_when_piped(self, mock_quads, mock_make_console, capsys):
         mock_quads.get_cloud.return_value = None
         mock_quads.get_active_cloud_assignment.return_value = None
         mock_quads.get_host.return_value = MagicMock()
 
         mock_console = MagicMock()
         mock_console.is_terminal = False
-        mock_console_cls.return_value = mock_console
+        mock_make_console.side_effect = [make_console(), make_console(), mock_console]
 
         now = datetime(2024, 8, 6, 19, 0)
         end = datetime(2024, 8, 20, 19, 0)
