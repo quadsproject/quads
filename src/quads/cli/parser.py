@@ -50,6 +50,14 @@ parser.add_argument(
     help="Show debugging information.",
 )
 parser.add_argument(
+    "--json",
+    dest="json_output",
+    action="store_true",
+    default=False,
+    help="Output JSON instead of a table for --ls-interface, --ls-memory, --ls-disks, "
+    "--ls-cpu, --ls-gpu, --ls-expirations, --summary, --ls-notifications and --os-list",
+)
+parser.add_argument(
     "--force",
     dest="force",
     action="store_true",
