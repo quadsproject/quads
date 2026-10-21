@@ -293,7 +293,7 @@ def main(logger=None):
     if logger is None:
         logger = logging.getLogger(__name__)
 
-    console = Console(width=None if sys.stdout.isatty() else 200)
+    console = Console(width=None if sys.stdout.isatty() else 200, emoji=False)
     result = run_conf_check()
 
     if result.passed:

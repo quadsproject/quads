@@ -4,6 +4,7 @@ import os
 import json
 
 from jsonpath_ng import parse
+from rich.console import Console
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
 from rich.table import Column, Table
 
@@ -37,6 +38,7 @@ def main():
         BarColumn(),
         MofNCompleteColumn(),
         TimeRemainingColumn(),
+        console=Console(emoji=False),
     ) as progress:
         task = progress.add_task("Importing metadata", total=len(json_files))
         for filename in json_files:
