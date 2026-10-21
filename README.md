@@ -589,16 +589,38 @@ c09-h02-r630.example.com
 c09-h03-r630.example.com
 ```
 
-   - To list a hosts interface and switch information:
+   - To list a host's interfaces and switch information:
 
 ```bash
 quads --ls-interface --host c08-h21-r630.example.com
-
-{"name": "em1", "mac_address": "52:54:00:d9:5d:df", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:0"}
-{"name": "em2", "mac_address": "52:54:00:d9:5d:dg", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:1"}
-{"name": "em3", "mac_address": "52:54:00:d9:5d:dh", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:2"}
-{"name": "em4", "mac_address": "52:54:00:d9:5d:d1", "switch_ip": "10.12.22.201", "switch_port": "xe-0/0/1:3"}
 ```
+
+   - Add `--json` to any of `--ls-interface`, `--ls-memory`, `--ls-disks`,
+     `--ls-cpu`, `--ls-gpu`, `--ls-expirations`, `--summary`,
+     `--ls-notifications` and `--os-list` for machine-readable output
+     (suitable for piping to `jq` and similar tools):
+
+```bash
+quads --json --ls-interface --host c08-h21-r630.example.com
+```
+```json
+[
+  {
+    "name": "em1",
+    "bios_id": null,
+    "mac_address": "52:54:00:d9:5d:df",
+    "switch_ip": "10.12.22.201",
+    "switch_port": "xe-0/0/1:0",
+    "speed": 10,
+    "vendor": "Intel Corporation",
+    "pxe_boot": false,
+    "maintenance": false
+  }
+]
+```
+
+   - With `--json`, `--summary` always includes the full detail and clouds with no
+     active assignments, regardless of `--detail` or `--all`.
 
    - To see the current system allocations:
 

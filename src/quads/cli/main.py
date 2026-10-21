@@ -31,20 +31,23 @@ logger = logging.getLogger(__name__)
 
 
 def main(_logger: logging = logger) -> Optional[int]:
-    stdout_stream = logging.StreamHandler(sys.stdout)
-    _logger.addHandler(stdout_stream)
-    _logger.propagate = False
-
     argcomplete.autocomplete(parser)
     cli_args: dict = vars(parser.parse_args())
+
+    # --json keeps stdout for the JSON document, so logs must go to stderr
+    log_stream = sys.stderr if cli_args.get("json_output") else sys.stdout
+    _logger.handlers.clear()
+    log_handler = logging.StreamHandler(log_stream)
+    _logger.addHandler(log_handler)
+    _logger.propagate = False
 
     if cli_args.get("debug", False):
         _logger.setLevel(level=logging.DEBUG)
     else:
         _logger.setLevel(level=logging.INFO)
 
-    if sys.stdout.isatty():
-        stdout_stream.setFormatter(ColorFormatter())
+    if log_stream.isatty():
+        log_handler.setFormatter(ColorFormatter())
         _logger.debug("Attached to terminal, making logs colorful")
 
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
