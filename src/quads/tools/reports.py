@@ -11,13 +11,13 @@ from quads.helpers.utils import (
 )
 from datetime import datetime, timedelta
 
-from rich.console import Console
 from rich.table import Table
 
 from quads.quads_api import QuadsApi
+from quads.helpers.console import make_console
 
 quads = QuadsApi(Config)
-console = Console(width=None if sys.stdout.isatty() else 200)
+console = make_console(width=None if sys.stdout.isatty() else 200)
 
 
 def _report_to_markdown(title, headers, rows, metadata=None):
@@ -34,7 +34,7 @@ def _report_to_markdown(title, headers, rows, metadata=None):
 
 
 def _report_to_html(title, headers, rows, metadata=None):
-    rec_console = Console(record=True, width=200)
+    rec_console = make_console(record=True, width=200)
     if metadata:
         for label, value in metadata:
             rec_console.print(f"[bold]{label}[/bold]: {value}")

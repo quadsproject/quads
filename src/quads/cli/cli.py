@@ -13,11 +13,11 @@ import yaml
 from jinja2 import Template
 from requests import ConnectionError
 
-from rich.console import Console
 from rich.table import Table as RichTable
 
 from quads.config import Config as conf
 from quads.exceptions import BaseQuadsException, CliException
+from quads.helpers.console import make_console
 from quads.helpers.timeutil import parse_http_date_local
 from quads.helpers.utils import (
     first_day_month,
@@ -54,7 +54,8 @@ class QuadsCli:
         self.quads = quads
         self.logger = logger
         width = None if sys.stdout.isatty() else 200
-        self.console = Console(width=width)
+        # no emoji substitution: table cells hold raw data (MACs, ports, ...)
+        self.console = make_console(width=width)
 
     @staticmethod
     def _confirmation_dialog(msg, default_choice="n"):

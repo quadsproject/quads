@@ -13,6 +13,7 @@ from rich.logging import RichHandler
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Column
 from quads.config import Config
+from quads.helpers.console import make_console
 from quads.helpers.utils import build_cc_users
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 from quads.plugins.dispatchers.email import get_email_dispatcher
@@ -34,6 +35,7 @@ def _progress():
             TextColumn("{task.description}", table_column=Column(min_width=30)),
             BarColumn(),
             MofNCompleteColumn(),
+            console=make_console(),
         ) as progress:
             yield progress
     else:

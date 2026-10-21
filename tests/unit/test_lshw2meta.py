@@ -1,8 +1,10 @@
+import io
 import json
 import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
+from rich.console import Console
 from rich.table import Table
 
 from quads.tools.lshw2meta import b2g, main
@@ -87,6 +89,33 @@ RICH_LSHW_JSON = {
         },
     ],
 }
+
+
+class _RenderingProgress:
+    """Progress stub that renders through the console passed by the caller."""
+
+    consoles = []
+
+    def __init__(self, *args, **kwargs):
+        self.console = kwargs.get("console") or Console()
+        self.console._force_terminal = True
+        self.console.file = io.StringIO()
+        _RenderingProgress.consoles.append(self.console)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def add_task(self, *args, **kwargs):
+        return 0
+
+    def advance(self, *args, **kwargs):
+        pass
+
+    def update(self, *args, **kwargs):
+        pass
 
 
 class TestB2g:
@@ -216,6 +245,32 @@ class TestLshw2metaMain:
             )
             for call in mock_quads.create_processor.call_args_list
         )
+
+    @patch("quads.tools.lshw2meta.quads")
+    def test_main_table_keeps_colliding_mac_intact(self, mock_quads):
+        _RenderingProgress.consoles = []
+        matching_iface = MagicMock()
+        matching_iface.mac_address = "04:32:01:ab:62:f1"
+        matching_iface.name = "em5"
+        mock_host = MagicMock()
+        mock_host.interfaces = [matching_iface]
+        mock_host.memory = []
+        mock_host.processors = []
+        mock_quads.get_host.return_value = mock_host
+        mock_quads.filter_hosts.return_value = []
+
+        data = json.loads(json.dumps(RICH_LSHW_JSON))
+        data["children"][2]["serial"] = "04:32:01:ab:62:f1"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_json(tmpdir, "host1.json", data)
+            with patch("quads.tools.lshw2meta.MD_DIR", tmpdir):
+                with patch("quads.tools.lshw2meta.Progress", _RenderingProgress):
+                    main()
+
+        output = _RenderingProgress.consoles[0].file.getvalue()
+        assert "\U0001F18E" not in output
+        assert "04:32:01:ab:62:f1" in output
 
     @patch("quads.tools.lshw2meta.quads")
     def test_main_plain_output_when_piped(self, mock_quads, capsys):

@@ -4,12 +4,12 @@ import argparse
 import logging
 
 import yaml
-from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Column, Table
 
 from quads.config import Config
+from quads.helpers.console import make_console
 from quads.quads_api import QuadsApi, APIServerException, APIBadRequest
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
@@ -30,6 +30,7 @@ def import_current_schedules(filepath):
         TextColumn("{task.description}", table_column=Column(min_width=30)),
         BarColumn(),
         MofNCompleteColumn(),
+        console=make_console(),
     ) as progress:
         task = progress.add_task("Importing clouds", total=len(clouds))
         for cloud_name, properties in clouds.items():
@@ -61,6 +62,7 @@ def import_current_schedules(filepath):
         TextColumn("{task.description}", table_column=Column(min_width=30)),
         BarColumn(),
         MofNCompleteColumn(),
+        console=make_console(),
     ) as progress:
         task = progress.add_task("Importing schedules", total=len(schedules))
         for schedule in schedules:
@@ -97,7 +99,7 @@ def import_current_schedules(filepath):
             progress.advance(task)
 
     if imported_rows:
-        console = Console()
+        console = make_console()
         if console.is_terminal:
             table = Table(title="Imported Schedules", show_header=True, header_style="bold cyan")
             table.add_column("Cloud", style="cyan")

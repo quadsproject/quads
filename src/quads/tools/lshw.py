@@ -4,6 +4,7 @@ from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn
 from rich.table import Column
 
 from quads.config import Config
+from quads.helpers.console import make_console
 from quads.quads_api import QuadsApi
 from quads.tools.external.ssh_helper import SSHHelper
 
@@ -44,6 +45,7 @@ def main() -> None:
         BarColumn(),
         MofNCompleteColumn(),
         TimeRemainingColumn(),
+        console=make_console(),
     ) as progress:
         task = progress.add_task("Collecting lshw", total=len(hosts))
         for host in hosts:
