@@ -97,7 +97,7 @@ def import_current_schedules(filepath):
             progress.advance(task)
 
     if imported_rows:
-        console = Console()
+        console = Console(emoji=False)
         if console.is_terminal:
             table = Table(title="Imported Schedules", show_header=True, header_style="bold cyan")
             table.add_column("Cloud", style="cyan")
