@@ -37,6 +37,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "7946086c_48be4941",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-22T12:21:20Z",
+      "side": 1,
+      "message": "The flag is the right fix for the reported bug. One channel from the same root cause is left open (pre-existing, not this patch\u0027s doing): `markup\u003dTrue` still applies to table cell strings, so free-text cells lose bracket sequences. Verified with rich 14.3.2 and `emoji\u003dFalse`:\n\n    \"rack [h01] u01\"            -\u003e \"rack  u01\"        # [h01] eaten entirely\n    \"vsan[b]x\"                  -\u003e \"vsanx\"\n    \"alloc [red]urgent[/red]\"   -\u003e \"alloc urgent\"\n    \"env [DEV] tier-1\"          -\u003e unchanged (unknown tag kept)\n\nReachable through the free-text Description columns of `--summary --detail` (cli.py:2430) and the Detailed Report (reports.py:242), so the issue\u0027s root-cause point 1 (\"markup\u003dTrue ... the MAC text is never escaped\") is only half-addressed by this patch.\n\nIf that is ever closed, the route that handles both properties is per-cell `Text(value)` in `add_row` for data columns -- `Text` is a renderable, so markup and emoji parsing are both skipped (verified: `Text(\"04:32:01:ab:62:f1\")` and `Text(\"rack [h01] u01\")` render verbatim). That would also have made console-level `emoji\u003dFalse` redundant for tables, at the cost of touching every `add_row`.\n\nSuggest a separate follow-up issue for the markup half rather than growing this patch; #754 as titled is fixed by PS1 as-is.\n",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f4d18a8b_edbe9680",
         "filename": "tests/unit/test_cli_console.py",
         "patchSetId": 1
