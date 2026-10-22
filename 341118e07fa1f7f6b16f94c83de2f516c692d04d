@@ -54,6 +54,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "7b1f2edf_c160daee",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:45:22Z",
+      "side": 1,
+      "message": "Fixed in PS3: test_json_requires_an_action covers the guard.",
+      "parentUuid": "1254eba5_961da394",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "78aea71a_a260aa57",
         "filename": "src/quads/cli/cli.py",
         "patchSetId": 1
@@ -122,6 +140,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "574cc07f_58465a27",
+        "filename": "src/quads/cli/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:45:22Z",
+      "side": 1,
+      "message": "Fixed in PS3: tests/unit/test_cli_main.py drives main() and asserts JSON-only stdout, logs on stderr, rc 2 with empty stdout for no action and unsupported action, and no handler duplication across repeated calls.",
+      "parentUuid": "2a9bb9d8_ae188799",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "809b1d2c_11fe2bb7",
         "filename": "tests/unit/test_cli_json.py",
         "patchSetId": 1
@@ -154,6 +190,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e39ee85_376254fe",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:45:22Z",
+      "side": 1,
+      "message": "Fixed in PS3: the CPU and GPU tests now assert the full row dict.",
+      "parentUuid": "b68f2d33_56f78a08",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "45e2feb7_cd1c00d7",
@@ -171,6 +225,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "061284eb_3d028e87",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:45:22Z",
+      "side": 1,
+      "message": "Fixed in PS3: the full row is asserted and built from \"... GMT\" through Schedule.from_dict; end is pinned to 2026-11-24T10:00:00+00:00 and expires_in_days against time_remaining.",
+      "parentUuid": "45e2feb7_cd1c00d7",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a6e8969a_67b0dea5",
@@ -184,6 +256,24 @@
       "writtenOn": "2026-10-22T11:07:27Z",
       "side": 1,
       "message": "The \"JSON always carries the full detail, regardless of --detail/--all\" invariant (cli.py:2549) is exercised only for all\u003dFalse, detail\u003dFalse. A regression that made the JSON branch honour those flags would pass. Parametrize over the four (all, detail) combinations and assert data \u003d\u003d summary_rows each time.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "85a58fc8_c1d10740",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:45:22Z",
+      "side": 1,
+      "message": "Fixed in PS3: parametrized over all\u003dTrue/False x detail\u003dTrue/False, asserting the full row set each time.",
+      "parentUuid": "a6e8969a_67b0dea5",
       "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
