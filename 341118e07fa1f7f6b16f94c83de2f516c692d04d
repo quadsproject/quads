@@ -18,6 +18,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7b2ea28_e9ed1d5e",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-22T12:20:14Z",
+      "side": 1,
+      "message": "`value.isoformat()` here emits zone-less *local* wall clock, not UTC. `Schedule.end`/`start` arrive as RFC 1123 `... GMT` and `Schedule.from_dict` re-anchors them to a naive local datetime (models.py -\u003e `parse_datetime` -\u003e `parse_http_date_local`), so the offset is already gone by the time this runs. Measured with TZ\u003dAsia/Tokyo against the API value `Tue, 24 Nov 2026 10:00:00 GMT`:\n\n    current                 \"end\": \"2026-11-24T19:00:00\"        # no offset\n    format_iso_utc(end)     \"end\": \"2026-11-24T10:00:00+00:00\"\n\nSo `jq fromdateiso8601`, a `date -u` comparison, or any consumer on a different host gets an instant off by the server\u0027s UTC offset - the exact failure #709 and `helpers/timeutil.py` were written to eliminate, in the one interface that is supposed to be machine-read.\n\nThe fix is one import: `from quads.helpers.timeutil import format_iso_utc` and `return format_iso_utc(value)`. It treats naive values as server-local and stamps `+00:00`. Same finding applies to `start` in the `--ls-expirations` payload.\n\nTwo follow-ons: tests/unit/test_cli_json.py:150 asserts `datetime.fromisoformat(data[0][\"end\"]) \u003d\u003d end` against a `datetime.now()`-built naive datetime, so it needs `ensure_utc()` on both sides (or a comparison against `format_iso_utc(end)`); and building that fixture from a real `\"... GMT\"` string instead of `datetime.now() + timedelta` would pin the wire -\u003e JSON conversion instead of assuming it.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1254eba5_961da394",
