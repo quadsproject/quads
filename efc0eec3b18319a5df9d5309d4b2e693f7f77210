@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a39b509_383e3db2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:39Z",
+      "side": 1,
+      "message": "PS1 has no Change-Id footer. GerritHub minted I6aac0c50e8ee73000ecf74d7ed10b8e3a36d5469 server-side (the project inherits require_change_id: false), so the next git review development after an amend opens a new change instead of PS2. Before uploading the next patchset:\n\n    git log -1 --format\u003d%B \u003e msg.txt\n    # append a blank line and: Change-Id: I6aac0c50e8ee73000ecf74d7ed10b8e3a36d5469\n    git commit --amend -F msg.txt\n    git log -1 --format\u003d\u0027%(trailers:key\u003dChange-Id,valueonly)\u0027\n\nDo not use git review -R, it drops the footer. Consider setting Require Change-Id \u003d TRUE on the project.",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "60d3eb9e_44174cb6",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:39Z",
+      "side": 1,
+      "message": "This fixes every explicit console, but one implicit console still substitutes: lshw2meta.py:180 prints its interface table through progress.console, which is the global console (emoji\u003dTrue), so interactive runs still show 04:32:01🆎62:f1. Pre-existing and outside this patch\u0027s four tools; the one-line follow-up is Progress(..., console\u003dConsole(emoji\u003dFalse)) in lshw2meta.main().",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f4d18a8b_edbe9680",
+        "filename": "tests/unit/test_cli_console.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:39Z",
+      "side": 1,
+      "message": "The test exercises Console.print(str), which shares the render_str/_emoji path with table cells, so it is a valid guard for the CLI console. It does not guard the other four flags: reverting reports.py, conf_check.py or import_current_schedules.py keeps it green, and _report_to_html() still renders rack 🆎 maint on the reverted tree. Suggested follow-ups: an action_interface() case with an :ab: MAC (the reported surface), a _report_to_html() case, and an exact-output or cd assertion. Changing IFMAC1 also works but ripples into the metadata fixture.",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
