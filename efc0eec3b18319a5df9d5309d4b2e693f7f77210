@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6c0c7898_87a8623f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T18:30:33Z",
+      "side": 1,
+      "message": "Change-Id restored in PS2 and preserved in PS3. PS3 also addresses the two follow-ups: lshw2meta\u0027s Progress console and the expanded console regression tests. Resolving.",
+      "parentUuid": "7a39b509_383e3db2",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "60d3eb9e_44174cb6",
         "filename": "src/quads/cli/cli.py",
         "patchSetId": 1
