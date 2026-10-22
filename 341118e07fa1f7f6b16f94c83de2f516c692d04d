@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "92afe354_99dda4d8",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "JSON_ACTIONS has no completeness guard: removing an entry, or removing an action\u0027s JSON branch, both fail the suite today, but adding a tenth action without a branch would not be caught. A parametrized test over sorted(QuadsCli.JSON_ACTIONS) asserting run(action, {..., json_output: True}) \u003d\u003d 0 and json.loads(out) succeeding locks it in for future actions.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1254eba5_961da394",
@@ -88,6 +105,74 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "809b1d2c_11fe2bb7",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "This assertion is inert: U+1F18E appears in neither the JSON branch output nor any fixture value, so it can never fail. Drop it, or replace it with a real contract such as the full-row dict assertion.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b68f2d33_56f78a08",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "Confirming the :218 concern for the CPU/GPU rows with a measurement: dropping \"product\": processor.product from both payloads leaves all 8 tests green. The fixture supplies vendor/product/cores/threads but only handle and processor_type are asserted; whole-row equality, as already done for memory and disks, closes it.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45e2feb7_cd1c00d7",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "Only 6 of the 15 keys are pinned here (cloud, ticket, ssm, owner, host, end). expires_in_days, start, description, qinq, wipe, ostype, boot_order, provisioned and validated are unasserted. Measured: deleting \"start\": schedule.start from the payload, and deriving expires_in_days from hours instead of days, both leave this test green. Assert the whole row dict (start\u003dstart.isoformat(), expires_in_days \u003d\u003d time_remaining(end)[0]) so the payload shape and the days-vs-hours semantics are frozen -- same point raised at :218, recurring for expirations.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6e8969a_67b0dea5",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "The \"JSON always carries the full detail, regardless of --detail/--all\" invariant (cli.py:2549) is exercised only for all\u003dFalse, detail\u003dFalse. A regression that made the JSON branch honour those flags would pass. Parametrize over the four (all, detail) combinations and assert data \u003d\u003d summary_rows each time.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "42a65788_20ab9b36",
         "filename": "tests/unit/test_cli_json.py",
         "patchSetId": 1
@@ -99,6 +184,23 @@
       "writtenOn": "2026-10-22T10:06:57Z",
       "side": 1,
       "message": "Assert the full row dict. Every counter except success/initial/pre is False in the fixture, so a mapping bug (three_days \u003c-\u003e five_days) would pass. Same for the CPU/GPU rows (lines 93-103), where only handle and processor_type are checked.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ade2cd20_a08a0b50",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1038987
+      },
+      "writtenOn": "2026-10-22T11:07:27Z",
+      "side": 1,
+      "message": "The fixture shape differs from the real endpoint: /os_list returns {\"id\", \"title\", \"release_name\", \"family\"} (server/blueprints/hosts.py:316-325), not {\"name\", \"distro\"}. The branch is a passthrough so nothing is hidden, but using the real keys makes the fixture double as a schema example -- which is worth more here, since this is the only payload whose shape is defined entirely server-side.",
       "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
