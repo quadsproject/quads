@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1254eba5_961da394",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "The --json-without-action arm has no test. If it regresses, `quads --json` falls into the default path and exits 0 with empty stdout. One pytest.raises(CliException, match\u003d\"requires one of\") closes it.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78aea71a_a260aa57",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "Two schema nits in this row: `ssm` here vs `is_self_schedule` in the notifications/summary payloads, and `host`/`start` come from the first schedule after per-cloud de-dupe, which reads as if the whole cloud expires on that host.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3249713_9195ae8b",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2549,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "--detail and --all are silently ignored here (output is identical for all four flag combinations). Deliberate per the commit message, but one sentence after README.md:601 would stop the surprise, or honour --all.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2de03ec9_7c01dfd4",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2679,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "Third copy of this list (table branch below, and action_modify_notification). A NOTIFICATION_FIELDS class constant next to JSON_ACTIONS keeps them in sync.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2a9bb9d8_ae188799",
+        "filename": "src/quads/cli/main.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "The feature\u0027s core guarantee lives in these lines, but nothing tests it: main.py is under omit in .coveragerc and no test imports quads.cli.main; test_cli_json.py uses logger\u003dMagicMock(), so it cannot observe stream routing. Reverting the handler to stdout, or breaking the rc-2/empty-stdout paths, passes the whole suite. Please add one test: stub QuadsApi, call main() with --json --debug, assert json.loads(stdout) and that the debug text appears only on stderr; plus rc 2 and empty stdout for --json --version.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "42a65788_20ab9b36",
+        "filename": "tests/unit/test_cli_json.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-22T10:06:57Z",
+      "side": 1,
+      "message": "Assert the full row dict. Every counter except success/initial/pre is False in the fixture, so a mapping bug (three_days \u003c-\u003e five_days) would pass. Same for the CPU/GPU rows (lines 93-103), where only handle and processor_type are checked.",
+      "revId": "341118e07fa1f7f6b16f94c83de2f516c692d04d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
