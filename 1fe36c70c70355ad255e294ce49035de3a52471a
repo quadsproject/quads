@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03e07497_3788291a",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 15
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:59:07Z",
+      "side": 1,
+      "message": "The header still documents `{speed_eos}` as an Arista `speed forced` token with `100gfull (100G)`, and never mentions `speed_forced` / `speed_auto` / `speed_fec`. Since PS15, 100000 maps to `100g-2` + `speed auto` + RS-FEC (network.py:72-81) and the arista operations gate on the three new condition keys (lines 120-125 and 137-142). Trigger: an operator adding a vendor or site recipe from this header writes `if: speed` + `speed forced {speed_eos}`, the pattern the previous patchsets shipped. Impact: at 100G the command is silently dropped (unknown `if` name, see switch_cli.py:219-221) and the port keeps its old speed while the move reports success. Fix: document all four speed keys, the per-vendor mapping, and that `{speed_eos}` is no longer a \u0027speed forced\u0027 token at 100G.",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b4d7ed6_18a650eb",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:59:07Z",
+      "side": 1,
+      "message": "The speed -\u003e EOS token/FEC table is now in the vendor-agnostic driver, and it encodes one fabric\u0027s behaviour: on that POC `speed forced 100gfull` is rejected in favour of `speed auto 100g-2` + RS-FEC, while on other EOS platforms `100g-2`/`speed auto` is not a valid speed group. Trigger: any site on such a platform gets `% Invalid input` on every 100G port. Impact: they cannot configure 100G without patching Python, which breaks #750\u0027s acceptance criterion (\u0027adding/overriding a vendor\u0027s commands requires no Python change\u0027) and repeats the shape of the PS3 `verify_untagged: false` finding - a single fabric\u0027s workaround shipped as the global default. Fix: make this recipe data keyed by vendor (e.g. `speeds: {100000: {mode: auto, token: 100g-2, fec: true}}` next to `connection`, with the driver only exposing generic `speed_forced`/`speed_auto`/`speed_fec`), so a site can override the 100G profile without touching code.",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a8b51489_356bdae0",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:59:07Z",
+      "side": 1,
+      "message": "`validate()` checks the operation shape but not the `if:` keys inside a command list. An unknown condition name is silently falsy: `entry.get(\"if\")` is truthy, `self.params.get(\"if\")` is None, so line 219-221 skips the command and `run()` still returns True (reproduced: `if: speed_forcd` -\u003e recipe validates, `speed forced` never sent, operation reports success). That is the silent skip #750 says must never happen, and PS15 triples the exposure by adding `speed_forced` / `speed_auto` / `speed_fec`, names that exist only in Python. Fix: define the condition names the driver can produce (a module-level tuple, or a per-vendor `params:` block in the recipe) and raise in `validate()` for anything else; add a test asserting a typo\u0027d `if` fails validation.",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b34beaa_ae4aa530",
+        "filename": "tests/tools/test_switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:59:07Z",
+      "side": 1,
+      "message": "This fixture still spells the broken save command from PS3 (`copy running-configuration startup-configuration`); it only survives because the test is dry-run. The larger gap: no test ever loads the shipped conf/switch_commands.yml - every test builds a private copy of the recipe, so the file this change actually ships (and `initialize()`\u0027s validate-over-Config.vendors loop) is never executed by CI. A single test that loads the shipped file via QUADS_CONF_DIR, validates each vendor under `vendors:` and runs both set operations against fake_switch at 25G and 100G would cover exactly what PS15 changed. I ran that manually: the shipped arista recipe emits `error-correction encoding reed-solomon` + `speed auto 100g-2` + both saves for 100G, and no speed command for speed\u003d0.",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
