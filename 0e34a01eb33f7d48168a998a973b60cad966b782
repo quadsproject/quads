@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "74bc19b1_b2e86ac4",
+        "filename": "src/quads/tools/import_current_schedules.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:58:15Z",
+      "side": 1,
+      "message": "This is the only changed console PS3 does not guard: reverting it to `Console()` leaves the whole new suite green (I re-ran `tests/unit/test_cli_console.py` + `tests/unit/test_lshw2meta.py` against a tree with this line reverted - 17 passed). It is also the one file Will called out by name in his PS1 comment on the test file. A single test of this summary table would close the loop (e.g. call `import_current_schedules()` with one imported row and a colon payload, or assert on the console if you factor a shared helper).\n\nRelated, same file: the two `Progress(...)` blocks above (lines 28 and 59) still build implicit consoles, and an implicit `Progress` console is created with `emoji\u003dTrue` (verified on rich 15.0.0: `Progress(...).console._emoji is True`). So a colon-delimited value in a task description or in a table printed through `progress.console` would still be rewritten - which is exactly the case PS3 just fixed in `lshw2meta`. Nothing MAC-like reaches these two today (descriptions are cloud and host names), so this is a consistency point, not a defect.",
+      "revId": "0e34a01eb33f7d48168a998a973b60cad966b782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cae20645_9c83fbc9",
+        "filename": "tests/unit/test_lshw2meta.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-27T14:58:15Z",
+      "side": 1,
+      "message": "`consoles[0]` only holds while `lshw2meta.main()` builds exactly one `Progress`; a second one added later would silently make this assert against the wrong console, while still passing. `_RenderingProgress.consoles[-1]` (or returning the console from a fixture) keeps the assertion pointed at the console under test and removes the need for the manual reset at line 251.",
+      "revId": "0e34a01eb33f7d48168a998a973b60cad966b782",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
