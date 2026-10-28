@@ -38,6 +38,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "2b8d8c2a_e52c206a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-28T14:52:31Z",
+      "side": 1,
+      "message": "Change-Id is in the footer since PS2 (I6aac0c50e8ee73000ecf74d7ed10b8e3a36d5469) and preserved through PS4; resolving this thread.",
+      "parentUuid": "7a39b509_383e3db2",
+      "revId": "efc0eec3b18319a5df9d5309d4b2e693f7f77210",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "60d3eb9e_44174cb6",
         "filename": "src/quads/cli/cli.py",
         "patchSetId": 1
