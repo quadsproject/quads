@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b9d2db4_4738fbdc",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "e37344f1_587ffbb8",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "43a2ddb8_ba54df93",
@@ -31,6 +49,42 @@
       "writtenOn": "2026-10-20T12:04:28Z",
       "side": 1,
       "message": "Redundant duplicate check. `vlan_member` is assigned straight from `old_vlan` on line 273, so this block and the `if int(vlan_member) !\u003d int(vlan)` on line 280 test the identical condition: every mismatched port logs two messages (\u0027not configured for vlanX\u0027 here, then \u0027appears to be a member of VLAN ... should be ...\u0027 below). On Arista, access/native VLAN *is* the membership, so the two-variable split that Juniper needs collapsed into one.\n\nTrigger: any `--verify-switch-conf`, and every `--validate-env` pass over a host with switch_config_applied false.\n\nFix: drop lines 277-278 and remove the `if not last_nic:` guard on the line-280 warning, so the single remaining branch reports the mismatch for the last-NIC/public-VLAN case too, once.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5041539_3793ca45",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "43a2ddb8_ba54df93",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cd32cb26_68a7b51b",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "43a2ddb8_ba54df93",
       "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -52,6 +106,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "f701b001_b076ccb2",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "e9c7fa36_cd43947a",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "178209ec_050ac664",
@@ -69,6 +141,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "6258b816_a9cfad38",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "178209ec_050ac664",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "94a6124c_2d75c7bc",
@@ -82,6 +172,24 @@
       "writtenOn": "2026-10-20T12:04:28Z",
       "side": 1,
       "message": "`include` uses `bool(value)` for the non-boolean keys, so `{\"switch_vendor\": \"\"}` (or null) is dropped and a mis-tagged port can never be returned to the untagged/Juniper default through the API or `--mod-interface --interface-switch-vendor \"\"`. The documented workaround - re-tag it `juniper` - is only equivalent while the Juniper plugin stays enabled, and the docs explicitly describe the case where it is not.\n\nFix if clearing should be supported: `include \u003d key in data` for the nullable string keys (switch_vendor, and vendor next to it), keeping the current truthiness rule for the rest.",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "72b5b848_d7734dab",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-10-29T10:39:37Z",
+      "side": 1,
+      "message": "Marked as unresolved.",
+      "parentUuid": "94a6124c_2d75c7bc",
       "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
