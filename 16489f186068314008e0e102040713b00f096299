@@ -67,6 +67,24 @@
       "message": "in standard.py and move_and_rebuild actions where we get stdout logger messages for Successfully updated switch settings. can we add vendor after it?\n\nThis would be a scope increase to standard.py / --move-hosts\n\n(your improved system can inherit this on rebase)\n\ne.g.\n\nSuccessfully updated switch settings ($switch_vendor: $switch_ip)\nSuccessfully updated switch settings ($switch_vendor: $switch_ip)",
       "revId": "16489f186068314008e0e102040713b00f096299",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6c2b7d2d_729f4539",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 19
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T15:56:01Z",
+      "side": 1,
+      "message": "Addressed in PS20: the switch plugins now log `Successfully updated switch settings (\u003cvendor\u003e: \u003cswitch IP\u003e)`, e.g. `Successfully updated switch settings (arista: 10.1.40.73)`.",
+      "parentUuid": "d738c78e_f6cf37de",
+      "revId": "16489f186068314008e0e102040713b00f096299",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
