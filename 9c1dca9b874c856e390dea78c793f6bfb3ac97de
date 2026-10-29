@@ -38,6 +38,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "28582a86_4fc37cad",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 13
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T14:58:35Z",
+      "side": 1,
+      "message": "Fixed in PS19: the stale check is replaced with `show interfaces \u003cport\u003e switchport`, which shows the dot1q-tunnel mode and SVLAN after provisioning.",
+      "parentUuid": "9b9d2db4_4738fbdc",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "43a2ddb8_ba54df93",
         "filename": "src/quads/plugins/builtin/switches/arista.py",
         "patchSetId": 13
@@ -91,6 +109,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6afac346_042e5d6e",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T14:58:35Z",
+      "side": 1,
+      "message": "Fixed in PS19: dropped the duplicate `Interface ... not configured for vlanX` warning and the `not last_nic` guard; the single remaining branch reports the mismatch. The speed/FEC check is unchanged.",
+      "parentUuid": "cd32cb26_68a7b51b",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "e9c7fa36_cd43947a",
         "filename": "src/quads/plugins/builtin/switches/juniper.py",
         "patchSetId": 13
@@ -120,6 +156,24 @@
       "side": 1,
       "message": "Marked as unresolved.",
       "parentUuid": "e9c7fa36_cd43947a",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8663574_faaa222f",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T14:58:35Z",
+      "side": 1,
+      "message": "Fixed in PS19: configure() builds the owned-interface list first and logs `owned_interfaces[0].switch_ip`, so the debug line names the switch this plugin will actually dial.",
+      "parentUuid": "f701b001_b076ccb2",
       "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -161,6 +215,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "c31283f0_8b889793",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T14:58:35Z",
+      "side": 1,
+      "message": "Fixed in PS19: all four methods now use `if result is not True:` (configure/modify/verify/ls_config), and SwitchPlugin\u0027s docstring states the contract. Tests updated: None now fails closed for verify/modify/ls_config.",
+      "parentUuid": "6258b816_a9cfad38",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "94a6124c_2d75c7bc",
         "filename": "src/quads/server/blueprints/interfaces.py",
         "patchSetId": 13
@@ -190,6 +262,24 @@
       "side": 1,
       "message": "Marked as unresolved.",
       "parentUuid": "94a6124c_2d75c7bc",
+      "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "614de04b_2c947c68",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T14:58:35Z",
+      "side": 1,
+      "message": "Fixed in PS19: `include \u003d key in data` for vendor/switch_vendor, with an empty string normalized to None; a null or empty switch_vendor now clears the tag back to the legacy default. tests/api/test_interfaces.py covers both forms.",
+      "parentUuid": "72b5b848_d7734dab",
       "revId": "9c1dca9b874c856e390dea78c793f6bfb3ac97de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
