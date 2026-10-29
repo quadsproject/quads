@@ -86,6 +86,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5442cb02_c72bc006",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T16:46:24Z",
+      "side": 1,
+      "message": "Fixed in PS21: --interface-vendor and --interface-switch-vendor now use argparse.SUPPRESS, so an unrelated --mod-interface (e.g. a speed change) no longer sends null for them and wipes the stored values; an explicit empty string still clears them and the API null path is unchanged. Added a parser test plus an end-to-end test (tests/cli/test_interface.py) that PATCHes only speed and asserts vendor and switch_vendor survive. Verified by running tests/cli (200 passed) against the local API/db stack.",
+      "parentUuid": "fe261722_4f4e5882",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4705dde7_798847c9",
