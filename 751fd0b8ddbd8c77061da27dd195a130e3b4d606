@@ -54,6 +54,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "62f83319_633917b5",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T16:46:32Z",
+      "side": 1,
+      "message": "Fixed in PS21: verify() no longer compares the raw command-form token. The running-config lines are parsed to (mode, Mbps) via speed_statement_matches(), so EOS renderings such as \u0027speed forced 10000full\u0027 (for the sent \u0027speed forced 10gfull\u0027) and the 100g-2 auto form compare equal; a genuine mismatch still fails closed and --change still re-applies. Added matcher unit tests and a plugin verify test that returns the canonicalized token. I could not capture running-config from the POC switch in this environment (no EOS credentials here), but the comparison is now independent of the rendered token form.",
+      "parentUuid": "b59f5fc2_e0e0c52b",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "16a2ffab_845852dc",
         "filename": "src/quads/plugins/dispatchers/switch.py",
         "patchSetId": 20
@@ -121,6 +139,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "75aa85c6_4e7939e1",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T16:46:32Z",
+      "side": 1,
+      "message": "Fixed in PS21: documented that plugins.yml arista.username must be a privilege-15 account (comment in conf/plugins.yml and the switch plugins section of docs/switch-host-setup.md), since the driver enters \u0027configure terminal\u0027 directly and there is no enable step. No enable step was added.",
+      "parentUuid": "4705dde7_798847c9",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "13d82844_07606186",
@@ -138,6 +174,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b845b6d6_792576a3",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T16:46:32Z",
+      "side": 1,
+      "message": "Fixed in PS21: the 100G speed statement is now issued before RS-FEC in the driver\u0027s _set_speed(), so the speed group is active when \u0027error-correction encoding reed-solomon\u0027 is applied; the driver test now asserts that order. I could not confirm the EOS acceptance order on the POC switch from this environment (no EOS credentials here); the reorder is inert if EOS does not require it and removes the rejection risk if it does.",
+      "parentUuid": "13d82844_07606186",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9da783ef_13d59e2b",
@@ -151,6 +205,24 @@
       "writtenOn": "2026-10-29T16:31:42Z",
       "side": 1,
       "message": "Follow-up (test quality): several of the new dispatcher fail-closed tests also pass on dev-parent. They set dispatcher._plugins (which the old SinglePluginDispatcher ignores) and, with _default_plugin\u003dNone, the old dispatcher fails closed for the wrong reason, so the is-False / is-not-True assertions pass without exercising the new multi-plugin logic. Only test_verify_calls_all_plugins genuinely pins the multi-plugin iteration. Consider asserting the per-plugin call fan-out so these actually pin PS20 behavior.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "82496afe_802eaddd",
+        "filename": "tests/plugins/test_switch_dispatcher.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-29T16:46:32Z",
+      "side": 1,
+      "message": "Fixed in PS21: the dispatcher tests now assert per-plugin call fan-out. verify() and ls_config() assert every plugin is awaited (including after a failure/exception), configure() and modify() assert both plugins are invoked, and configure() additionally asserts it stops after a failure. These assertions fail against the old single-plugin dispatcher instead of passing for the wrong reason.",
+      "parentUuid": "9da783ef_13d59e2b",
       "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
