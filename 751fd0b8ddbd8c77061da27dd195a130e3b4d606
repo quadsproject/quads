@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de71939a_9c5df4fc",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 20
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Nit (doc): this says speed/FEC persist, so clear them by hand when reusing a port at a different rate, but _set_speed (external/arista.py:97-102) now auto-clears a stale `speed` and the 100G RS-FEC when a new nonzero speed is applied. The manual step is only needed when the new speed is unset. Worth updating so operators do not clear it redundantly.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd8912d0_76f3feaa",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Nit: this line is 126 chars; black (pinned 24.10.0, line-length 119) would wrap it. Same at arista.py:335 and juniper.py:205,354 (the deeper-indented copies; the 118-char configure sites arista.py:101,122 and juniper.py:97,111 are fine). CI stays green only because there is no black job (tox runs pytest + flake8) and flake8 ignores E501, so pre-commit black would still reformat these.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b59f5fc2_e0e0c52b",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Follow-up (verify / --validate-env): speed drift is checked by exact full-line match of the command-form token from expected_speed_statement (e.g. \u0027speed forced 10gfull\u0027, \u0027speed auto 100g-2\u0027) against `show running-config interfaces` output. If EOS renders the stored token differently (e.g. \u0027speed forced 10000full\u0027), a correctly configured Arista port reports false speed drift: without --change verify returns False for the host; with --change it needlessly re-applies the port (and re-runs convert_port_public on the public NIC). The driver _set_speed matches tolerantly (regex), but this plugin-side check is exact, and the tests feed the sent token back as running-config so they cannot catch a canonicalization mismatch. No Juniper precedent (Juniper verify never checks speed). Please confirm against a real `show running-config interfaces` capture per speed (1/10/25/40/100G) on the POC EOS.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "16a2ffab_845852dc",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Follow-up (by-design, mixed-vendor only): configure short-circuits on the first plugin whose result is not True. If plugin A commits real VLAN changes on its switch and plugin B then fails, the dispatcher returns False and the move loop drops the host, leaving it with one switch reconfigured to the new cloud while it stays in the old cloud until a retry re-runs configure (self-healing; already-correct ports are skipped). Inherent to non-atomic multi-switch config; it does not affect single-plugin (Juniper-only) deployments. Noting for awareness.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fe261722_4f4e5882",
+        "filename": "src/quads/server/blueprints/interfaces.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Blocking: this new nullable_string_keys path (include \u003d key in data) clears vendor and switch_vendor whenever the PATCH body carries them as null. The CLI always carries them: --interface-vendor / --interface-switch-vendor use default\u003dNone (parser.py:641-653), main.py does vars(parse_args()), and action_modinterface (cli.py:2036-2038) copies every present key, so a mod that touches only e.g. speed sends vendor\u003dnull and switch_vendor\u003dnull and both are wiped. dev-parent used bool(value), so None was ignored and vendor was preserved; this is a regression. Reproduced: `--mod-interface --interface-speed 10` builds setattr {\u0027speed\u0027,\u0027vendor\u0027:None,\u0027switch_vendor\u0027:None}. It destroys the pre-existing vendor field and silently reverts the switch_vendor routing tag (an Arista port becomes unclaimed; a mixed site has Juniper try to program an Arista switch), and it triggers on this change\u0027s own advice to --mod-interface speeds before moving Arista hosts. Minimal fix: default\u003dargparse.SUPPRESS on both args (matches --pxe-boot / --maintenance); clearing via \u0027\u0027 or an API null still works. No test covers this; please add one that PATCHes an unrelated field and asserts vendor / switch_vendor survive.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4705dde7_798847c9",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Follow-up: connect() expects [\u003e#] then set_port / convert_port_public run `configure terminal` with no `enable`. A non-privilege-15 arista.username lands in `\u003e` and configure is rejected (fails closed). Juniper needs no equivalent (edit enters config from operational). Please document that plugins.yml arista.username must be privilege 15, or add an enable step.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13d82844_07606186",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Follow-up: RS-FEC (\u0027error-correction encoding reed-solomon\u0027) is issued before the 100G speed statement (\u0027speed auto 100g-2\u0027). If EOS requires the 100G speed-group active before it accepts RS-FEC, the FEC line is rejected (\u0027%\u0027) and the op fails closed. The tests assert presence, not ordering. Please confirm the order on the POC hardware.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9da783ef_13d59e2b",
+        "filename": "tests/plugins/test_switch_dispatcher.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:42Z",
+      "side": 1,
+      "message": "Follow-up (test quality): several of the new dispatcher fail-closed tests also pass on dev-parent. They set dispatcher._plugins (which the old SinglePluginDispatcher ignores) and, with _default_plugin\u003dNone, the old dispatcher fails closed for the wrong reason, so the is-False / is-not-True assertions pass without exercising the new multi-plugin logic. Only test_verify_calls_all_plugins genuinely pins the multi-plugin iteration. Consider asserting the per-plugin call fan-out so these actually pin PS20 behavior.",
+      "revId": "751fd0b8ddbd8c77061da27dd195a130e3b4d606",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
