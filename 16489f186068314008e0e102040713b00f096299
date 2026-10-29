@@ -85,6 +85,24 @@
       "parentUuid": "d738c78e_f6cf37de",
       "revId": "16489f186068314008e0e102040713b00f096299",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a63f5211_3aae642e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 19
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-29T16:31:44Z",
+      "side": 1,
+      "message": "Implemented in PS20: both switch plugins now log \u0027Successfully updated switch settings (\u003cvendor\u003e: \u003cswitch_ip\u003e)\u0027 at every configure / modify / verify write site (juniper.py:97,111,205,354; arista.py:101,122,197,335). Resolving.",
+      "parentUuid": "d738c78e_f6cf37de",
+      "revId": "16489f186068314008e0e102040713b00f096299",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
