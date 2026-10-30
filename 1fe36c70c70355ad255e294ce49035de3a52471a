@@ -38,6 +38,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "d5881c26_ce70404e",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 15
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-30T14:54:52Z",
+      "side": 1,
+      "message": "Addressed in PS24: the header now documents the per-vendor `speeds:` map (`mode`, `token`, optional `fec`), the data-driven `{speed_eos}` semantics, all four speed conditions (`speed`, `speed_forced`, `speed_auto`, `speed_fec`), and the complete set of valid `if:` names. It also states that an unmapped speed sends no speed command and that an unknown `if:` fails validation.",
+      "parentUuid": "03e07497_3788291a",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "3b4d7ed6_18a650eb",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 15
@@ -49,6 +67,24 @@
       "writtenOn": "2026-10-27T14:59:07Z",
       "side": 1,
       "message": "The speed -\u003e EOS token/FEC table is now in the vendor-agnostic driver, and it encodes one fabric\u0027s behaviour: on that POC `speed forced 100gfull` is rejected in favour of `speed auto 100g-2` + RS-FEC, while on other EOS platforms `100g-2`/`speed auto` is not a valid speed group. Trigger: any site on such a platform gets `% Invalid input` on every 100G port. Impact: they cannot configure 100G without patching Python, which breaks #750\u0027s acceptance criterion (\u0027adding/overriding a vendor\u0027s commands requires no Python change\u0027) and repeats the shape of the PS3 `verify_untagged: false` finding - a single fabric\u0027s workaround shipped as the global default. Fix: make this recipe data keyed by vendor (e.g. `speeds: {100000: {mode: auto, token: 100g-2, fec: true}}` next to `connection`, with the driver only exposing generic `speed_forced`/`speed_auto`/`speed_fec`), so a site can override the 100G profile without touching code.",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4e6fdad2_bfed5594",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-30T14:54:52Z",
+      "side": 1,
+      "message": "Addressed in PS24: the hardcoded EOS speed table is gone. `_params()` now reads the selected vendor\u0027s `speeds:` map keyed by Gbps and derives `speed_eos`, `speed_forced`, `speed_auto` and `speed_fec`. The shipped Arista recipe carries the 1/10/25/40/100 map, with 100G as `100g-2` + `speed auto` + RS-FEC; another EOS platform can override the map without changing Python. `validate()` also rejects malformed speed entries.",
+      "parentUuid": "3b4d7ed6_18a650eb",
       "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -90,6 +126,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "37d5e6e7_cac5c639",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-30T14:54:52Z",
+      "side": 1,
+      "message": "Addressed in PS24: `validate()` now rejects an unknown `if:` name and a command entry without `cmd`, including the typo case (`if: speed_forcd`). Tests cover the typo, the shipped recipes, and both Arista set operations at 25G and 100G against `fake_switch`.",
+      "parentUuid": "a8b51489_356bdae0",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "2b34beaa_ae4aa530",
         "filename": "tests/tools/test_switch_cli.py",
         "patchSetId": 15
@@ -118,6 +172,24 @@
       "writtenOn": "2026-10-30T13:17:27Z",
       "side": 1,
       "message": "Marked as unresolved.",
+      "parentUuid": "2b34beaa_ae4aa530",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "28037ae7_dd35295e",
+        "filename": "tests/tools/test_switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-10-30T14:54:52Z",
+      "side": 1,
+      "message": "Addressed in PS24: the fixture now uses `copy running-config startup-config`. A new test loads the shipped `conf/switch_commands.yml`, validates both vendors, and runs both Arista set operations at 25G and 100G against `fake_switch`.",
       "parentUuid": "2b34beaa_ae4aa530",
       "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
