@@ -312,6 +312,30 @@ class TestForeman(object):
         build_status = await foreman.get_host_build_status(host_name="host.example.com")
         assert build_status
 
+    @pytest.mark.asyncio
+    async def test_mark_for_build_skips_when_already_building(self, caplog):
+        foreman = Foreman("https://example.com", "username", "password")
+        foreman.get_host = AsyncMock(return_value={"host.example.com": {"build": True}})
+        foreman.put_parameter = AsyncMock(return_value=True)
+
+        with caplog.at_level(logging.INFO):
+            result = await foreman.mark_for_build("host.example.com")
+
+        assert result is True
+        foreman.put_parameter.assert_not_called()
+        assert "already marked for build" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_mark_for_build_sets_build_when_not_building(self):
+        foreman = Foreman("https://example.com", "username", "password")
+        foreman.get_host = AsyncMock(return_value={"host.example.com": {"build": False}})
+        foreman.put_parameter = AsyncMock(return_value=True)
+
+        result = await foreman.mark_for_build("host.example.com")
+
+        assert result is True
+        foreman.put_parameter.assert_awaited_once_with("host.example.com", "build", 1)
+
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
     @pytest.mark.asyncio
     async def test_get_host_extraneous_interfaces_with_mgmt(self, session_mock):
