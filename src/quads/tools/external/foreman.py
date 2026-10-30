@@ -442,6 +442,10 @@ class Foreman(object):
         return selected
 
     async def mark_for_build(self, host_name):
+        host = (await self.get_host(host_name)).get(host_name, {})
+        if host.get("build"):
+            logger.info("Host %s is already marked for build; keeping its provisioning token." % host_name)
+            return True
         put_result = await self.put_parameter(host_name, "build", 1)
         return put_result
 
