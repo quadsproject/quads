@@ -312,6 +312,39 @@ class TestForeman(object):
         build_status = await foreman.get_host_build_status(host_name="host.example.com")
         assert build_status
 
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.put")
+    @pytest.mark.asyncio
+    async def test_rebuild_tftp_config(self, put_session):
+        foreman = Foreman("https://example.com", "username", "password")
+        foreman.get_host_id = AsyncMock(return_value=200)
+
+        put_resp = AsyncMock()
+        put_resp.status = 200
+        put_resp.json.return_value = {"message": "Configuration successfully rebuilt."}
+        put_session.return_value.__aenter__.return_value = put_resp
+
+        result = await foreman.rebuild_tftp_config("host.example.com")
+
+        assert result is True
+        put_session.assert_called_once()
+        assert put_session.call_args[0][0].endswith("/hosts/200/rebuild_config")
+        assert put_session.call_args.kwargs["json"] == {"only": ["TFTP"]}
+
+    @patch("quads.tools.external.foreman.aiohttp.ClientSession.put")
+    @pytest.mark.asyncio
+    async def test_rebuild_tftp_config_failure(self, put_session):
+        foreman = Foreman("https://example.com", "username", "password")
+        foreman.get_host_id = AsyncMock(return_value=200)
+
+        put_resp = AsyncMock()
+        put_resp.status = 500
+        put_resp.json.return_value = {}
+        put_session.return_value.__aenter__.return_value = put_resp
+
+        result = await foreman.rebuild_tftp_config("host.example.com")
+
+        assert result is False
+
     @patch("quads.tools.external.foreman.aiohttp.ClientSession.get")
     @pytest.mark.asyncio
     async def test_get_host_extraneous_interfaces_with_mgmt(self, session_mock):
@@ -823,6 +856,7 @@ class TestPrepareHostProvisioning(object):
         foreman.get_user_id = AsyncMock(return_value=100)
         foreman.get_host_id = AsyncMock(return_value=200)
         foreman.put_element = AsyncMock(return_value=True)
+        foreman.rebuild_tftp_config = AsyncMock(return_value=True)
 
         with caplog.at_level(logging.INFO):
             result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
@@ -839,6 +873,7 @@ class TestPrepareHostProvisioning(object):
         foreman.get_user_id.assert_called_once_with("cloud01")
         foreman.get_host_id.assert_called_once_with("host01.example.com")
         foreman.put_element.assert_called_once_with("hosts", 200, "owner_id", 100)
+        foreman.rebuild_tftp_config.assert_awaited_once_with("host01.example.com")
 
     @pytest.mark.asyncio
     async def test_os_not_found(self, caplog):
@@ -892,6 +927,7 @@ class TestPrepareHostProvisioning(object):
         foreman.get_user_id = AsyncMock(return_value=100)
         foreman.get_host_id = AsyncMock(return_value=200)
         foreman.put_element = AsyncMock(return_value=True)
+        foreman.rebuild_tftp_config = AsyncMock(return_value=True)
 
         with caplog.at_level(logging.WARNING):
             result = await foreman.prepare_host_provisioning("host01.example.com", "cloud01", "RHEL 9.2")
@@ -901,6 +937,7 @@ class TestPrepareHostProvisioning(object):
         assert "defaulting to first: 'generic-bios'" in caplog.text
         data = foreman.put_parameters.call_args[0][1]
         assert data["ptable_id"] == 20
+        foreman.rebuild_tftp_config.assert_awaited_once_with("host01.example.com")
 
     @pytest.mark.asyncio
     async def test_exception_uses_module_logger(self, caplog):

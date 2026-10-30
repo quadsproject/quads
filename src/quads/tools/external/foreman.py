@@ -445,6 +445,30 @@ class Foreman(object):
         put_result = await self.put_parameter(host_name, "build", 1)
         return put_result
 
+    async def rebuild_tftp_config(self, host_name):
+        host_id = await self.get_host_id(host_name)
+        endpoint = "/hosts/%s/rebuild_config" % host_id
+        try:
+            async with self.semaphore:
+                async with aiohttp.ClientSession() as session:
+                    async with session.put(
+                        self.url + endpoint,
+                        json={"only": ["TFTP"]},
+                        auth=BasicAuth(self.username, self.password),
+                        ssl=False,
+                        timeout=60,
+                    ) as response:
+                        await response.json(content_type="application/json")
+        except Exception as ex:
+            logger.debug(ex)
+            logger.error("There was something wrong rebuilding TFTP for %s." % host_name)
+            return False
+        if response.status in [200, 204]:
+            logger.info("Rebuilt TFTP configuration for %s." % host_name)
+            return True
+        logger.error("Failed to rebuild TFTP configuration for %s: HTTP %s" % (host_name, response.status))
+        return False
+
     async def get_permission_ids(self, permission_names):
         ids = []
         for name in permission_names:
@@ -622,6 +646,9 @@ class Foreman(object):
             host_id = await self.get_host_id(host_name)
             put_result = await self.put_element("hosts", host_id, "owner_id", owner_id)
             results.append(put_result)
+
+            rebuild_result = await self.rebuild_tftp_config(host_name)
+            results.append(rebuild_result)
 
             for result in results:
                 if isinstance(result, Exception) or not result:
