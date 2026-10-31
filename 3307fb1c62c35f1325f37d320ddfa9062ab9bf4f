@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d006e392_a8b9a0b0",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Follow-up: `get_host` catches every exception and returns `{}` (foreman.py:38-53), so a transient lookup failure is indistinguishable from `build\u003dfalse`; the guard then PUTs and the second `get_host_id` GET can succeed, rotating the token. Consider distinguishing lookup failure from a definitive false read and logging or failing closed. Add a lookup-failure test.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "531b2c86_94dabecc",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Required: the fix premise needs confirmation. Upstream Foreman\u0027s `Hostext::Token` (`refresh_token_on_build`, https://raw.githubusercontent.com/theforeman/foreman/develop/app/models/concerns/hostext/token.rb) calls `set_token` only when `build? !\u003d old.build?`. A `build\u003d1` PUT when Foreman already reports `build\u003dtrue` is token-neutral; this guard skips exactly that PUT, while the false-to-true PUT that rotates the token is still sent. Please confirm the deployed Foreman version and a log where a true-to-true re-mark changes the token. If upstream applies, this is a harmless no-op and the actual fix is the issue\u0027s other items (prepare before power-on, keep token generation close to the reboot, refresh TFTP after a token change); keep #758 open. If your Foreman differs, cite it and the finding can be re-scored.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b967f2d_3f440f90",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Follow-up: QUADS only ever writes Foreman `build\u003d1`, never `build\u003d0` (standard.py:419 clears only QUADS\u0027 flag), so a failed attempt\u0027s `build\u003dtrue` persists and every retry now skips. That matches the issue\u0027s no-op request, but a host with `token_expired` or a stale token cannot refresh automatically; the documented recovery is manual `build\u003dfalse` then `true`. Consider consulting `build_status`/token expiry and cycling only when the retained token is unusable.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a1fd372_906dc5e2",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Follow-up: read-then-PUT is a TOCTOU. Two overlapping rebuilds can both GET `build\u003dfalse` and both PUT; the issue says \u0027retried or overlapping\u0027. There is no per-host serialization. A per-process lock would help within one worker; cross-process coordination needs a different approach. At minimum document the single-runner assumption. Also, Dell/HPE still powers on before `prepare_host_provisioning` (standard.py:192 vs :207); the guard covers the retry when Foreman reports `build\u003dtrue`, but the issue\u0027s ordering window remains a separate item. Consider preparing before power-on or documenting the residual race.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "57ad5076_91bf3e62",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Nit: the non-building path now does host GET, host-id GET, PUT (3 requests, was 2). `get_host` already returned the host `id`; reuse it or use `put_element` directly to avoid the duplicate lookup. Correctness unaffected.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "93f21b72_5d34b6df",
+        "filename": "tests/tools/test_foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:50:50Z",
+      "side": 1,
+      "message": "Nit: both tests mock `get_host` without asserting its argument, so a regression that looks up the wrong host still passes. Add `foreman.get_host.assert_awaited_once_with(\"host.example.com\")`; a lookup-failure test and an HTTP-level test that the host search response includes `build` would also cover the guard\u0027s assumptions.",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
