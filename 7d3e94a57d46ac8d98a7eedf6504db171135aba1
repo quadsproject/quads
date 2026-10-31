@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "22e9097e_bdebb7d0",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1039924
+      },
+      "writtenOn": "2026-10-31T13:04:41Z",
+      "side": 1,
+      "message": "verify() computes the expected EOS speed from arista.py\u0027s hardcoded expected_speed_statement() (100G -\u003e \u0027speed auto 100g-2\u0027 + RS-FEC), not from this recipe\u0027s per-vendor speeds: map. The set path in _params() is recipe-driven, but verify is not. The recipe header and docs/switch-host-setup.md say another EOS platform can override the speeds map in YAML with no Python change; if a site overrides 100G to \u0027speed forced 100gfull\u0027 (and drops the FEC line), the recipe sends that, but verify computes \u0027speed auto 100g-2\u0027 and speed_statement_matches() returns False, so verify reports a false speed/FEC mismatch on a port the recipe configured correctly. Two sources of truth that can drift. Suggest deriving the expected statement from the recipe\u0027s speeds map, or noting that verify only checks the shipped Arista table.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
