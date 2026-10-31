@@ -1,6 +1,142 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "761cc537_a9c01160",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Nit: docs/switch-host-setup.md:175 still says the plugins convert to Junos `speed \u003cN\u003eg`; the shipped Juniper recipe intentionally sends no speed command (this comment). Update the docs and add an upgrade note for sites that relied on the old interface speed command.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3a2c6f6_0d89194b",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required, same issue as arista.py: the shipped recipe sends FEC for 100G but has no command that removes it for a later lower speed. `network.verify` requires it absent below 100G, so a downgraded port cannot pass or be repaired. Add a cleanup operation or condition, or relax verify; if the POC rejects the `no` forms, document that and the manual step in the recipe header.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cdb8aec9_872e1fef",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 24
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required docs: this still says the plugin reconciles the speed statement and 100G RS-FEC from the running config and clears stale values, but PS24 removed `_running_config` and both cleanup commands (arista.py:122-132 and the recipe). Line 234 also says \u0027speed auto 100g-2 followed by error-correction\u0027, while the code/tests now send FEC first. Update this note and line 234 to match the chosen behavior, and document the manual downgrade step if no cleanup is sent.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d66d716b_1edc304b",
+        "filename": "setup.cfg",
+        "patchSetId": 24
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Nit: this lists c4a5e6b7d8e9 but not its parent e530c8f33513 (nor the prior two migrations). A data_files-only install has an invalid Alembic graph (probe: ScriptDirectory KeyError). The RPM copies all migrations with `cp -rf`, so production RPM is unaffected; add the parents or stop listing individual migrations.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20f05ce4_1095c988",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Nit: black wants one fewer blank line after this import block.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df6445e4_bb976e21",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: `_preflight` only resolves `_vendor_cfg`. A recipe missing `set_port_public` passes validation and `configure()` writes the first interface\u0027s `set_port_qinq` (including the save) before raising on the second. Probe confirms one write before the failure. `_params` and the `int()` conversions also sit outside the loop\u0027s `except SwitchCLIException`. Preflight the needed get/set operations and params for every interface before any switch I/O; add a mixed-interface test.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9bcbb50e_d6e3aa14",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Follow-up: this rejects `--mod-switch-conf` on a host with no cloud; the vendor modify never read the cloud and README:1570-1575 documents arbitrary NIC VLANs. `_assignment is None` already yields public\u003dFalse, so drop the guard. Note modify also selects `set_port_public` for the last NIC when the assignment has a public VLAN, unlike the vendor modify\u0027s `set_port` (QinQ); align or document.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b528a13b_cb62890e",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Policy question: this uses the requested `--cloud` for expected VLANs. The vendor drivers and development use `first_host.cloud.name` and log that the requested cloud is ignored. The generic behavior matches the original RFE and README straddle-cloud section (commit ec973d6f, issue #378, README.md:1549-1565), so it is not a clean regression, but the same command now programs different VLANs depending on the enabled driver. Please pick one policy and align all drivers, README, and tests. The existing test mock returns the cloud02 assignment regardless of argument, so it does not pin the choice.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "22e9097e_bdebb7d0",
@@ -14,6 +150,176 @@
       "writtenOn": "2026-10-31T13:04:41Z",
       "side": 1,
       "message": "verify() computes the expected EOS speed from arista.py\u0027s hardcoded expected_speed_statement() (100G -\u003e \u0027speed auto 100g-2\u0027 + RS-FEC), not from this recipe\u0027s per-vendor speeds: map. The set path in _params() is recipe-driven, but verify is not. The recipe header and docs/switch-host-setup.md say another EOS platform can override the speeds map in YAML with no Python change; if a site overrides 100G to \u0027speed forced 100gfull\u0027 (and drops the FEC line), the recipe sends that, but verify computes \u0027speed auto 100g-2\u0027 and speed_statement_matches() returns False, so verify reports a false speed/FEC mismatch on a port the recipe configured correctly. Two sources of truth that can drift. Suggest deriving the expected statement from the recipe\u0027s speeds map, or noting that verify only checks the shipped Arista table.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21278a3b_b083fcc9",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: verify ignores the recipe `speeds` map. `_params` (lines 95-99) derives `speed_eos`/`speed_forced`/`speed_auto`/`speed_fec` from the selected vendor recipe, but this branch calls `expected_speed_statement(interface.speed)` and hardcodes RS-FEC for 100G. A recipe override, which is the documented reason for the map, is programmed by `_set_op` and then reported as drift: probe with `{25: {mode: auto, token: 25g-custom, fec: true}}` renders `speed auto 25g-custom` plus FEC, while verify expects `speed forced 25gfull` and returns False. A 100G recipe without FEC, or a legacy Mbps row, fails the same way. Derive the expected statement and FEC from the same recipe values or put the check in the recipe; add a non-default-speed test.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c86296ca_817ffd79",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: no empty-host guard. `filter_hosts` can return [] while the assignment exists; `hosts[0]` raises IndexError (probe), and `all\u003dTrue` returns True with no hosts. Both vendor plugins were fixed to log \u0027No hosts found on cloud.\u0027 and return False in 826e560a. Mirror that and add tests for both paths.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0284ac7_4fea7af9",
+        "filename": "src/quads/plugins/builtin/validators/environment.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Nit: the validator looks up the recipe by the raw `switch_vendor`. A NULL vendor means the juniper recipe in the driver (`_vendor_cfg`) but means no recipe here, so a site-local Juniper `verify_untagged`/`verify_tagged: false` does not apply to legacy interfaces under the network driver. Use the same juniper fallback. The toggle also applies regardless of which switch driver is enabled; shipped recipes set both true, so this is low impact.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51abab21_239bde91",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: enabling a selected vendor driver with no existing entry creates `{enabled: True}` with no `username`. Probe: selecting arista on a config with only email writes that; `AristaSwitchPlugin.initialize()` returns True with `username\u003dNone`, and the first move fails at connect. Juniper has the same problem, and `SSHHelper` with `username\u003dNone` falls back to the current process user. Require the existing entry or copy its username and fail clearly. Update `test_adds_missing_selected_driver_entry`.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21d45f9d_12e9bba0",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Follow-up: `yaml.safe_dump` rewrites the whole file. Probe on the shipped plugins.yml: 133 lines to 88; every comment and blank separator is lost, including the new switch-driver guidance. The docs recommend this command. Preserve comments with a targeted edit of the three enabled keys, or warn. Also check ownership/SELinux context of the replaced file.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84d4843f_51617501",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: startup validation reads only the enabled flags. `PluginManager.load_plugin` catches every exception from `NetworkSwitchPlugin.initialize` (manager.py:48-67), logs, and leaves no plugin. Probe with a malformed recipe: `enabled_switch_drivers` returns {\u0027network\u0027}, `get_plugins_by_type(SwitchPlugin)` is empty, and this validation passes; every switch operation then reports \u0027No switch plugin enabled\u0027. Validate the loaded switch plugins, or let switch-driver init errors abort, and add an invalid-recipe startup test.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7f997458_70105cce",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: this removes the only code that could clear stale 100G RS-FEC, while `network.verify` still requires `not has_fec` for every non-100G port (`network.py:383`). A port lowered from 100G keeps FEC, so verify fails and `--change` re-runs the same recipe and never converges. The base commit (826e560a PS20) kept this cleanup and explained why; `docs/switch-host-setup.md:264` still says it reconciles and clears stale speed/FEC. If the POC rejects the `no` forms, document that and make verify consistent; otherwise restore the gated cleanup. Also resolve the FEC-before-speed order against the base\u0027s speed-before-FEC comment and docs:234.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "41498f80_4ea1d36d",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Required: validate() does not check the four operation names the driver calls (`get_vlan_qinq`, `get_vlan_public`, `set_port_qinq`, `set_port_public`), a capture group in a get `parse.pattern` (`_run_get` uses `match.group(1)`), or command placeholders. Probes: a recipe missing `set_port_public` validates; a pattern without a group validates then raises `IndexError: no such group`; `{switch_prt}` validates then raises \u0027Missing recipe parameter\u0027 mid-run. Add these checks at startup.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de7426fd_4188bf4d",
+        "filename": "tests/plugins/test_switch_network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Test gap: this mock returns the cloud02 assignment regardless of the argument, so the test passes whether verify queries cloud01 or cloud02 and does not pin the policy above. Assert `get_active_cloud_assignment` was called with the intended cloud and add a mismatch case with distinct assignments.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "483e54ff_18707f1b",
+        "filename": "tests/unit/test_switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-10-31T17:17:22Z",
+      "side": 1,
+      "message": "Test gap: this pins the bare `{enabled: True}` entry that leaves the vendor driver without a username (see switch_drivers.py:151). Update it to assert the username is preserved or that the action fails.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
