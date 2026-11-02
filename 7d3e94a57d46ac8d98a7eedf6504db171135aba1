@@ -678,6 +678,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "37fd73c2_8585180b",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:05Z",
+      "side": 1,
+      "message": "PS25 startup also checks `plugin_manager.get_plugins_by_type(SwitchPlugin)` against the enabled drivers and aborts if a driver failed to load. `test_startup_validation_rejects_failed_plugin_load` covers a malformed recipe/empty loaded set.",
+      "parentUuid": "ba215e97_d0254081",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7f997458_70105cce",
