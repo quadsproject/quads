@@ -89,6 +89,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "81ca0c82_af2341f0",
+        "filename": "src/quads/server/config.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T21:09:29Z",
+      "side": 1,
+      "message": "PS27 changes `BaseConfig` to default `QUADS_VALIDATE_SWITCH_DRIVERS` to `1`; `TestingConfig` still overrides it to False. I verified an unset environment gives `ProductionConfig.VALIDATE_SWITCH_DRIVERS is True`, so a manual/non-systemd server run now performs the startup check. The systemd env var remains an explicit override.",
+      "parentUuid": "cf431c0b_edc28f75",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5a6bfc07_447544ed",
         "filename": "src/quads/tools/external/switch_cli.py",
         "patchSetId": 26
