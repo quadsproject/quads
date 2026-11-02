@@ -605,6 +605,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0627bd33_09cecfe1",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:44Z",
+      "side": 1,
+      "message": "`tools/external/arista.py:_set_speed()` now clears FEC for non-100G speeds, sends FEC before the speed statement for 100G, and `_save` uses only `write memory`; tests cover both. Resolved.",
+      "parentUuid": "7f997458_70105cce",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8e1ebe08_076a3b99",
