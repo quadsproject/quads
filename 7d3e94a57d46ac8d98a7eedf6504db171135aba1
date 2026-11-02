@@ -72,6 +72,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "62743e23_1b862f48",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:00Z",
+      "side": 1,
+      "message": "PS25 adds `speed_no_fec` and a `no error-correction encoding reed-solomon` entry before non-FEC speeds in both Arista set operations; verify derives FEC expectation from the same recipe map. A downgraded port is now repaired by --change. Tests cover 25G and 100G.",
+      "parentUuid": "c347df2c_2197f9ac",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "98138774_af7ee0d8",
         "filename": "docs/switch-host-setup.md",
         "patchSetId": 24
