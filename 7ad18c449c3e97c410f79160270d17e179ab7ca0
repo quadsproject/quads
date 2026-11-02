@@ -160,6 +160,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce4b0eb7_42c59519",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:25Z",
+      "side": 1,
+      "message": "PS25 `_params()` still resolves a missing or placeholder recipe username from `Config.plugins.\u003cvendor\u003e.username` (with a juniper fallback), covered by `test_params_username_falls_back_to_plugins_yml`. Resolved.",
+      "parentUuid": "0cc9eb84_738f7d6d",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "88df9e0d_dd01f687",
@@ -190,6 +208,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "88df9e0d_dd01f687",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2663dfab_9d23ca13",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:25Z",
+      "side": 1,
+      "message": "PS25 Junos set recipes declare `config_prompt: \u0027#\u0027` and `SwitchCLI._command()` expects the operation prompt. `test_juniper_set_with_config_prompt_succeeds` and the missing-prompt timeout test cover it. Resolved.",
       "parentUuid": "88df9e0d_dd01f687",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
@@ -230,6 +266,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "80cd61a3_df969081",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:25Z",
+      "side": 1,
+      "message": "PS25 shipped arista recipe has `verify_untagged: true`; the POC workaround is documented as a local override, not the global default. Resolved.",
+      "parentUuid": "a08438e9_01885227",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6c6a642_73a19298",
@@ -260,6 +314,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "e6c6a642_73a19298",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54bcaf5c_f1714a83",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:25Z",
+      "side": 1,
+      "message": "PS25 uses `save: \u0027write memory\u0027` for both Arista set operations and `tools/external/arista.py:_save()`; the second copy command is gone. Tests assert the single save. Resolved.",
       "parentUuid": "e6c6a642_73a19298",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
