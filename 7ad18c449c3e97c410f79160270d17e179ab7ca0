@@ -531,6 +531,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d02025d1_7e28ac20",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:29Z",
+      "side": 1,
+      "message": "PS25 `_set_op` always selects `set_port_qinq` for non-public moves, so non-qinq VLAN numbering still uses dot1q-tunnel, matching the Juniper QinQ path. `test_set_op_non_qinq_uses_dot1q_tunnel` covers it. Resolved.",
+      "parentUuid": "76b8ebb3_2fae5a30",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ffd779d_f5095e75",
@@ -566,6 +584,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2cd52005_d483b0d0",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:29Z",
+      "side": 1,
+      "message": "PS25 `_preflight` validates all required get/set operations and `_params` for every interface before any switch I/O; `configure` reads every interface before writing. `test_configure_missing_operation_preflights_before_reads` and `test_configure_reads_all_interfaces_before_writing` cover it. Resolved.",
+      "parentUuid": "8ffd779d_f5095e75",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "13e88f71_397066f6",
@@ -596,6 +632,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "13e88f71_397066f6",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e29fd6ae_7cde855a",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:29Z",
+      "side": 1,
+      "message": "PS25 threads `dry_run` through `SwitchDispatcher.configure` and `--move-hosts`; only drivers with `supports_dry_run` (the generic network driver) run, and `SwitchCLI` logs the exact command sequence. Vendor drivers are skipped on dry-run. Tests: `test_movehosts_dryrun_prints_switch_commands_without_writes` and `test_configure_dryrun_skips_unsupported_driver`. Resolved.",
       "parentUuid": "13e88f71_397066f6",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
@@ -648,6 +702,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "7697e5b7_633b1c45",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f648907a_37b58014",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:29Z",
+      "side": 1,
+      "message": "PS25 verify still passes `False` to `_get_op`, so reads are real under `--dry-run`; `test_verify_dry_run_still_reads_real` asserts it. Resolved.",
       "parentUuid": "7697e5b7_633b1c45",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
