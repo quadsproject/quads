@@ -37,6 +37,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "282dd702_e12e5eae",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:09:36Z",
+      "side": 1,
+      "message": "Confirmed against the deployed Foreman 3.19.2: `Hostext::Token#refresh_token_on_build` only calls `set_token` when `build? !\u003d old.build?`, so a true-to-true `build\u003d1` PUT is token-neutral. There is no such rotation log; the guard skipped a no-op. I removed the guard and changed the fix to explicitly refresh Foreman\u0027s TFTP config after writing the OS parameters and marking the host for build (`PUT /hosts/:id/rebuild_config`, `only: [\"TFTP\"]`). That makes the cached PXE config use the current token before the reboot. Patchset 2 is up; the 92 Foreman tests and flake8/black are clean. Issue #758 remains open for the power-on ordering, TOCTOU, and token-expiry items.",
+      "parentUuid": "531b2c86_94dabecc",
+      "revId": "3307fb1c62c35f1325f37d320ddfa9062ab9bf4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5b967f2d_3f440f90",
         "filename": "src/quads/tools/external/foreman.py",
         "patchSetId": 1
