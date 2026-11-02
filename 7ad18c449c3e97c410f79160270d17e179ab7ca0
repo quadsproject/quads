@@ -89,6 +89,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "35f569be_f3d6973b",
+        "filename": "conf/plugins.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:52:57Z",
+      "side": 1,
+      "message": "Current PS25 keeps conf/plugins.yml\u0027s existing juniper and arista entries and adds a separate network entry; there is no rename to migrate. The shipped file has juniper enabled and network disabled (conf/plugins.yml:87-103), and the data migration still backfills pre-existing interfaces to juniper. Marking resolved.",
+      "parentUuid": "9fd77628_02c790ef",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0cc9eb84_738f7d6d",
