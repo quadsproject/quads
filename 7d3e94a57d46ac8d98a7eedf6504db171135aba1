@@ -37,6 +37,40 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c347df2c_2197f9ac",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 24
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "Same gap in the generic recipe: `error-correction encoding reed-solomon` is gated on speed_fec, but nothing removes it when an interface drops below 100G. The driver verify requires `not has_fec` for non-100G ports (network.py:383), so a downgraded port can never pass or be repaired by --change. Add a cleanup entry gated on the inverse condition, or relax verify and document the manual step.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "98138774_af7ee0d8",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 24
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "This says another EOS platform can override the map without a Python change, which is not true while verify() computes the expected statement from external/arista.py (network.py:383). Also stale: line 234 says FEC follows `speed auto 100g-2` (the code sends FEC first), and line 264 says the plugin reconciles and clears stale speed/FEC (PS24 removed _running_config and both cleanup commands). Update all three to the chosen behavior.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cdb8aec9_872e1fef",
         "filename": "docs/switch-host-setup.md",
         "patchSetId": 24
@@ -65,6 +99,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Nit: this lists c4a5e6b7d8e9 but not its parent e530c8f33513 (nor the prior two migrations). A data_files-only install has an invalid Alembic graph (probe: ScriptDirectory KeyError). The RPM copies all migrations with `cp -rf`, so production RPM is unaffected; add the parents or stop listing individual migrations.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03d27b7e_3649b7b3",
+        "filename": "setup.cfg",
+        "patchSetId": 24
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "The new migration is listed without its parent e530c8f33513 (nor the earlier ones), so a data_files-only install gets an invalid Alembic graph. The RPM copies all versions, so production is unaffected. Add the parents or stop listing individual migrations.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -103,6 +154,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "07b82327_20724d57",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "_preflight only resolves the vendor cfg. It does not check the get/set operations or the params the loop needs, so a recipe can pass here and fail mid-move. Probe: with the second interface\u0027s recipe missing set_port_public, configure wrote the first interface (xe-0/0/0 to vlan 1010, save included) and then raised SwitchCLIException on the second. _params (line 187) is also outside the loop\u0027s try, so a missing username aborts the whole operation instead of that interface. Preflight the four operations and params for every interface before any I/O, add a mixed-interface test, and use the same guard in verify (line 358) and ls_config (line 466).",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "9bcbb50e_d6e3aa14",
@@ -133,6 +201,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Policy question: this uses the requested `--cloud` for expected VLANs. The vendor drivers and development use `first_host.cloud.name` and log that the requested cloud is ignored. The generic behavior matches the original RFE and README straddle-cloud section (commit ec973d6f, issue #378, README.md:1549-1565), so it is not a clean regression, but the same command now programs different VLANs depending on the enabled driver. Please pick one policy and align all drivers, README, and tests. The existing test mock returns the cloud02 assignment regardless of argument, so it does not pin the choice.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc2bfa8c_10f84f7e",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "Policy mismatch: this uses the requested --cloud for the expected VLANs, while the vendor drivers use first_host.cloud.name and log that the request is ignored (plugins/builtin/switches/arista.py:244). With --host plus a different --cloud, the same command verifies and (with --change) programs different VLANs depending on which driver is enabled. Pick one policy and align the drivers, README and tests; tests/plugins/test_switch_network.py:214 does not pin it today.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -173,6 +258,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c8723a71_71ce4175",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "verify() derives the expected EOS statement from expected_speed_statement(interface.speed) and hardcodes RS-FEC for 100G, while _params() (lines 87-99) takes token, mode and fec from this vendor\u0027s `speeds` map. Probe: a recipe with {25: {mode: auto, token: 25g-custom, fec: true}} renders `speed auto 25g-custom` plus FEC in the set path, verify expects `speed forced 25gfull` and returns False. A 100G entry without fec: true fails the same way. That is exactly the override the recipe header (conf/switch_commands.yml:17-26) and docs/switch-host-setup.md:183 advertise. Derive the expected statement and FEC from the same recipe values, or put the check in the recipe, and add a non-default-speed test.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c86296ca_817ffd79",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 24
@@ -184,6 +286,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Required: no empty-host guard. `filter_hosts` can return [] while the assignment exists; `hosts[0]` raises IndexError (probe), and `all\u003dTrue` returns True with no hosts. Both vendor plugins were fixed to log \u0027No hosts found on cloud.\u0027 and return False in 826e560a. Mirror that and add tests for both paths.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "18edb17f_8c3c83cc",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "`hosts \u003d [hosts[0]]` has no empty guard. filter_hosts can return [] while an active assignment exists (for example when every host on the cloud is retired), and the probe raises IndexError. With all\u003dTrue this returns True and logs nothing. The vendor plugins log \u0027No hosts found on cloud.\u0027 and return False (plugins/builtin/switches/arista.py:359-362); mirror that and test both paths.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -222,6 +341,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "26fa18db_9c7ae74b",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "Selecting a driver with no existing entry writes a bare `{enabled: True}`. Probe on a plugins.yml with only juniper and email: --network-plugin arista writes `arista: {enabled: True}`; AristaSwitchPlugin.initialize() returns True with username None, SSHHelper falls back to the process user, and the first move then fails with \u0027No username configured\u0027 (tools/external/arista.py:86-87). Require the existing entry or copy its username, and fail here instead of at the first move. tests/unit/test_switch_drivers.py:119 currently pins the bare entry.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "21d45f9d_12e9bba0",
@@ -235,6 +371,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Follow-up: `yaml.safe_dump` rewrites the whole file. Probe on the shipped plugins.yml: 133 lines to 88; every comment and blank separator is lost, including the new switch-driver guidance. The docs recommend this command. Preserve comments with a targeted edit of the three enabled keys, or warn. Also check ownership/SELinux context of the replaced file.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "83864930_bd47ff47",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "yaml.safe_dump rewrites the whole file: the probe on a plugins.yml with comments dropped every one, including the switch-driver guidance added in this change, and os.replace does not preserve ownership or the SELinux label. Since README and docs recommend this command, prefer a targeted edit of the three enabled keys, or warn that comments are lost.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -258,6 +411,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ba215e97_d0254081",
+        "filename": "src/quads/server/app.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "This validates the enabled flags from plugins.yml, not the plugins that actually loaded. Probe: when NetworkSwitchPlugin.initialize() raises on a malformed recipe, PluginManager.load_plugin catches it (plugins/manager.py:65-67) and enabled_switch_drivers() still returns {\u0027network\u0027}, so this check passes and every switch operation then reports \u0027No switch plugin enabled\u0027. Validate the loaded switch plugins here, or let switch-driver init errors abort startup, and add an invalid-recipe startup test.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7f997458_70105cce",
         "filename": "src/quads/tools/external/arista.py",
         "patchSetId": 24
@@ -269,6 +439,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Required: this removes the only code that could clear stale 100G RS-FEC, while `network.verify` still requires `not has_fec` for every non-100G port (`network.py:383`). A port lowered from 100G keeps FEC, so verify fails and `--change` re-runs the same recipe and never converges. The base commit (826e560a PS20) kept this cleanup and explained why; `docs/switch-host-setup.md:264` still says it reconciles and clears stale speed/FEC. If the POC rejects the `no` forms, document that and make verify consistent; otherwise restore the gated cleanup. Also resolve the FEC-before-speed order against the base\u0027s speed-before-FEC comment and docs:234.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e1ebe08_076a3b99",
+        "filename": "src/quads/tools/external/arista.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "PS24 removed the gated `no speed` and `no error-correction encoding reed-solomon` cleanup, but the plugin verify path still requires FEC absent below 100G (plugins/builtin/switches/arista.py:288) and the generic verify does the same (network.py:383). A port lowered from 100G keeps RS-FEC, verify fails, and --change re-runs this same sequence and reports success without clearing it. tests/plugins/test_switch_arista.py:683 asserts that verify must fail for stale FEC, so the suite currently pins a state nothing can repair. Restore a gated cleanup (FEC-before-speed order is fine), or relax verify and document the manual `no error-correction` step.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -290,6 +477,23 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "c55d9b17_df1185ce",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "validate() checks operation shape and if: names, but not the four operations the driver calls (get_vlan_qinq, get_vlan_public, set_port_qinq, set_port_public), not a capture group in a get pattern, and not command placeholders. Probes: a recipe missing set_port_public validates; the pattern `vlan\\d+` validates then raises `IndexError: no such group` at line 187; `{switch_prt}` validates then raises \u0027Missing recipe parameter\u0027 mid-run. Since initialize() calls this to fail closed at startup, add those checks here.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": false,
       "key": {
         "uuid": "de7426fd_4188bf4d",
@@ -303,6 +507,23 @@
       "writtenOn": "2026-10-31T17:17:22Z",
       "side": 1,
       "message": "Test gap: this mock returns the cloud02 assignment regardless of the argument, so the test passes whether verify queries cloud01 or cloud02 and does not pin the policy above. Assert `get_active_cloud_assignment` was called with the intended cloud and add a mismatch case with distinct assignments.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "811e6e6f_fae5171e",
+        "filename": "tests/plugins/test_switch_network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:37Z",
+      "side": 1,
+      "message": "get_active_cloud_assignment ignores its argument here, so this test passes whether verify queries cloud01 or cloud02 and does not pin the --cloud policy. Assert the call argument and add a mismatch case with distinct assignments.",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
