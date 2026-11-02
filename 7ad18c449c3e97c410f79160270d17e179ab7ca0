@@ -425,6 +425,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "835b7723_42836b16",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1482,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:28Z",
+      "side": 1,
+      "message": "`--export-host-details` emits `switch_vendor` at cli.py:1678; the import/force path preserves it. Resolved.",
+      "parentUuid": "5f33f246_9697d397",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9dc59d36_49448c5a",
@@ -455,6 +473,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "9dc59d36_49448c5a",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d9b4e45_8b34171a",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1874,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:28Z",
+      "side": 1,
+      "message": "PS25 uses parser defaults/SUPPRESS and checks `_ifswitchvendor is None` (cli.py:1959/2067), so an explicit vendor is not overwritten by the default. Resolved.",
       "parentUuid": "9dc59d36_49448c5a",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
