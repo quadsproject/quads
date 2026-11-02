@@ -486,6 +486,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "dc99b55c_6232d290",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:42Z",
+      "side": 1,
+      "message": "`update_switch_driver_config` now refuses to create a selected vendor entry without a username and tells the operator to add it; only the generic `network` entry may be auto-created. Test updated. Resolved.",
+      "parentUuid": "51abab21_239bde91",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "21d45f9d_12e9bba0",
         "filename": "src/quads/plugins/switch_drivers.py",
         "patchSetId": 24
