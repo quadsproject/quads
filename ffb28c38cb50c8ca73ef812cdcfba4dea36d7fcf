@@ -37,6 +37,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6afefa7f_c5a47083",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T21:09:25Z",
+      "side": 1,
+      "message": "PS27 now requires a non-empty `username` for every selected vendor driver, whether the entry already exists or is created. Existing `arista: {enabled: false}` without a username now raises `SwitchDriverConfigError` before the file is written; `test_rejects_selected_vendor_without_username` covers it. Generic `network` still needs no username.",
+      "parentUuid": "4e84e204_33075f6a",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "fd862af2_86e31a26",
         "filename": "src/quads/plugins/switch_drivers.py",
         "patchSetId": 26
