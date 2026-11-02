@@ -209,6 +209,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "81a9a0ce_3fde2944",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:40Z",
+      "side": 1,
+      "message": "PS25 preflights required `get_vlan_*`/`set_port_*` operations and params for every interface before reads or writes; `int()` errors now surface as `SwitchCLIException`. The mixed-interface tests cover the no-partial-write case. Resolved.",
+      "parentUuid": "df6445e4_bb976e21",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "9bcbb50e_d6e3aa14",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 24
@@ -258,6 +276,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0dfc4c42_3b29f537",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:40Z",
+      "side": 1,
+      "message": "PS25 uses `first_host.cloud.name` for the active assignment/expected VLANs; `--cloud` remains a filter and the mismatch warning stays. `test_verify_uses_host_cloud_for_assignment` pins the policy. Resolved.",
+      "parentUuid": "b528a13b_cb62890e",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "22e9097e_bdebb7d0",
@@ -271,6 +307,24 @@
       "writtenOn": "2026-10-31T13:04:41Z",
       "side": 1,
       "message": "verify() computes the expected EOS speed from arista.py\u0027s hardcoded expected_speed_statement() (100G -\u003e \u0027speed auto 100g-2\u0027 + RS-FEC), not from this recipe\u0027s per-vendor speeds: map. The set path in _params() is recipe-driven, but verify is not. The recipe header and docs/switch-host-setup.md say another EOS platform can override the speeds map in YAML with no Python change; if a site overrides 100G to \u0027speed forced 100gfull\u0027 (and drops the FEC line), the recipe sends that, but verify computes \u0027speed auto 100g-2\u0027 and speed_statement_matches() returns False, so verify reports a false speed/FEC mismatch on a port the recipe configured correctly. Two sources of truth that can drift. Suggest deriving the expected statement from the recipe\u0027s speeds map, or noting that verify only checks the shipped Arista table.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dff4fa17_3cc97ab2",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:40Z",
+      "side": 1,
+      "message": "PS25 verify derives the expected statement and FEC from the same `_params`/recipe values used by `_set_op`, not `expected_speed_statement`. `test_verify_arista_uses_recipe_speed_mapping` covers a non-default 25G auto+FEC recipe. Resolved.",
+      "parentUuid": "22e9097e_bdebb7d0",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -309,6 +363,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "33e3b44f_56b8cce2",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:40Z",
+      "side": 1,
+      "message": "PS25 verify derives the expected statement and FEC from the same recipe values used by `_set_op`; a site override is no longer reported as drift. `test_verify_arista_uses_recipe_speed_mapping` covers it. Resolved.",
+      "parentUuid": "21278a3b_b083fcc9",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c86296ca_817ffd79",
@@ -339,6 +411,24 @@
       "writtenOn": "2026-11-02T20:31:37Z",
       "side": 1,
       "message": "`hosts \u003d [hosts[0]]` has no empty guard. filter_hosts can return [] while an active assignment exists (for example when every host on the cloud is retired), and the probe raises IndexError. With all\u003dTrue this returns True and logs nothing. The vendor plugins log \u0027No hosts found on cloud.\u0027 and return False (plugins/builtin/switches/arista.py:359-362); mirror that and test both paths.",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d4d78725_5924f195",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:40Z",
+      "side": 1,
+      "message": "`ls_config` now logs `No hosts found on cloud.` and returns False for an empty host list; `test_ls_config_empty_cloud_returns_false` covers it. Resolved.",
+      "parentUuid": "c86296ca_817ffd79",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
