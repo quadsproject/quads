@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9dbee10f_8c74fc35",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 33
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T23:05:11Z",
+      "side": 1,
+      "message": "The round-trip dumper defaults to width 80, so the first driver change rewraps long plain scalars. On the shipped conf/plugins.yml the report_cc line (line 50) splits across two lines. yaml.width \u003d 120 (or larger) makes a no-op round trip byte-identical; I verified 120 and 4096.",
+      "revId": "b7fde9a9d7f5ff336f9382f69799df4e114bc892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6cde5ca0_a5d8a756",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 33
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T23:05:11Z",
+      "side": 1,
+      "message": "copystat copies atime and mtime along with mode and xattrs, so an updated plugins.yml keeps its old timestamp. If that is deliberate for the label, fine; otherwise os.utime(tmp_path) after copystat keeps mtime honest for mtime-based change detection.",
+      "revId": "b7fde9a9d7f5ff336f9382f69799df4e114bc892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
