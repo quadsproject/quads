@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "79b88575_b8eb61c4",
+        "filename": "docs/quads-roce-setup.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "\"--configure\" and \"--remove\" open a second SSH session: has_base_config() builds an SSHHelper (paramiko) while the pexpect session for the same switch is already open (roce.py:166-173). So it is two sessions per switch on those actions, one on the base-config actions. Reword, or check the base config over the existing session.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "775d3272_6fa80c60",
+        "filename": "src/quads/tools/external/juniper_roce.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "The uplink port is hardcoded as `ae0` here and in BASE_CONFIG_DELETE_COMMANDS (lines 88-91). On a switch whose uplink is named differently (ae1, a LAG LAG name, a 100G member), `set class-of-service interfaces ae0 ...` is accepted for a non-existent interface and the commit succeeds, so the base config installs cleanly but does nothing for real traffic. has_base_config() only greps STORAGE-CLASSIFIER, so it cannot catch that either. A parameter (or plugin config key) for the uplink would make this explicit.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fa7b91c4_0242c0a7",
+        "filename": "src/quads/tools/external/juniper_roce.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "Two states collapsed into one bool: if `SSHHelper` raises (auth failure, unreachable switch) or `run_cmd` returns False, this returns False, the same as \"config absent\". `configure()` then tells the operator to run `--install-roce` for what is really a login problem, and `uninstall_roce()` skips the switch as if it had no base config. Suggest returning None (or raising) when the check could not be performed, and handling that case separately in roce.py:173 and roce.py:121.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bbb9bbd7_acaa6cda",
+        "filename": "src/quads/tools/external/juniper_roce.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "`Config.plugins[\"juniper\"][\"username\"]` raises KeyError when the juniper plugin is absent from plugins.yml, and only SSHHelperException is caught here. The KeyError escapes into roce.py:83 (install_roce calls has_base_config() outside its try) and aborts the rest of the switch list with a traceback, contrary to the documented log-and-continue behaviour. Resolve the username once in `__init__` and raise JuniperRoCEException with a clear message.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "31fa1c6e_e8683d43",
+        "filename": "src/quads/tools/external/juniper_roce.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "`execute()` treats a prompt timeout as the only failure. Junos answers a bad `set`/`delete` (syntax error, unknown object) with an error message and a fresh prompt, so the loop keeps going and `commit` commits whatever survived, then `apply_base_config()` returns True. Checking `self.child.before` for \"syntax error\" / \"statement not found\" and raising JuniperRoCEException would make a partial commit impossible to miss.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c98730b9_1c3c767e",
+        "filename": "tests/tools/test_roce.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:13:17Z",
+      "side": 1,
+      "message": "The expected count leaves out the `expect(\"\u003e\")` in connect(), so the commit is not the call this pins: the 52nd expect here is still the last `set`, and the test passes for a slightly different reason than the name implies. Recording the count after the setup commands and asserting on that would make the boundary real. Same pattern at line 167 for remove_base_config.",
+      "revId": "d1c33de6b67e648f34a55e5316faa7ee8f7f8106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
