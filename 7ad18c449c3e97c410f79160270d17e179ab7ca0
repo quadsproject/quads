@@ -830,6 +830,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9682859_dadd24b6",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:32Z",
+      "side": 1,
+      "message": "`SwitchCLI.validate()` now requires the four operations, validates command/parse/save templates and placeholders, requires a capture group, and `run()` rejects empty operations. Tests cover missing op, bad pattern, unknown placeholder, and empty op. Resolved.",
+      "parentUuid": "c37f54fe_3467c75e",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7f0482e3_35308be2",
@@ -860,6 +878,24 @@
       "writtenOn": "2026-10-19T08:51:56Z",
       "side": 1,
       "message": "Addressed and verified (PS3 -\u003e PS9 history, see change messages); resolving.",
+      "parentUuid": "7f0482e3_35308be2",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7d20649d_27eb18a4",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:32Z",
+      "side": 1,
+      "message": "`config_prompt` is declared for Junos set operations and `_command()` expects it; the missing-prompt test demonstrates the timeout. Resolved.",
       "parentUuid": "7f0482e3_35308be2",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
