@@ -56,6 +56,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "b87f9bfb_6230a23c",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 15
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:35Z",
+      "side": 1,
+      "message": "PS25 recipe header documents the per-vendor `speeds` map, all four speed conditions (including `speed_no_fec`), the valid `if` names, and single-save guidance. `test_shipped_recipes_validate` loads the shipped file. Resolved.",
+      "parentUuid": "011a3f18_2d36e0f6",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "3b4d7ed6_18a650eb",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 15
