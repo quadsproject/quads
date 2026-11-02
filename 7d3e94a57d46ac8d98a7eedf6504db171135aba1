@@ -245,6 +245,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9732bf6d_f098ab61",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:03Z",
+      "side": 1,
+      "message": "PS25 `_preflight` checks the four required operations and `_params` for every interface before any switch I/O; configure also reads all interfaces before writing. Mixed-interface tests cover missing ops and read failures. Verify/ls_config now surface `_params` failures as SwitchCLIException.",
+      "parentUuid": "07b82327_20724d57",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "9bcbb50e_d6e3aa14",
         "filename": "src/quads/plugins/builtin/switches/network.py",
         "patchSetId": 24
@@ -399,6 +417,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f5df36eb_65ae32e0",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:03Z",
+      "side": 1,
+      "message": "PS25 verify derives the expected mode/token/FEC from the same `_params`/recipe values used by `_set_op`, not `expected_speed_statement`. `test_verify_arista_uses_recipe_speed_mapping` covers a non-default 25G auto+FEC recipe.",
+      "parentUuid": "c8723a71_71ce4175",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c86296ca_817ffd79",
@@ -447,6 +483,24 @@
       "side": 1,
       "message": "`ls_config` now logs `No hosts found on cloud.` and returns False for an empty host list; `test_ls_config_empty_cloud_returns_false` covers it. Resolved.",
       "parentUuid": "c86296ca_817ffd79",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43f03834_bbdb45cb",
+        "filename": "src/quads/plugins/builtin/switches/network.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:03Z",
+      "side": 1,
+      "message": "PS25 `ls_config` logs `No hosts found on cloud.` and returns False for an empty host list; `test_ls_config_empty_cloud_returns_false` covers both the guard and the error path.",
+      "parentUuid": "18edb17f_8c3c83cc",
       "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
