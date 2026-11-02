@@ -777,6 +777,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b17c1e2_b6f84010",
+        "filename": "src/quads/plugins/dispatchers/switch.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:30Z",
+      "side": 1,
+      "message": "PS25 keeps non-dry-run calls three-arg. Dry-run is opt-in via `SwitchPlugin.supports_dry_run`; the dispatcher passes `dry_run\u003dTrue` only to capable drivers, so vendor plugins never receive an unexpected positional argument. Resolved.",
+      "parentUuid": "b6459dcc_38ed4ca9",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c37f54fe_3467c75e",
