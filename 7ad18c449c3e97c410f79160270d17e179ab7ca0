@@ -951,6 +951,24 @@
       "parentUuid": "0aa93c37_f2e1364e",
       "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f51c8e8_811dbf04",
+        "filename": "tests/plugins/test_switch_network.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:34Z",
+      "side": 1,
+      "message": "PS25 retains and expands behavior tests: `tests/plugins/test_switch_network.py`, `tests/tools/test_switch_cli.py`, the fake switch, and the driver tests. The affected suite runs 189 tests. Resolved.",
+      "parentUuid": "0aa93c37_f2e1364e",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
