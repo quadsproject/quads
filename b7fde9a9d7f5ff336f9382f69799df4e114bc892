@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9341dc51_785c6a59",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 33
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T23:06:07Z",
+      "side": 1,
+      "message": "PS34 sets `yaml.width \u003d 120`. A no-op round trip of the shipped `conf/plugins.yml` is now byte-identical, and a test checks that a long plain scalar is not wrapped.",
+      "parentUuid": "9dbee10f_8c74fc35",
+      "revId": "b7fde9a9d7f5ff336f9382f69799df4e114bc892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "6cde5ca0_a5d8a756",
         "filename": "src/quads/plugins/switch_drivers.py",
         "patchSetId": 33
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-02T23:05:11Z",
       "side": 1,
       "message": "copystat copies atime and mtime along with mode and xattrs, so an updated plugins.yml keeps its old timestamp. If that is deliberate for the label, fine; otherwise os.utime(tmp_path) after copystat keeps mtime honest for mtime-based change detection.",
+      "revId": "b7fde9a9d7f5ff336f9382f69799df4e114bc892",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb66c422_c88b86e2",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 33
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T23:06:07Z",
+      "side": 1,
+      "message": "PS34 calls `os.utime(tmp_path)` after `copystat`, so the updated file gets a fresh mtime while mode, xattrs (SELinux label), owner and group still come from the original.",
+      "parentUuid": "6cde5ca0_a5d8a756",
       "revId": "b7fde9a9d7f5ff336f9382f69799df4e114bc892",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
