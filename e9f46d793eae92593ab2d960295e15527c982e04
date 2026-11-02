@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0d500f6_e3fecfde",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 28
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:19:08Z",
+      "side": 1,
+      "message": "This still reads as if the generic driver programs Junos speed. The shipped juniper recipe sends no speed command (channel-speed is an operator prerequisite), while the vendor Juniper tool sends `set interfaces \u003cport\u003e speed \u003cN\u003eg` (tools/external/juniper.py:51,77). Switching to network therefore stops reconciling Junos speed; a short note here would avoid an upgrade surprise.",
+      "revId": "e9f46d793eae92593ab2d960295e15527c982e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cca25c9f_72f78818",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 28
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:19:08Z",
+      "side": 1,
+      "message": "`safe_dump` rewrites the file without comments: a probe on the shipped conf/plugins.yml drops all 29 comment lines, including the switch-driver guidance block added in this change. A comment-preserving round trip, or a note in the docs, would keep that guidance for operators.",
+      "revId": "e9f46d793eae92593ab2d960295e15527c982e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "562d5e70_a7984a7c",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 28
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:19:08Z",
+      "side": 1,
+      "message": "`validate()` treats `parse` as optional for every operation and does not require the two get operations to be get operations. Probe: remove `parse` from `get_vlan_qinq`, or replace it with a `commands` set, and validate passes; `run()` then returns the raw output or True and `int()` at network.py:235 raises ValueError mid-move. Require a capture-group pattern for `get_vlan_qinq`/`get_vlan_public` and reject a set-style `get_vlan_*`.",
+      "revId": "e9f46d793eae92593ab2d960295e15527c982e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
