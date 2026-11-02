@@ -16,6 +16,24 @@
       "message": "The header repeats the general claim PS34 fixed in docs/switch-host-setup.md. The Juniper recipe in this file has no `speeds` map and sends `set interfaces {switch_port} speed {speed}g` on `if: speed`, so an unmapped speed does send a speed command here. Scope this sentence to commands gated on `speed_*`.",
       "revId": "d9f15abf94c13a94a152b742582603d5bd34858f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16adf652_fff87de3",
+        "filename": "conf/switch_commands.yml",
+        "patchSetId": 34
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T23:18:35Z",
+      "side": 1,
+      "message": "PS35 scopes the header sentence to recipes gated on `speed_*`: the shipped Arista recipe sends nothing for an unmapped speed, while the Juniper recipe gates on raw `speed` and still sends `set interfaces {switch_port} speed {speed}g` for a positive speed.",
+      "parentUuid": "a30e73ae_35a4b27b",
+      "revId": "d9f15abf94c13a94a152b742582603d5bd34858f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
