@@ -820,6 +820,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "7b20b3bf_c26f6fce",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:54:08Z",
+      "side": 1,
+      "message": "PS25 `validate()` requires the four operation names, requires a capture group in get parse patterns, and validates command/parse/save placeholders. Tests cover missing operation, no capture group, and unknown placeholder.",
+      "parentUuid": "c55d9b17_df1185ce",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "de7426fd_4188bf4d",
         "filename": "tests/plugins/test_switch_network.py",
         "patchSetId": 24
