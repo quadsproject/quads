@@ -106,6 +106,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "3ea6ec14_5ad51106",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 24
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:39Z",
+      "side": 1,
+      "message": "Docs now state FEC-before-speed (line 234), single `write memory` (246/256-260), and the no-FEC cleanup/manual unset-speed note (263). Resolved.",
+      "parentUuid": "cdb8aec9_872e1fef",
+      "revId": "7d3e94a57d46ac8d98a7eedf6504db171135aba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "d66d716b_1edc304b",
         "filename": "setup.cfg",
         "patchSetId": 24
