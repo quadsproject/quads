@@ -285,6 +285,18 @@ class SwitchCLI(object):
                 if operation.get("save_wait") is not None:
                     check_template(operation["save_wait"], f"operation '{name}' save_wait")
 
+        for name in ("get_vlan_qinq", "get_vlan_public"):
+            operation = operations.get(name)
+            if operation is None:
+                continue
+            if not isinstance(operation, dict) or "command" not in operation:
+                raise SwitchCLIException(
+                    f"Operation '{name}' must use 'command' (not 'commands') because it reads a VLAN"
+                )
+            parse = operation.get("parse")
+            if not isinstance(parse, dict) or not parse.get("pattern"):
+                raise SwitchCLIException(f"Operation '{name}' must define parse.pattern")
+
         missing = [
             name
             for name in ("get_vlan_qinq", "get_vlan_public", "set_port_qinq", "set_port_public")

@@ -381,6 +381,21 @@ def test_validate_rejects_parse_without_capture_group():
         SwitchCLI(cfg, {}).validate()
 
 
+def test_validate_rejects_get_operation_using_commands():
+    """A get op written as a set op would return True and parse as VLAN 1."""
+    cfg = _fake_cfg()
+    cfg["operations"]["get_vlan_qinq"] = {"commands": ["show running-config interfaces {switch_port}"]}
+    with pytest.raises(SwitchCLIException, match="must use 'command'"):
+        SwitchCLI(cfg, {}).validate()
+
+
+def test_validate_rejects_get_operation_without_parse_pattern():
+    cfg = _fake_cfg()
+    del cfg["operations"]["get_vlan_public"]["parse"]
+    with pytest.raises(SwitchCLIException, match="parse.pattern"):
+        SwitchCLI(cfg, {}).validate()
+
+
 def test_validate_rejects_unknown_placeholder():
     cfg = _fake_cfg()
     cfg["operations"]["set_port_qinq"]["commands"].append("set interface {switch_prt}")

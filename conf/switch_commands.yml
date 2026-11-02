@@ -76,8 +76,9 @@ vendors:
           - "delete interfaces {switch_port}"
           - "set interfaces {switch_port} apply-groups QinQ_vl{new_vlan}"
           # Match the classic Juniper driver: set the per-interface speed
-          # only when quads has a Gbps value.  Models that reject this form
-          # can override the recipe and use chassis channel-speed instead.
+          # only when quads has a Gbps value.  The POC QFX rejects this form
+          # with a syntax error; override the recipe with chassis
+          # channel-speed for such models (docs/switch-host-setup.md).
           - cmd: "set interfaces {switch_port} speed {speed}g"
             if: speed
           - cmd: "delete vlans vlan{old_vlan} interface {switch_port}"
