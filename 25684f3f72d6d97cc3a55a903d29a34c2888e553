@@ -54,6 +54,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "f2a22e41_124cea38",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T22:59:46Z",
+      "side": 1,
+      "message": "PS32 switches `plugins.yml` handling to `ruamel.yaml` round-trip mode. I verified the shipped file keeps all 35 comment-bearing lines (including inline comments and blank separators) after a driver change, and the same holds for the POC copy. The write now preserves mode, timestamps, xattrs (including the SELinux label), owner and group via `shutil.copystat()` + `os.chown()` before the atomic replace, and tests cover comment and mode preservation. `ruamel.yaml` is added to requirements, setup.cfg and the RPM spec.",
+      "parentUuid": "9150a212_5f1e2e8a",
+      "revId": "25684f3f72d6d97cc3a55a903d29a34c2888e553",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "b671378f_6ad3df40",
         "filename": "src/quads/tools/external/switch_cli.py",
         "patchSetId": 29
