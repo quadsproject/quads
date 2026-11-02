@@ -162,6 +162,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "ec6ee9ea_10ef1669",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:37Z",
+      "side": 1,
+      "message": "`validate()` rejects unknown `if:` names; `test_validate_rejects_unknown_condition` covers `speed_forcd`, and the shipped recipes validate. Resolved.",
+      "parentUuid": "d72af45c_6bc6967f",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "2b34beaa_ae4aa530",
         "filename": "tests/tools/test_switch_cli.py",
         "patchSetId": 15
