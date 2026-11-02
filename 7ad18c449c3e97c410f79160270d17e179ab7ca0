@@ -372,6 +372,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6097a585_aae73cf2",
+        "filename": "migrations/versions/c4a5e6b7d8e9_interface_switch_vendor.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:27Z",
+      "side": 1,
+      "message": "c4a5e6b7d8e9 is a data-only backfill after e530c8f33513 (`UPDATE ... WHERE switch_vendor IS NULL`), and `_vendor_cfg` still treats NULL as juniper. Existing rows no longer fail. Resolved.",
+      "parentUuid": "c440bba7_26cbc636",
+      "revId": "7ad18c449c3e97c410f79160270d17e179ab7ca0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f33f246_9697d397",
