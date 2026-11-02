@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7ca5d20a_4bb0aaac",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 30
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T22:51:15Z",
+      "side": 1,
+      "message": "The next sentence covers Juniper\u0027s literal form, but this one is absolute. The shipped Juniper recipe has no `speeds:` map and gates the speed command on `speed` (conf/switch_commands.yml:82,98), so an unmapped 50 Gbps still sends `set interfaces \u003cport\u003e speed 50g`. Scope it to recipes that gate on the `speed_*` conditions, e.g. \"so a recipe that gates speed on those conditions sends no speed command\".",
+      "revId": "7c6726c9e8b1911e004f4abccaf19d571e44321b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
