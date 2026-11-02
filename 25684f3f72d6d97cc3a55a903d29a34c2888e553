@@ -72,6 +72,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "8ed97d62_e63490d5",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T23:03:12Z",
+      "side": 1,
+      "message": "PS33 is a small follow-up: `os.chown()` now runs before `shutil.copystat()` so the ownership change cannot clear mode bits or xattrs copied from the original. No behavior change beyond metadata preservation.",
+      "parentUuid": "9150a212_5f1e2e8a",
+      "revId": "25684f3f72d6d97cc3a55a903d29a34c2888e553",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "b671378f_6ad3df40",
         "filename": "src/quads/tools/external/switch_cli.py",
         "patchSetId": 29
