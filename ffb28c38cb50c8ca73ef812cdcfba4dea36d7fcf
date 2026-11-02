@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "52c50af7_b7480ef0",
+        "filename": "docs/switch-host-setup.md",
+        "patchSetId": 26
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:02:01Z",
+      "side": 1,
+      "message": "Still says the plugins convert to Junos `speed \u003cN\u003eg`. The vendor juniper tool does (tools/external/juniper.py:51), but the shipped generic juniper recipe sends no speed command (conf/switch_commands.yml:79-82 lists it as a prerequisite), so this is wrong for the network driver. Add the distinction and an upgrade note for sites that relied on the vendor plugin\u0027s speed statement.",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4e84e204_33075f6a",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:02:01Z",
+      "side": 1,
+      "message": "The guard covers a missing entry only. With `arista: {enabled: false}` (no username) in plugins.yml, `--network-plugin arista` writes `arista: {enabled: True}` (probe). AristaSwitchPlugin.initialize() then returns True with username\u003dNone, SSHHelper falls back to the process user, and the first move fails at connect. Also require `entry.get(\u0027username\u0027)` for the selected vendor names here.",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd862af2_86e31a26",
+        "filename": "src/quads/plugins/switch_drivers.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:02:01Z",
+      "side": 1,
+      "message": "This still rewrites the whole file. Probe on the shipped conf/plugins.yml: 35 comment lines before, 1 after, and the switch-driver guidance added in this change is gone. os.replace also leaves the new file owned by the invoking user. README and docs recommend this command, so a targeted edit of the three enabled keys, or a warning that comments are lost, would avoid stripping the file silently.",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf431c0b_edc28f75",
+        "filename": "src/quads/server/config.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:02:01Z",
+      "side": 1,
+      "message": "Off by default: this reads the env var with default 0, and systemd/quads-server.service is the only place that sets it to 1. A manual or non-systemd quads-server run therefore skips the startup check the commit message and docs promise. TestingConfig already overrides it to False, so ProductionConfig can default to True; otherwise document the variable. With the check off, PluginManager skips network (manager.py:36-45) and the server starts with the vendor driver after a single log warning.",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a6bfc07_447544ed",
+        "filename": "src/quads/tools/external/switch_cli.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T21:02:01Z",
+      "side": 1,
+      "message": "`pattern` is optional here. A get operation without `parse` passes validate() and `_run_get` returns the whole show output; network.py then does int() on it in configure/verify and raises an uncaught ValueError. Probe: validate passes, `_run_get` returns the raw output, int() raises. Require a parse pattern with a capture group for the four required operations.",
+      "revId": "ffb28c38cb50c8ca73ef812cdcfba4dea36d7fcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
