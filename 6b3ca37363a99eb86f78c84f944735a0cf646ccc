@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db761fa3_92c760da",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:59Z",
+      "side": 1,
+      "message": "get_host_id is fetched again here although prepare_host_provisioning already resolved host_id at line 646. Pass it in to save an API round trip, and add a test that a False rebuild makes prepare_host_provisioning return False; the current tests only mock it to True.",
+      "revId": "6b3ca37363a99eb86f78c84f944735a0cf646ccc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b4a1c45_959ecb4e",
+        "filename": "src/quads/tools/external/foreman.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:31:59Z",
+      "side": 1,
+      "message": "204 is in the success set at line 466, but this json() call runs unconditionally inside the try: a 204 with an empty body raises ContentTypeError and returns False before the status check. Either drop 204 or only parse when a body is expected.",
+      "revId": "6b3ca37363a99eb86f78c84f944735a0cf646ccc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
