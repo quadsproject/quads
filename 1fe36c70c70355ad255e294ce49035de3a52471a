@@ -229,6 +229,24 @@
       "parentUuid": "2b34beaa_ae4aa530",
       "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fac0fcd_6bc220ef",
+        "filename": "tests/tools/test_switch_cli.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-02T20:53:37Z",
+      "side": 1,
+      "message": "The test fixture and shipped recipe now use `save: \u0027write memory\u0027`; `test_shipped_recipes_validate` loads `conf/switch_commands.yml` and runs both set operations at 25G/100G. Resolved.",
+      "parentUuid": "c7a89ccc_15f2bf26",
+      "revId": "1fe36c70c70355ad255e294ce49035de3a52471a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
