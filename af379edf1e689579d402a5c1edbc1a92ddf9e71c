@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c63659d6_fd5b9200",
+        "filename": "src/quads/config.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:14:58Z",
+      "side": 1,
+      "message": "A malformed default is silently treated as 100, which means no cap at all, while malformed per-model values log a warning at line 157. Verified: `ssm_model_limit_default: \"60%\"` yields 100 with no log output. Worth a warning here too, since a typo in the global default quietly disables the pool.",
+      "revId": "af379edf1e689579d402a5c1edbc1a92ddf9e71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce355eec_2d0764a5",
+        "filename": "src/quads/server/blueprints/schedules.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-02T20:14:58Z",
+      "side": 1,
+      "message": "This gate fires on any PATCH that includes start or end, even when the new window uses less of the pool than the old one. `ssm_remaining_capacity` excludes only this schedule, so when the model is already at or above the limit (the usual way to get there is lowering `ssm_model_limit` after the fact) the capacity is 0 regardless of the new window, and a user who only wants to shorten their self-schedule is refused until the schedule expires or the admin raises the percentage. Comparing the overlap count for the new window against the count for the current window, and rejecting only an increase, would avoid that.",
+      "revId": "af379edf1e689579d402a5c1edbc1a92ddf9e71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
