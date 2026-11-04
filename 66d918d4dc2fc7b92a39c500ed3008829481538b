@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed3a9d35_4e67f2b2",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 999,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-04T16:45:16Z",
+      "side": 1,
+      "message": "Same audience applies to the failure row: `notify_failure` also sends to the tenant and Cc\u0027s `report_cc` (`src/quads/plugins/builtin/validators/environment.py:64-72`), so `(admin)` here is still inaccurate.",
+      "revId": "66d918d4dc2fc7b92a39c500ed3008829481538b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
