@@ -182,7 +182,7 @@ class TestEnvironmentValidatorPlugin:
             assert cloud in call_args.kwargs["subject"]
             assert owner in call_args.kwargs["subject"]
             assert ticket in call_args.kwargs["subject"]
-            assert call_args.kwargs["recipients"] == [f"{owner}@{mock_config['domain']}"]
+            assert call_args.kwargs["recipients"] == [f"dev-null@{mock_config['domain']}"]
             assert "admin@example.com" in call_args.kwargs["cc"]
             assert "noreply@example.com" in call_args.kwargs["cc"]
 
