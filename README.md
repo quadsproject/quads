@@ -997,7 +997,7 @@ The notification delivery plugins (email, chat) are configured in [plugins.yml](
 | Change in environment | assignment | email | pre | [future_message](src/quads/templates/future_message) |
 | Environment expiring | assignment | email | one_day, three_days, five_days, seven_days | [message](src/quads/templates/message) |
 | Validation failed (admin) | validation | email | fail | [validation_failed](src/quads/templates/validation_failed) |
-| Validation success (admin) | validation | email | success | [validation_succeeded](src/quads/templates/validation_succeeded) |
+| Validation success (tenant + admin) | validation | email | success | [validation_succeeded](src/quads/templates/validation_succeeded) |
 | Add to watchers failed | ticketing | Jira | N/A | [watchers_fail](src/quads/templates/watchers_fail) |
 
 #### Listing Notifications
