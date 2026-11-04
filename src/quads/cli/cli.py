@@ -2632,19 +2632,6 @@ class QuadsCli:
     async def _run_validation(self):
         validator_dispatcher = get_validator_dispatcher()
 
-        # Update provisioned flags for assignments where all hosts are validated
-        _filter = {"active": True, "validated": False, "provisioned": False, "cloud__ne": "cloud01"}
-        assignments = self.quads.filter_assignments(_filter)
-        for _ass in assignments:
-            provisioned = True
-            _schedules = self.quads.get_current_schedules(data={"cloud": _ass.cloud.name})
-            for _schedule in _schedules:
-                if not _schedule.host.validated:
-                    provisioned = False
-                    break
-            if provisioned:
-                self.quads.update_assignment(_ass.id, {"provisioned": True})
-
         # Get assignments to validate
         _filter = {"active": True, "validated": False, "provisioned": True, "cloud__ne": "cloud01"}
         assignments = self.quads.filter_assignments(_filter)
