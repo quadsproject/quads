@@ -997,7 +997,7 @@ The notification delivery plugins (email, chat) are configured in [plugins.yml](
 | Change in environment | assignment | email | pre | [future_message](src/quads/templates/future_message) |
 | Environment expiring | assignment | email | one_day, three_days, five_days, seven_days | [message](src/quads/templates/message) |
 | Validation failed (admin) | validation | email | fail | [validation_failed](src/quads/templates/validation_failed) |
-| Validation success (admin) | validation | email | success | [validation_succeeded](src/quads/templates/validation_succeeded) |
+| Validation success (tenant + admin) | validation | email | success | [validation_succeeded](src/quads/templates/validation_succeeded) |
 | Add to watchers failed | ticketing | Jira | N/A | [watchers_fail](src/quads/templates/watchers_fail) |
 
 #### Listing Notifications
@@ -1882,7 +1882,7 @@ Command executed successfully: fping -u 172.18.38.126 172.22.38.126 172.18.36.20
 Command executed successfully: fping -u 172.19.38.126 172.23.38.126 172.19.36.206
 Subject: Validation check succeeded for cloud23
 From: RDU2 Scale Lab <quads@example.com>
-To: dev-null@example.com
+To: ipinto@example.com
 Cc: wfoster@example.com, kambiz@example.com, jtaleric@example.com,
  abond@example.com, grafuls@example.com, natashba@example.com
 Reply-To: dev-null@example.com
