@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20d2748c_bb70e291",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2636,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-04T19:07:02Z",
+      "side": 1,
+      "message": "With the inference block gone, this is now the sole gate: nothing is validated until M\u0026R has marked the assignment provisioned. Worth one sentence in the README validation section / cron note making that explicit — sites running with `--move-hosts` disabled will see no validation at all until it runs.",
+      "revId": "172379195312f8113d4734ad0410c93289e46ccc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a95205e0_97fa4835",
+        "filename": "tests/unit/test_validate_env_cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-04T19:07:02Z",
+      "side": 1,
+      "message": "Suggest strengthening: also assert `quads.filter_assignments.assert_called_once_with({\"active\": True, \"validated\": False, \"provisioned\": True, \"cloud__ne\": \"cloud01\"})` (or at least `assert_called_once()`). That pins the absence of any `provisioned\u003dFalse` inference pass, not just the absence of the update call.",
+      "revId": "172379195312f8113d4734ad0410c93289e46ccc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
