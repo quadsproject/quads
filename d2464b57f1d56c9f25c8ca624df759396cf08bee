@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fa33688_7bbb5649",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1000,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-04T16:30:57Z",
+      "side": 1,
+      "message": "Same audience applies to the failure row on line 999: `notify_failure` also sends to the tenant and Cc\u0027s `report_cc` (`environment.py:64-72`), so `(admin)` there is still inaccurate.",
+      "revId": "d2464b57f1d56c9f25c8ca624df759396cf08bee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
