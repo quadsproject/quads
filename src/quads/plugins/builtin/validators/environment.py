@@ -63,11 +63,10 @@ class EnvironmentValidatorPlugin(ValidatorPlugin):
         subject = "Validation check failed for {cloud} / {owner} / {ticket}".format(**parameters)
         _cc_users = build_cc_users()
 
-        recipient = "%s@%s" % (owner, Config["domain"])
         await self.email_dispatcher.send_mail(
             subject=subject,
             content=content,
-            recipients=[recipient],
+            recipients=["dev-null@%s" % Config["domain"]],
             cc=_cc_users,
         )
 
