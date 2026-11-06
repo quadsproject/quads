@@ -33,6 +33,24 @@
       "message": "Any 400 \"already committed\" is swallowed here, but the message only says a pending configuration blocks another set operation; it does not say this payload was accepted. If the pending values are unrelated (for example left by an earlier failed move), the BootMode set is dropped and `set_bios_attribute` still returns True, because the hardware plugin only fails on BadfishException. `_ensure_bootmode`\u0027s poll catches it after up to 600s, but `reboot_for_rebuild`\u0027s `_apply_bootmode` does not verify. Suggest reading the pending values from `/Bios/Settings` (the resource this method patches) and only treating 400 as success when the requested attributes are already pending, or returning a distinct result the caller can verify.",
       "revId": "4b083d88261bbc087ae2aed9e219d8eb85eea997",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7deb554_dd7e2e6c",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1148,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:35:59Z",
+      "side": 1,
+      "message": "Addressed in patch sets 3/4: the 400 path now reads /Bios/Settings, requires the requested attributes to match the pending values, and requires a scheduled BIOS config job; otherwise it raises instead of reporting success. Tests cover matching, conflicting, missing-job, and read-failure cases.",
+      "parentUuid": "1417a991_3d62ec8c",
+      "revId": "4b083d88261bbc087ae2aed9e219d8eb85eea997",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
