@@ -16,6 +16,23 @@
       "message": "Timeout path clears the job queue but not the pending BIOS setting, while `_clear_bootmode_jobs()` does both. Defensible here since the rebuild is aborting and the next attempt\u0027s `_ensure_bootmode()` re-reads and clears a conflicting pending value, but worth confirming the asymmetry is intentional.",
       "revId": "b330449a4cbdad9eb29266d3b40e0e001138329a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4159fe86_de13a87d",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 970,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "this seems very unnecessary",
+      "revId": "b330449a4cbdad9eb29266d3b40e0e001138329a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

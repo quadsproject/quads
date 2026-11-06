@@ -3,6 +3,23 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6322beb3_c7facb4e",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "I would burn all these changes with fire and dance around it.\nSpaghetti code if I have seen one.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "418b48c8_77359a2f",
         "filename": "src/quads/plugins/builtin/release/standard.py",
         "patchSetId": 9
@@ -67,6 +84,91 @@
       "side": 1,
       "message": "Addressed in patch set 10: _apply_bootmode is folded into _apply_bootmode_with_retry exactly as suggested (set, clear once on failure, set again), the \"does not match desired, setting it\" warning moved up into _ensure_bootmode where current and desired are both in scope, and the direct unit tests folded away. standard.py is 27 lines net smaller and the duplicate BMC reads are gone. _read_bootmode() and _pending_bootmode() no longer take the unused host_obj.\n\nOne wording note, because the distinction matters for how we triage this kind of finding: those branches were redundant, not dead. Dead code is unreachable by construction; these were reachable, just duplicated. _apply_bootmode\u0027s own current-read could still return None if the BMC failed transiently between it and the read _ensure_bootmode had just done, and on the post-clear retry the pending re-read could legitimately observe a different value. What makes the fold safe is not that the branches could never execute, it is that _ensure_bootmode already performs both checks immediately beforehand and Badfish.set_bios_attribute() skips the PATCH when the applied value already matches, so removing the second weaker copy loses no behavior.",
       "parentUuid": "b4cbd4b5_27a1824a",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2a1beb32_7f192ade",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "This interface is in place to enforce these commands being required when developing other hardware plugins.\nThese commands are being only used inside another plugin so no need to required them for the quads core code.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd5386e2_d78261a0",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "Make this a constant like RETRIES on line#19, call it RETRY_DELAY",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d1bd9bf_d069cefc",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "This is not used anywhere, remove.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0376ea0b_25888aff",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 971,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "This feels very unnecessary, remove and use plain asyncio.sleep",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ecc407ca_3f88d932",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T14:54:32Z",
+      "side": 1,
+      "message": "This is specific for dell systems, we\u0027ll get an error for all other vendors",
       "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
