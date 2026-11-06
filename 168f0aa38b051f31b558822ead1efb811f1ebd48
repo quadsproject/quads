@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "572ce9a8_ee4db654",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:45:47Z",
+      "side": 1,
+      "message": "Addressed in patch set 5: _clear_bootmode_jobs now also calls the Settings resource\u0027s Oem/DellManager.ClearPending action after clearing the job queue. A test covers the ClearPending POST.",
+      "parentUuid": "336d3f17_ecdcb06c",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "320d632f_da280d8d",
@@ -37,6 +55,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "72856d88_9ef02460",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:45:47Z",
+      "side": 1,
+      "message": "Addressed in patch set 5: reboot_for_rebuild now applies the boot mode before _is_one_time_boot_set/boot_to_type and no longer uses the clear/retry helper there, so it cannot delete the one-time boot job. Added an ordering test.",
+      "parentUuid": "320d632f_da280d8d",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "a6b43a59_3d494152",
         "filename": "src/quads/tools/external/badfish.py",
         "patchSetId": 4
@@ -48,6 +84,24 @@
       "writtenOn": "2026-11-06T04:40:38Z",
       "side": 1,
       "message": "`get_job_queue` returns every JID/RID found in the job collection (`get_job_queue` at line 519), including Completed and unrelated jobs. A truthy list does not prove a scheduled BIOS config job exists for this Settings resource. Filter on JobState New/Scheduled and JobType BIOSConfiguration, or read the job linked from the Settings resource. Otherwise this guard can pass with no job to apply the pending value, and `_wait_for_bootmode` burns the full 600s.",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f72d2721_9d1a3cf9",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:45:47Z",
+      "side": 1,
+      "message": "Addressed in patch set 5: patch_bios now uses has_pending_bios_job, which reads each job and requires JobState New/Scheduled/Running and JobType BIOSConfiguration. A test confirms a Completed job is ignored.",
+      "parentUuid": "a6b43a59_3d494152",
       "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
