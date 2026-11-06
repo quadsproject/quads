@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "3f2b8146_d5ff6796",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 982,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T05:43:54Z",
+      "side": 1,
+      "message": "Addressed in patch set 8: clear_pending_bios now uses the Badfish.clear_pending_retry_delay class attribute (default 10s) through a small _settle helper, so tests can set the delay without patching the shared asyncio module.",
+      "parentUuid": "f491d593_9af2d48b",
+      "revId": "ac38bbcfb1fc4cd2804582de87f60621ff8dc36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "75889a70_6732a394",
         "filename": "tests/unit/test_badfish_idrac10.py",
         "patchSetId": 7
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-06T05:37:44Z",
       "side": 1,
       "message": "`assert_awaited_once()` does not pin the delay. `assert_awaited_once_with(10)` would fail if the settle were accidentally dropped to zero.",
+      "revId": "ac38bbcfb1fc4cd2804582de87f60621ff8dc36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d39cbbd_dcfd81b1",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T05:43:54Z",
+      "side": 1,
+      "message": "Addressed in patch set 8: the test sets the class delay to 0, injects _settle, and asserts _settle was awaited once with 0, pinning the configured settle value.",
+      "parentUuid": "75889a70_6732a394",
       "revId": "ac38bbcfb1fc4cd2804582de87f60621ff8dc36e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
