@@ -44,6 +44,8 @@ class ResourceNotFound(BadfishException):
 
 
 class Badfish:
+    clear_pending_retry_delay = 10
+
     def __init__(self, _host, _rack, _uloc, _blade, _username, _password, loop=None, _retries=RETRIES):
         self.host = _host
         self.rack = _rack
@@ -293,6 +295,31 @@ class Badfish:
             return False
 
         return data
+
+    async def get_bios_settings_attributes(self):
+        logger.debug("Getting pending BIOS attributes.")
+        _uri = "%s%s" % (self.root_uri, self.bios_uri)
+        _response = await self.get_request(_uri)
+        if _response is None or getattr(_response, "status", None) != 200:
+            status = getattr(_response, "status", "unknown")
+            logger.error("Failed to read pending BIOS attributes, status code is: %s." % status)
+            raise BadfishException
+        try:
+            raw = await _response.text("utf-8", "ignore")
+            data = json.loads(raw.strip())
+        except Exception as ex:
+            logger.error(f"Failed to parse JSON response: {ex}")
+            raise BadfishException
+
+        if not isinstance(data, dict) or "Attributes" not in data:
+            logger.error("Could not retrieve pending Bios Attributes.")
+            raise BadfishException
+
+        return data
+
+    async def get_pending_bios_attribute(self, attribute):
+        data = await self.get_bios_settings_attributes()
+        return data["Attributes"].get(attribute)
 
     async def get_bios_attribute(self, attribute):
         data = await self.get_bios_attributes()
@@ -940,6 +967,44 @@ class Badfish:
         else:
             logger.warning("Job queue already cleared for iDRAC %s, DELETE command will not execute." % self.host)
 
+    async def _settle(self, delay):
+        await asyncio.sleep(delay)
+
+    async def clear_pending_bios(self):
+        _url = "%s%s/Actions/Oem/DellManager.ClearPending" % (self.root_uri, self.bios_uri)
+        _headers = {"content-type": "application/json"}
+        for attempt in range(2):
+            _response = await self.post_request(_url, {}, _headers)
+            if _response.status in [200, 202, 204]:
+                logger.info("Command passed to clear pending BIOS configuration.")
+                return
+            body = await _response.text("utf-8", "ignore")
+            if _response.status == 400 and "RAC1035" in body:
+                logger.info("No pending BIOS values to clear.")
+                return
+            if _response.status == 400 and "SYS011" in body and attempt == 0:
+                logger.warning("Pending BIOS configuration is busy; retrying ClearPending after settle.")
+                await self._settle(self.clear_pending_retry_delay)
+                continue
+            logger.error("Command failed to clear pending BIOS configuration, status code is %s." % _response.status)
+            await self.error_handler(_response)
+            return
+
+    async def has_pending_bios_job(self):
+        jobs_resource = await self.find_jobs_resource()
+        for job_id in await self.get_job_queue():
+            _url = "%s%s/%s" % (self.host_uri, jobs_resource, job_id)
+            _response = await self.get_request(_url)
+            if _response is None or _response.status != 200:
+                continue
+            try:
+                data = json.loads((await _response.text("utf-8", "ignore")).strip())
+            except ValueError:
+                continue
+            if data.get("JobState") in ("New", "Scheduled", "Running") and data.get("JobType") == "BIOSConfiguration":
+                return True
+        return False
+
     async def list_job_queue(self):
         _job_queue = await self.get_job_queue()
         if _job_queue:
@@ -1143,6 +1208,22 @@ class Badfish:
                 logger.info("Command passed to set BIOS attribute pending values.")
                 break
             else:
+                if status_code == 400 and not insist:
+                    body = await _response.text("utf-8", "ignore")
+                    if "already committed" in body:
+                        pending = await self.get_bios_settings_attributes()
+                        requested = payload.get("Attributes", {}) if isinstance(payload, dict) else {}
+                        pending_attributes = pending.get("Attributes", {}) if isinstance(pending, dict) else {}
+                        if requested and all(
+                            str(pending_attributes.get(name, "")).lower() == str(value).lower()
+                            for name, value in requested.items()
+                        ):
+                            if await self.has_pending_bios_job():
+                                logger.info("BIOS pending configuration contains requested values; reboot required.")
+                                break
+                            logger.error("BIOS pending configuration has no scheduled config job.")
+                        else:
+                            logger.error("BIOS pending configuration does not match requested values.")
                 logger.error("Command failed, error code is: %s." % status_code)
                 if status_code == 503 and i + 1 != self.retries:
                     logger.info("Retrying to send one time boot.")
