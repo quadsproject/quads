@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "336d3f17_ecdcb06c",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:40:38Z",
+      "side": 1,
+      "message": "`clear_job_queue` only deletes jobs; it does not clear pending BIOS attributes. When the queue is already empty and the pending BootMode still blocks a set (the SYS011 state Dell documents with an empty queue), this returns True without clearing anything, the re-read at line 426 still mismatches, and the rebuild aborts. The Settings resource exposes `Actions/Oem/DellManager.ClearPending`; calling that when the queue is empty would cover the state this retry cannot recover.",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "320d632f_da280d8d",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:40:38Z",
+      "side": 1,
+      "message": "`boot_to_type` at line 513 stages the one-time boot: `boot_to` calls `clear_job_queue`, then `send_one_time_boot`, then creates the BIOS config job (`external/badfish.py:1104-1111`). If `_apply_bootmode` fails once here, `_apply_bootmode_with_retry` calls `_clear_bootmode_jobs`, which deletes that job, then retries. The retry can return True after a recovered read or a set, and the code reboots without running `boot_to_type` again, so the PXE override is gone. I reproduced the order with stubbed dispatchers: `boot_to_type` -\u003e `clear_job_queue` -\u003e `reboot`. Suggest calling plain `_apply_bootmode` here (the mode was already reconciled in `prepare_host_hardware`), or re-running `boot_to_type` after any clear.",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6b43a59_3d494152",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:40:38Z",
+      "side": 1,
+      "message": "`get_job_queue` returns every JID/RID found in the job collection (`get_job_queue` at line 519), including Completed and unrelated jobs. A truthy list does not prove a scheduled BIOS config job exists for this Settings resource. Filter on JobState New/Scheduled and JobType BIOSConfiguration, or read the job linked from the Settings resource. Otherwise this guard can pass with no job to apply the pending value, and `_wait_for_bootmode` burns the full 600s.",
+      "revId": "168f0aa38b051f31b558822ead1efb811f1ebd48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
