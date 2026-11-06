@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c915e82a_61783d2e",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T13:44:20Z",
+      "side": 1,
+      "message": "Optional (follow-up, non-blocking): between _clear_bootmode_jobs() here and the re-read on line 437, a completed BIOS job can re-stage the same value, so the second read can still disagree and abort the rebuild. _wait_for_bootmode\u0027s deadline loop already tolerates slow convergence; extending that settle-retry shape to this path (re-clear once, or fold the pending check into a poll) would remove the last hard abort on a transient BMC state. Fine to defer to a follow-up since this is the rare stuck-host case.",
+      "range": {
+        "startLine": 441,
+        "startChar": 12,
+        "endLine": 446,
+        "endChar": 16
+      },
+      "revId": "4f8c97aa48548073299e6b9ab3cbc63ebb9995b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d03ef78_2c25f58c",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-06T13:44:20Z",
+      "side": 1,
+      "message": "Optional (non-blocking): a host that reaches _wait_for_bootmode and times out here leaves the BMC with a scheduled BIOS job and no boot device staged; the rebuild aborts at hardware_prep and boot_to_type() (the only later queue-clearing path) never runs. A single clear-job-queue on the timeout branch would leave the iDRAC in a cleaner state for the next manual retry. Behavioral choice, so fine to keep as-is.",
+      "revId": "4f8c97aa48548073299e6b9ab3cbc63ebb9995b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
