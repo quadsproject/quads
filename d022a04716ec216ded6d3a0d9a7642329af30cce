@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f63e7ae4_6e620243",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 785,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T08:50:26Z",
+      "side": 1,
+      "message": "Returning True here sends the no-op through `prepare_host_hardware`, which follows a successful `change_boot` with a fixed `await asyncio.sleep(600)` (src/quads/plugins/builtin/release/standard.py:291-296). No BIOS config job is queued on this path, so an already-matching host waits 10 minutes before the rebuild continues. Non-blocking: distinguish \"changed\" from \"already correct\", or move the wait off the no-op path.",
+      "revId": "d022a04716ec216ded6d3a0d9a7642329af30cce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0eb02a1_0d1f1bd0",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 729,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T08:50:26Z",
+      "side": 1,
+      "message": "The new test pins the no-op branch; a companion case for the mismatch path (`change_boot_order` and `reboot_server` awaited, True returned) would pin the split so a later edit cannot skip the real work.",
+      "revId": "d022a04716ec216ded6d3a0d9a7642329af30cce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
