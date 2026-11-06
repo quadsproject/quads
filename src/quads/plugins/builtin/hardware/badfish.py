@@ -136,6 +136,37 @@ class BadfishHardwarePlugin(HardwarePlugin):
             self.logger.error(f"Failed to set BIOS attributes {attributes}: {e}")
             return False
 
+    async def get_pending_bios_attribute(self, attribute: str) -> Optional[str]:
+        if not self.badfish:
+            self.logger.error("Badfish not initialized")
+            raise BadfishException("Badfish not initialized")
+
+        return await self.badfish.get_pending_bios_attribute(attribute)
+
+    async def clear_job_queue(self) -> bool:
+        if not self.badfish:
+            self.logger.error("Badfish not initialized")
+            return False
+
+        try:
+            await self.badfish.clear_job_queue()
+            return True
+        except BadfishException as e:
+            self.logger.error(f"Failed to clear job queue: {e}")
+            return False
+
+    async def clear_pending_bios(self) -> bool:
+        if not self.badfish:
+            self.logger.error("Badfish not initialized")
+            return False
+
+        try:
+            await self.badfish.clear_pending_bios()
+            return True
+        except BadfishException as e:
+            self.logger.error(f"Failed to clear pending BIOS configuration: {e}")
+            return False
+
     async def set_next_boot_pxe(self) -> bool:
         """Set the next boot to PXE"""
         if not self.badfish:
