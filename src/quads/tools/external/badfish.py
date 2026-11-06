@@ -294,6 +294,31 @@ class Badfish:
 
         return data
 
+    async def get_bios_settings_attributes(self):
+        logger.debug("Getting pending BIOS attributes.")
+        _uri = "%s%s" % (self.root_uri, self.bios_uri)
+        _response = await self.get_request(_uri)
+        if _response is None or getattr(_response, "status", None) != 200:
+            status = getattr(_response, "status", "unknown")
+            logger.error("Failed to read pending BIOS attributes, status code is: %s." % status)
+            raise BadfishException
+        try:
+            raw = await _response.text("utf-8", "ignore")
+            data = json.loads(raw.strip())
+        except Exception as ex:
+            logger.error(f"Failed to parse JSON response: {ex}")
+            raise BadfishException
+
+        if not isinstance(data, dict) or "Attributes" not in data:
+            logger.error("Could not retrieve pending Bios Attributes.")
+            raise BadfishException
+
+        return data
+
+    async def get_pending_bios_attribute(self, attribute):
+        data = await self.get_bios_settings_attributes()
+        return data["Attributes"].get(attribute)
+
     async def get_bios_attribute(self, attribute):
         data = await self.get_bios_attributes()
         try:
@@ -1143,6 +1168,22 @@ class Badfish:
                 logger.info("Command passed to set BIOS attribute pending values.")
                 break
             else:
+                if status_code == 400 and not insist:
+                    body = await _response.text("utf-8", "ignore")
+                    if "already committed" in body:
+                        pending = await self.get_bios_settings_attributes()
+                        requested = payload.get("Attributes", {}) if isinstance(payload, dict) else {}
+                        pending_attributes = pending.get("Attributes", {}) if isinstance(pending, dict) else {}
+                        if requested and all(
+                            str(pending_attributes.get(name, "")).lower() == str(value).lower()
+                            for name, value in requested.items()
+                        ):
+                            if await self.get_job_queue():
+                                logger.info("BIOS pending configuration contains requested values; reboot required.")
+                                break
+                            logger.error("BIOS pending configuration has no scheduled config job.")
+                        else:
+                            logger.error("BIOS pending configuration does not match requested values.")
                 logger.error("Command failed, error code is: %s." % status_code)
                 if status_code == 503 and i + 1 != self.retries:
                     logger.info("Retrying to send one time boot.")

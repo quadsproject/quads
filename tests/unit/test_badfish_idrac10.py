@@ -713,3 +713,92 @@ class TestSetBiosAttribute:
 
         badfish_instance.patch_bios.assert_not_awaited()
         badfish_instance.reboot_server.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_reads_pending_bios_attribute(self, badfish_instance):
+        badfish_instance.root_uri = HOST_URI
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_request = AsyncMock(return_value=make_response(200, {"Attributes": {"BootMode": "Bios"}}))
+
+        assert await badfish_instance.get_pending_bios_attribute("BootMode") == "Bios"
+        badfish_instance.get_request.assert_awaited_once_with(HOST_URI + badfish_instance.bios_uri)
+
+    @pytest.mark.asyncio
+    async def test_pending_settings_read_failure_raises(self, badfish_instance):
+        badfish_instance.root_uri = HOST_URI
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_request = AsyncMock(return_value=make_response(500, {"error": {"code": "Base.1.0"}}))
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.get_pending_bios_attribute("BootMode")
+
+    @pytest.mark.asyncio
+    async def test_matching_pending_configuration_is_not_a_failure(self, badfish_instance):
+        badfish_instance.root_uri = HOST_URI
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.retries = 1
+        badfish_instance.get_bios_settings_attributes = AsyncMock(return_value={"Attributes": {"BootMode": "Bios"}})
+        badfish_instance.get_job_queue = AsyncMock(return_value=["JID_123"])
+        badfish_instance.patch_request = AsyncMock(
+            return_value=make_response(
+                400,
+                {
+                    "error": {
+                        "message": "Pending configuration values are already committed, unable to perform another set operation."
+                    }
+                },
+            )
+        )
+
+        await badfish_instance.patch_bios({"Attributes": {"BootMode": "Bios"}}, insist=False)
+
+        badfish_instance.patch_request.assert_awaited_once()
+        badfish_instance.get_bios_settings_attributes.assert_awaited_once()
+        badfish_instance.get_job_queue.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_matching_pending_without_job_raises(self, badfish_instance):
+        badfish_instance.root_uri = HOST_URI
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.retries = 1
+        badfish_instance.get_bios_settings_attributes = AsyncMock(return_value={"Attributes": {"BootMode": "Bios"}})
+        badfish_instance.get_job_queue = AsyncMock(return_value=[])
+        badfish_instance.error_handler = AsyncMock(side_effect=BadfishException("no BIOS config job"))
+        badfish_instance.patch_request = AsyncMock(
+            return_value=make_response(
+                400,
+                {
+                    "error": {
+                        "message": "Pending configuration values are already committed, unable to perform another set operation."
+                    }
+                },
+            )
+        )
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.patch_bios({"Attributes": {"BootMode": "Bios"}}, insist=False)
+
+        badfish_instance.error_handler.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_conflicting_pending_configuration_raises(self, badfish_instance):
+        badfish_instance.root_uri = HOST_URI
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.retries = 1
+        badfish_instance.get_bios_settings_attributes = AsyncMock(return_value={"Attributes": {"BootMode": "Uefi"}})
+        badfish_instance.error_handler = AsyncMock(side_effect=BadfishException("pending mismatch"))
+        badfish_instance.patch_request = AsyncMock(
+            return_value=make_response(
+                400,
+                {
+                    "error": {
+                        "message": "Pending configuration values are already committed, unable to perform another set operation."
+                    }
+                },
+            )
+        )
+
+        with pytest.raises(BadfishException):
+            await badfish_instance.patch_bios({"Attributes": {"BootMode": "Bios"}}, insist=False)
+
+        badfish_instance.error_handler.assert_awaited_once()

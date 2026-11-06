@@ -105,12 +105,28 @@ class HardwarePlugin(BasePlugin):
 
     async def get_bios_attribute(self, attribute: str) -> Optional[str]:
         """
-        Read a single BIOS attribute value from the hardware.
+        Read a single applied BIOS attribute value from the hardware.
 
         Returns:
             The attribute value, or None if not found.
         """
         return None
+
+    async def get_pending_bios_attribute(self, attribute: str) -> Optional[str]:
+        """
+        Read a single pending BIOS attribute value from the hardware.
+
+        Raises:
+            Exception: If the pending BIOS settings cannot be read.
+
+        Returns:
+            The pending value, or None if there is no pending value.
+        """
+        return None
+
+    async def clear_job_queue(self) -> bool:
+        """Clear pending hardware configuration jobs."""
+        return False
 
     async def set_bios_attribute(self, attributes: dict) -> bool:
         """
