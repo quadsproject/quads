@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "5ef8711c_488fada1",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T13:49:57Z",
+      "side": 1,
+      "message": "Addressed in patch set 14: the single post-clear re-read is replaced by _settle_pending_bootmode(), which polls the pending value and re-clears once (bounded by the new bootmode_clear_attempts class attribute) before giving up, so a BIOS job that re-stages the value right after the clear no longer aborts the rebuild on the first disagreement. test_restaged_pending_bootmode_is_cleared_again covers the converge-on-second-attempt path (conflict, clear, conflict again, clear, clean -\u003e move proceeds), and test_conflicting_pending_bootmode_aborts now pins the two clear attempts before the abort. Mutation checked - collapsing the settle poll back to a single re-read fails the new test.\n\nI kept it bounded rather than folding it into the _wait_for_bootmode deadline loop: this path runs before anything is staged, so a genuinely stuck pending value should still surface quickly instead of consuming the 600s budget that the post-reboot wait needs.",
+      "parentUuid": "c915e82a_61783d2e",
+      "range": {
+        "startLine": 441,
+        "startChar": 12,
+        "endLine": 446,
+        "endChar": 16
+      },
+      "revId": "4f8c97aa48548073299e6b9ab3cbc63ebb9995b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5d03ef78_2c25f58c",
         "filename": "src/quads/plugins/builtin/release/standard.py",
         "patchSetId": 13
@@ -37,6 +61,24 @@
       "writtenOn": "2026-11-06T13:44:20Z",
       "side": 1,
       "message": "Optional (non-blocking): a host that reaches _wait_for_bootmode and times out here leaves the BMC with a scheduled BIOS job and no boot device staged; the rebuild aborts at hardware_prep and boot_to_type() (the only later queue-clearing path) never runs. A single clear-job-queue on the timeout branch would leave the iDRAC in a cleaner state for the next manual retry. Behavioral choice, so fine to keep as-is.",
+      "revId": "4f8c97aa48548073299e6b9ab3cbc63ebb9995b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd10d88e_5760d968",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T13:49:57Z",
+      "side": 1,
+      "message": "Addressed in patch set 14: the timeout branch now issues a best-effort clear_job_queue() before returning False, with a comment recording that boot_to_type() is the next queue-clearing path and never runs after this abort. A clear failure logs a warning and still returns False, so the abort reason is unchanged. test_bootmode_apply_timeout_aborts pins the clear and test_bootmode_timeout_clear_failure_is_warned pins the warning; both mutation checked (dropping the clear, and changing the warning text, each fail).",
+      "parentUuid": "5d03ef78_2c25f58c",
       "revId": "4f8c97aa48548073299e6b9ab3cbc63ebb9995b9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
