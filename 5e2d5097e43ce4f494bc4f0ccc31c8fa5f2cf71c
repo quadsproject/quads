@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "098cdb9b_c16da0af",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13: test_non_dell_vendor_skips_bootmode_reconcile drives prepare_host_hardware with get_vendor -\u003e \"HPE\" and asserts get_bios_attribute, set_bios_attribute and reboot_server are never awaited. Mutation checked - removing `vendor \u003d\u003d \"Dell\" and` fails it.",
+      "parentUuid": "b5e0b555_b5840440",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "749f687a_13bc3a90",
         "filename": "src/quads/plugins/builtin/release/standard.py",
         "patchSetId": 12
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-06T12:50:53Z",
       "side": 1,
       "message": "Both failure branches here (clear_job_queue -\u003e False and clear_pending_bios -\u003e False) abort the rebuild but have no test; two small tests pin them. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "da87aba8_eaa0472e",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13: test_job_queue_clear_failure_aborts and test_pending_bios_clear_failure_aborts pin both branches. The second one needed care: with the pending read returning the conflicting value twice, the move aborts on the re-read regardless, so the test passed even with the clear_pending_bios guard removed. It now returns the conflict once and a clean value on the re-read, so the ClearPending failure is the only thing that can abort. Both mutation checked - ignoring either return value fails the matching test.",
+      "parentUuid": "749f687a_13bc3a90",
       "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "0d676c4c_113625e5",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13: dropped the Raises block. The docstring now says implementations that can distinguish a failed read from an empty pending area should raise, while the default cannot and reports None for \"no pending value or unsupported\". test_hardware_plugin_default_values now also pins get_pending_bios_attribute -\u003e None, clear_job_queue -\u003e False and clear_pending_bios -\u003e False; mutation checked, flipping either clear default to True fails it.",
+      "parentUuid": "4a4cabad_4b1c7153",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "e52b572c_1191a436",
         "filename": "src/quads/tools/external/badfish.py",
         "patchSetId": 12
@@ -65,6 +119,24 @@
       "writtenOn": "2026-11-06T12:50:53Z",
       "side": 1,
       "message": "Two test gaps in this helper. (1) `_continue\u003dTrue` is unpinned: the four has_pending_bios_job tests mock get_request itself, so reverting to `get_request(_url)` leaves the suite green (probe). (2) The new warning tests prove a warning is emitted, not that the scan continues: changing both `continue` at 1000/1005 to `return False` keeps all four green. Adding a later-JID pending-BIOS case pins the skip-and-keep-scanning contract. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "828ace2e_8f739e25",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13, both gaps. (1) test_has_pending_bios_job_filters_job_state now asserts every get_request call passes _continue\u003dTrue; reverting to get_request(_url) fails it. (2) test_has_pending_bios_job_keeps_scanning_after_unreadable_job has an unreadable first JID followed by a Scheduled BIOSConfiguration JID and expects True with two reads, so changing either skip to `return False` fails it.",
+      "parentUuid": "e52b572c_1191a436",
       "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -88,6 +160,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "176a3e38_3d095fdd",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13: test_has_pending_bios_job_ignores_non_bios_jobs uses JobState Scheduled with JobType FirmwareUpdate and expects False. Mutation checked - dropping the JobType condition fails it.",
+      "parentUuid": "572f4904_654562e7",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "10e31eaa_87b78a0a",
         "filename": "tests/unit/test_badfish_idrac10.py",
         "patchSetId": 12
@@ -99,6 +189,24 @@
       "writtenOn": "2026-11-06T12:50:53Z",
       "side": 1,
       "message": "This test pins the error-body casing fix (good), but not the case-insensitive pending-vs-requested comparison it is named for: the pending value and the payload are both \"Bios\", and removing the `str(...).lower() \u003d\u003d str(...).lower()` comparison at badfish.py:1218-1219 leaves it green. Using \"BIOS\" for the pending value would cover both; the success half also duplicates test_matching_pending_configuration_is_not_a_failure. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "00fc8e22_9339da84",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 923,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:58:36Z",
+      "side": 1,
+      "message": "Addressed in patch set 13: the pending value is now \"BIOS\" against a requested \"Bios\", so the test pins both the error-body casing and the case-insensitive pending-vs-requested comparison, and it no longer duplicates test_matching_pending_configuration_is_not_a_failure. Mutation checked - removing the str(...).lower() comparison fails it.",
+      "parentUuid": "10e31eaa_87b78a0a",
       "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
