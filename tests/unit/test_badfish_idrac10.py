@@ -713,3 +713,19 @@ class TestSetBiosAttribute:
 
         badfish_instance.patch_bios.assert_not_awaited()
         badfish_instance.reboot_server.assert_not_awaited()
+
+
+class TestChangeBoot:
+    @pytest.mark.asyncio
+    async def test_already_matching_boot_order_is_success(self, badfish_instance):
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="director")
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.reboot_server = AsyncMock()
+
+        with patch("quads.tools.external.badfish.os.path.exists", return_value=True):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        badfish_instance.change_boot_order.assert_not_awaited()
+        badfish_instance.reboot_server.assert_not_awaited()
