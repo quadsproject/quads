@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "31ad6c7d_e0d165e6",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 1005,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T11:49:48Z",
+      "side": 1,
+      "message": "The ValueError branch added in this patch set has no test: a 200 response whose body is not JSON skips the job with only a log line, and deleting the warning leaves all 98 bootmode tests green, so nothing pins it. Suggest a case next to `test_has_pending_bios_job_warns_on_unreadable_job` that returns a 200 with a non-JSON body, asserts False, and asserts one warning. While there, assert the message text: hardcoding `status \u003d \"unreachable\"` passes the current test because it only counts warning calls.",
+      "revId": "3cf39fd84ff661918a21fa80baa3fdb413d5b627",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
