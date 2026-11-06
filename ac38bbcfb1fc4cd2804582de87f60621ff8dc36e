@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f491d593_9af2d48b",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 982,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T05:37:44Z",
+      "side": 1,
+      "message": "The release layer uses `bootmode_poll_interval` for its settle delays (standard.py:32,392), but this retry hardcodes 10s. A class attribute would keep the two in step and let the test set the delay to 0 instead of patching `asyncio.sleep` on the shared module.",
+      "revId": "ac38bbcfb1fc4cd2804582de87f60621ff8dc36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "75889a70_6732a394",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T05:37:44Z",
+      "side": 1,
+      "message": "`assert_awaited_once()` does not pin the delay. `assert_awaited_once_with(10)` would fail if the settle were accidentally dropped to zero.",
+      "revId": "ac38bbcfb1fc4cd2804582de87f60621ff8dc36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
