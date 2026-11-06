@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "57f324f8_92e3e972",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T03:31:23Z",
+      "side": 1,
+      "message": "New unconditional init plus this early return are not covered: `tests/unit/test_badfish_boot.py:21` forces `hardware_initialized \u003d True` in the fixture, so no new test calls `init()` or reaches `(False, None)`. A case with `hardware_initialized \u003d False` and `init` returning False would cover it.",
+      "revId": "da4e82ee1848b9f14fc22399d80d76d670e3bc8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff023758_ba3d7277",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T03:31:23Z",
+      "side": 1,
+      "message": "One `None` here aborts the whole move. `HardwareDispatcher.get_bios_attribute` (`dispatchers/hardware.py:95`) swallows Badfish exceptions and returns None, and `get_request` (`tools/external/badfish.py:115`) does not retry, so a single transient 503 or connection error during a power cycle fails the rebuild at hardware_prep. `_wait_for_bootmode` below already treats None as keep-polling; giving the initial read the same 2 to 3 attempts would make it as forgiving as the loop.",
+      "revId": "da4e82ee1848b9f14fc22399d80d76d670e3bc8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ece52a56_10c4b3cd",
+        "filename": "tests/unit/test_badfish_boot.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T03:31:23Z",
+      "side": 1,
+      "message": "This asserts `change_boot` is not called, but only because `boot_order` equals the default above. The ordering the change is about, boot mode applied before `boot_to_type`/`change_boot`, is not asserted anywhere. A case with `boot_order !\u003d default` recording call order (`set_bios_attribute` and `reboot_server` before `change_boot`, with the 600s sleep patched out) would cover the regression path.",
+      "revId": "da4e82ee1848b9f14fc22399d80d76d670e3bc8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
