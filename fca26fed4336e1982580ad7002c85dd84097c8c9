@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "85594420_26e80f25",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:36:04Z",
+      "side": 1,
+      "message": "Addressed in patch set 4: a pending BootMode mismatch now clears the iDRAC job queue once and retries, and a set failure does the same through _apply_bootmode_with_retry. Tests cover a conflicting pending value that clears successfully and a set failure that succeeds on retry.",
+      "parentUuid": "2a687e7b_38924c02",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "86198cdd_d85bf754",
         "filename": "src/quads/plugins/builtin/release/standard.py",
         "patchSetId": 3
@@ -37,6 +55,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "7a04117b_4e1df769",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:36:04Z",
+      "side": 1,
+      "message": "Addressed in patch set 4: a matching pending value is no longer trusted blindly. _apply_bootmode re-applies the value, and patch_bios now requires a scheduled BIOS config job; otherwise it raises so the caller can clear and retry. A missing-job test covers this.",
+      "parentUuid": "86198cdd_d85bf754",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "2486575a_76c2952f",
         "filename": "src/quads/tools/external/badfish.py",
         "patchSetId": 3
@@ -48,6 +84,24 @@
       "writtenOn": "2026-11-06T04:25:54Z",
       "side": 1,
       "message": "`get_request` does not check the response status, so a 401/500 body that is valid JSON is parsed and the missing `Attributes` key returns None, the same value as \u0027no pending change\u0027. The dispatcher also catches exceptions and returns None. `_ensure_bootmode` treats None as no conflict, so a failed Settings read silently disables the guard this change adds. Suggest distinguishing \u0027could not read\u0027 from \u0027no pending value\u0027, so the release layer can abort instead of assuming the pending area is clean.",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5ce78184_4c320996",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T04:36:04Z",
+      "side": 1,
+      "message": "Addressed in patch set 4: get_bios_settings_attributes now requires HTTP 200 and a valid Attributes payload and raises on failure; the dispatcher no longer converts read failures to None. The release layer aborts if the pending read fails, and a 500-response test covers it.",
+      "parentUuid": "2486575a_76c2952f",
       "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
