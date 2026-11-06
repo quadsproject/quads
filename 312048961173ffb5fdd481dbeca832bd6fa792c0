@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "418b48c8_77359a2f",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T08:30:25Z",
+      "side": 1,
+      "message": "_wait_for_bootmode\u0027s multi-poll path is never exercised: every test matches on the first iteration or sets timeout\u003d0, so this sleep and the re-read-after-mismatch never run, and a re-poll regression would pass CI. A case with timeout\u003e0 and get_bios_attribute side_effect [..., mismatch, match] asserting True + 2 polls covers it.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4cbd4b5_27a1824a",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T08:30:25Z",
+      "side": 1,
+      "message": "_apply_bootmode duplicates _ensure_bootmode. By the time _apply_bootmode_with_retry (399) calls it, _ensure_bootmode has already read current (412), read pending and resolved conflicts (417-439), and returned early on desired\u003d\u003dcurrent (441), so this method\u0027s current read (481), pending-conflict abort (486-496) and skip (497) are unreachable in production (_apply_bootmode has no caller but _apply_bootmode_with_retry, which has none but _ensure_bootmode). Folding the set into _apply_bootmode_with_retry drops ~35 dead lines and 2-4 redundant BMC reads, behavior-identical:\n\n    attrs \u003d {\"BootMode\": host_obj.bootmode}\n    if await self.hardware_dispatcher.set_bios_attribute(attrs):\n        return True\n    if not await self._clear_bootmode_jobs(host_obj):\n        return False\n    return await self.hardware_dispatcher.set_bios_attribute(attrs)\n\nThe direct _apply_bootmode unit tests then fold away (covered end-to-end in TestPrepareHostHardwareBootmode). Minor: _read_bootmode (374) and _pending_bootmode (384) take a host_obj they never use.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b0c73987_79263f41",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T08:30:25Z",
+      "side": 1,
+      "message": "Nit: default _continue\u003dFalse means a transient per-job GET error raises out of the whole check instead of skipping that job (sibling get_job_status passes _continue\u003dTrue at 540, which also makes the None-guard at 998 reachable). Fails safe today via clear+retry, so optional.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03a5b72e_9cc39a15",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1213,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T08:30:25Z",
+      "side": 1,
+      "message": "Casing fragility here: this matches \"already committed\" on the raw body, but create_job() at line 1027 matches it on .lower(). set_bios_attribute({\"BootMode\": ...}) rides this branch via patch_bios(insist\u003dFalse); an iDRAC firmware/locale returning the message with other casing would fall through to error_handler, raise, and abort the rebuild - the failure class this change fixes. Lowercasing body to match 1027 is enough. No test covers a non-lowercase body.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
