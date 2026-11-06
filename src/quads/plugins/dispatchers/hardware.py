@@ -104,6 +104,18 @@ class HardwareDispatcher(SinglePluginDispatcher[HardwarePlugin]):
             logger.error(f"Failed to get BIOS attribute: {e}")
             return None
 
+    async def get_pending_bios_attribute(self, attribute: str) -> Optional[str]:
+        plugin = self._get_active_plugin()
+        if not plugin:
+            logger.error("No hardware plugin enabled")
+            return None
+
+        try:
+            return await plugin.get_pending_bios_attribute(attribute)
+        except Exception as e:
+            logger.error(f"Failed to get pending BIOS attribute: {e}")
+            return None
+
     async def set_bios_attribute(self, attributes: dict) -> bool:
         plugin = self._get_active_plugin()
         if not plugin:
