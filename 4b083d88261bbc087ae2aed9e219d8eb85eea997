@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd8c9dfc_b118d71c",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T03:56:00Z",
+      "side": 1,
+      "message": "This compares only the applied BootMode from `/Bios`; a committed but unapplied value is invisible. If a previous move left a pending BootMode and the desired mode now matches the applied one, this early return leaves that pending value to land on the next reset, after boot order selection used the old mode. Narrow, since `change_boot` clears the job queue when the boot order differs, but the default boot order path has no clear. Suggest comparing the pending value too, or clearing/confirming it before returning here.",
+      "revId": "4b083d88261bbc087ae2aed9e219d8eb85eea997",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1417a991_3d62ec8c",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1148,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T03:56:00Z",
+      "side": 1,
+      "message": "Any 400 \"already committed\" is swallowed here, but the message only says a pending configuration blocks another set operation; it does not say this payload was accepted. If the pending values are unrelated (for example left by an earlier failed move), the BootMode set is dropped and `set_bios_attribute` still returns True, because the hardware plugin only fails on BadfishException. `_ensure_bootmode`\u0027s poll catches it after up to 600s, but `reboot_for_rebuild`\u0027s `_apply_bootmode` does not verify. Suggest reading the pending values from `/Bios/Settings` (the resource this method patches) and only treating 400 as success when the requested attributes are already pending, or returning a distinct result the caller can verify.",
+      "revId": "4b083d88261bbc087ae2aed9e219d8eb85eea997",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
