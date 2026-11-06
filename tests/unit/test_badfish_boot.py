@@ -248,3 +248,118 @@ class TestBootmodeApplication:
 
         assert result is False
         plugin.hardware_dispatcher.reboot_server.assert_not_called()
+
+
+class TestPrepareHostHardwareBootmode:
+
+    @pytest.mark.asyncio
+    async def test_applies_bootmode_before_boot_order_selection(self, plugin):
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(side_effect=["Uefi", "Uefi", "Bios"])
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.change_boot = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode="Bios"), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is True
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.set_bios_attribute.assert_awaited_once_with({"BootMode": "Bios"})
+        plugin.hardware_dispatcher.reboot_server.assert_awaited_once_with(graceful=False)
+        plugin.hardware_dispatcher.change_boot.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_does_not_reboot_when_bootmode_matches(self, plugin):
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(return_value="Bios")
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode="Bios"), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is True
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.set_bios_attribute.assert_not_called()
+        plugin.hardware_dispatcher.reboot_server.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_unset_bootmode_skips_apply(self, plugin):
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock()
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode=None), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is True
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute.assert_not_called()
+        plugin.hardware_dispatcher.set_bios_attribute.assert_not_called()
+        plugin.hardware_dispatcher.reboot_server.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_bootmode_set_failure_aborts_without_reboot(self, plugin):
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(side_effect=["Uefi", "Uefi"])
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=False)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode="Bios"), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is False
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.reboot_server.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_bootmode_reboot_failure_aborts(self, plugin):
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(side_effect=["Uefi", "Uefi"])
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=False)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode="Bios"), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is False
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.set_bios_attribute.assert_awaited_once_with({"BootMode": "Bios"})
+        plugin.hardware_dispatcher.reboot_server.assert_awaited_once_with(graceful=False)
+        plugin.logger.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_bootmode_apply_timeout_aborts(self, plugin):
+        plugin.bootmode_apply_timeout = 0
+        plugin.hardware_dispatcher.get_vendor.return_value = "Dell"
+        plugin.hardware_dispatcher.get_bios_attribute = AsyncMock(side_effect=["Uefi", "Uefi"])
+        plugin.hardware_dispatcher.set_bios_attribute = AsyncMock(return_value=True)
+        plugin.hardware_dispatcher.reboot_server = AsyncMock(return_value=True)
+
+        with patch("quads.plugins.builtin.release.standard.Config") as mock_cfg:
+            mock_cfg.plugins = {"foreman": {"default_boot_order": "foreman"}}
+            result, vendor = await plugin.prepare_host_hardware(
+                _mock_host(bootmode="Bios"), "foreman", "/path/interfaces.yml"
+            )
+
+        assert result is False
+        assert vendor == "Dell"
+        plugin.hardware_dispatcher.reboot_server.assert_awaited_once_with(graceful=False)
+        plugin.logger.error.assert_called_once()
