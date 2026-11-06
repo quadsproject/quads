@@ -16,6 +16,24 @@
       "message": "The ValueError branch added in this patch set has no test: a 200 response whose body is not JSON skips the job with only a log line, and deleting the warning leaves all 98 bootmode tests green, so nothing pins it. Suggest a case next to `test_has_pending_bios_job_warns_on_unreadable_job` that returns a 200 with a non-JSON body, asserts False, and asserts one warning. While there, assert the message text: hardcoding `status \u003d \"unreachable\"` passes the current test because it only counts warning calls.",
       "revId": "3cf39fd84ff661918a21fa80baa3fdb413d5b627",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f19e1cf_754ffc1f",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 1005,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T12:00:15Z",
+      "side": 1,
+      "message": "Addressed in patch set 12, both halves of the suggestion:\n\n- test_has_pending_bios_job_warns_on_unparseable_job covers the ValueError branch: a 200 response with a non-JSON body, asserting the job is skipped, the result is False, and one warning naming the job fires. Mutation checked - deleting the parse warning fails it.\n- You were right that counting warning calls could not catch a hardcoded status. The None case now asserts the message contains the job id and \"unreachable\", and a new test_has_pending_bios_job_warns_on_job_http_error returns a 500 and asserts the message contains \"500\". Mutation checked - replacing getattr(_response, \"status\", \"unreachable\") with a literal \"unreachable\" fails the 500 case.\n\n100 tests pass across the two bootmode modules; no source change was needed this round.",
+      "parentUuid": "31ad6c7d_e0d165e6",
+      "revId": "3cf39fd84ff661918a21fa80baa3fdb413d5b627",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
