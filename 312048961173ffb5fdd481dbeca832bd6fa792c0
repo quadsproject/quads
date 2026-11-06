@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "22530733_bf726ca1",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T11:03:18Z",
+      "side": 1,
+      "message": "Addressed in patch set 10: added test_waits_across_polls_for_bootmode, which runs with the default bootmode_apply_timeout and get_bios_attribute returning mismatch then match, asserting True with 3 reads (initial read plus two polls). That exercises the sleep and the re-read after a mismatch, so a re-poll regression now fails. The fixture already sets bootmode_poll_interval to 0, so it costs no runtime.",
+      "parentUuid": "418b48c8_77359a2f",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b4cbd4b5_27a1824a",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-06T08:30:25Z",
       "side": 1,
       "message": "_apply_bootmode duplicates _ensure_bootmode. By the time _apply_bootmode_with_retry (399) calls it, _ensure_bootmode has already read current (412), read pending and resolved conflicts (417-439), and returned early on desired\u003d\u003dcurrent (441), so this method\u0027s current read (481), pending-conflict abort (486-496) and skip (497) are unreachable in production (_apply_bootmode has no caller but _apply_bootmode_with_retry, which has none but _ensure_bootmode). Folding the set into _apply_bootmode_with_retry drops ~35 dead lines and 2-4 redundant BMC reads, behavior-identical:\n\n    attrs \u003d {\"BootMode\": host_obj.bootmode}\n    if await self.hardware_dispatcher.set_bios_attribute(attrs):\n        return True\n    if not await self._clear_bootmode_jobs(host_obj):\n        return False\n    return await self.hardware_dispatcher.set_bios_attribute(attrs)\n\nThe direct _apply_bootmode unit tests then fold away (covered end-to-end in TestPrepareHostHardwareBootmode). Minor: _read_bootmode (374) and _pending_bootmode (384) take a host_obj they never use.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4e2e089_b89e33f8",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T11:03:18Z",
+      "side": 1,
+      "message": "Addressed in patch set 10: _apply_bootmode is folded into _apply_bootmode_with_retry exactly as suggested (set, clear once on failure, set again), the \"does not match desired, setting it\" warning moved up into _ensure_bootmode where current and desired are both in scope, and the direct unit tests folded away. standard.py is 27 lines net smaller and the duplicate BMC reads are gone. _read_bootmode() and _pending_bootmode() no longer take the unused host_obj.\n\nOne wording note, because the distinction matters for how we triage this kind of finding: those branches were redundant, not dead. Dead code is unreachable by construction; these were reachable, just duplicated. _apply_bootmode\u0027s own current-read could still return None if the BMC failed transiently between it and the read _ensure_bootmode had just done, and on the post-clear retry the pending re-read could legitimately observe a different value. What makes the fold safe is not that the branches could never execute, it is that _ensure_bootmode already performs both checks immediately beforehand and Badfish.set_bios_attribute() skips the PATCH when the applied value already matches, so removing the second weaker copy loses no behavior.",
+      "parentUuid": "b4cbd4b5_27a1824a",
       "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -52,6 +88,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "72ad8e40_80bba7f8",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T11:03:18Z",
+      "side": 1,
+      "message": "Addressed in patch set 10: has_pending_bios_job now calls get_request(_url, _continue\u003dTrue), so a transient per-job GET error skips that job instead of raising out of the whole check, and the _response is None guard below it is now reachable as you noted.",
+      "parentUuid": "b0c73987_79263f41",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "03a5b72e_9cc39a15",
@@ -65,6 +119,24 @@
       "writtenOn": "2026-11-06T08:30:25Z",
       "side": 1,
       "message": "Casing fragility here: this matches \"already committed\" on the raw body, but create_job() at line 1027 matches it on .lower(). set_bios_attribute({\"BootMode\": ...}) rides this branch via patch_bios(insist\u003dFalse); an iDRAC firmware/locale returning the message with other casing would fall through to error_handler, raise, and abort the rebuild - the failure class this change fixes. Lowercasing body to match 1027 is enough. No test covers a non-lowercase body.",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ec36fbeb_8160a3f2",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1213,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T11:03:18Z",
+      "side": 1,
+      "message": "Addressed in patch set 10: patch_bios now lowercases the body before matching, same as create_job at line 1027, and test_pending_match_is_case_insensitive covers a mixed-case \"ALREADY COMMITTED\" body reaching the pending-match branch instead of error_handler.",
+      "parentUuid": "03a5b72e_9cc39a15",
       "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
