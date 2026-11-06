@@ -3,6 +3,7 @@ Standard Release Plugin - Default implementation for host release/rebuild
 """
 
 import asyncio
+import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -27,6 +28,8 @@ class StandardReleasePlugin(ReleasePlugin):
     version = "1.0.0"
     description = "Standard release plugin for moving and rebuilding hosts"
     author = "QUADS Team"
+    bootmode_apply_timeout = 600
+    bootmode_poll_interval = 10
 
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         self.quads = QuadsApi(Config)
@@ -278,15 +281,22 @@ class StandardReleasePlugin(ReleasePlugin):
     ) -> tuple[bool, Optional[str]]:
         """Prepare host hardware for rebuild. Returns (success, vendor)."""
         try:
-            vendor = None
+            if not self.hardware_initialized:
+                self.hardware_initialized = await self.hardware_dispatcher.init(
+                    host_obj.name, host_obj.rack, host_obj.uloc, host_obj.blade
+                )
+            if not self.hardware_initialized:
+                return False, None
+            vendor = self.hardware_dispatcher.get_vendor()  # sync read after init, no yield between
+
+            # Reconcile BootMode before boot order selection. UEFI exposes
+            # different boot device names than the BIOS mappings in
+            # idrac_interfaces.yml, so boot_to_type() must run after the
+            # desired mode has been applied.
+            if vendor == "Dell" and not await self._ensure_bootmode(host_obj):
+                return False, vendor
+
             if boot_order != Config.plugins["foreman"]["default_boot_order"]:
-                if not self.hardware_initialized:
-                    self.hardware_initialized = await self.hardware_dispatcher.init(
-                        host_obj.name, host_obj.rack, host_obj.uloc, host_obj.blade
-                    )
-                if not self.hardware_initialized:
-                    return False, None
-                vendor = self.hardware_dispatcher.get_vendor()  # sync read after init, no yield between
                 if vendor == "Dell":
                     if not await self.hardware_dispatcher.change_boot(boot_order, interfaces_path):
                         self.logger.error(f"Could not set boot order for {host_obj.name}.")
@@ -361,6 +371,100 @@ class StandardReleasePlugin(ReleasePlugin):
             )
         return False
 
+    async def _read_bootmode(self, host_obj: Host) -> Optional[str]:
+        """Read BootMode, retrying transient BMC failures before giving up."""
+        for attempt in range(3):
+            current = await self.hardware_dispatcher.get_bios_attribute("BootMode")
+            if current is not None:
+                return current
+            if attempt < 2:
+                await asyncio.sleep(self.bootmode_poll_interval)
+        return None
+
+    async def _pending_bootmode(self, host_obj: Host) -> Optional[str]:
+        return await self.hardware_dispatcher.get_pending_bios_attribute("BootMode")
+
+    async def _clear_bootmode_jobs(self, host_obj: Host) -> bool:
+        self.logger.warning(f"Clearing iDRAC job queue on {host_obj.name} before retrying BootMode.")
+        if not await self.hardware_dispatcher.clear_job_queue():
+            self.logger.error(f"Could not clear job queue on {host_obj.name}, aborting rebuild.")
+            return False
+        if not await self.hardware_dispatcher.clear_pending_bios():
+            self.logger.error(f"Could not clear pending BIOS configuration on {host_obj.name}, aborting rebuild.")
+            return False
+        await asyncio.sleep(self.bootmode_poll_interval)
+        return True
+
+    async def _apply_bootmode_with_retry(self, host_obj: Host) -> bool:
+        if await self._apply_bootmode(host_obj):
+            return True
+        if not await self._clear_bootmode_jobs(host_obj):
+            return False
+        return await self._apply_bootmode(host_obj)
+
+    async def _ensure_bootmode(self, host_obj: Host) -> bool:
+        """Set and apply host_obj.bootmode before boot device selection."""
+        desired = host_obj.bootmode
+        if not desired:
+            return True
+
+        current = await self._read_bootmode(host_obj)
+        if current is None:
+            self.logger.error(f"Could not read BootMode on {host_obj.name}, aborting rebuild.")
+            return False
+
+        try:
+            pending = await self._pending_bootmode(host_obj)
+        except Exception as e:
+            self.logger.error(f"Could not read pending BootMode on {host_obj.name}: {e}")
+            return False
+        if pending is not None and desired.lower() != pending.lower():
+            self.logger.warning(
+                f"Pending BootMode {pending} on {host_obj.name} does not match "
+                f"desired {desired}; clearing job queue and retrying."
+            )
+            if not await self._clear_bootmode_jobs(host_obj):
+                return False
+            try:
+                pending = await self._pending_bootmode(host_obj)
+            except Exception as e:
+                self.logger.error(f"Could not read pending BootMode on {host_obj.name}: {e}")
+                return False
+            if pending is not None and desired.lower() != pending.lower():
+                self.logger.error(
+                    f"Pending BootMode {pending} on {host_obj.name} still does not match "
+                    f"desired {desired}, aborting rebuild."
+                )
+                return False
+
+        if desired.lower() == current.lower():
+            return True
+
+        if not await self._apply_bootmode_with_retry(host_obj):
+            return False
+
+        self.logger.info(f"Rebooting {host_obj.name} to apply BootMode {desired}.")
+        if not await self.hardware_dispatcher.reboot_server(graceful=False):
+            self.logger.error(f"Failed to reboot {host_obj.name} to apply BootMode {desired}.")
+            return False
+
+        return await self._wait_for_bootmode(host_obj, desired)
+
+    async def _wait_for_bootmode(self, host_obj: Host, desired: str) -> bool:
+        """Wait for a pending BootMode change to be reported by the BMC."""
+        deadline = time.monotonic() + self.bootmode_apply_timeout
+        while time.monotonic() < deadline:
+            current = await self.hardware_dispatcher.get_bios_attribute("BootMode")
+            if current and current.lower() == desired.lower():
+                self.logger.info(f"BootMode {current} applied on {host_obj.name}.")
+                return True
+            await asyncio.sleep(self.bootmode_poll_interval)
+
+        self.logger.error(
+            f"BootMode {desired} was not applied on {host_obj.name} within {self.bootmode_apply_timeout}s."
+        )
+        return False
+
     async def _apply_bootmode(self, host_obj: Host) -> bool:
         """Set the BIOS boot mode to host_obj.bootmode when it differs.
 
@@ -373,9 +477,21 @@ class StandardReleasePlugin(ReleasePlugin):
         if not bootmode:
             return True
 
-        current = await self.hardware_dispatcher.get_bios_attribute("BootMode")
+        current = await self._read_bootmode(host_obj)
         if current is None:
             self.logger.error(f"Could not read BootMode on {host_obj.name}, aborting rebuild.")
+            return False
+
+        try:
+            pending = await self._pending_bootmode(host_obj)
+        except Exception as e:
+            self.logger.error(f"Could not read pending BootMode on {host_obj.name}: {e}")
+            return False
+        if pending is not None and bootmode.lower() != pending.lower():
+            self.logger.error(
+                f"Pending BootMode {pending} on {host_obj.name} does not match "
+                f"desired {bootmode}, aborting rebuild."
+            )
             return False
         if bootmode.lower() != current.lower():
             self.logger.warning(
@@ -396,6 +512,9 @@ class StandardReleasePlugin(ReleasePlugin):
             self.logger.error(f"Hardware not initialized for {host_obj.name}")
             return False
 
+        if not await self._apply_bootmode(host_obj):
+            return False
+
         if not await self._is_one_time_boot_set(host_obj):
             if not await self.hardware_dispatcher.boot_to_type(
                 Config.plugins["foreman"]["default_boot_order"],
@@ -403,9 +522,6 @@ class StandardReleasePlugin(ReleasePlugin):
             ):
                 self.logger.error(f"Error setting PXE boot on {host_obj.name}.")
                 return False
-
-        if not await self._apply_bootmode(host_obj):
-            return False
 
         if not await self.hardware_dispatcher.reboot_server(graceful=False):
             self.logger.error(f"Error rebooting server: {host_obj.name}")
