@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7d2de2fc_cbecf400",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T11:15:40Z",
+      "side": 1,
+      "message": "When a per-job GET raises, `_continue\u003dTrue` returns None and the loop skips the job without a trace, then `patch_bios` reports no scheduled config job (1224) and aborts. Suggest a warning log here and a test for the None path, so a transient BMC read failure is not misdiagnosed as a missing job.",
+      "revId": "b37d7f8994ae016476b62456b318c484af24d153",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
