@@ -961,3 +961,36 @@ class TestSetBiosAttribute:
         await badfish_instance.patch_bios({"Attributes": {"BootMode": "Bios"}}, insist=False)
 
         badfish_instance.error_handler.assert_not_awaited()
+
+
+class TestChangeBoot:
+    @pytest.mark.asyncio
+    async def test_already_matching_boot_order_is_success(self, badfish_instance):
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="director")
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.reboot_server = AsyncMock()
+
+        with patch("quads.tools.external.badfish.os.path.exists", return_value=True):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        badfish_instance.change_boot_order.assert_not_awaited()
+        badfish_instance.reboot_server.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_differing_boot_order_changes_and_reboots(self, badfish_instance):
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="foreman")
+        badfish_instance.clear_job_queue = AsyncMock()
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.create_bios_config_job = AsyncMock(return_value=None)
+        badfish_instance.reboot_server = AsyncMock()
+
+        with patch("quads.tools.external.badfish.os.path.exists", return_value=True):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        badfish_instance.change_boot_order.assert_awaited_once()
+        badfish_instance.reboot_server.assert_awaited_once()

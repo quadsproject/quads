@@ -806,8 +806,9 @@ class Badfish:
             await self.reboot_server()
 
         else:
-            logger.warning("No changes were made since the boot order already matches the requested.")
-            return False
+            # Already on the requested boot order: a no-op is success, not failure.
+            # Callers (prepare_host_hardware) abort the rebuild on a False return.
+            logger.info("No changes were made since the boot order already matches the requested.")
         return True
 
     async def change_boot_order(self, _host_type, _interfaces_path):
