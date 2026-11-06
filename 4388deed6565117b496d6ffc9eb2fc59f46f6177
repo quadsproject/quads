@@ -16,6 +16,24 @@
       "message": "Overriding the delay to 0 while `_settle` is mocked makes this assertion unable to catch a zero-delay regression: a production `_settle(0)` would pass `assert_awaited_once_with(0)`. Since `_settle` is mocked and costs no time, drop this line and assert `_settle.assert_awaited_once_with(10)` (or `Badfish.clear_pending_retry_delay`) to pin the default.",
       "revId": "4388deed6565117b496d6ffc9eb2fc59f46f6177",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "694d3804_cead394c",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 821,
+      "author": {
+        "id": 1006961
+      },
+      "writtenOn": "2026-11-06T05:54:11Z",
+      "side": 1,
+      "message": "Addressed in patch set 9: dropped the clear_pending_retry_delay override and the test now asserts _settle was awaited once with 10, so a zero-delay regression in the default fails the test.",
+      "parentUuid": "f198b047_fbbf9178",
+      "revId": "4388deed6565117b496d6ffc9eb2fc59f46f6177",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
