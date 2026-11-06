@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "73ffebf3_6610d304",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:54:50Z",
+      "side": 1,
+      "message": "`boot_to_type` below calls `boot_to`, which does `clear_job_queue()` (badfish.py:1132) before setting the one-time boot. If this `_apply_bootmode` queues a BootMode change, that clear removes the job, and Dell\u0027s guidance is that the pending values have to be set again after a job is deleted, so the reboot applies only the one-time boot. `_ensure_bootmode` normally reconciles the mode earlier, so this is latent, but it means the reconciliation here cannot take effect. Consider clearing before `_apply_bootmode` and calling `send_one_time_boot` without the clear, or dropping this call and relying on `_ensure_bootmode`.",
+      "revId": "1d0a6dce5f1d4b78efa5ccc0ea3484d986312e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73ef0f4a_1ad09d77",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:54:50Z",
+      "side": 1,
+      "message": "`error_handler` raises on any non-2xx, but Dell returns 400 RAC1035 \"There are no pending values to be cleared\" when there is nothing pending (iDRAC8/9 message registry; the iDRAC8 Redfish guide lists 400/RAC1035 for this action). `_clear_bootmode_jobs` at standard.py:392 aborts the rebuild when this returns False, so a retry after a BMC read error or a failed set with nothing pending now aborts instead of retrying. Return early for RAC1035, or treat it as success.",
+      "revId": "1d0a6dce5f1d4b78efa5ccc0ea3484d986312e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
