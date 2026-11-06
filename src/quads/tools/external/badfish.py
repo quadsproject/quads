@@ -1143,6 +1143,11 @@ class Badfish:
                 logger.info("Command passed to set BIOS attribute pending values.")
                 break
             else:
+                if status_code == 400 and not insist:
+                    body = await _response.text("utf-8", "ignore")
+                    if "already committed" in body:
+                        logger.info("BIOS pending configuration already committed; reboot required.")
+                        break
                 logger.error("Command failed, error code is: %s." % status_code)
                 if status_code == 503 and i + 1 != self.retries:
                     logger.info("Retrying to send one time boot.")
