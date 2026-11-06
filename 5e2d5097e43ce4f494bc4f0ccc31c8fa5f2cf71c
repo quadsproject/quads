@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5e0b555_b5840440",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "Dell-only gate is unpinned: removing `vendor \u003d\u003d \"Dell\" and` keeps all 100 tests green (mutation probe). Without the gate, HPE hosts enter _read_bootmode, where the base get_bios_attribute returns None, so every HPE rebuild aborts. One test with get_vendor -\u003e \"HPE\" asserting get_bios_attribute/set_bios_attribute are not awaited closes it. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "749f687a_13bc3a90",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "Both failure branches here (clear_job_queue -\u003e False and clear_pending_bios -\u003e False) abort the rebuild but have no test; two small tests pin them. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a4cabad_4b1c7153",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "Contract mismatch: the docstring documents a raise, but the base implementation returns None, so a plugin relying on the default reports \"no pending value\" and skips the conflict guard in _ensure_bootmode. Unreachable today (Dell-gated, one hardware plugin), so nit. Either drop the Raises block or state \"None \u003d no pending/unsupported\". Same gap in tests/plugins/test_interfaces.py::test_hardware_plugin_default_values: the three new defaults are not pinned, so flipping clear_job_queue to True would defeat the fail-safe abort with a green suite.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e52b572c_1191a436",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "Two test gaps in this helper. (1) `_continue\u003dTrue` is unpinned: the four has_pending_bios_job tests mock get_request itself, so reverting to `get_request(_url)` leaves the suite green (probe). (2) The new warning tests prove a warning is emitted, not that the scan continues: changing both `continue` at 1000/1005 to `return False` keeps all four green. Adding a later-JID pending-BIOS case pins the skip-and-keep-scanning contract. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "572f4904_654562e7",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "The JobType filter on this line is unpinned: dropping `and data.get(\"JobType\") \u003d\u003d \"BIOSConfiguration\"` keeps all four has_pending_bios_job tests green (probe), so a Scheduled non-BIOS job (e.g. firmware update) would be mistaken for a BIOS config job by the \"already committed\" success path. One test with JobState Scheduled + JobType !\u003d BIOSConfiguration expecting False closes it. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10e31eaa_87b78a0a",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 923,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-06T12:50:53Z",
+      "side": 1,
+      "message": "This test pins the error-body casing fix (good), but not the case-insensitive pending-vs-requested comparison it is named for: the pending value and the payload are both \"Bios\", and removing the `str(...).lower() \u003d\u003d str(...).lower()` comparison at badfish.py:1218-1219 leaves it green. Using \"BIOS\" for the pending value would cover both; the success half also duplicates test_matching_pending_configuration_is_not_a_failure. Nit.",
+      "revId": "5e2d5097e43ce4f494bc4f0ccc31c8fa5f2cf71c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
