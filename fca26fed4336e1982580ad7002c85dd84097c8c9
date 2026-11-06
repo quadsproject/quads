@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2a687e7b_38924c02",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:25:54Z",
+      "side": 1,
+      "message": "This abort runs before `change_boot` and `boot_to`, the only paths that clear the iDRAC job queue (`change_boot` calls `clear_job_queue` at `external/badfish.py:794`; `boot_to` calls it at line 1107). If a pending BootMode differs from the host record, for example after the record is updated following a failed attempt, every retry fails here. The set failure at line 408 has the same problem: a 400 from `set_bios_attribute` aborts before any clear. At this point in the move nothing legitimate is pending yet, so suggest clearing the job queue and retrying the set once when the pending configuration is the blocker.",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "86198cdd_d85bf754",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:25:54Z",
+      "side": 1,
+      "message": "Job creation is a side effect of the PATCH (`patch_bios` sends `SettingsApplyTime: OnReset`, which schedules the BIOS config job on iDRAC9 per the comment at `external/badfish.py:987`). If the staged value outlived its job, for example a failed or deleted job, this shortcut returns True without a job to apply it. The reboot then cannot apply the mode, `_wait_for_bootmode` burns the full 600s, and the next attempt takes the same path. Suggest PATCHing anyway or checking for a scheduled job before returning here.",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2486575a_76c2952f",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T04:25:54Z",
+      "side": 1,
+      "message": "`get_request` does not check the response status, so a 401/500 body that is valid JSON is parsed and the missing `Attributes` key returns None, the same value as \u0027no pending change\u0027. The dispatcher also catches exceptions and returns None. `_ensure_bootmode` treats None as no conflict, so a failed Settings read silently disables the guard this change adds. Suggest distinguishing \u0027could not read\u0027 from \u0027no pending value\u0027, so the release layer can abort instead of assuming the pending area is clean.",
+      "revId": "fca26fed4336e1982580ad7002c85dd84097c8c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
