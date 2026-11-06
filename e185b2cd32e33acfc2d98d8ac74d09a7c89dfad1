@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51d68e1a_838fa519",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T05:13:43Z",
+      "side": 1,
+      "message": "`_clear_bootmode_jobs()` deletes the job queue and calls this immediately (standard.py:389-394). Dell\u0027s OpenManage `idrac_bios` module deletes all jobs, sleeps 10s, then calls ClearPending and retries once on a 400 SYS011. A 400 SYS011 here falls through to `error_handler()`, aborting the rebuild with the conflicting pending BootMode still staged. Add a settle delay before ClearPending or treat SYS011 as retryable.",
+      "revId": "e185b2cd32e33acfc2d98d8ac74d09a7c89dfad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c5091749_54f2f253",
+        "filename": "tests/unit/test_badfish_boot.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-06T05:13:43Z",
+      "side": 1,
+      "message": "This passes with the removed `_apply_bootmode()` call re-added: applied BootMode and the mock host bootmode are both \"Bios\", so the call is a no-op and `set_bios_attribute.assert_not_called()` still holds. Mock `_apply_bootmode` and assert it was not awaited, or use bootmode\u003d\"Uefi\" with applied \"Bios\".",
+      "revId": "e185b2cd32e33acfc2d98d8ac74d09a7c89dfad1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
