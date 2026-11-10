@@ -33,6 +33,24 @@
       "message": "this seems very unnecessary",
       "revId": "b330449a4cbdad9eb29266d3b40e0e001138329a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "23bc4078_e8dfd0d8",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 970,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4159fe86_de13a87d",
+      "revId": "b330449a4cbdad9eb29266d3b40e0e001138329a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }

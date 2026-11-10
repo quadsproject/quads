@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "84cf6f1b_b34e0486",
+        "filename": "src/quads/plugins/builtin/release/standard.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6322beb3_c7facb4e",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "418b48c8_77359a2f",
@@ -105,6 +123,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8b9bbc2_abe2cf5d",
+        "filename": "src/quads/plugins/interfaces/hardware.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a1beb32_7f192ade",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dd5386e2_d78261a0",
@@ -118,6 +154,24 @@
       "writtenOn": "2026-11-06T14:54:32Z",
       "side": 1,
       "message": "Make this a constant like RETRIES on line#19, call it RETRY_DELAY",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc40643d_d8fcbf37",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd5386e2_d78261a0",
       "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -139,6 +193,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "031c4427_8867e39d",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d1bd9bf_d069cefc",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0376ea0b_25888aff",
@@ -156,6 +228,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "21692049_5a04aecd",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 971,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0376ea0b_25888aff",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ecc407ca_3f88d932",
@@ -169,6 +259,24 @@
       "writtenOn": "2026-11-06T14:54:32Z",
       "side": 1,
       "message": "This is specific for dell systems, we\u0027ll get an error for all other vendors",
+      "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3d6ecf6_ab8b9e57",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-10T14:08:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ecc407ca_3f88d932",
       "revId": "312048961173ffb5fdd481dbeca832bd6fa792c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
