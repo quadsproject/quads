@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5bdb9ea_3a83fe0a",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 15
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-10T12:19:07Z",
+      "side": 1,
+      "message": "Setting `clear_pending_retry_delay \u003d 0` and then asserting the sleep was awaited with 0 makes this assertion self-fulfilling and drops the pin on the production default that PS14 had (`_settle` awaited with 10). Since the sleep is patched anyway, drop this line and assert `mock_sleep.assert_awaited_once_with(10)`.",
+      "revId": "597d7b3003bdd7b993dbeee1abd820121ecc1c26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
