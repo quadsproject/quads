@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "416b8d44_bc3535f4",
+        "filename": "src/quads/web/templates/wiki/assignments.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-10T07:41:08Z",
+      "side": 1,
+      "message": "`headers` now varies with auth (5 or 7), and `updateUnmanagedHosts` / `updateFaultyHosts` still use `headers.length` for their loading/error colspan while rendering two cells per row (lines 398 and 454). Pre-existing, not introduced here, but a fixed two-column count in those two tables would remove the leftover assumption.",
+      "revId": "73dc53d72caffcc494ac1d2448dac015271c9feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0545b69_0b148953",
+        "filename": "tests/web/test_assignments.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-10T07:41:08Z",
+      "side": 1,
+      "message": "These assertions pin the exact serialized `const headers \u003d [...]` text, so a Jinja/`tojson` formatting change would break the test without a behavior change. They also leave the row cell count (acceptance criterion 3) untested because the cells are built in JS. Asserting the individual header tokens plus the flag, and adding a small JS-level cell-count check, would be less brittle and cover the criterion.",
+      "revId": "73dc53d72caffcc494ac1d2448dac015271c9feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
