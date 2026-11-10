@@ -182,9 +182,10 @@
         function updateSummaryData() {
             const $table = $(`#summary`);
             const headers = {{ headers|tojson|safe }};
+            const show_env_columns = {{ show_env_columns|tojson|safe }};
             const ticket_url = "{{ ticket_url }}";
             const ticket_queue = "{{ ticket_queue }}";
-                
+
             if ($table.find('thead').length === 0) {
                 $table.append($('<thead>'));
                 $table.find('thead').append(
@@ -238,32 +239,34 @@
                                 .text(`${cloud.percent}%`)
                         )
                     ),
-                    $('<td>').append(
-                        cloud.href_url_text_openstack ?
-                            cloud.href_url_text_openstack.toLowerCase().includes('validating') ?
-                                $('<span>')
+                    ...(show_env_columns ? [
+                        $('<td>').append(
+                            cloud.href_url_text_openstack ?
+                                cloud.href_url_text_openstack.toLowerCase().includes('validating') ?
+                                    $('<span>')
+                                        .addClass(`${cloud.href_color} text-decoration-none`)
+                                        .text(cloud.href_url_text_openstack)
+                                : $('<a>')
                                     .addClass(`${cloud.href_color} text-decoration-none`)
+                                    .attr('href', cloud.href_url_openstack)
+                                    .attr('target', cloud.is_valid ? '_blank' : '')
                                     .text(cloud.href_url_text_openstack)
-                            : $('<a>')
-                                .addClass(`${cloud.href_color} text-decoration-none`)
-                                .attr('href', cloud.href_url_openstack)
-                                .attr('target', cloud.is_valid ? '_blank' : '')
-                                .text(cloud.href_url_text_openstack)
-                            : ''
-                    ),
-                    $('<td>').append(
-                        cloud.href_url_text_openshift ?
-                            cloud.href_url_text_openshift.toLowerCase().includes('validating') ?
-                                $('<span>')
+                                : ''
+                        ),
+                        $('<td>').append(
+                            cloud.href_url_text_openshift ?
+                                cloud.href_url_text_openshift.toLowerCase().includes('validating') ?
+                                    $('<span>')
+                                        .addClass(`${cloud.href_color} text-decoration-none`)
+                                        .text(cloud.href_url_text_openshift)
+                                : $('<a>')
                                     .addClass(`${cloud.href_color} text-decoration-none`)
+                                    .attr('href', cloud.href_url_openshift)
+                                    .attr('target', cloud.is_valid ? '_blank' : '')
                                     .text(cloud.href_url_text_openshift)
-                            : $('<a>')
-                                .addClass(`${cloud.href_color} text-decoration-none`)
-                                .attr('href', cloud.href_url_openshift)
-                                .attr('target', cloud.is_valid ? '_blank' : '')
-                                .text(cloud.href_url_text_openshift)
-                            : ''
-                    )
+                                : ''
+                        )
+                    ] : [])
                 ]);
             }
 
