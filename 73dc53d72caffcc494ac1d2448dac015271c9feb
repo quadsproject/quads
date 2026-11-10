@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "c8d9c0cb_d8ef71d1",
+        "filename": "src/quads/web/templates/wiki/assignments.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-10T07:51:35Z",
+      "side": 1,
+      "message": "Addressed in PS3: both tables now use a fixed colspan of 2 and no longer read the summary headers list.",
+      "parentUuid": "416b8d44_bc3535f4",
+      "revId": "73dc53d72caffcc494ac1d2448dac015271c9feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f0545b69_0b148953",
         "filename": "tests/web/test_assignments.py",
         "patchSetId": 2
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-10T07:41:08Z",
       "side": 1,
       "message": "These assertions pin the exact serialized `const headers \u003d [...]` text, so a Jinja/`tojson` formatting change would break the test without a behavior change. They also leave the row cell count (acceptance criterion 3) untested because the cells are built in JS. Asserting the individual header tokens plus the flag, and adding a small JS-level cell-count check, would be less brittle and cover the criterion.",
+      "revId": "73dc53d72caffcc494ac1d2448dac015271c9feb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54c4894a_d56996de",
+        "filename": "tests/web/test_assignments.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-10T07:51:35Z",
+      "side": 1,
+      "message": "Addressed in PS3: the tests assert individual header tokens and the flag instead of the serialized array. The repo has no JS test harness or Node dependency, so the cell count is verified out of band with a stubbed-jQuery run of the rendered createCloudRow (anonymous 5, authenticated 7); the same flag gates both headers and cells.",
+      "parentUuid": "f0545b69_0b148953",
       "revId": "73dc53d72caffcc494ac1d2448dac015271c9feb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
