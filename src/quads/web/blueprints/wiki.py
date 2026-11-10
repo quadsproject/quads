@@ -30,7 +30,10 @@ async def index():
 
 @wiki_bp.route("/assignments", methods=["GET", "POST"])
 async def assignments():
-    headers = ["NAME", "SUMMARY", "OWNER", "REQUEST", "STATUS", "OSPENV", "OCPINV"]
+    show_env_columns = current_user.is_authenticated
+    headers = ["NAME", "SUMMARY", "OWNER", "REQUEST", "STATUS"]
+    if show_env_columns:
+        headers += ["OSPENV", "OCPENV"]
     host_headers = [
         "ServerHostnamePublic",
         "OutOfBand",
@@ -42,6 +45,7 @@ async def assignments():
     return render_template(
         "wiki/assignments.html",
         headers=headers,
+        show_env_columns=show_env_columns,
         ticket_url=Config.get("ticket_url"),
         ticket_queue=Config.get("ticket_queue"),
         quads_url=Config.get("quads_url"),
