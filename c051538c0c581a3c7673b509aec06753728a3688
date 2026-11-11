@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "452333d3_a3c1f422",
+        "filename": "docs/quads-workflow.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:05:40Z",
+      "side": 1,
+      "message": "Visible label carries description, cloud, owner and per-model counts; the host count sits in the `title` tooltip. 1259206 rewrites this sentence already, so no action here if that lands.",
+      "revId": "c051538c0c581a3c7673b509aec06753728a3688",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
