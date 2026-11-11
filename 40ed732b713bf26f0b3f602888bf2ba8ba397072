@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "abf4df84_21a105a3",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T16:44:24Z",
+      "side": 1,
+      "message": "`dg` is not a hex pair, so `52:54:00:d9:5d:dg` is not a valid MAC address. Likely a typo for `d0`.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3c8cb2d0_20907ad3",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T16:44:24Z",
+      "side": 1,
+      "message": "The guard rejects colon-form MACs in the LLDP port-id, but EOS can advertise a dotted MAC as the neighbor port id (e.g. `7072.cfb7.6872` from a host without lldpd), and that string would become the interface name. Worth treating a dotted six-byte MAC as no usable name and falling back to `nicN` as well.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a97dd13d_02989251",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T16:44:24Z",
+      "side": 1,
+      "message": "`switch_vendor` comes only from `--interface-switch-vendor`, which the README says is needed only when multiple plugins are enabled. With a single arista plugin and no flag, `vendor` is None here (and at line 501 for the update path), so the interfaces created by this run get a NULL switch_vendor. `SwitchPlugin.owns_interface()` claims NULL only for the plugin with `_owns_legacy_interfaces`, which is juniper, so arista ignores the interfaces discovery just created: the next verify/configure logs `No enabled switch plugin claims ...` and returns False. Verified against the base class: with switch_vendor None, arista.owns_interface() is False and juniper.owns_interface() is True. Fix: have `SwitchDispatcher.discover()` stamp the resolved `plugin.name` on each row (or return the name) and use that for `switch_vendor`.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8733c2c6_5bdbf12d",
+        "filename": "src/quads/plugins/builtin/switches/arista.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T16:44:24Z",
+      "side": 1,
+      "message": "`show mac address-table` prints a `Multicast Mac Address Table` section after the unicast table. This match also accepts those MULTICAST rows, and the port loop below takes the last Et token, so multicast MACs are attributed to that port. Reproduced with a real-shaped EOS output: Et3 ended up with `[\u00270c:74:39:88:00:01\u0027, \u002701:00:5e:00:00:01\u0027, \u002733:33:00:00:00:01\u0027]` and was flagged `trunk\u003dTrue`, so `--apply` skipped a host port that has a single NIC. Suggest stopping at the `Multicast Mac Address Table` heading, or requiring the Type column to be `DYNAMIC`, and rejecting multicast/broadcast MACs.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
