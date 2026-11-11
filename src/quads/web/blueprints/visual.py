@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, abort, render_template
 
 from quads.config import Config
+from quads.tools.allocation_graph import GRAPH_FILENAME, GRAPH_SUBDIR
 from quads.web.blueprints.common import WEB_CONTENT_PATH, get_file_paths
 
 VISUAL_DIR = Config.get("visual_web_dir")
@@ -18,6 +19,17 @@ async def index():
     with open(os.path.join(VISUAL_DIR, "index.html"), "r") as f:
         html_content = f.read()
     return render_template("wiki/visuals.html", html_content=html_content)
+
+
+@visual_bp.route("/graph")
+async def graph():
+    file_path = os.path.join(VISUAL_DIR, GRAPH_SUBDIR, GRAPH_FILENAME)
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+    except OSError:
+        abort(404, description="Allocation graphic has not been generated")
+    return render_template("wiki/allocation_graph.html", html_content=html_content)
 
 
 @visual_bp.route("/<when>")

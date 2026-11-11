@@ -23,6 +23,17 @@ class TestRegen(TestBase):
         for f in files:
             os.remove(os.path.join(os.path.dirname(__file__), f"artifacts/{f}"))
 
+    def test_regen_graph(self):
+        Config.__setattr__("foreman_unavailable", True)
+        Config.__setattr__("visual_web_dir", os.path.join(os.path.dirname(__file__), "artifacts/"))
+        self.quads_cli_call("regen_graph")
+
+        path = os.path.join(os.path.dirname(__file__), "artifacts/graph/allocation-graphic.html")
+        assert os.path.exists(path)
+        assert self._caplog.messages == ["Regenerated allocation graphic."]
+        os.remove(path)
+        os.rmdir(os.path.dirname(path))
+
     def test_regen_instack(self):
         Config.__setattr__("foreman_unavailable", True)
         Config.__setattr__("openstack_management", True)

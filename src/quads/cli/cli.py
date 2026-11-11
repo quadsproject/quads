@@ -29,6 +29,7 @@ from quads.quads_api import APIBadRequest, APIServerException
 from quads.quads_api import QuadsApi as Quads
 from quads.server.models import Assignment
 from quads.tools import reports
+from quads.tools.allocation_graph import AllocationGraph
 from quads.tools.external.jira import Jira, JiraException
 from quads.tools.foreman_heal import rbac as foreman_heal
 from quads.tools.make_instackenv_json import main as regen_instack
@@ -2614,6 +2615,10 @@ class QuadsCli:
     def action_regen_heatmap(self):
         asyncio.run(regen_heatmap())
         self.logger.info("Regenerated web table heatmap.")
+
+    def action_regen_graph(self):
+        AllocationGraph().generate()
+        self.logger.info("Regenerated allocation graphic.")
 
     def action_foreman_rbac(self):  # pragma: no cover
         foreman_heal(self.logger)
