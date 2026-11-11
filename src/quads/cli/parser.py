@@ -460,6 +460,13 @@ action_group.add_argument(
     const="verify_switch_conf",
     help="Verify switch configuration",
 )
+action_group.add_argument(
+    "--discover-hosts",
+    dest="action",
+    action="store_const",
+    const="discover_hosts",
+    help="Discover host NIC MACs and switch ports from a switch (requires --switch-ip)",
+)
 
 parser.add_argument(
     "--cloud-only",
@@ -650,6 +657,20 @@ parser.add_argument(
     type=str,
     default=argparse.SUPPRESS,
     help="Switch vendor for plugin routing (e.g. juniper, arista)",
+)
+parser.add_argument(
+    "--switch-ip",
+    dest="switch_ip",
+    type=str,
+    default=None,
+    help="Switch management IP to query for --discover-hosts",
+)
+parser.add_argument(
+    "--apply",
+    dest="apply",
+    action="store_true",
+    default=False,
+    help="With --discover-hosts, create the discovered interfaces on --host (matched by LLDP name)",
 )
 
 pxe_group_args = parser.add_mutually_exclusive_group()

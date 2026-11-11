@@ -43,6 +43,21 @@ class SwitchPlugin(BasePlugin):
             ", ".join(sorted({str(interface.switch_vendor) for interface in interfaces})),
         )
 
+    async def discover(self, switch_ip: str) -> list:
+        """
+        Discover host NIC MACs and the switch ports they are learned on.
+
+        Returns a list of dicts, one per learned MAC, with keys:
+        switch_ip, switch_port, mac_address, name (suggested interface name /
+        LLDP remote port-id, may be None), neighbor (LLDP system-name, may be
+        None), trunk (True when the port learned more than one MAC).
+
+        Non-abstract on purpose: vendors without discovery support and external
+        plugins inherit this no-op instead of being forced to implement it.
+        """
+        self.logger.warning("Host discovery is not implemented for the %s switch plugin", self.name)
+        return []
+
     @abstractmethod
     def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
         """
