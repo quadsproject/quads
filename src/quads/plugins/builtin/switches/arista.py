@@ -1,3 +1,5 @@
+import re
+
 from typing import Optional
 from quads.helpers.utils import get_vlan
 from quads.plugins.interfaces.switch import SwitchPlugin
@@ -20,11 +22,68 @@ class AristaSwitchPlugin(SwitchPlugin):
     description = "Arista switch plugin"
     author = "QUADS Team"
 
+    # Arista prints MACs in dotted form (0011.2233.4455) and names ports Et<n>.
+    _DOTTED_MAC_RE = re.compile(r"\b([0-9a-fA-F]{4}\.[0-9a-fA-F]{4}\.[0-9a-fA-F]{4})\b")
+    _PORT_RE = re.compile(r"^Et(?:hernet)?\d")
+
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         super().initialize(plugin_manager)
         self.quads = QuadsApi(Config)
         self.username = self.config.get("username")
         return True
+
+    async def discover(self, switch_ip):
+        """Discover host NIC MACs + switch ports by reading the switch's LLDP
+        neighbors and MAC address table over SSH."""
+        return await self._discover_from_tables(switch_ip, "show lldp neighbors", "show mac address-table")
+
+    @staticmethod
+    def _parse_lldp_neighbors(lines):
+        """Map switch_port -> {port_info, system_name} from `show lldp neighbors`.
+
+        Arista columns are: Port | Neighbor Device ID | Neighbor Port ID | TTL
+        (note the order differs from Juniper). Rows are kept only when the first
+        token is an Et port and the last is a numeric TTL, which skips the header
+        and the summary counters above the table.
+        ponytail: positional parse; a device/port id containing spaces needs calibration.
+        """
+        neighbors = {}
+        for line in lines:
+            tokens = line.split()
+            if len(tokens) < 4 or not tokens[-1].isdigit() or not AristaSwitchPlugin._PORT_RE.match(tokens[0]):
+                continue
+            neighbors[tokens[0]] = {"system_name": tokens[1], "port_info": tokens[-2]}
+        return neighbors
+
+    @staticmethod
+    def _parse_fdb(lines):
+        """Map switch_port -> [mac, ...] from `show mac address-table`.
+
+        Arista MACs are dotted (0011.2233.4455); normalize to the colon form
+        QUADS stores. The port is the Et<n> token on the row.
+        """
+        fdb = {}
+        for line in lines:
+            match = AristaSwitchPlugin._DOTTED_MAC_RE.search(line)
+            if not match:
+                continue
+            mac = AristaSwitchPlugin._normalize_mac(match.group(1))
+            port = None
+            for token in line.split():
+                if AristaSwitchPlugin._PORT_RE.match(token):
+                    port = token
+            if not port:
+                continue
+            macs = fdb.setdefault(port, [])
+            if mac not in macs:
+                macs.append(mac)
+        return fdb
+
+    @staticmethod
+    def _normalize_mac(dotted):
+        """0011.2233.4455 -> 00:11:22:33:44:55 (the form QUADS stores)."""
+        hexchars = dotted.replace(".", "").lower()
+        return ":".join(hexchars[i : i + 2] for i in range(0, 12, 2))
 
     def _parse_vlan(self, output_lines):
         """Parse the current access (or trunk native) VLAN from interface output."""

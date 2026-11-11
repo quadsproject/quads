@@ -70,6 +70,32 @@ class SwitchDispatcher(BaseDispatcher[SwitchPlugin]):
 
         return all_ok
 
+    async def discover(self, switch_ip: str, switch_vendor: Optional[str] = None) -> list:
+        plugins = list(self.get_all_plugins())
+        if not plugins:
+            logger.error("No switch plugin enabled")
+            return []
+
+        if switch_vendor:
+            plugin = next((p for p in plugins if p.name == switch_vendor), None)
+            if not plugin:
+                logger.error("No enabled switch plugin named '%s'", switch_vendor)
+                return []
+        elif len(plugins) == 1:
+            plugin = plugins[0]
+        else:
+            plugin = next((p for p in plugins if getattr(p, "_owns_legacy_interfaces", False)), None)
+            if not plugin:
+                logger.error("Multiple switch plugins enabled; specify --interface-switch-vendor to pick one")
+                return []
+
+        logger.info("Discovering hosts on switch %s via %s", switch_ip, plugin.name)
+        try:
+            return await plugin.discover(switch_ip)
+        except Exception as e:
+            logger.error("Failed to discover hosts on %s via %s: %s", switch_ip, plugin.name, e)
+            return []
+
     async def ls_config(self, cloud: str, all: bool = False) -> bool:
         plugins = self.get_all_plugins()
         if not plugins:
