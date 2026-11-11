@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04d0a00c_7659a634",
+        "filename": "docs/superpowers/specs/2026-11-11-allocation-graphic-design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:21:39Z",
+      "side": 1,
+      "message": "`build_allocations` has no overlap test: it takes `min(start)` and `max(end)` over every schedule sharing an `assignment_id` (src/quads/tools/allocation_graph.py:151-152), then clips to the window. An assignment with host A on Jun 1-5 and host B on Jul 20-25 becomes one block covering Jun 1 to Jul 25, so the gap reads as occupied and the tooltip shows only the merged bounds. `POST /schedules` can attach a caller-dated schedule to an existing assignment, so disjoint windows are reachable. Either say \"merges all schedules for the same assignment\" or group by overlapping interval. Non-blocking: docs/quads-workflow.md does not repeat this claim.",
+      "revId": "a04b95c36a24c0500ead59102431ee1a50724edb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7e25be38_bba53524",
+        "filename": "docs/superpowers/specs/2026-11-11-allocation-graphic-design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:21:39Z",
+      "side": 1,
+      "message": "No scaling relative to the largest block exists. `_render_block` computes `max(MIN_MACHINE_HEIGHT_PX, min(MAX_BLOCK_HEIGHT_PX, host_count * MAX_MACHINE_HEIGHT_PX))` (src/quads/tools/allocation_graph.py:241-244): a fixed 18px step per machine, clamped at both ends. A 4-host block is 72px whatever its peers are, and 20 and 40 hosts both render 360px. Say \"proportional to machine count, capped at MAX_BLOCK_HEIGHT_PX\" so the spec matches the renderer.",
+      "revId": "a04b95c36a24c0500ead59102431ee1a50724edb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
