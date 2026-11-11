@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb8e90a5_ce94fdc5",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T16:30:02Z",
+      "side": 1,
+      "message": "`dg` is not a valid hex pair; `52:54:00:d9:5d:dg` is not a valid MAC address. Likely a typo for `d0` or another hex pair.",
+      "revId": "1d94f093a1639e8e12c58fa53ee3875ecbbdc18c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
