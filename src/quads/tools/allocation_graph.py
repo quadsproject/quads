@@ -1,18 +1,24 @@
 """Aggregate QUADS schedules into allocation blocks and render an HTML fragment.
 
-The module is intentionally free of HTTP and filesystem access: callers pass
-plain API payloads and receive a self-contained HTML fragment that can be
-embedded in the web UI.  This keeps the aggregation and layout logic testable
-without a running QUADS API server.
+The aggregation and rendering helpers are intentionally free of HTTP and
+filesystem access: callers pass plain API payloads and receive a self-contained
+HTML fragment that can be embedded in the web UI.  This keeps the layout logic
+testable without a running QUADS API server.  The ``AllocationGraph`` entrypoint
+at the bottom of the module is the thin adapter that fetches the payloads and
+writes the fragment to disk.
 """
 
 import calendar
 import html
 import math
+import os
 from dataclasses import dataclass
 from datetime import datetime
+from urllib.parse import urlencode
 
+from quads.config import Config
 from quads.helpers.timeutil import parse_datetime
+from quads.quads_api import QuadsApi
 
 DAY_WIDTH_PX = 12
 MAX_BLOCK_HEIGHT_PX = 360
@@ -437,3 +443,46 @@ def render_allocations(
 
     parts.append("</div>")
     return "\n".join(parts)
+
+
+class AllocationGraph:
+    """Fetch live QUADS schedules and write the allocation graphic fragment."""
+
+    def __init__(self, quads: QuadsApi | None = None, config=None):
+        self.config = config or Config
+        self.quads = quads or QuadsApi(self.config)
+
+    def generate(self, now: datetime | None = None) -> str:
+        generated_at = now or datetime.now()
+        window_start, window_end = window_for(generated_at)
+
+        hosts_range = self.quads.get(
+            "schedules/hosts_range?"
+            + urlencode(
+                {
+                    "start": window_start.strftime("%Y-%m-%dT%H:%M"),
+                    "end": window_end.strftime("%Y-%m-%dT%H:%M"),
+                }
+            )
+        ).json()
+        hosts = [
+            host.as_dict() for host in self.quads.filter_hosts(data={"retired": False, "broken": False})
+        ]
+
+        allocations = build_allocations(hosts_range, hosts, window_start, window_end)
+        fragment = render_allocations(
+            allocations,
+            window_start,
+            window_end,
+            generated_at,
+            ticket_url=self.config.get("ticket_url", ""),
+            ticket_queue=self.config.get("ticket_queue", ""),
+        )
+
+        visual_web_dir = self.config.get("visual_web_dir")
+        os.makedirs(visual_web_dir, exist_ok=True)
+        path = os.path.join(visual_web_dir, "allocation-graphic.html")
+        with open(path, "w", encoding="utf-8") as output:
+            output.write(fragment)
+        os.chmod(path, 0o644)
+        return path
