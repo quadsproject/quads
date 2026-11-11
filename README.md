@@ -448,6 +448,7 @@ crontab -e
 | quads --move-hosts    | provisioning | checks for hosts to move/reclaim as scheduled (uses release plugins) |
 | quads --validate-env  | validation | checks clouds pending to be released for all enabled validation checks (uses validator plugins) |
 | quads --regen-heatmap | visualization | keeps your systems availability and usage visualization up to date |
+| quads --regen-graph   | visualization | keeps the lab allocation graphic up to date |
 | quads --regen-instack | openshift/openstack | keeps optional openstack triple-o installation files up-to-date |
 | quads --notify        | notifications | check and send email or webhook/IRC notifications on events and releases (uses chat/email plugins) |
 

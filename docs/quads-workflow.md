@@ -14,6 +14,7 @@ Below are common workflows, visualizations and features of QUADS.
     * [Example: Workload Assignments Readiness](#example-workload-assignments-readiness)
     * [Example: Systems Availability Search](#example-systems-availability-search)
     * [Example: Systems Visualization Map](#example-systems-visualization-map)
+    * [Example: Allocation Graphic](#example-allocation-graphic)
     * [Example: IRC, Webhook Chat and Email Notifications](#example-irc-webhook-chat-and-email-notifications)
 
 ## QUADS Architecture
@@ -66,6 +67,11 @@ We color-code progress bars and status based on total amount of completion for a
 ## Example: Systems Visualization Map
 
 ![wiki](../image/quads-visual.png)
+
+## Example: Allocation Graphic
+`quads --regen-graph` writes an allocation graphic to a `graph/` subdirectory of `visual_web_dir` as `allocation-graphic.html`, and `quads-web` serves it at the `/visual/graph` page, linked from the **Visuals** menu as **Allocation Graphic**. The graphic covers the previous, current and next month so upcoming allocations are visible next to the ones already in flight. Each scheduled assignment is drawn as one fixed-height lane whose bar is positioned and sized by its dates only (not by host count) and colored per cloud by a stable hash; the sticky label gutter shows the description, cloud, owner, host count and per-model breakdown, with full details on hover. When `ticket_url` and `ticket_queue` are configured, the ticket is rendered as a link to the assignment's tracker issue. The `/visual/graph` page returns 404 until the graphic has been generated once.
+
+Regenerate it on a schedule (for example from cron with `flock -n /tmp/allocationgraphic.lock -c "quads --regen-graph"`) so the page reflects the current schedule.
 
 ## Example: IRC, Webhook Chat and Email Notifications
    - We can notify any Chat Platform webhook or IRC channel when new environments are released.
