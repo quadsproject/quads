@@ -773,6 +773,13 @@ action_group.add_argument(
     help="Regenerate web table heatmap",
 )
 action_group.add_argument(
+    "--regen-graph",
+    dest="action",
+    action="store_const",
+    const="regen_graph",
+    help="Regenerate allocation graphic",
+)
+action_group.add_argument(
     "--foreman-rbac",
     dest="action",
     action="store_const",
