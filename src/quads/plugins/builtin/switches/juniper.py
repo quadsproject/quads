@@ -1,3 +1,5 @@
+import re
+
 from typing import Optional
 from quads.helpers.utils import get_vlan
 from quads.plugins.interfaces.switch import SwitchPlugin
@@ -21,11 +23,62 @@ class JuniperSwitchPlugin(SwitchPlugin):
     author = "QUADS Team"
     _owns_legacy_interfaces = True
 
+    _MAC_RE = re.compile(r"\b([0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5})\b")
+
     def initialize(self, plugin_manager: Optional[PluginManager] = None):
         super().initialize(plugin_manager)
         self.quads = QuadsApi(Config)
         self.username = self.config.get("username")
         return True
+
+    async def discover(self, switch_ip):
+        """Discover host NIC MACs + switch ports by reading the switch's LLDP
+        neighbors and ethernet-switching (MAC) table over SSH."""
+        return await self._discover_from_tables(switch_ip, "show lldp neighbors", "show ethernet-switching table")
+
+    @staticmethod
+    def _parse_lldp_neighbors(lines):
+        """Map switch_port -> {port_info, system_name} from `show lldp neighbors`.
+
+        Rows are: <local-if> <parent-if> <chassis-id> <port-info> <system-name>.
+        Physical Juniper ports contain '/', which skips the header/summary rows.
+        ponytail: positional parse; an empty system-name column needs calibration.
+        """
+        neighbors = {}
+        for line in lines:
+            tokens = line.split()
+            if len(tokens) < 4 or "/" not in tokens[0]:
+                continue
+            neighbors[tokens[0]] = {"port_info": tokens[-2], "system_name": tokens[-1]}
+        return neighbors
+
+    @staticmethod
+    def _parse_fdb(lines):
+        """Map switch_port -> [mac, ...] from `show ethernet-switching table`.
+
+        Layout-tolerant across Junos versions: a MAC is matched by regex and the
+        port is the last '/'-bearing token (MACs use ':'); the logical unit
+        suffix is stripped (xe-0/0/1.0 -> xe-0/0/1) to match stored switch_port.
+        """
+        fdb = {}
+        for line in lines:
+            match = JuniperSwitchPlugin._MAC_RE.search(line)
+            if not match:
+                continue
+            mac = match.group(1).lower()
+            if not JuniperSwitchPlugin._is_unicast_mac(mac):
+                continue
+            port = None
+            for token in line.split():
+                if "/" in token:
+                    port = token
+            if not port:
+                continue
+            port = port.split(".")[0]
+            macs = fdb.setdefault(port, [])
+            if mac not in macs:
+                macs.append(mac)
+        return fdb
 
     async def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:
         _host_obj = self.quads.get_host(host)

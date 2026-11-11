@@ -424,6 +424,120 @@ class QuadsCli:
         switch_dispatcher = get_switch_dispatcher()
         asyncio.run(switch_dispatcher.verify(_host, _cloud, _change))
 
+    def action_discover_hosts(self):
+        _switch_ip = self.cli_args.get("switch_ip")
+        _vendor = self.cli_args.get("ifswitchvendor")
+        _apply = self.cli_args.get("apply")
+        _host = self.cli_args.get("host")
+
+        if not _switch_ip:
+            raise CliException("--switch-ip is required for --discover-hosts")
+
+        switch_dispatcher = get_switch_dispatcher()
+        rows = asyncio.run(switch_dispatcher.discover(_switch_ip, _vendor))
+
+        if not rows:
+            self.logger.info(f"No hosts discovered on switch {_switch_ip}")
+            return 0
+
+        self.logger.info(f"Discovered {len(rows)} host NIC(s) on switch {_switch_ip}:")
+        self.logger.info(f"{'PORT':<16}{'MAC':<20}{'NEIGHBOR':<28}NAME")
+        for row in rows:
+            neighbor = row.get("neighbor") or "-"
+            if row.get("trunk"):
+                neighbor = f"{neighbor} (trunk)"
+            name = row.get("name") or "-"
+            self.logger.info(f"{row['switch_port']:<16}{row['mac_address']:<20}{neighbor:<28}{name}")
+
+        if _apply:
+            if not _host:
+                raise CliException("--apply requires --host")
+            self._apply_discovered(_host, rows)
+
+        return 0
+
+    @staticmethod
+    def _host_label(name):
+        return name.split(".")[0].lower() if name else ""
+
+    @staticmethod
+    def _looks_like_mac(value):
+        # Reject a neighbor port-id that is really a MAC (colon, dotted or
+        # hyphenated) so it is not used as an interface name.
+        stripped = value.replace(":", "").replace(".", "").replace("-", "")
+        return len(stripped) == 12 and all(c in "0123456789abcdefABCDEF" for c in stripped)
+
+    def _apply_discovered(self, host, rows):
+        # ponytail: auto-attribution relies on the host advertising LLDP with its
+        # hostname; bare hosts with no OS won't match, fall back to --add-interface.
+        target = self._host_label(host)
+        matched = [row for row in rows if self._host_label(row.get("neighbor")) == target]
+        if not matched:
+            self.logger.warning(
+                "No LLDP-identified NICs matched host '%s'; review the table above and use --add-interface.",
+                host,
+            )
+            return
+
+        try:
+            host_obj = self.quads.get_host(host)
+        except (APIServerException, APIBadRequest) as ex:  # pragma: no cover
+            raise CliException(str(ex))
+        # Match discovered NICs to existing ones by MAC (the stable hardware id)
+        # so re-running discovery updates switch location instead of duplicating.
+        existing_by_mac = {
+            interface.mac_address.lower(): interface for interface in host_obj.interfaces if interface.mac_address
+        }
+
+        default_interface = conf.get("default_pxe_interface")
+        created = updated = unchanged = 0
+        for index, row in enumerate(matched):
+            if row.get("trunk"):
+                self.logger.warning("Skipping trunk/uplink port %s (multiple MACs learned)", row["switch_port"])
+                continue
+            mac = row["mac_address"]
+            existing = existing_by_mac.get(mac.lower())
+            if existing:
+                # Only the switch location is authoritative from discovery; keep
+                # the admin's interface name, speed and pxe_boot untouched.
+                data = {"id": existing.id}
+                if existing.switch_ip != row["switch_ip"]:
+                    data["switch_ip"] = row["switch_ip"]
+                if existing.switch_port != row["switch_port"]:
+                    data["switch_port"] = row["switch_port"]
+                row_vendor = row.get("switch_vendor")
+                if row_vendor and existing.switch_vendor != row_vendor:
+                    data["switch_vendor"] = row_vendor
+                if len(data) == 1:
+                    unchanged += 1
+                    self.logger.info("Interface %s (%s) already up to date on %s", existing.name, mac, host)
+                    continue
+                try:
+                    self.quads.update_interface(host, data)
+                    updated += 1
+                    self.logger.info("Updated interface %s (%s) on %s", existing.name, mac, host)
+                except (APIServerException, APIBadRequest) as ex:
+                    self.logger.warning("Could not update interface %s on %s: %s", existing.name, host, ex)
+                continue
+
+            port_info = row.get("name")
+            name = port_info if port_info and not self._looks_like_mac(port_info) else f"nic{index + 1}"
+            data = {
+                "name": name,
+                "mac_address": mac,
+                "switch_ip": row["switch_ip"],
+                "switch_port": row["switch_port"],
+                "switch_vendor": row.get("switch_vendor"),
+                "pxe_boot": bool(default_interface and name == default_interface),
+            }
+            try:
+                self.quads.create_interface(host, data)
+                created += 1
+                self.logger.info("Created interface %s (%s) on %s", name, mac, host)
+            except (APIServerException, APIBadRequest) as ex:
+                self.logger.warning("Could not create interface %s on %s: %s", name, host, ex)
+        self.logger.info("Applied to %s: %d created, %d updated, %d unchanged", host, created, updated, unchanged)
+
     def _call_api_action(self, action: str):
         try:
             assignments = self.quads.get_active_assignments()

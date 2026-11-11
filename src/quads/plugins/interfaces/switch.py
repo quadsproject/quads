@@ -2,6 +2,7 @@ from typing import Optional
 
 from quads.plugins.base import BasePlugin
 from quads.plugins.manager import PluginManager
+from quads.tools.external.ssh_helper import SSHHelper, SSHHelperException
 from abc import abstractmethod
 
 
@@ -42,6 +43,76 @@ class SwitchPlugin(BasePlugin):
             host,
             ", ".join(sorted({str(interface.switch_vendor) for interface in interfaces})),
         )
+
+    async def discover(self, switch_ip: str) -> list:
+        """
+        Discover host NIC MACs and the switch ports they are learned on.
+
+        Returns a list of dicts, one per learned MAC, with keys:
+        switch_ip, switch_port, mac_address, name (suggested interface name /
+        LLDP remote port-id, may be None), neighbor (LLDP system-name, may be
+        None), trunk (True when the port learned more than one MAC).
+
+        Non-abstract on purpose: vendors without discovery support and external
+        plugins inherit this no-op instead of being forced to implement it.
+        """
+        self.logger.warning("Host discovery is not implemented for the %s switch plugin", self.name)
+        return []
+
+    @staticmethod
+    def _is_unicast_mac(mac: str) -> bool:
+        """False for multicast/broadcast MACs (the I/G bit of the first octet is
+        set). These group addresses are never a host NIC, so discovery skips them
+        (e.g. IPv4 `01:00:5e:*`, IPv6 `33:33:*`, broadcast `ff:ff:*`). `mac` is
+        colon-form."""
+        try:
+            return not (int(mac.split(":")[0], 16) & 1)
+        except (ValueError, IndexError):  # pragma: no cover - parsers normalize first
+            return True
+
+    async def _discover_from_tables(self, switch_ip: str, lldp_command: str, fdb_command: str) -> list:
+        """Shared discovery skeleton for switches that expose LLDP neighbor and
+        MAC-address tables over SSH.
+
+        Vendors supply their own ``lldp_command``/``fdb_command`` and the
+        ``_parse_lldp_neighbors``/``_parse_fdb`` parsers for their CLI output;
+        the SSH handling and the join into per-MAC rows live here so they do not
+        drift between vendors.
+        """
+        try:
+            ssh_helper = SSHHelper(switch_ip, self.username)
+        except SSHHelperException:
+            self.logger.error(f"Failed to connect to switch: {switch_ip}")
+            return []
+        try:
+            lldp_ok, lldp_out = ssh_helper.run_cmd(lldp_command)
+            fdb_ok, fdb_out = ssh_helper.run_cmd(fdb_command)
+        finally:
+            ssh_helper.disconnect()
+
+        neighbors = self._parse_lldp_neighbors(lldp_out if lldp_ok else [])
+        fdb = self._parse_fdb(fdb_out if fdb_ok else [])
+
+        rows = []
+        for port in sorted(fdb):
+            macs = fdb[port]
+            neighbor = neighbors.get(port, {})
+            for mac in macs:
+                rows.append(
+                    {
+                        "switch_ip": switch_ip,
+                        "switch_port": port,
+                        # The plugin that discovered the port owns it, stamp its
+                        # name so --apply records a switch_vendor the same plugin
+                        # will claim in owns_interface() (NULL is juniper-only).
+                        "switch_vendor": self.name,
+                        "mac_address": mac,
+                        "name": neighbor.get("port_info"),
+                        "neighbor": neighbor.get("system_name"),
+                        "trunk": len(macs) > 1,
+                    }
+                )
+        return rows
 
     @abstractmethod
     def configure(self, host: str, old_cloud: str, new_cloud: str) -> bool:

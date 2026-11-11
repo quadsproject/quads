@@ -557,15 +557,68 @@ quads --define-host --host <hostname> --default-cloud cloud01 --host-type genera
 #### Define Host Interfaces in QUADS
 
    - Define the host interfaces, these are the internal interfaces you want QUADS to manage for VLAN automation
-   - Do this for every interface you want QUADS to manage per host (we are working on auto-discovery of this step). Interface speed is in Gbps (`--interface-speed 10` is a 10 Gbps port).
+   - Do this for every interface you want QUADS to manage per host (or let QUADS find the MAC-to-switch-port mapping for you, see [Discovering Host Interfaces](#discovering-host-interfaces)). Interface speed is in Gbps (`--interface-speed 10` is a 10 Gbps port).
    - The variable `default_pxe_interface` in the `/opt/quads/conf/quads.yml` will set the default value of `pxe_boot=True` for that interface while any other interface will have a default value of `False` unless specified via `--pxe-boot` or `--no-pxe-boot`. This can be later modified via `--mod-interface`.
 
 ```bash
 quads --add-interface --interface-name em1 --interface-mac 52:54:00:d9:5d:df --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:0 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
-quads --add-interface --interface-name em2 --interface-mac 52:54:00:d9:5d:dg --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:1 --interface-vendor "Intel" --interface-speed 10 --pxe-boot --host <hostname>
-quads --add-interface --interface-name em3 --interface-mac 52:54:00:d9:5d:dh --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:2 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
+quads --add-interface --interface-name em2 --interface-mac 52:54:00:d9:5d:e0 --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:1 --interface-vendor "Intel" --interface-speed 10 --pxe-boot --host <hostname>
+quads --add-interface --interface-name em3 --interface-mac 52:54:00:d9:5d:e1 --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:2 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
 quads --add-interface --interface-name em4 --interface-mac 52:54:00:d9:5d:d1 --interface-switch-ip 10.12.22.201 --interface-port xe-0/0/1:3 --interface-vendor "Intel" --interface-speed 10 --host <hostname>
 ```
+
+#### Discovering Host Interfaces
+
+Instead of hand-entering each NIC's MAC address and switch port, QUADS can
+discover them by querying the switch itself. It SSHes to the switch (reusing
+your enabled switch plugin, `juniper` or `arista`) and reads the LLDP neighbor
+and MAC address tables to map each learned host MAC to the switch port it lives
+on, enriched with the LLDP neighbor name when the host advertises it.
+
+   - Report the MAC-to-switch-port mapping for a switch:
+
+```bash
+quads --discover-hosts --switch-ip 10.12.22.201
+```
+
+```
+Discovered 4 host NIC(s) on switch 10.12.22.201:
+PORT            MAC                 NEIGHBOR                    NAME
+xe-0/0/1        52:54:00:d9:5d:df   c08-h21-r630.example.com    em1
+xe-0/0/2        52:54:00:d9:5d:d0   c08-h21-r630.example.com    em2
+et-0/0/48       aa:bb:cc:00:00:01   spine1 (trunk)              et-0/0/47
+```
+
+Ports that learned more than one MAC are flagged `(trunk)` (uplinks between
+switches); skip those when defining a host. Use the output to run
+`--add-interface` with the correct `--interface-name`, `--interface-switch-ip`
+and `--interface-port` values.
+
+   - Optionally, create the interfaces directly on a host with `--apply`:
+
+```bash
+quads --discover-hosts --switch-ip 10.12.22.201 --apply --host <hostname>
+```
+
+> [!NOTE]
+> `--apply` attributes NICs to `--host` by matching the LLDP neighbor name the
+> host advertises, and skips trunk/uplink ports. A bare host that is not yet
+> running an OS (so it does not advertise LLDP) will not be matched, in that
+> case use the report output with `--add-interface` instead. Interface speed is
+> not discoverable from the switch, set it afterward with `--mod-interface` if
+> needed.
+
+> [!NOTE]
+> `--apply` is idempotent: it is safe to re-run. Discovered NICs are matched
+> against the host's existing interfaces by MAC address, so a re-run updates the
+> switch IP and port of interfaces that moved and leaves unchanged ones alone,
+> rather than creating duplicates. Your existing interface names, speeds and
+> `pxe_boot` flags are preserved.
+
+> [!NOTE]
+> If more than one switch plugin is enabled, pass
+> `--interface-switch-vendor <vendor>` (e.g. `juniper` or `arista`) to pick
+> which one queries the switch.
 
    - To list the hosts:
 
