@@ -465,9 +465,7 @@ class AllocationGraph:
                 }
             )
         ).json()
-        hosts = [
-            host.as_dict() for host in self.quads.filter_hosts(data={"retired": False, "broken": False})
-        ]
+        hosts = [host.as_dict() for host in self.quads.filter_hosts(data={"retired": False, "broken": False})]
 
         allocations = build_allocations(hosts_range, hosts, window_start, window_end)
         fragment = render_allocations(
