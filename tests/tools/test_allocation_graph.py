@@ -1,7 +1,10 @@
+import os
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
 from quads.tools.allocation_graph import (
     Allocation,
+    AllocationGraph,
     build_allocations,
     render_allocations,
     window_for,
@@ -177,3 +180,112 @@ def test_render_without_ticket_config_omits_link():
 def test_render_empty_allocations():
     html = render_allocations([], WINDOW_START, WINDOW_END, datetime(2026, 6, 15, 12, 0))
     assert "No allocations" in html
+
+
+def test_render_small_allocation_uses_minimum_content_height():
+    allocation = Allocation(
+        assignment_id=13,
+        description="Small",
+        owner="grace",
+        ticket="",
+        cloud="cloud02",
+        start=datetime(2026, 6, 2),
+        end=datetime(2026, 6, 10),
+        host_count=1,
+        model_counts={"r640": 1},
+        clipped=False,
+    )
+    html = render_allocations([allocation], WINDOW_START, WINDOW_END, datetime(2026, 6, 15, 12, 0))
+    assert "height: 44px" in html
+
+
+def test_render_clamps_month_label_for_mid_month_window_start():
+    html = render_allocations(
+        [],
+        datetime(2026, 6, 15),
+        datetime(2026, 7, 31, 23, 59, 59),
+        datetime(2026, 6, 15, 12, 0),
+    )
+    assert '<div class="ag-month-label" style="left: 0px;">June 2026</div>' in html
+
+
+def test_render_sorts_allocations_by_start_time():
+    late = Allocation(
+        assignment_id=2,
+        description="late",
+        owner="heidi",
+        ticket="",
+        cloud="cloud02",
+        start=datetime(2026, 6, 10),
+        end=datetime(2026, 6, 11),
+        host_count=1,
+        model_counts={"r640": 1},
+        clipped=False,
+    )
+    early = Allocation(
+        assignment_id=1,
+        description="early",
+        owner="ivan",
+        ticket="",
+        cloud="cloud02",
+        start=datetime(2026, 6, 2),
+        end=datetime(2026, 6, 3),
+        host_count=1,
+        model_counts={"r640": 1},
+        clipped=False,
+    )
+    html = render_allocations([late, early], WINDOW_START, WINDOW_END, datetime(2026, 6, 15, 12, 0))
+    assert html.index("early") < html.index("late")
+
+
+def test_generate_requests_seconds_and_writes_atomically(tmp_path):
+    class FakeResponse:
+        def json(self):
+            return {
+                "h1": [
+                    {
+                        "assignment_id": 1,
+                        "start": "2026-06-02T00:00:00",
+                        "end": "2026-06-03T00:00:00",
+                        "cloud": "cloud02",
+                        "description": "atomic",
+                        "owner": "alice",
+                        "ticket": "1",
+                    }
+                ]
+            }
+
+    class FakeQuads:
+        def __init__(self):
+            self.url = None
+
+        def get(self, url):
+            self.url = url
+            return FakeResponse()
+
+        def filter_hosts(self, data):
+            class Host:
+                def as_dict(self):
+                    return {"name": "h1", "model": "r640", "host_type": "scalelab"}
+
+            return [Host()]
+
+    class FakeConfig:
+        def get(self, key, default=None):
+            return {
+                "visual_web_dir": str(tmp_path),
+                "ticket_url": "",
+                "ticket_queue": "",
+            }.get(key, default)
+
+    quads = FakeQuads()
+    path = AllocationGraph(quads=quads, config=FakeConfig()).generate(now=datetime(2026, 6, 15, 12, 0))
+
+    assert path == os.path.join(str(tmp_path), "allocation-graphic.html")
+    query = parse_qs(urlparse(quads.url).query)
+    assert query["start"] == ["2026-05-01T00:00:00"]
+    assert query["end"] == ["2026-07-31T23:59:59"]
+    assert os.listdir(tmp_path) == ["allocation-graphic.html"]
+    with open(path, encoding="utf-8") as handle:
+        assert "atomic" in handle.read()
+    assert oct(os.stat(path).st_mode & 0o777) == "0o644"

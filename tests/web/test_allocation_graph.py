@@ -40,3 +40,16 @@ def test_graph_missing_returns_404(app):
     response = app.test_client().get("/visual/graph")
     assert response.status_code == 404
     assert "Allocation graphic has not been generated" in response.get_data(as_text=True)
+
+
+def test_graph_directory_returns_404(app):
+    path = os.path.join(visual_module.VISUAL_DIR, "allocation-graphic.html")
+    if os.path.exists(path):
+        os.remove(path)
+    os.mkdir(path)
+    try:
+        response = app.test_client().get("/visual/graph")
+        assert response.status_code == 404
+        assert "Allocation graphic has not been generated" in response.get_data(as_text=True)
+    finally:
+        os.rmdir(path)

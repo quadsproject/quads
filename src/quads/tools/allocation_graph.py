@@ -12,6 +12,7 @@ import calendar
 import html
 import math
 import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import urlencode
@@ -24,6 +25,7 @@ DAY_WIDTH_PX = 12
 MAX_BLOCK_HEIGHT_PX = 360
 MAX_MACHINE_HEIGHT_PX = 18
 MIN_MACHINE_HEIGHT_PX = 2
+MIN_CONTENT_HEIGHT_PX = 44
 BLOCK_GAP_PX = 6
 
 SECONDS_PER_DAY = 86400
@@ -192,7 +194,7 @@ def _month_labels(window_start: datetime, window_end: datetime) -> list[str]:
         if month_start > window_end:
             break
         offset_days = (month_start.date() - window_start.date()).days
-        left_px = offset_days * DAY_WIDTH_PX
+        left_px = max(0, offset_days * DAY_WIDTH_PX)
         label = f"{MONTH_NAMES[month - 1]} {year}"
         labels.append(f'<div class="ag-month-label" style="left: {left_px}px;">{_escaped(label)}</div>')
         month += 1
@@ -239,7 +241,7 @@ def _render_block(
     duration_days = max(1, math.ceil((allocation.end - allocation.start).total_seconds() / SECONDS_PER_DAY))
     width_px = duration_days * DAY_WIDTH_PX
     height_px = max(
-        MIN_MACHINE_HEIGHT_PX,
+        MIN_CONTENT_HEIGHT_PX,
         min(MAX_BLOCK_HEIGHT_PX, allocation.host_count * MAX_MACHINE_HEIGHT_PX),
     )
     left_px = max(0, (allocation.start.date() - window_start.date()).days) * DAY_WIDTH_PX
@@ -334,13 +336,13 @@ _CSS = """
 .allocation-graphic .ag-block {
   position: absolute;
   box-sizing: border-box;
-  padding: 3px 5px;
+  padding: 1px 4px;
   border: 1px solid rgba(15, 23, 42, 0.4);
   border-radius: 4px;
   color: #ffffff;
   overflow: hidden;
   font-size: 10px;
-  line-height: 1.25;
+  line-height: 1;
 }
 .allocation-graphic .ag-block-title {
   font-weight: 600;
@@ -394,6 +396,7 @@ def render_allocations(
     ticket_queue: str = "",
 ) -> str:
     """Render allocations as a self-contained HTML fragment."""
+    allocations = sorted(allocations, key=lambda allocation: (allocation.start, allocation.assignment_id))
     window_label = (
         f"{MONTH_NAMES[window_start.month - 1]} {window_start.year} - "
         f"{MONTH_NAMES[window_end.month - 1]} {window_end.year}"
@@ -460,8 +463,8 @@ class AllocationGraph:
             "schedules/hosts_range?"
             + urlencode(
                 {
-                    "start": window_start.strftime("%Y-%m-%dT%H:%M"),
-                    "end": window_end.strftime("%Y-%m-%dT%H:%M"),
+                    "start": window_start.strftime("%Y-%m-%dT%H:%M:%S"),
+                    "end": window_end.strftime("%Y-%m-%dT%H:%M:%S"),
                 }
             )
         ).json()
@@ -480,7 +483,14 @@ class AllocationGraph:
         visual_web_dir = self.config.get("visual_web_dir")
         os.makedirs(visual_web_dir, exist_ok=True)
         path = os.path.join(visual_web_dir, "allocation-graphic.html")
-        with open(path, "w", encoding="utf-8") as output:
-            output.write(fragment)
-        os.chmod(path, 0o644)
+        fd, temp_path = tempfile.mkstemp(dir=visual_web_dir, prefix=".allocation-graphic-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as output:
+                output.write(fragment)
+            os.chmod(temp_path, 0o644)
+            os.replace(temp_path, path)
+        except Exception:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise
         return path
