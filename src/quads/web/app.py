@@ -41,6 +41,7 @@ def initiate_navbar(flask_app):
                 View(text="Current Month", endpoint="visual.visuals", **{"when": "current"}),
                 View(text="Next Month", endpoint="visual.visuals", **{"when": "next"}),
                 View(text="All Time", endpoint="visual.index"),
+                View(text="Allocation Graphic", endpoint="visual.graph"),
             ),
             *dynamic_menus.get_dynamic_navbar_menus(),
         ),
