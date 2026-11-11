@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "22398007_79c289f8",
+        "filename": "docs/quads-workflow.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:33:26Z",
+      "side": 1,
+      "message": "The height is `max(44, min(360, host_count * 18))`, so 1 and 2 host blocks both render at the 44px floor. If the intent is a precise description, consider \"proportional to the host count, capped at 360px (44px minimum)\". Non-blocking.",
+      "revId": "66f36ae7e629c81323efeaa7ed62219fbc281834",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d32c26a0_ee47fd97",
+        "filename": "docs/superpowers/specs/2026-11-11-allocation-graphic-design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:33:26Z",
+      "side": 1,
+      "message": "Double \"proportional\" reads awkwardly. Suggest \"its machine count, capped at a fixed maximum height\", which says the same thing once. Non-blocking.",
+      "revId": "66f36ae7e629c81323efeaa7ed62219fbc281834",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
