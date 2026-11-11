@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3cd7396a_2670d4e5",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 2726,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:10Z",
+      "side": 1,
+      "message": "This constructs a second `QuadsApi` (new requests session) from `Config` and ignores the `self.quads` instance the CLI already holds. `AllocationGraph(quads\u003dself.quads).generate()` reuses the configured client and keeps the action consistent with the rest of `QuadsCli`.",
+      "revId": "b937328a523a2d4811f258abafcf585878bb0b48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3bfe87bd_0a758f69",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:10Z",
+      "side": 1,
+      "message": "On a host without `quadsweb.yml`, `visual_web_dir` is missing and `Config.get` returns None, so `os.makedirs(None)` raises `TypeError: expected str, bytes or os.PathLike object, not NoneType`. Raising `CliException` with the missing key would fail more clearly than the traceback.",
+      "revId": "b937328a523a2d4811f258abafcf585878bb0b48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7844ca5e_1ffc072c",
+        "filename": "tests/cli/test_regen.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:10Z",
+      "side": 1,
+      "message": "Existence only: a fragment with an empty timeline or the wrong window still passes. Assert something from the content, such as the window label from `window_for` or `Allocation Graphic`.",
+      "revId": "b937328a523a2d4811f258abafcf585878bb0b48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
