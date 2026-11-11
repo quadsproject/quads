@@ -83,7 +83,7 @@ pure function returning an HTML fragment:
 - A header with the window and generation timestamp.
 - A timeline with day/month grid lines and month labels.
 - Blocks stacked in start-time order; each block's height is proportional to
-  its machine count, scaled so the largest block fits a fixed maximum height.
+  its machine count, proportional up to a fixed maximum height.
 - Each block contains the description, a ticket link, and machine model
   counts. Text is escaped with `html.escape`. A `title` attribute carries the
   full details for narrow blocks.
