@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f5fa956a_6f25eee3",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:09Z",
+      "side": 1,
+      "message": "`clipped` only records that a boundary was cut, and `Allocation.start`/`end` already hold the clipped dates, so the tooltip reports the window edge as the assignment start or end. Carrying the original range (for example `raw_start`/`raw_end`) would let the tooltip show the true dates.",
+      "revId": "89408dbca266140fffabe5acbc6952d3cf0686d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "440bb239_d61d7244",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:09Z",
+      "side": 1,
+      "message": "Hard-codes the 12px day width that `DAY_WIDTH_PX` (line 17) defines. If the constant changes, the grid silently stops matching the blocks. Build the gradient width from the constant, or comment the coupling.",
+      "revId": "89408dbca266140fffabe5acbc6952d3cf0686d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5468046e_af066645",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:38:09Z",
+      "side": 1,
+      "message": "The merge branch at allocation_graph.py:145 runs here, but both hosts carry identical timestamps, so a min/max regression would still pass. Add two consecutive weekly rows for one assignment and assert the block spans both. The `assignment_id is None` skip (line 128), an `end \u003e window_end` clip, and a December/January `window_for` case (rollover at line 80) are also uncovered.",
+      "revId": "89408dbca266140fffabe5acbc6952d3cf0686d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
