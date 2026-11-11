@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "97d4bf45_7faf7d25",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:21:41Z",
+      "side": 1,
+      "message": "`MIN_MACHINE_HEIGHT_PX` has no reader left after the floor moved to `MIN_CONTENT_HEIGHT_PX` (one definition, zero uses). Harmless, but the plan still lists it at docs/superpowers/plans/2026-11-11-allocation-graphic.md:238, so keep it only if that plan is meant to stay accurate. Deleting line 27 is the smaller change.",
+      "revId": "554a9205426b3793bdaf94095154f22aa1eee96c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "31a0aaa6_7928d9d9",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T19:21:41Z",
+      "side": 1,
+      "message": "The clamp fixes the negative offset but collides with the next label when the window starts near a month end: for window_start 2026-06-29 the output is `June 2026` at left 0px and `July 2026` at left 24px, and a 12px bold label is wider than 24px. Cosmetic and only reachable by direct callers, since `generate()` always passes month starts. Dropping the first label when its sibling is closer than the label width would keep both paths clean.",
+      "revId": "554a9205426b3793bdaf94095154f22aa1eee96c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
