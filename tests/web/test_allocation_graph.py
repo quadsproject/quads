@@ -26,7 +26,11 @@ def test_graph_served(app):
         handle.write("<div id='graph'>ok</div>")
     response = app.test_client().get("/visual/graph")
     assert response.status_code == 200
-    assert "<div id='graph'>ok</div>" in response.get_data(as_text=True)
+    body = response.get_data(as_text=True)
+    assert "<div id='graph'>ok</div>" in body
+    assert '<h2 class="mb-3"><b>Allocation Graphic</b></h2>' in body
+    assert "Monthly Usage" not in body
+    assert 'href="/visual/graph"' in body
 
 
 def test_graph_missing_returns_404(app):
