@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bddb4cd_6a4d63c9",
+        "filename": "tests/web/test_allocation_graph.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:52:28Z",
+      "side": 1,
+      "message": "Pins the href but not the label, so renaming the menu text would still pass. `assert \"\u003eAllocation Graphic\u003c/a\u003e\" in body` would lock the visible item too.",
+      "revId": "a9be32a193a5d4fbca880c24c3ce52fc0f8d36df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
