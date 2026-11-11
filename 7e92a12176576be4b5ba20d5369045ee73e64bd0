@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7be40dec_d0def3d8",
+        "filename": "src/quads/web/blueprints/visual.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-11T18:52:26Z",
+      "side": 1,
+      "message": "Check-then-open race: if the file is regenerated between `os.path.exists()` and `open()`, the handler raises `FileNotFoundError` and returns 500 instead of the 404. `try/except (FileNotFoundError, IsADirectoryError): abort(404, ...)` also drops the extra stat call. `encoding\u003d\"utf-8\"` matches the writer, which writes UTF-8.",
+      "revId": "7e92a12176576be4b5ba20d5369045ee73e64bd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
