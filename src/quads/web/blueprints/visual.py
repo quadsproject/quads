@@ -20,6 +20,16 @@ async def index():
     return render_template("wiki/visuals.html", html_content=html_content)
 
 
+@visual_bp.route("/graph")
+async def graph():
+    file_path = os.path.join(VISUAL_DIR, "allocation-graphic.html")
+    if not os.path.exists(file_path):
+        abort(404, description="Allocation graphic has not been generated")
+    with open(file_path, "r") as f:
+        html_content = f.read()
+    return render_template("wiki/allocation_graph.html", html_content=html_content)
+
+
 @visual_bp.route("/<when>")
 async def visuals(when):
     file_paths = get_file_paths(VISUAL_DIR)
