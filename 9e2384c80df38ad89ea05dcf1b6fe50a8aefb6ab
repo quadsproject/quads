@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c04779d4_f212269a",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:50:24Z",
+      "side": 1,
+      "message": "`MIN_MACHINE_HEIGHT_PX` has no remaining reader; `_render_block` clamps to `MIN_CONTENT_HEIGHT_PX`. Drop it or use it in the clamp.",
+      "revId": "9e2384c80df38ad89ea05dcf1b6fe50a8aefb6ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a12c21bd_f027ca12",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:50:24Z",
+      "side": 1,
+      "message": "The host map is built from `filter_hosts(retired\u003dFalse, broken\u003dFalse)` (line 471), but `hosts_range` returns schedules for every host, and retiring or breaking a host does not delete its schedules. A host missing from the active list lands here as `_model_for_host(None)` -\u003e `unknown` and still counts in `host_count` (line 175). Reproduced with one schedule for a host absent from the list: `host_count\u003d1, model_counts\u003d{\u0027unknown\u0027: 1}`. Since the window includes the previous month, recently retired hosts are the common case. Look the model up in the unfiltered host list, or skip hosts that are not active.",
+      "revId": "9e2384c80df38ad89ea05dcf1b6fe50a8aefb6ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2813994_102c9e6c",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:50:24Z",
+      "side": 1,
+      "message": "This grid cell is still hard-coded at 12px while everything else uses `DAY_WIDTH_PX` (line 24). If the constant changes, the grid and the blocks desync. Make `_CSS` an f-string and interpolate the constant.",
+      "revId": "9e2384c80df38ad89ea05dcf1b6fe50a8aefb6ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e4845a6_b08c00ec",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:50:24Z",
+      "side": 1,
+      "message": "The merge never actually runs: `h1` and `h2` carry identical start/end, so min/max could be swapped without a failure (verified: swapping them still passes all 13 tests). Dropping `end \u003e window_end` from the clip condition also passes, and a null `assignment_id` or a January `window_for` date is untested. Add a second host with a different start/end, one allocation ending past `window_end`, one null `assignment_id`, and a January window.",
+      "revId": "9e2384c80df38ad89ea05dcf1b6fe50a8aefb6ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
