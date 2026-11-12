@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "77468472_342277e3",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T09:13:35Z",
+      "side": 1,
+      "message": "`hosts` is filtered to active hosts, but `schedules/hosts_range` returns schedules for every host and retiring a host does not delete its schedules. A schedule for a retired or broken host still lands in `entry[\"hosts\"]` via `_model_for_host(None)` -\u003e `unknown` and counts in `host_count` (one schedule for a host absent from the active list gives `host_count\u003d1, model_counts\u003d{\u0027unknown\u0027: 1}`). Since the window starts a month in the past, recently retired hosts are the common case. Look up models in the unfiltered host list, or skip hosts that are not active.",
+      "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
