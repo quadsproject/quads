@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2fc038a_240ede93",
+        "filename": "docs/superpowers/plans/2026-11-11-allocation-graphic.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:38:05Z",
+      "side": 1,
+      "message": "This is an agent execution plan (\"For agentic workers\", unchecked checkboxes), not project documentation. Consider keeping the design spec and dropping the plan file.",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f862a3c_997a4a85",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:38:05Z",
+      "side": 1,
+      "message": "`MIN_MACHINE_HEIGHT_PX` is no longer referenced: `_render_block` uses `MIN_CONTENT_HEIGHT_PX`. Drop the constant.",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0e135a4b_12785f19",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:38:05Z",
+      "side": 1,
+      "message": "Hard-codes `12px` while `DAY_WIDTH_PX` (line 24) defines the day width. Build the gradient stop from the constant, or comment the coupling.",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0a62151c_c49975a6",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:38:05Z",
+      "side": 1,
+      "message": "`hosts` is filtered to `retired\u003dFalse, broken\u003dFalse`, but `hosts_range` is not. A host that is now retired or broken still arrives here with its schedule, so `build_allocations` counts it in `host_count` and `_model_for_host` returns `unknown` for it even though the host record has a model. The previous-month half of the window makes this likely. Either fetch an unfiltered host list for the model lookup, or skip schedule rows whose host is not in `hosts`.",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "27337585_09fe9fbe",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-12T08:38:05Z",
+      "side": 1,
+      "message": "The merge path still only sees identical timestamps, so a min/max regression passes. Add two consecutive weekly rows for one assignment where one host starts earlier and the other ends later, plus an `end \u003e window_end` clip, the `assignment_id is None` skip at `allocation_graph.py:136`, and a December/January `window_for` case at `allocation_graph.py:85`.",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
