@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "03692602_691df464",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:49Z",
+      "side": 1,
+      "message": "The 15 x 40 \u003d 600s ceiling intentionally matches the prior fixed sleep, and the poll usually exits earlier now; RETRIES is never overridden in src, so a dedicated constant or monotonic deadline is a readability refactor we are declining under YAGNI.",
+      "parentUuid": "edd0cc71_7911afe9",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d21d83d3_b6751076",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-13T11:00:49Z",
       "side": 1,
       "message": "A transport error here now fails the move. `get_job_queue()` calls `get_request(url)` without `_continue` (`badfish.py:529`), so one timeout raises BadfishException at line 812, the Dell plugin returns False (`src/quads/plugins/builtin/hardware/badfish.py:56-58`), and the move dies at `hardware_prep` (`standard.py:189-193`). The old sleep did no I/O. Catch BadfishException per iteration and keep waiting, or read the queue with `_continue\u003dTrue`.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "053f2e06_4d0ea3d5",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:49Z",
+      "side": 1,
+      "message": "Fixed in PS2: the per-iteration except BadfishException keeps the loop polling instead of aborting the move on a transport error (verified).",
+      "parentUuid": "d21d83d3_b6751076",
       "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "22988c0a_97bff6f2",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:49Z",
+      "side": 1,
+      "message": "Confirmed reachable: a 503 or HTML body makes get_job_queue return [] and the poll exits on the first iteration. The root is shared get_job_queue not checking the response status and has_pending_bios_job treating an unreadable read as empty (pre-existing, also called at badfish.py:1238), so the fix belongs in that helper. Tracked as #767.",
+      "parentUuid": "51f65447_666ccbbb",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "e77ae5db_ebea9054",
         "filename": "src/quads/tools/external/badfish.py",
         "patchSetId": 1
@@ -71,6 +125,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "50593fc2_e0630b83",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:49Z",
+      "side": 1,
+      "message": "Exhaustion now logs a warning in PS2 (the for/else). Detecting a Failed job is behavior the old fixed sleep never had either, so it is a new feature out of scope for #766.",
+      "parentUuid": "e77ae5db_ebea9054",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "393ff481_bb17095c",
         "filename": "tests/unit/test_badfish_idrac10.py",
         "patchSetId": 1
@@ -82,6 +154,24 @@
       "writtenOn": "2026-11-13T11:00:49Z",
       "side": 1,
       "message": "Counts only: `bios_job_poll_delay \u003d 0`, or moving the loop above `reboot_server()`, would still pass. Pinning the delay with `assert_awaited_with` and pinning `retries` would make this test hold the property the commit message claims, poll after the reboot.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "797bd790_7a644ed9",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1017,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:49Z",
+      "side": 1,
+      "message": "Verified the count assertions still fail when the poll loop is reverted, so they guard the real behavior; bios_job_poll_delay is a hardcoded constant with no config path and poll-after-reboot ordering is a hypothetical refactor, so we are keeping counts under YAGNI.",
+      "parentUuid": "393ff481_bb17095c",
       "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
