@@ -45,6 +45,7 @@ class ResourceNotFound(BadfishException):
 
 class Badfish:
     clear_pending_retry_delay = 10
+    bios_job_poll_delay = 40
 
     def __init__(self, _host, _rack, _uloc, _blade, _username, _password, loop=None, _retries=RETRIES):
         self.host = _host
@@ -804,6 +805,13 @@ class Badfish:
                 await self.get_job_status(job_id)
 
             await self.reboot_server()
+
+            # Wait for the queued BIOS config job to clear instead of a fixed sleep;
+            # a no-op leaves an empty queue and never reaches this branch.
+            for _ in range(self.retries):
+                if not await self.has_pending_bios_job():
+                    break
+                await asyncio.sleep(self.bios_job_poll_delay)
 
         else:
             # Already on the requested boot order: a no-op is success, not failure.
