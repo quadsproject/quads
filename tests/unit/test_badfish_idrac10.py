@@ -987,6 +987,7 @@ class TestChangeBoot:
         badfish_instance.change_boot_order = AsyncMock()
         badfish_instance.create_bios_config_job = AsyncMock(return_value=None)
         badfish_instance.reboot_server = AsyncMock()
+        badfish_instance.has_pending_bios_job = AsyncMock(return_value=False)
 
         with patch("quads.tools.external.badfish.os.path.exists", return_value=True):
             result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
@@ -994,3 +995,66 @@ class TestChangeBoot:
         assert result is True
         badfish_instance.change_boot_order.assert_awaited_once()
         badfish_instance.reboot_server.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_waits_for_pending_bios_job_after_change(self, badfish_instance):
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="foreman")
+        badfish_instance.clear_job_queue = AsyncMock()
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.create_bios_config_job = AsyncMock(return_value=None)
+        badfish_instance.reboot_server = AsyncMock()
+        badfish_instance.has_pending_bios_job = AsyncMock(side_effect=[True, True, False])
+
+        with (
+            patch("quads.tools.external.badfish.os.path.exists", return_value=True),
+            patch("quads.tools.external.badfish.asyncio.sleep", new=AsyncMock()) as mock_sleep,
+        ):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        assert badfish_instance.has_pending_bios_job.await_count == 3
+        assert mock_sleep.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_proceeds_after_poll_timeout(self, badfish_instance):
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="foreman")
+        badfish_instance.clear_job_queue = AsyncMock()
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.create_bios_config_job = AsyncMock(return_value=None)
+        badfish_instance.reboot_server = AsyncMock()
+        badfish_instance.has_pending_bios_job = AsyncMock(return_value=True)
+
+        with (
+            patch("quads.tools.external.badfish.os.path.exists", return_value=True),
+            patch("quads.tools.external.badfish.asyncio.sleep", new=AsyncMock()) as mock_sleep,
+        ):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        assert badfish_instance.has_pending_bios_job.await_count == badfish_instance.retries
+        assert mock_sleep.await_count == badfish_instance.retries
+
+    @pytest.mark.asyncio
+    async def test_poll_tolerates_transient_read_error(self, badfish_instance):
+        badfish_instance.bios_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+        badfish_instance.get_host_types_from_yaml = AsyncMock(return_value=["director"])
+        badfish_instance.get_host_type = AsyncMock(return_value="foreman")
+        badfish_instance.clear_job_queue = AsyncMock()
+        badfish_instance.change_boot_order = AsyncMock()
+        badfish_instance.create_bios_config_job = AsyncMock(return_value=None)
+        badfish_instance.reboot_server = AsyncMock()
+        badfish_instance.has_pending_bios_job = AsyncMock(side_effect=[BadfishException("blip"), False])
+
+        with (
+            patch("quads.tools.external.badfish.os.path.exists", return_value=True),
+            patch("quads.tools.external.badfish.asyncio.sleep", new=AsyncMock()) as mock_sleep,
+        ):
+            result = await badfish_instance.change_boot("director", "/path/interfaces.yml")
+
+        assert result is True
+        assert badfish_instance.has_pending_bios_job.await_count == 2
+        assert mock_sleep.await_count == 1

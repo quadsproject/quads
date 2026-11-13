@@ -45,6 +45,7 @@ class ResourceNotFound(BadfishException):
 
 class Badfish:
     clear_pending_retry_delay = 10
+    bios_job_poll_delay = 40  # 40s x default retries (15) = the former 600s sleep ceiling
 
     def __init__(self, _host, _rack, _uloc, _blade, _username, _password, loop=None, _retries=RETRIES):
         self.host = _host
@@ -804,6 +805,21 @@ class Badfish:
                 await self.get_job_status(job_id)
 
             await self.reboot_server()
+
+            # Wait for the queued BIOS config job to clear instead of a fixed sleep;
+            # a no-op leaves an empty queue and never reaches this branch. A transient
+            # job-queue read error means "unknown", so keep waiting rather than abort.
+            for _ in range(self.retries):
+                try:
+                    if not await self.has_pending_bios_job():
+                        break
+                except BadfishException:
+                    logger.warning("Could not read job queue on %s; will keep waiting." % self.host)
+                await asyncio.sleep(self.bios_job_poll_delay)
+            else:
+                logger.warning(
+                    "BIOS config job on %s did not clear after %s polls; proceeding." % (self.host, self.retries)
+                )
 
         else:
             # Already on the requested boot order: a no-op is success, not failure.

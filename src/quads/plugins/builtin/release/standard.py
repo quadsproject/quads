@@ -302,9 +302,6 @@ class StandardReleasePlugin(ReleasePlugin):
                     if not await self.hardware_dispatcher.change_boot(boot_order, interfaces_path):
                         self.logger.error(f"Could not set boot order for {host_obj.name}.")
                         return False, vendor
-                    # TODO: replace with a proper wait_for_job() poll on the iDRAC job queue
-                    # instead of a fixed 600s sleep
-                    await asyncio.sleep(600)
 
             return True, vendor
         except Exception as e:
