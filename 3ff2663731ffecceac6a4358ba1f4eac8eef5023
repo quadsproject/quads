@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0b956a32_6e253414",
+        "filename": "docs/quads-workflow.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T16:05:01Z",
+      "side": 1,
+      "message": "Stale on two counts now: PS6 dropped the height encoding (fixed 46px rows, host count in the label gutter), and since PS5 the fragment is written to `visual_web_dir/graph/allocation-graphic.html`. The commit message repeats the same line (\"Blocks are sized by allocation duration and machine count\"). Worth updating both while the change is open.",
+      "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "99b75392_2238b5a8",
+        "filename": "src/quads/web/blueprints/visual.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T16:05:01Z",
+      "side": 1,
+      "message": "Still 500 on PS6: `get_file_paths` (`blueprints/common.py:17`) walks into `graph/` and appends bare basenames, so `/visual/allocation-graphic` matches `allocation-graphic.html` and this line opens `VISUAL_DIR/allocation-graphic.html`, which raises `FileNotFoundError`. Reproduced with the app test client on PS6: `/visual/graph` 200, `/visual/allocation-graphic` 500. Skipping `GRAPH_FILENAME` here (the `/graph` route already serves it) or joining `GRAPH_SUBDIR` turns it into a 404; a case next to the existing `/graph` tests would pin it.",
+      "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9c4053c_6f9064b8",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T16:05:01Z",
+      "side": 1,
+      "message": "The geometry test is real: `width_px \u003d duration_days * DAY_WIDTH_PX + allocation.host_count` fails it. Two neighbouring gaps: forcing `clipped \u003d \"\"` leaves all 18 tests green, so the dashed `ag-bar--clipped` cue is unverified, and deleting the `__ROW_HEIGHT_PX__` replace also leaves 18 green while the stylesheet keeps `__ROW_HEIGHT_PX__px`. One assertion each (a clipped allocation carries the class; the rendered CSS contains no `__.*__` token) would cover the new layout.",
+      "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
