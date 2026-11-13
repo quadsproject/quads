@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "02b2d208_9573055e",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:49:43Z",
+      "side": 1,
+      "message": "A connect/auth failure comes back as `[]` from `_discover_from_tables`, so this is also the path for a switch that could not be queried: the run prints \"No hosts discovered\", exits 0 and skips `--apply`. The plugin does log `Failed to connect to switch: ...` to stderr, but automation only sees the zero exit. A nonzero exit when the SSH query itself failed would separate it from an empty switch.",
+      "revId": "0a9a52aca62dbed06709e7fa5020b24d351166a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2bdccc5f_e49755aa",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:49:43Z",
+      "side": 1,
+      "message": "`existing_by_mac` is built once and the create path never checks `name`, so two cases still duplicate. Reproduced: the same MAC learned on two ports in one scan creates two interfaces with that MAC, and a NIC swap (new MAC on a port whose LLDP port-id is still `em1`) creates a second `em1` beside the existing one. The create route enforces no uniqueness, and `delete_interface` drops the first name match, so a duplicate name makes `--rm-interface` ambiguous. Tracking created names/MACs in a set and skipping with a warning closes it.",
+      "revId": "0a9a52aca62dbed06709e7fa5020b24d351166a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3f5a2c7_ba091b77",
+        "filename": "src/quads/cli/parser.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:49:43Z",
+      "side": 1,
+      "message": "Adding `--switch-ip` makes the pre-existing abbreviation `--switch` ambiguous with `--switch-config-applied` (argparse keeps `allow_abbrev` on by default). Verified: `--switch true` parses on the parent commit and now exits 2 with \"ambiguous option: --switch could match --switch-ip, --switch-config-applied\". Minor, but scripts using the abbreviation will break.",
+      "revId": "0a9a52aca62dbed06709e7fa5020b24d351166a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "55adef68_0785646d",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:49:43Z",
+      "side": 1,
+      "message": "`_parse_fdb` strips the logical unit at line 77 but this key keeps it, so on Junos that print `ge-0/0/0.0` in `show lldp neighbors` the neighbor keys never match the FDB\u0027s `ge-0/0/0`. Every row then comes back with `neighbor\u003dNone` and `name\u003dNone`: the report loses the names and `--apply` matches nothing for any host. A unit-suffixed fixture reproduces it (`No LLDP-identified NICs matched host ...`, zero creates). Keying on `tokens[0].split(\".\")[0]` aligns it with the FDB.",
+      "revId": "0a9a52aca62dbed06709e7fa5020b24d351166a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
