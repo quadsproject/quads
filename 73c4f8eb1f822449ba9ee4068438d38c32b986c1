@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "60f3c664_c9593ed9",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T17:23:16Z",
+      "side": 1,
+      "message": "This assertion matches `.ag-bar--clipped` in the embedded stylesheet, not on the bar. Setting `clipped \u003d \"\"` in `_render_row` still passes the test. Assert the bar markup instead, e.g. `class\u003d\"ag-bar ag-bar--clipped\"`, and add the unclipped negative case.",
+      "revId": "73c4f8eb1f822449ba9ee4068438d38c32b986c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eeb136cd_2ec7fed5",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T17:23:16Z",
+      "side": 1,
+      "message": "The fake host list only has an active host, so the `get_hosts()` change (all hosts, not the retired/broken filter) has no test. Adding a host with `retired: true` or `broken: true` and asserting its model is counted would pin it.",
+      "revId": "73c4f8eb1f822449ba9ee4068438d38c32b986c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
