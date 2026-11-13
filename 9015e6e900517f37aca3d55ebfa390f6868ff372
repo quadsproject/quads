@@ -20,6 +20,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "eda53ab0_0a405d3e",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:14:44Z",
+      "side": 1,
+      "message": "The hash is stable across regens, but it is not distinct: with `cloud01..cloud12`, `cloud02`/`cloud03` land 5.6 degrees apart and `cloud01`/`cloud09`, `cloud04`/`cloud10`, `cloud05`/`cloud06` 7.1 degrees apart at the same S/L, so those legend swatches read as the same color (the old 10-color palette was distinct up to 10 clouds). Hashing into a wider perceptually spaced palette, or snapping to well-separated buckets with a deterministic offset for duplicates, keeps stability and separates them. `hashlib.sha1(..., usedforsecurity\u003dFalse)` also keeps this working on FIPS-enabled hosts, since the hue is not a security digest. At hue 60-90 the fixed 38% lightness gives 2.9-3.3:1 against white, so the deferred contrast item is unchanged.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "1e3775e6_2a9f8ac3",
         "filename": "src/quads/tools/allocation_graph.py",
         "patchSetId": 5
@@ -99,6 +116,40 @@
       "writtenOn": "2026-11-13T11:06:28Z",
       "side": 1,
       "message": "Reads from the dedicated graph/ subdir now, and catches OSError (covers FileNotFoundError/IsADirectoryError/PermissionError).",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dda5ffc0_86a3ea07",
+        "filename": "src/quads/web/blueprints/visual.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:14:44Z",
+      "side": 1,
+      "message": "Moving the fragment into `graph/` exposes this route: `get_file_paths` (`blueprints/common.py:17`) walks recursively and appends basenames, so the list still contains `allocation-graphic.html`, and `/visual/allocation-graphic` opens `VISUAL_DIR/allocation-graphic.html` and raises `FileNotFoundError` -\u003e 500. Reproduced with the app test client: PS4 serves that URL with 200, PS5 returns 500. Returning paths relative to `web_path` from `get_file_paths`, or excluding the graph subdirectory here, restores the 404.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d82193c4_c6301ba2",
+        "filename": "tests/tools/test_allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:14:44Z",
+      "side": 1,
+      "message": "`FakeQuads` returns a single active host, so nothing pins the retired-host fix that this patch set is built on. Adding a host with `retired\u003dTrue` (or `broken\u003dTrue`) and a schedule in the window would assert that `generate()` passes it through `get_hosts()` and that the model resolves; without it a future filter change can silently reintroduce `unknown`.",
       "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
