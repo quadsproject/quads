@@ -3,6 +3,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "31b2cb7c_eb89ae43",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T10:11:39Z",
+      "side": 1,
+      "message": "The new `#### Discovering Host Interfaces` section isn\u0027t in this TOC, though the sibling `#### Define Host Interfaces in QUADS` is. Worth a matching TOC entry.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "abf4df84_21a105a3",
         "filename": "README.md",
         "patchSetId": 2
@@ -14,6 +31,40 @@
       "writtenOn": "2026-11-11T16:44:24Z",
       "side": 1,
       "message": "`dg` is not a hex pair, so `52:54:00:d9:5d:dg` is not a valid MAC address. Likely a typo for `d0`.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e2c4834_7ef35c2b",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T10:11:39Z",
+      "side": 1,
+      "message": "A switch connect/auth failure returns [] (SSHHelper failure in the base `_discover_from_tables`, plus the dispatcher\u0027s `except -\u003e []`), so this path logs \"No hosts discovered\" and returns 0. For automation a failed query is indistinguishable from an empty switch, and `--apply` silently no-ops. Consider a nonzero exit (or a distinct \"could not query switch\" message) when the SSH query itself failed, vs an actually-empty result.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c79e4820_8d2d22fb",
+        "filename": "src/quads/cli/cli.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T10:11:39Z",
+      "side": 1,
+      "message": "`existing_by_mac` is built once and not refreshed in the loop, and the create path doesn\u0027t check whether the chosen `name` already exists on the host. Two edges create duplicates: (1) a NIC swap where the new MAC lands on the port whose LLDP port-id is still `em1`, so the MAC match misses and a second `em1` is created; (2) the same MAC learned on two ports in one scan (mac-flap / active-backup / MLAG), created twice. The server enforces no name/MAC uniqueness, delete_interface matches by name, and modify indexes VLANs by sorted-name position, so a duplicate name affects later ops. This is the edge the idempotency NOTE (README ~612) doesn\u0027t cover. Tracking created names/MACs in a set and skip+warn on collision would close it.",
       "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -65,6 +116,40 @@
       "writtenOn": "2026-11-11T16:44:24Z",
       "side": 1,
       "message": "`show mac address-table` prints a `Multicast Mac Address Table` section after the unicast table. This match also accepts those MULTICAST rows, and the port loop below takes the last Et token, so multicast MACs are attributed to that port. Reproduced with a real-shaped EOS output: Et3 ended up with `[\u00270c:74:39:88:00:01\u0027, \u002701:00:5e:00:00:01\u0027, \u002733:33:00:00:00:01\u0027]` and was flagged `trunk\u003dTrue`, so `--apply` skipped a host port that has a single NIC. Suggest stopping at the `Multicast Mac Address Table` heading, or requiring the Type column to be `DYNAMIC`, and rejecting multicast/broadcast MACs.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "555bd423_12b6f516",
+        "filename": "src/quads/plugins/builtin/switches/juniper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T10:11:39Z",
+      "side": 1,
+      "message": "`_parse_fdb` strips the logical unit (`port.split(\".\")[0]` below) so its keys are physical (`ge-0/0/0`), but this line keys neighbors on the raw `tokens[0]`. On Junos that prints the Local Interface with the unit in `show lldp neighbors` (non-ELS EX2200/3300/4200; ELS QFX/EX4300 print without it), the LLDP keys (`ge-0/0/47.0`) never match the FDB keys (`ge-0/0/47`), so every row comes back neighbor\u003dNone and `--apply` matches nothing. The ELS-shaped test fixture is the one case that happens to join, so the suite doesn\u0027t catch it. `neighbors[tokens[0].split(\".\")[0]] \u003d {...}` aligns the key with the physical switch_port.",
+      "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "61d317d0_48da7d3e",
+        "filename": "tests/plugins/test_switch_discovery.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T10:11:39Z",
+      "side": 1,
+      "message": "Good coverage of the parsers and `_apply_discovered`. For completeness the new entry points have no tests yet: `SwitchDispatcher.discover()` vendor-selection branches, `action_discover_hosts()` (the `--switch-ip` required and `--apply` requires `--host` guards, and the report path), the base `SwitchPlugin.discover()` no-op, and the `_discover_from_tables` SSH-failure path. Not blocking (no coverage gate), just a suggestion.",
       "revId": "40ed732b713bf26f0b3f602888bf2ba8ba397072",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
