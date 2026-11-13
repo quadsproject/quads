@@ -37,6 +37,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "58500a0d_0fd80461",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:32:00Z",
+      "side": 1,
+      "message": "Resolved in PS5: the model map is now built from get_hosts() (all hosts), so a retired/broken host\u0027s in-window schedule resolves to its real model instead of \u0027unknown\u0027. Verified HostDao.get_hosts() is unfiltered.",
+      "parentUuid": "a12c21bd_f027ca12",
+      "revId": "9e2384c80df38ad89ea05dcf1b6fe50a8aefb6ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "e2813994_102c9e6c",
         "filename": "src/quads/tools/allocation_graph.py",
         "patchSetId": 3
