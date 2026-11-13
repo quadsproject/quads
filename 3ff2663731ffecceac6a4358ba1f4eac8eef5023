@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4c166108_eb06f447",
+        "filename": "docs/quads-workflow.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:58:25Z",
+      "side": 1,
+      "message": "Suggested paragraph rewrite (and the matching commit-message line, which still says sized by machine count): drop the block-height/360px/tooltip encoding and the top-level path. For example: \u0027quads --regen-graph writes the graphic to a graph/ subdirectory of visual_web_dir as allocation-graphic.html, served at /visual/graph; the window covers the previous, current and next month. Each assignment is one fixed-height lane whose bar is positioned and sized by its dates only (not by host count) and colored per cloud by a stable hash; the sticky label gutter shows the description, cloud, owner, host count and per-model breakdown, with full details on hover. /visual/graph returns 404 until generated once.\u0027",
+      "parentUuid": "0b956a32_6e253414",
+      "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "99b75392_2238b5a8",
         "filename": "src/quads/web/blueprints/visual.py",
         "patchSetId": 6
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-13T16:05:01Z",
       "side": 1,
       "message": "Still 500 on PS6: `get_file_paths` (`blueprints/common.py:17`) walks into `graph/` and appends bare basenames, so `/visual/allocation-graphic` matches `allocation-graphic.html` and this line opens `VISUAL_DIR/allocation-graphic.html`, which raises `FileNotFoundError`. Reproduced with the app test client on PS6: `/visual/graph` 200, `/visual/allocation-graphic` 500. Skipping `GRAPH_FILENAME` here (the `/graph` route already serves it) or joining `GRAPH_SUBDIR` turns it into a 404; a case next to the existing `/graph` tests would pin it.",
+      "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39f0b6d1_58ca4dc8",
+        "filename": "src/quads/web/blueprints/visual.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:58:25Z",
+      "side": 1,
+      "message": "Still open on PS6 (confirmed live: /visual/allocation-graphic.html and /visual/graphic return 500 while /visual/graph is fine). Smallest safe fix is to wrap the open() in this loop with try/except OSError: continue, mirroring the /graph route: get_file_paths walks into graph/ and yields the bare basename, so open(VISUAL_DIR/\u003cbasename\u003e) misses the graph/ segment and raises FileNotFoundError. continue is safe because os.walk is top-down, so a real top-level heatmap match is always served first; the alternatives (stop recursing, or return relative paths) break the dynamic_content /\u003cdirectory\u003e/\u003cpage\u003e caller.",
+      "parentUuid": "99b75392_2238b5a8",
       "revId": "3ff2663731ffecceac6a4358ba1f4eac8eef5023",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
