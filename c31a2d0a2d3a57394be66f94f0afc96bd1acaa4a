@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "acfcea04_46b1b036",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T10:22:56Z",
+      "side": 1,
+      "message": "Returning True here now sends the no-op through prepare_host_hardware, which follows a successful change_boot with an unconditional `await asyncio.sleep(600)` (src/quads/plugins/builtin/release/standard.py:307). No BIOS config job is queued on this path, so every rebuild of a Dell host already on the requested boot order now waits 10 minutes for nothing. Non-blocking: distinguish \"changed\" from \"already correct\", or move the wait onto the job path.",
+      "revId": "c31a2d0a2d3a57394be66f94f0afc96bd1acaa4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
