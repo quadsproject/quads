@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13698963_b38911d5",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:34:00Z",
+      "side": 1,
+      "message": "`has_pending_bios_job()` reports \"no pending job\" for reads it could not perform, so the poll exits on the first iteration in exactly the case the comment above promises to wait through. `get_job_queue()` never checks `_response.status` (`badfish.py:529-534`), so a 503 or an HTML error body yields `[]`; a job GET returning None or non-200 is logged as \"skipping\" (`badfish.py:1012-1015`); an unparsable body likewise. The new `except` only catches the transport failures that raise `BadfishException`. Executed proof: with the jobs collection answering 503, `change_boot()` returns True after one GET and zero sleeps, while a readable queue with a Running job polls until it clears. Suggest returning None (or raising) for an unreadable read and treating None as keep waiting, the way `standard.py:372-380` does for BootMode. A 200 body that parses to a non-object also raises `AttributeError` from `data.get`, which escapes this `except`.",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0e2baa5_8712a90d",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:34:00Z",
+      "side": 1,
+      "message": "The sleep runs after the last check too, so the final 40s buys nothing and a job that clears in that window is reported as \"did not clear after 15 polls\". Skipping the sleep on the last iteration (`if _ + 1 \u003c self.retries`) makes the timeout match its message. Separately, `badfish.py:48` calls 600s the ceiling, but each poll also spends up to 120s per HTTP GET, so the worst case is larger while the move semaphore is held.",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "08250655_3d5497dd",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1039,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:34:00Z",
+      "side": 1,
+      "message": "Counts only: `bios_job_poll_delay \u003d 0` passes all three tests, and so does moving the whole poll block above `reboot_server()`, which is the ordering `test_waits_for_pending_bios_job_after_change` is named for. `mock_sleep.assert_awaited_with(badfish_instance.bios_job_poll_delay)` plus one call-order assertion would pin both.",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
