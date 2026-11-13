@@ -71,6 +71,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "e3968405_f22f9a36",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:31:58Z",
+      "side": 1,
+      "message": "Resolved in PS5: the model map is now built from get_hosts() (all hosts), so retired/broken schedules resolve to the real model. Verified.",
+      "parentUuid": "0a62151c_c49975a6",
+      "revId": "2df9a36bbc54f3d9564b3baf4a1e8083d86170b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "27337585_09fe9fbe",
         "filename": "tests/tools/test_allocation_graph.py",
         "patchSetId": 2
