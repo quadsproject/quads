@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "edd0cc71_7911afe9",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:00:49Z",
+      "side": 1,
+      "message": "The ceiling is `self.retries * bios_job_poll_delay` \u003d 15 * 40 \u003d 600s, so the boot wait rides the generic `RETRIES` (`badfish.py:19`) that also tunes HTTP retries. Each iteration can also spend the 120s request timeout on the jobs collection while holding the move semaphore (`standard.py:184`), so a slow BMC pushes the worst case past 600s. A dedicated attempts constant or a monotonic deadline reads clearer.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d21d83d3_b6751076",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:00:49Z",
+      "side": 1,
+      "message": "A transport error here now fails the move. `get_job_queue()` calls `get_request(url)` without `_continue` (`badfish.py:529`), so one timeout raises BadfishException at line 812, the Dell plugin returns False (`src/quads/plugins/builtin/hardware/badfish.py:56-58`), and the move dies at `hardware_prep` (`standard.py:189-193`). The old sleep did no I/O. Catch BadfishException per iteration and keep waiting, or read the queue with `_continue\u003dTrue`.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51f65447_666ccbbb",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:00:49Z",
+      "side": 1,
+      "message": "Treats an unreadable queue as a cleared one. `has_pending_bios_job()` returns False when a job GET is None, non-200, or unparsable (`badfish.py:1004-1012`), and `get_job_queue()` never checks the response status (`badfish.py:529-534`), so a 5xx or HTML body returns `[]`. Either path breaks this loop on the first iteration after the reboot, `change_boot` returns True with the boot order unapplied, and `reboot_for_rebuild` -\u003e `boot_to_type` -\u003e `boot_to` can then `clear_job_queue()` (`badfish.py:1156`) and drop the pending job. Treat an unreadable queue or job as still pending, or return None from the helper.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e77ae5db_ebea9054",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:00:49Z",
+      "side": 1,
+      "message": "No log when the wait gives up: the loop exits silently after `self.retries` attempts and `change_boot` still returns True. `has_pending_bios_job()` also only matches New/Scheduled/Running, so a job ending Failed stops the wait and reads as success. A warning on exhaustion plus a final JobState read would leave a trace in the move log.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "393ff481_bb17095c",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1017,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T11:00:49Z",
+      "side": 1,
+      "message": "Counts only: `bios_job_poll_delay \u003d 0`, or moving the loop above `reboot_server()`, would still pass. Pinning the delay with `assert_awaited_with` and pinning `retries` would make this test hold the property the commit message claims, poll after the reboot.",
+      "revId": "764c7dd747b484c4929d10890330ae801cd41f8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
