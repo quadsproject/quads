@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "90856954_b8c8ea8a",
+        "filename": "cron/quads",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:32:01Z",
+      "side": 1,
+      "message": "Resolved in PS5: the example is now 17 10 * * * (daily 10:17 UTC), off the :00 pileup and staggered from the heatmap. Thanks.",
+      "parentUuid": "32aed875_c3b79bdb",
+      "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c15aa348_5c72d986",
@@ -31,6 +49,24 @@
       "writtenOn": "2026-11-13T09:56:41Z",
       "side": 1,
       "message": "This panel chrome hardcodes a light palette (background #f8fafc, text #1f2933, timeline #ffffff, gridlines #e2e8f0). The site themes via data-bs-theme, with a full [data-bs-theme\u003d\"dark\"] block in main.css, so in dark mode this renders as a bright light box on a dark page, unlike every other page (including the heatmap, whose chrome is Bootstrap-themed). The vivid cloud blocks with white text are fine in both themes; only the container, timeline, gridline and text colors need to adapt, for example Bootstrap vars (var(--bs-body-bg), var(--bs-body-color), var(--bs-border-color)) or a [data-bs-theme\u003d\"dark\"] override.",
+      "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e48115f8_b6e4d442",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:32:01Z",
+      "side": 1,
+      "message": "Resolved in PS5: the chrome now uses Bootstrap data-bs-theme variables with light-mode fallbacks, so the panel adapts on dark pages. Verified in the PS6 CSS.",
+      "parentUuid": "c15aa348_5c72d986",
       "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
@@ -69,6 +105,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a30cae53_516cff4a",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:32:01Z",
+      "side": 1,
+      "message": "Resolved in PS5: get_hosts() (all hosts) now backs the model map, so the retired/broken schedule no longer reads as \u0027unknown\u0027. Verified.",
+      "parentUuid": "77468472_342277e3",
+      "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fcbb09c1_dc3aa96c",
@@ -82,6 +136,24 @@
       "writtenOn": "2026-11-13T09:56:41Z",
       "side": 1,
       "message": "This writes allocation-graphic.html into the shared visual_web_dir. The heatmap index generator (tools/simple_table_web.py:46-51) rebuilds index.html from every *.html except current/next/index, so after any --regen-heatmap run the \"All Time\" page (/visual/) shows a stray \"allocation-graphic\" link; clicking it hits /visual/allocation-graphic.html, which the /\u003cwhen\u003e route serves through visuals.html, so the graphic renders under a \"Monthly Usage\" heading instead of its own /visual/graph page (verified with the test client). Consider writing to a dedicated subdir (for example visual_web_dir/graph/) read by the /graph route, so the heatmap os.listdir glob never sweeps it.",
+      "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d545f4a6_efa25a9d",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T16:32:01Z",
+      "side": 1,
+      "message": "Resolved in PS5: the graphic is written to the graph/ subdirectory, so the heatmap top-level index no longer sweeps it. (The recursive get_file_paths exposure is tracked separately in the /visual route thread.)",
+      "parentUuid": "fcbb09c1_dc3aa96c",
       "revId": "b47f58fe11cc13d7091d4d428529da73f4eb69fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
