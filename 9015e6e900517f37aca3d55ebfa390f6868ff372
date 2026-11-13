@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d718ff9_28b37b98",
+        "filename": "cron/quads",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Changed to \u002717 10 * * *\u0027 (daily 10:17 UTC) per the suggestion: off the :00 pileup and staggered from the heatmap\u0027s cadence.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e3775e6_2a9f8ac3",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Addresses dark mode: chrome colors now use Bootstrap data-bs-theme vars with light-mode fallbacks, so the panel adapts like the rest of the site.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7821b0ed_1ceecddf",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Addresses cloud color collision/drift: stable SHA1(name)-\u003eHSL mapping, so colors no longer drift between regens and there is no 10-color cap.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "252364c2_483519b8",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Addresses the retired/broken host thread: the model map is now built from get_hosts() (all hosts), so schedules of recently retired/broken hosts resolve to their real model and are counted, instead of showing as \u0027unknown\u0027.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c44590a1_9464b478",
+        "filename": "src/quads/tools/allocation_graph.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Addresses the shared visual_web_dir sweep: the graphic is written to the graph/ subdirectory, so the heatmap index generator\u0027s top-level os.listdir no longer picks it up for the All Time list.",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9fd150f_1cd8cf9b",
+        "filename": "src/quads/web/blueprints/visual.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1004250
+      },
+      "writtenOn": "2026-11-13T11:06:28Z",
+      "side": 1,
+      "message": "Reads from the dedicated graph/ subdir now, and catches OSError (covers FileNotFoundError/IsADirectoryError/PermissionError).",
+      "revId": "9015e6e900517f37aca3d55ebfa390f6868ff372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
