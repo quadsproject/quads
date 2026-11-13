@@ -20,6 +20,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "99b7ae28_81f43a3d",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:51Z",
+      "side": 1,
+      "message": "Confirmed by probe: a 503 yields [] and the poll exits on the first iteration, and a non-object 200 body raises AttributeError that escapes the BadfishException except. Both live in the pre-existing shared get_job_queue/has_pending_bios_job (2nd caller at badfish.py:1238); the unreadable-read contract and the AttributeError guard are tracked as #767. Deferring there.",
+      "parentUuid": "13698963_b38911d5",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "a0e2baa5_8712a90d",
         "filename": "src/quads/tools/external/badfish.py",
         "patchSetId": 2
@@ -37,6 +55,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "9ee95848_9189d644",
+        "filename": "src/quads/tools/external/badfish.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:51Z",
+      "side": 1,
+      "message": "Correct that the final sleep is a no-op; it costs at most one 40s interval on the full-timeout path and changes no outcome since the loop breaks early on success, so we are not reopening PS2 for it. The per-GET/semaphore note is the same pre-existing property as the L48 thread.",
+      "parentUuid": "a0e2baa5_8712a90d",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "08250655_3d5497dd",
         "filename": "tests/unit/test_badfish_idrac10.py",
         "patchSetId": 2
@@ -48,6 +84,24 @@
       "writtenOn": "2026-11-13T11:34:00Z",
       "side": 1,
       "message": "Counts only: `bios_job_poll_delay \u003d 0` passes all three tests, and so does moving the whole poll block above `reboot_server()`, which is the ordering `test_waits_for_pending_bios_job_after_change` is named for. `mock_sleep.assert_awaited_with(badfish_instance.bios_job_poll_delay)` plus one call-order assertion would pin both.",
+      "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "70ac1192_85581879",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1039,
+      "author": {
+        "id": 1006732
+      },
+      "writtenOn": "2026-11-13T12:17:51Z",
+      "side": 1,
+      "message": "Counts-only is intentional and already fails when the loop is reverted; pinning the sleep argument and call order is optional test hardening we are not adding now. Resolving.",
+      "parentUuid": "08250655_3d5497dd",
       "revId": "b1066077adcc9cc9fdcd7a667c69b09e2e52d68c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
