@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "815f0d30_54939695",
+        "filename": "tests/unit/test_badfish_idrac10.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1039965
+      },
+      "writtenOn": "2026-11-13T10:34:44Z",
+      "side": 1,
+      "message": "`clear_job_queue` is mocked but never asserted, and `create_bios_config_job` returns None, so the changed path\u0027s job-queue clear and the `get_job_status` poll are both unpinned. Removing `await self.clear_job_queue()` from `change_boot` still passes all 80 tests in this file. Non-blocking: add `clear_job_queue.assert_awaited_once()`, and optionally a case returning a job id to exercise the poll.",
+      "revId": "0fdda7d98c456a9c0bacc7f84119f69a6b4abde5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
